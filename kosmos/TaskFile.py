@@ -13,11 +13,7 @@ class TaskFile():
     Task File
     """
 
-    class Meta:
-        app_label = 'cosmos'
-        db_table = 'cosmos_taskfile'
-
-    def __init__(self, name=None, basename=None, path=None):
+    def __init__(self, name=None, basename=None, path=None, task=None):
         """
         :param name: This is the name of the file, and is used as the key for obtaining it.  No Tool an
             have multiple TaskFiles with the same name.  Defaults to ``fmt``.
@@ -26,6 +22,7 @@ class TaskFile():
         :param basename: (str) The name to use for the file for auto-generated paths.  You must explicitly
             specify the extension of the filename, if you want one i.e. 'myfile.txt' not 'myfile'
         """
+        self.task = task
 
         if path:
             if name is None:
@@ -33,15 +30,22 @@ class TaskFile():
                 name = groups[0]
 
         if basename is None:
-            basename = 'out'
+            basename = 'out.'+name
 
         self.name = name
         self.basename = basename
-        self.path = path
+        self._path = path
 
         if not re.search("^[\w\.]+$", self.name):
             raise TaskFileValidationError, 'The taskfile.name can only contain letters, numbers, and periods. Failed name is "{0}"'.format(
                 self.name)
+
+    @property
+    def path(self):
+        return self._path
+
+    def __repr__(self):
+        return self._path
 
     def delete(self):
         """

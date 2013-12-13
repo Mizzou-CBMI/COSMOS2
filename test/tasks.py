@@ -1,21 +1,21 @@
-from kosmos.Tool import Tool
+from kosmos.Task import Task
 from kosmos.TaskFile import TaskFile
 
-class Sleep(Tool):
+class Sleep(Task):
     inputs = ['*']
     forward_input = True
 
     def cmd(self,i,o,s,**kwargs):
         return 'sleep 10'
 
-class ECHO(Tool):
+class ECHO(Task):
     outputs = ['txt']
     time_req = 1 #min
     
     def cmd (self,i,o,s,word):
         return 'echo {word} > {o[txt]}'
     
-class CAT(Tool):
+class CAT(Task):
     inputs = ['txt']
     outputs = [TaskFile(name='txt',basename='cat.txt')]
     time_req = 1
@@ -25,7 +25,7 @@ class CAT(Tool):
                 'input':' '.join(map(lambda x: str(x),i['txt']))
                 }
     
-class PASTE(Tool):
+class PASTE(Task):
     inputs = ['txt']
     outputs = [TaskFile(name='txt',basename='paste.txt')]
     time_req = 1
@@ -35,7 +35,7 @@ class PASTE(Tool):
                 'input':' '.join(map(lambda x: str(x),i['txt']))
                 }
     
-class WC(Tool):
+class WC(Task):
     inputs = ['txt']
     outputs = ['txt']
     time_req = 1
@@ -47,13 +47,13 @@ class WC(Tool):
                 'input':' '.join(map(lambda x: str(x),i['txt']))
                 }
 
-class FAIL(Tool):
+class FAIL(Task):
     outputs = ['txt']
     def cmd(self,i,o,s,**kwargs):
 
         return '{o[txt]} __fail__'
 
-class MD5Sum(Tool):
+class MD5Sum(Task):
     inputs = ['*']
     outputs = ['md5']
 

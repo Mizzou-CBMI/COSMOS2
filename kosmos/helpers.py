@@ -1,5 +1,7 @@
 import sys, pprint, re, logging, itertools
-
+import subprocess as sp
+def mkdir(path):
+    sp.check_output('mkdir -p {0}'.format(path).split(' '))
 
 def groupby(iterable, fxn):
     """aggregates an iterable using a function"""

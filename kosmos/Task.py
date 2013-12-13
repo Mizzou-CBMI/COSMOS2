@@ -7,7 +7,7 @@ import os
 from .TaskFile import TaskFile
 from .helpers import parse_cmd
 from .helpers import cosmos_format
-
+opj = os.path.join
 
 i = 0
 
@@ -33,16 +33,16 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-class Tool(object):
+class Task(object):
     """
     A Tool is a class who's instances represent a command that gets executed.  It also contains properties which
     define the resources that are required.
 
     :property stage: (str) The Tool's Stage
-    :property dag: (ToolGraph) The dag that is keeping track of this Tool
+    :property dag: (TaskGraph) The dag that is keeping track of this Tool
     :property id: (int) A unique identifier.  Useful for debugging.
     :property input_files: (list) This Tool's input TaskFiles
-    :property output_files: (list) This Tool's output TaskFiles.  A tool's output taskfile names should be unique.
+    :property output_files: (list) This Tool's output TaskFiles.  A task's output taskfile names should be unique.
     :property tags: (dict) This Tool's tags.
     """
     #TODO props that cant be overridden should be private
@@ -59,26 +59,36 @@ class Tool(object):
     time_req = None #(mins)
     #: (bool) If True, these tasks do not contain commands that are executed.  Used for INPUT.  Default is False.
     NOOP = False
-    #: (bool) If True, if this tool's tasks' job attempts fail, the task will still be considered successful.  Default is False.
+    #: (bool) If True, if this task's tasks' job attempts fail, the task will still be considered successful.  Default is False.
     succeed_on_failure = False
     #: (dict) A dictionary of default parameters.  Default is {}.
     default_params = None
     #: (bool) If True, output_files described as a str in outputs will be by default be created with persist=True.
     #: If delete_interemediates is on, they will not be deleted.
     persist = False
-    #: forwards this tool's input to get_output() calls
+    #: forwards this task's input to get_output() calls
     # forward_input = False
     #: always run job as a subprocess even when DRM is not set to local
     always_local = False
 
+    @property
+    def output_profile_path(self):
+        assert self.log_dir is not None
+        return opj(self.log_dir, 'profile.json')
+
+    @property
+    def output_command_script_path(self):
+        assert self.log_dir is not None
+        return opj(self.log_dir, 'command.bash')
+
     def __init__(self, tags, stage=None, dag=None):
         """
-        :param stage: (str) The stage this tool belongs to. Required.
+        :param stage: (str) The stage this task belongs to. Required.
         :param tags: (dict) A dictionary of tags.
         :param dag: The dag this task belongs to.
-        :param parents: A list of tool instances which this tool is dependent on
+        :param parents: A list of task instances which this task is dependent on
         """
-        #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tools should have at least one tag.')
+        #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
         if not hasattr(self, 'name'): self.name = self.__class__.__name__
         if not hasattr(self, 'output_files'): self.output_files = []
         if not hasattr(self, 'settings'): self.settings = {}
@@ -86,6 +96,7 @@ class Tool(object):
         if self.inputs is None: self.inputs = []
         if self.outputs is None: self.outputs = []
         if self.default_params is None: self.default_params = {}
+        self.is_finished = False
 
         self.stage = stage
         for k, v in tags.copy().items():
@@ -103,7 +114,7 @@ class Tool(object):
             if isinstance(output, TaskFile):
                 self.add_output(output)
             elif isinstance(output, str):
-                tf = TaskFile(name=output)
+                tf = TaskFile(name=output, task=self)
                 self.add_output(tf)
             else:
                 raise ToolValidationError, "{0}.outputs must be a list of strs or Taskfile instances.".format(self)
@@ -114,21 +125,21 @@ class Tool(object):
 
         if len(self.inputs) != len(set(self.inputs)):
             raise ToolValidationError(
-                'Duplicate names in tool.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
+                'Duplicate names in task.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
 
         output_names = [o.name for o in self.output_files]
         if len(output_names) != len(set(output_names)):
             raise ToolValidationError(
-                'Duplicate names in tool.output_files detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
+                'Duplicate names in task.output_files detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
                     self))
 
     @property
     def children(self):
-        return self.dag.tool_G.successors(self)
+        return self.dag.task_G.successors(self)
 
     @property
     def parents(self):
-        return self.dag.tool_G.predecessors(self)
+        return self.dag.task_G.predecessors(self)
 
     @property
     def parent(self):
@@ -163,7 +174,7 @@ class Tool(object):
 
     @property
     def label(self):
-        "Label used for the ToolGraph image"
+        "Label used for the TaskGraph image"
         tags = '' if len(self.tags) == 0 else "\\n {0}".format(
             "\\n".join(["{0}: {1}".format(k, v) for k, v in self.tags.items()]))
         return "[{3}] {0}{1}".format(self.name, tags, self.pcmd, self.id)
@@ -171,7 +182,7 @@ class Tool(object):
     def map_inputs(self):
         """
         Default method to map inputs.  Can be overriden if a different behavior is desired
-        :returns: (dict) A dictionary of taskfiles which are inputs to this tool.  Keys are names of the taskfiles, values are a list of taskfiles.
+        :returns: (dict) A dictionary of taskfiles which are inputs to this task.  Keys are names of the taskfiles, values are a list of taskfiles.
         """
         if not self.inputs:
             return {}
@@ -194,11 +205,7 @@ class Tool(object):
             return input_dict
 
 
-    @property
-    def pcmd(self):
-        return self.process_cmd() if not self.NOOP else ''
-
-    def process_cmd(self):
+    def generate_cmd(self):
         """
         Calls map_inputs() and processes the output of cmd()
         """
@@ -209,12 +216,13 @@ class Tool(object):
             if k in argspec.args:
                 p[k] = v
 
+        ## Validation
         # Helpful error message
         if not argspec.keywords: #keywords is the **kwargs name or None if not specified
             for k in p.keys():
                 if k not in argspec.args:
                     raise ToolValidationError, '{0} received the parameter "{1}" which is not defined in it\'s signature.  Parameters are {2}.  Accept the parameter **kwargs in cmd() to generalize the parameters accepted.'.format(
-                        self, k, tool_parameter_names)
+                        self, k, task_parameter_names)
 
         for l in ['i', 'o', 's']:
             if l in p.keys():
@@ -262,11 +270,20 @@ class Tool(object):
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
 
+
+    def configure(self, settings={}, parameters={}):
+        """
+        """
+        self.parameters = parameters
+        self.settings = settings
+        return self
+
+
     def __str__(self):
         return '<{0} {1}>'.format(self.__class__.__name__, self.tags)
 
 
-class INPUT(Tool):
+class INPUT(Task):
     """
     An Input File.
 
@@ -289,7 +306,7 @@ class INPUT(Tool):
         """
         path = os.path.abspath(path)
         super(INPUT, self).__init__(tags=tags, *args, **kwargs)
-        self.add_output(TaskFile(path=path, name=name, fmt=fmt, persist=True))
+        self.add_output(TaskFile(path=path, name=name, task=self))
 
     def __str__(self):
         return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)
