@@ -8,14 +8,6 @@ from .Task import Task, INPUT
 from .helpers import validate_name
 from .JobManager import JobManager
 
-def all_nodes_finished(graph):
-    return all(map(lambda s: s.is_finished, graph.nodes()))
-
-def copy_graph(graph):
-    graph2 = nx.DiGraph()
-    graph2.add_edges_from(graph.edges())
-    graph2.add_nodes_from(graph.nodes())
-    return graph2
 
 
 class Relationship(object):
@@ -54,56 +46,6 @@ class one2many(Relationship):
         super(Relationship, self).__init__(*args, **kwargs)
 
 
-class Runner(object):
-
-    def run_ready_tasks(self, taskgraph):
-        task_queue = copy_graph(taskgraph.task_G)
-        is_finished = filter(lambda t: t.is_finished, taskgraph.task_G.nodes())
-        task_queue.remove_nodes_from(is_finished)
-
-        for ready_task in map(lambda x: x[0], filter(lambda x: x[1] == 0, task_queue.in_degree().items())):
-            ready_task.configure(self.settings, self.parameters)
-            ready_task.output_dir = self.get_output_dir(ready_task)
-
-            ## render taskfile paths
-            for f in ready_task.output_files:
-                if f.path is None:
-                    f._path = os.path.join(ready_task.output_dir, f.basename)
-            ##
-            ready_task.log_dir = self.get_log_dir(ready_task)
-
-            self.get_output_dir
-            self.job_manager.submit(ready_task, )
-
-
-    def run(self, taskgraph, get_output_dir, get_log_dir, settings={}, parameters={}):
-        self.settings = {}
-        self.parameters = {}
-        self.get_output_dir = get_output_dir
-        self.get_log_dir = get_log_dir
-        stage_queue = copy_graph(taskgraph.stage_G)
-        self.job_manager = JobManager()
-
-        i=0
-        while True:
-            i+=1
-            for ready_stage in map(lambda x: x[0], filter(lambda x: x[1] == 0, stage_queue.in_degree().items())):
-                print '%s is ready' % ready_stage
-                taskgraph.resolve_stage(ready_stage)
-                self.run_ready_tasks(taskgraph)
-                stage_queue.remove_node(ready_stage)
-
-            for task in self.job_manager.yield_finished_job():
-                task.is_finished = True
-                print '%s finished' % task
-
-
-            if i>10:
-                break
-
-            if len(stage_queue) == 0 and all_nodes_finished(taskgraph.task_G):
-                break
-
 
 
 class TaskGraph(object):
@@ -126,7 +68,7 @@ class TaskGraph(object):
         assert len(tags) == len(
             set(tags)), 'Duplicate inputs tags detected for {0}.  Tags within a stage must be unique.'.format(INPUT)
 
-        stage = ToolStage(task=type(tasks[0]), tasks=tasks, parents=[], rel=None, name=name, is_source=True)
+        stage = Stage(task=type(tasks[0]), tasks=tasks, parents=[], rel=None, name=name, is_source=True)
         for task in stage.tasks:
             task.stage = stage
 
@@ -144,7 +86,7 @@ class TaskGraph(object):
                 name = task.name
             else:
                 name = task.__name__
-        stage = ToolStage(name, task, parents, rel, extra_tags)
+        stage = Stage(name, task, parents, rel, extra_tags)
 
         assert stage.name not in [n.name for n in self.stage_G.nodes()], 'Duplicate stage names detected: {0}'.format(
             stage.name)
@@ -273,43 +215,6 @@ class TaskGraph(object):
         """
         self.add_to_workflow(workflow)
         workflow.run_ready_tasks(finish=finish)
-
-class ToolStage():
-    def __init__(self, name, task=None, parents=None, rel=None, extra_tags=None, tasks=None, is_source=False):
-        if parents is None:
-            parents = []
-        if tasks is None:
-            tasks = []
-        if tasks and task and not is_source:
-            raise TypeError, 'cannot initialize with both a `task` and `tasks` unless `is_source`=True'
-        if extra_tags is None:
-            extra_tags = {}
-        if rel == one2one or rel is None:
-            rel = one2one()
-
-        assert issubclass(task, Task), '`task` must be a subclass of `Tool`'
-        # assert rel is None or isinstance(rel, Relationship), '`rel` must be of type `Relationship`'
-
-        self.task = task
-        self.tasks = tasks
-        self.parents = validate_is_type_or_list(parents, ToolStage)
-        self.rel = rel
-        self.is_source = is_source
-
-        self.extra_tags = extra_tags
-        self.name = name
-        self.is_finished = False
-
-        validate_name(self.name, 'name')
-
-
-    @property
-    def label(self):
-        return '{0} (x{1})'.format(self.name, len(self.tasks))
-
-    def __str__(self):
-        return '<Stage {0}>'.format(self.name)
-
 
 class DAGError(Exception): pass
 class StageNameCollision(Exception): pass

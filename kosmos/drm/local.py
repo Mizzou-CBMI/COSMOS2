@@ -9,54 +9,53 @@ class DRM_Local():
     Note there can only be one of these instantiated at a time
     """
 
-    def __init__(self, workflow, jobmanager):
+    def __init__(self, jobmanager):
         self.jobmanager = jobmanager
 
-    def submit_job(self, jobAttempt):
-        p = Popen(self.jobmanager._create_cmd_str(jobAttempt).split(' '),
-                  stdout=open(jobAttempt.STDOUT_filepath, 'w'),
-                  stderr=open(jobAttempt.STDERR_filepath, 'w'),
+    def submit_job(self, task):
+        p = Popen(self.jobmanager.get_command_str(task).split(' '),
+                  stdout=open(task.output_stderr_path, 'w'),
+                  stderr=open(task.output_stdout_path, 'w'),
                   preexec_fn=preexec_function()
                   )
-        jobAttempt.drmaa_jobID = p.pid
-        jobAttempt.save()
+        task.drmaa_jobID = p.pid
 
-    def poll(self,jobAttempt):
+    def poll(self,task):
         try:
-            p = psutil.Process(jobAttempt.drmaa_jobID)
+            p = psutil.Process(task.drmaa_jobID)
             exit_code = p.wait(timeout=0)
             return exit_code
         except psutil.TimeoutExpired:
             pass
         except psutil.NoSuchProcess:
-            profile_output = json.load(open(jobAttempt.profile_output_path, 'r'))
+            profile_output = json.load(open(task.output_profile_path, 'r'))
             exit_code = profile_output['exit_status']
             return exit_code
 
         return None
 
     @property
-    def jobAttempts(self):
-        return self.workflow.jobAttempts
+    def tasks(self):
+        return self.workflow.tasks
 
-    def status(self, jobAttempt):
+    def status(self, task):
         """
         Queries the DRM for the status of the job
         """
-        if jobAttempt.queue_status == 'queued':
+        if task.queue_status == 'queued':
             return 'job is running'
-        if jobAttempt.queue_status == 'completed':
-            if jobAttempt.exit_status == 0:
+        if task.queue_status == 'completed':
+            if task.exit_status == 0:
                 return 'job finished normally'
             else:
                 return 'job finished, but failed'
         return 'has not been queued'
 
 
-    def terminate(self, jobAttempt):
-        "Terminates a jobAttempt"
+    def terminate(self, task):
+        "Terminates a task"
         try:
-            psutil.Process(jobAttempt.drmaa_jobID).kill()
+            psutil.Process(task.drmaa_jobID).kill()
         except psutil.NoSuchProcess:
             pass
 

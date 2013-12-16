@@ -33,6 +33,12 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
+from .signals import task_finished
+def rcv_task_finished(task):
+    task.is_finished = True
+
+task_finished.connect(rcv_task_finished)
+
 class Task(object):
     """
     A Tool is a class who's instances represent a command that gets executed.  It also contains properties which
@@ -70,6 +76,8 @@ class Task(object):
     # forward_input = False
     #: always run job as a subprocess even when DRM is not set to local
     always_local = False
+    log_dir = None
+    output_dir = None
 
     @property
     def output_profile_path(self):
@@ -80,6 +88,17 @@ class Task(object):
     def output_command_script_path(self):
         assert self.log_dir is not None
         return opj(self.log_dir, 'command.bash')
+
+    @property
+    def output_stderr_path(self):
+        assert self.log_dir is not None
+        return opj(self.log_dir, 'stderr.txt')
+
+    @property
+    def output_stdout_path(self):
+        assert self.log_dir is not None
+        return opj(self.log_dir, 'stdout.txt')
+
 
     def __init__(self, tags, stage=None, dag=None):
         """
