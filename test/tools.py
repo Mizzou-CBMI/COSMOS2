@@ -1,5 +1,5 @@
-from kosmos.Task import Task
-from kosmos.TaskFile import TaskFile
+from kosmos.models import Task, TaskFile
+
 
 class Sleep(Task):
     inputs = ['*']

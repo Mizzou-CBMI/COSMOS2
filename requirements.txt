@@ -1,0 +1,4 @@
+blinker
+networkx
+pygraphviz
+psutil

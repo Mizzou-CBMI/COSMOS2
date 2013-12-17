@@ -4,9 +4,10 @@ from inspect import getargspec, getcallargs
 import os
 
 #cosmos_format
-from .TaskFile import TaskFile
-from .helpers import parse_cmd
-from .helpers import cosmos_format
+from ..helpers import parse_cmd
+from ..helpers import cosmos_format
+from kosmos.models import TaskFile
+
 opj = os.path.join
 
 i = 0
@@ -67,8 +68,6 @@ class Task(object):
     NOOP = False
     #: (bool) If True, if this task's tasks' job attempts fail, the task will still be considered successful.  Default is False.
     succeed_on_failure = False
-    #: (dict) A dictionary of default parameters.  Default is {}.
-    default_params = None
     #: (bool) If True, output_files described as a str in outputs will be by default be created with persist=True.
     #: If delete_interemediates is on, they will not be deleted.
     persist = False
@@ -114,7 +113,6 @@ class Task(object):
         if not hasattr(self, 'parameters'): self.parameters = {}
         if self.inputs is None: self.inputs = []
         if self.outputs is None: self.outputs = []
-        if self.default_params is None: self.default_params = {}
         self.is_finished = False
 
         self.stage = stage
@@ -276,7 +274,7 @@ class Task(object):
         return cmd_str, format_dict
 
 
-    def cmd(self, i, s, p):
+    def cmd(self, i, s, o, p):
         """
         Constructs the preformatted command string.  The string will be .format()ed with the i,s,p dictionaries,
         and later, $OUT.outname  will be replaced with a TaskFile associated with the output name `outname`
