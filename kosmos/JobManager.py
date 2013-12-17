@@ -19,19 +19,23 @@ class JobManager(object):
         mkdir(task.log_dir)
         self.create_command_sh(task)
 
-        self.running_tasks.append(task)
         task.status='submitted'
+        print '%s submitted' % task
+
         self.drm.submit_job(task)
 
     def wait_for_a_job_to_finish(self):
         while True:
             for task in self.running_tasks:
-                r = self.drm.poll(task)
-                if r is not None:
+                if task.NOOP:
                     self.running_tasks.remove(task)
                     return task
+                else:
+                    r = self.drm.poll(task)
+                    if r is not None:
+                        self.running_tasks.remove(task)
+                        return task
             time.sleep(.1)
-
 
     def create_command_sh(self, task):
         """Create a sh script that will execute a command"""
