@@ -2,8 +2,8 @@ import os
 
 import networkx as nx
 
-from kosmos.drm import JobManager
-from .signals import task_finished
+from .JobManager import JobManager
+from ..signals import task_finished
 
 
 def _copy_graph(graph):
@@ -29,7 +29,8 @@ def _run_ready_tasks(task_queue, job_manager, get_output_dir, get_log_dir, setti
 
         ready_task.log_dir = get_log_dir(ready_task)
 
-        get_output_dir
+        ready_task.output_profile_path
+
         job_manager.submit(ready_task)
         task_queue.remove_node(ready_task)
 
@@ -39,7 +40,7 @@ def run(taskgraph, get_output_dir, get_log_dir, settings={}, parameters={}):
 
     for stage in nx.topological_sort(taskgraph.stage_G):
         print '%s is ready' % stage
-        taskgraph.resolve_stage(stage)
+        taskgraph._resolve_stage(stage)
 
     task_queue = _copy_graph(taskgraph.task_G)
     is_finished = filter(lambda t: t.is_finished, taskgraph.task_G.nodes())

@@ -2,11 +2,10 @@ import itertools as it
 import copy
 from inspect import getargspec, getcallargs
 import os
+import json
 
-#cosmos_format
-from ..helpers import parse_cmd
-from ..helpers import cosmos_format
-from kosmos.models import TaskFile
+from ..helpers import parse_cmd, cosmos_format
+from .TaskFile import TaskFile
 
 opj = os.path.join
 
@@ -23,22 +22,19 @@ files = []
 
 
 class ExpectedError(Exception): pass
-
-
 class ToolError(Exception): pass
-
-
 class ToolValidationError(Exception): pass
-
-
 class GetOutputError(Exception): pass
 
+from ..signals import task_finished
 
-from .signals import task_finished
+
 def rcv_task_finished(task):
     task.is_finished = True
 
+
 task_finished.connect(rcv_task_finished)
+
 
 class Task(object):
     """
@@ -54,10 +50,6 @@ class Task(object):
     """
     #TODO props that cant be overridden should be private
 
-    #: (list of strs) a list of input names.
-    inputs = None
-    #: (list of strs or TaskFiles) a list of output names. Default is [].
-    outputs = None
     #: (int) Number of megabytes of memory to request.  Default is 1024.
     mem_req = 1 * 1024
     #: (int) Number of cores to request.  Default is 1.
@@ -107,19 +99,17 @@ class Task(object):
         :param parents: A list of task instances which this task is dependent on
         """
         #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
+        self.output_files = []
+        self.settings = {}
+        self.parameters = {}
         if not hasattr(self, 'name'): self.name = self.__class__.__name__
-        if not hasattr(self, 'output_files'): self.output_files = []
-        if not hasattr(self, 'settings'): self.settings = {}
-        if not hasattr(self, 'parameters'): self.parameters = {}
-        if self.inputs is None: self.inputs = []
-        if self.outputs is None: self.outputs = []
+        if not hasattr(self, 'inputs'): self.inputs = []
+        if not hasattr(self, 'outputs'): self.outputs = []
         self.is_finished = False
 
         self.stage = stage
-        for k, v in tags.copy().items():
-            tags[k] = str(v)
-        self.tags = tags
         self.dag = dag
+        self.tags = {k: str(v) for k, v in tags.copy().items()}
 
         # Because defining attributes in python creates a reference to a single instance across all class instance
         # any taskfile instances in self.outputs is used as a template for instantiating a new class
@@ -129,10 +119,10 @@ class Task(object):
         # Create empty output TaskFiles
         for output in self.outputs:
             if isinstance(output, TaskFile):
-                self.add_output(output)
+                self.output_files.append(output)
             elif isinstance(output, str):
                 tf = TaskFile(name=output, task=self)
-                self.add_output(tf)
+                self.output_files.append(tf)
             else:
                 raise ToolValidationError, "{0}.outputs must be a list of strs or Taskfile instances.".format(self)
 
@@ -160,13 +150,12 @@ class Task(object):
 
     @property
     def parent(self):
-        ps = self.parents
-        if len(ps) > 1:
+        if len(self.parents) > 1:
             raise ToolError('{0} has more than one parent.  The parents are: {1}'.format(self, self.parents))
-        elif len(ps) == 0:
+        elif len(self.parents) == 0:
             raise ToolError('{0} has no parents'.format(self))
         else:
-            return ps[0]
+            return self.parents[0]
 
     def get_output(self, name, error_if_missing=True):
         for o in self.output_files:
@@ -176,18 +165,17 @@ class Task(object):
         if error_if_missing:
             raise ToolError, 'Output named `{0}` does not exist in {1}'.format(name, self)
 
-    def add_output(self, taskfile):
-        """
-        Adds an taskfile to self.output_files
-        
-        :param taskfile: an instance of a TaskFile
-        """
-        self.output_files.append(taskfile)
-
     @property
     def input_files(self):
         "A list of input TaskFiles"
         return list(it.chain(*[tf for tf in self.map_inputs().values()]))
+
+    def get_profile_output(self):
+        if not os.path.exists(self.output_profile_path):
+            return {}
+        else:
+            with open(self.output_profile_path, 'r') as fh:
+                return json.load(fh)
 
     @property
     def label(self):
@@ -239,7 +227,7 @@ class Task(object):
             for k in p.keys():
                 if k not in argspec.args:
                     raise ToolValidationError, '{0} received the parameter "{1}" which is not defined in it\'s signature.  Parameters are {2}.  Accept the parameter **kwargs in cmd() to generalize the parameters accepted.'.format(
-                        self, k, task_parameter_names)
+                        self, k, argspec.args)
 
         for l in ['i', 'o', 's']:
             if l in p.keys():
@@ -261,17 +249,7 @@ class Task(object):
         #format() return string with callargs
         callargs['self'] = self
         callargs.update(extra_format_dict)
-        return parse_cmd(cosmos_format(*self.post_cmd(pcmd, callargs)))
-
-    def post_cmd(self, cmd_str, format_dict):
-        """
-        Provides an opportunity to make any last minute changes to the cmd generated.
-
-        :param cmd_str: (str) the string returned by cmd
-        :param format_dict: (str) the dictionary that cmd was about to be .format()ed with
-        :returns: (str,dict) the post_processed cmd_str and format_dict
-        """
-        return cmd_str, format_dict
+        return parse_cmd(cosmos_format(pcmd, callargs))
 
 
     def cmd(self, i, s, o, p):
@@ -323,7 +301,7 @@ class INPUT(Task):
         """
         path = os.path.abspath(path)
         super(INPUT, self).__init__(tags=tags, *args, **kwargs)
-        self.add_output(TaskFile(path=path, name=name, task=self))
+        self.output_files.append(TaskFile(path=path, name=name, task=self))
 
     def __str__(self):
         return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)

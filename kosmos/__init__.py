@@ -5,6 +5,6 @@ settings = dict(
 
 from models.TaskFile import TaskFile
 from models.Task import Task, INPUT
-from rel import one2many, one2one, many2many, many2one
+from kosmos.models.rel import one2many, one2one, many2many, many2one
 from models.TaskGraph import TaskGraph, Stage
 from kosmos.drm.runner import run

@@ -2,10 +2,9 @@ import re
 import networkx as nx
 
 from ..helpers import groupby
-from ..models.Task import INPUT
-from ..rel import one2many, many2one, one2one
-from kosmos.models import Task
-
+from .Task import INPUT
+from .rel import one2many, many2one, one2one
+from .Stage import Stage
 
 class TaskGraph(object):
     """
@@ -16,7 +15,7 @@ class TaskGraph(object):
         self.task_G = nx.DiGraph()
         self.stage_G = nx.DiGraph()
 
-    def source(self, tasks, name=None):
+    def add_source(self, tasks, name=None):
         assert isinstance(tasks, list), 'tasks must be a list'
         assert len(tasks) > 0, '`tasks` cannot be empty'
         if name is None:
@@ -25,7 +24,7 @@ class TaskGraph(object):
         assert len(tags) == len(
             set(tags)), 'Duplicate inputs tags detected for {0}.  Tags within a stage must be unique.'.format(INPUT)
 
-        stage = Stage(task=type(tasks[0]), tasks=tasks, parents=[], rel=None, name=name, is_source=True)
+        stage = Stage(task_class=type(tasks[0]), tasks=tasks, parents=[], rel=None, name=name, is_source=True)
         for task in stage.tasks:
             task.stage = stage
 
@@ -34,16 +33,16 @@ class TaskGraph(object):
         return stage
 
 
-    def stage(self, task, parents, rel=one2one, name=None, extra_tags=None):
+    def add_stage(self, task_class, parents, rel=one2one, name=None, extra_tags=None):
         """
         Creates a Stage in this TaskGraph
         """
         if name is None:
-            if hasattr(task, 'name'):
-                name = task.name
+            if hasattr(task_class, 'name'):
+                name = task_class.name
             else:
-                name = task.__name__
-        stage = Stage(name, task, parents, rel, extra_tags)
+                name = task_class.__name__
+        stage = Stage(name, task_class, parents, rel, extra_tags)
 
         assert stage.name not in [n.name for n in self.stage_G.nodes()], 'Duplicate stage names detected: {0}'.format(
             stage.name)
@@ -65,7 +64,7 @@ class TaskGraph(object):
         for p in parents:
             self.task_G.add_edge(p, new_task)
 
-    def resolve_stage(self, stage):
+    def _resolve_stage(self, stage):
         if not stage.resolved:
             if stage.is_source:
                 #stage.tasks is already set
@@ -123,56 +122,6 @@ class TaskGraph(object):
         dag.layout(prog="dot")
         return dag.draw(path=save_to, format='svg')
 
-
-    def add_run(self, workflow, finish=True):
-        """
-        Shortcut to add to workflow and then run the workflow
-        :param workflow: the workflow this dag will be added to
-        :param finish: pass to workflow.run()
-        """
-        self.add_to_workflow(workflow)
-        workflow.run_ready_tasks(finish=finish)
-
 class DAGError(Exception): pass
 class StageNameCollision(Exception): pass
 class FlowFxnValidationError(Exception): pass
-
-from .helpers import validate_name, validate_is_type_or_list
-
-class Stage():
-    def __init__(self, name, task=None, parents=None, rel=None, extra_tags=None, tasks=None, is_source=False):
-        if parents is None:
-            parents = []
-        if tasks is None:
-            tasks = []
-        if tasks and task and not is_source:
-            raise TypeError, 'cannot initialize with both a `task` and `tasks` unless `is_source`=True'
-        if extra_tags is None:
-            extra_tags = {}
-        if rel == one2one or rel is None:
-            rel = one2one()
-
-        assert issubclass(task, Task), '`task` must be a subclass of `Task`'
-        # assert rel is None or isinstance(rel, Relationship), '`rel` must be of type `Relationship`'
-
-        self.task = task
-        self.tasks = tasks
-        self.parents = validate_is_type_or_list(parents, Stage)
-        self.rel = rel
-        self.is_source = is_source
-        self.resolved = False
-
-        self.extra_tags = extra_tags
-        self.name = name
-        self.is_finished = False
-
-        validate_name(self.name, 'name')
-
-
-    @property
-    def label(self):
-        return '{0} (x{1})'.format(self.name, len(self.tasks))
-
-    def __str__(self):
-        return '<Stage {0}>'.format(self.name)
-

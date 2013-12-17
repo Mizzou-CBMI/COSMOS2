@@ -1,8 +1,9 @@
 import os
 
 opj = os.path.join
-from .helpers import mkdir
-from kosmos.drm import DRM_Local
+from ..helpers import mkdir
+from .local import DRM_Local
+from .. import settings
 import time
 
 
@@ -45,7 +46,6 @@ class JobManager(object):
         os.system('chmod 700 {0}'.format(task.output_command_script_path))
 
     def get_command_str(self,task):
-        from . import settings
         "The command to be stored in the command.sh script"
         return "python {profile} -f {profile_out} {command_script_path}".format(
             profile = os.path.join(settings['library_path'],'profile/profile.py'),

@@ -1,11 +1,11 @@
-from kosmos.models import Task, TaskFile
+from kosmos import Task, TaskFile
 
 
 class Sleep(Task):
     inputs = ['*']
     forward_input = True
 
-    def cmd(self,i,o,s,**kwargs):
+    def cmd(self,i,o,s):
         return 'sleep 10'
 
 class ECHO(Task):
