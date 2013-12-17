@@ -1,11 +1,9 @@
-import os
-
 from tools import ECHO, CAT
 from kosmos import run, one2many, TaskGraph
-
+import os
 opj = os.path.join
-import ipdb
 
+import ipdb
 with ipdb.launch_ipdb_on_exception():
     g = TaskGraph()
     echo = g.source([ECHO(tags={'word': 'hello'}), ECHO(tags={'word': 'world'})])
