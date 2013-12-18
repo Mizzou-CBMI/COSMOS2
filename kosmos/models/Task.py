@@ -69,6 +69,7 @@ class Task(object):
     always_local = False
     log_dir = None
     output_dir = None
+    _cache_profile = None
 
     @property
     def output_profile_path(self):
@@ -90,6 +91,9 @@ class Task(object):
         assert self.log_dir is not None
         return opj(self.log_dir, 'stdout.txt')
 
+    @property
+    def successful(self):
+        return self.profile.get('exit_status', None) == 0
 
     def __init__(self, tags, stage=None, dag=None):
         """
@@ -170,12 +174,15 @@ class Task(object):
         "A list of input TaskFiles"
         return list(it.chain(*[tf for tf in self.map_inputs().values()]))
 
-    def get_profile_output(self):
-        if not os.path.exists(self.output_profile_path):
-            return {}
-        else:
-            with open(self.output_profile_path, 'r') as fh:
-                return json.load(fh)
+    @property
+    def profile(self):
+        if self._cache_profile is None:
+            if not os.path.exists(self.output_profile_path):
+                return {}
+            else:
+                with open(self.output_profile_path, 'r') as fh:
+                    self._cache_profile = json.load(fh)
+        return self._cache_profile
 
     @property
     def label(self):

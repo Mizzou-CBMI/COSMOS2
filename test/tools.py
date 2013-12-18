@@ -1,4 +1,4 @@
-from kosmos import Task, TaskFile
+from kosmos.models.Task import Task, TaskFile
 
 
 class Sleep(Task):

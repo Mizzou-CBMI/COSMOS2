@@ -34,10 +34,6 @@ class DRM_Local():
 
         return None
 
-    @property
-    def tasks(self):
-        return self.workflow.tasks
-
     def status(self, task):
         """
         Queries the DRM for the status of the job

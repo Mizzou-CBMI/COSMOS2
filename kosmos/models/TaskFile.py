@@ -2,11 +2,7 @@ import re
 import shutil
 
 class TaskFileValidationError(Exception): pass
-
-
 class TaskFileError(Exception): pass
-
-
 
 class TaskFile():
     """

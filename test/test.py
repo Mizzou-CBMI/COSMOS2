@@ -1,15 +1,13 @@
 import os
-
 from tools import ECHO, CAT
-from kosmos import run, one2many, TaskGraph
-
-opj = os.path.join
+from kosmos import run, rel, TaskGraph
 import ipdb
+opj = os.path.join
 
 with ipdb.launch_ipdb_on_exception():
     g = TaskGraph()
     echo = g.add_source([ECHO(tags={'word': 'hello'}), ECHO(tags={'word': 'world'})])
-    cat = g.add_stage(CAT, parents=[echo], rel=one2many([('n', [1, 2])]))
+    cat = g.add_stage(CAT, parents=[echo], rel=rel.one2many([('n', [1, 2])]))
 
     run(g, lambda x: '/tmp', lambda t: os.path.join(t.output_dir, 'log', t.stage.name, t.tags['word']))
 

@@ -3,7 +3,7 @@ import networkx as nx
 
 from ..helpers import groupby
 from .Task import INPUT
-from .rel import one2many, many2one, one2one
+from . import rel
 from .Stage import Stage
 
 class TaskGraph(object):
@@ -33,7 +33,7 @@ class TaskGraph(object):
         return stage
 
 
-    def add_stage(self, task_class, parents, rel=one2one, name=None, extra_tags=None):
+    def add_stage(self, task_class, parents, rel=rel.one2one, name=None, extra_tags=None):
         """
         Creates a Stage in this TaskGraph
         """
@@ -97,17 +97,15 @@ class TaskGraph(object):
         dag = pgv.AGraph(strict=False, directed=True, fontname="Courier", fontsize=11)
         dag.node_attr['fontname'] = "Courier"
         dag.node_attr['fontsize'] = 8
-        dag.graph_attr['fontsize'] = 8
         dag.edge_attr['fontcolor'] = '#586e75'
-        #dag.node_attr['fontcolor']='#586e75'
         dag.graph_attr['bgcolor'] = '#fdf6e3'
 
         if resolution == 'stage':
             dag.add_nodes_from([n.label for n in self.stage_G.nodes()])
             for u, v, attr in self.stage_G.edges(data=True):
-                if isinstance(v.rel, many2one):
+                if isinstance(v.rel, rel.many2one):
                     dag.add_edge(u.label, v.label, label=v.rel, style='dotted', arrowhead='odiamond')
-                elif isinstance(v.rel, one2many):
+                elif isinstance(v.rel, rel.one2many):
                     dag.add_edge(u.label, v.label, label=v.rel, style='dashed', arrowhead='crow')
                 else:
                     dag.add_edge(u.label, v.label, label=v.rel, arrowhead='vee')
