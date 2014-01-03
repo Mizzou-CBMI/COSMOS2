@@ -29,6 +29,11 @@ class JobManager(object):
             self.drm.submit_job(task)
 
     def wait_for_a_job_to_finish(self):
+        """
+        :returns: A completed task, or None if there are no tasks to wait for
+        """
+        if len(self.running_tasks) == 0:
+            return None
         while True:
             for task in self.running_tasks:
                 if task.NOOP or task.status == 'already_successful':

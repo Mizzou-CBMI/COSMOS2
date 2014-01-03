@@ -1,8 +1,15 @@
 from ..helpers import validate_name, validate_is_type_or_list
 from . import rel as _rel
 from .Task import Task
+from ..db import Base
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 
-class Stage():
+class Stage(Base):
+    __tablename__ = 'stage'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+
     def __init__(self, name, task_class=None, parents=None, rel=None, extra_tags=None, tasks=None, is_source=False):
         if parents is None:
             parents = []
@@ -12,8 +19,8 @@ class Stage():
             raise TypeError, 'cannot initialize with both a `task` and `tasks` unless `is_source`=True'
         if extra_tags is None:
             extra_tags = {}
-        if rel == _rel.one2one or rel is None:
-            rel = _rel.one2one()
+        if rel == _rel.One2one or rel is None:
+            rel = _rel.One2one()
 
         assert issubclass(task_class, Task), '`task` must be a subclass of `Task`'
         # assert rel is None or isinstance(rel, Relationship), '`rel` must be of type `Relationship`'

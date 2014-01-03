@@ -1,68 +1,23 @@
 import re
-import networkx as nx
 
 from ..helpers import groupby
-from .Task import INPUT
-from . import rel
-from .Stage import Stage
+import networkx as nx
 
 class TaskGraph(object):
     """
     A Representation of a workflow as a :class:`TaskGraph` of jobs.
     """
 
-    def __init__(self):
+    def __init__(self, recipe=None):
         self.task_G = nx.DiGraph()
-        self.stage_G = nx.DiGraph()
+        self.stages = []
+        if recipe:
+            self.resolve(recipe)
 
-    def add_source(self, tasks, name=None):
-        assert isinstance(tasks, list), 'tasks must be a list'
-        assert len(tasks) > 0, '`tasks` cannot be empty'
-        if name is None:
-            name = tasks[0].name
-        tags = [tuple(t.tags.items()) for t in tasks]
-        assert len(tags) == len(
-            set(tags)), 'Duplicate inputs tags detected for {0}.  Tags within a stage must be unique.'.format(INPUT)
-
-        stage = Stage(task_class=type(tasks[0]), tasks=tasks, parents=[], rel=None, name=name, is_source=True)
-        for task in stage.tasks:
-            task.stage = stage
-
-        self.stage_G.add_node(stage)
-
-        return stage
-
-
-    def add_stage(self, task_class, parents, rel=rel.one2one, name=None, extra_tags=None):
-        """
-        Creates a Stage in this TaskGraph
-        """
-        if name is None:
-            if hasattr(task_class, 'name'):
-                name = task_class.name
-            else:
-                name = task_class.__name__
-        stage = Stage(name, task_class, parents, rel, extra_tags)
-
-        assert stage.name not in [n.name for n in self.stage_G.nodes()], 'Duplicate stage names detected: {0}'.format(
-            stage.name)
-
-        self.stage_G.add_node(stage)
-        for parent in stage.parents:
-            self.stage_G.add_edge(parent, stage)
-
-        return stage
-
-    def _add_task_to_task_G(self, new_task, parents=None):
-        if parents is None:
-            parents = []
-        assert new_task.tags not in [t.tags for t in self.task_G.nodes() if
-                                     t.stage == new_task.stage], 'Duplicate set of tags detected in {0}'.format(
-            new_task.stage)
-
-        self.task_G.add_node(new_task)
-        for p in parents:
-            self.task_G.add_edge(p, new_task)
+    def resolve(self,recipe):
+        for stage in nx.topological_sort(recipe.stage_G):
+            self.stages.append(stage)
+            self._resolve_stage(stage)
 
     def _resolve_stage(self, stage):
         if not stage.resolved:
@@ -81,12 +36,22 @@ class TaskGraph(object):
         for task in self.task_G:
             for key in task.tags:
                 if not re.match('\w', key):
-                    raise ValueError(
-                        "{0}.{1}'s tag's keys are not alphanumeric: {3}".format(stage, task, task.tags))
+                    raise ValueError("{0}.{1}'s tag's keys are not alphanumeric: {3}".format(stage, task, task.tags))
+
+    def _add_task_to_task_G(self, new_task, parents=None):
+        if parents is None:
+            parents = []
+        assert new_task.tags not in [t.tags for t in self.task_G.nodes() if
+                                     t.stage == new_task.stage], 'Duplicate set of tags detected in {0}'.format(
+            new_task.stage)
+
+        self.task_G.add_node(new_task)
+        for p in parents:
+            self.task_G.add_edge(p, new_task)
 
         return self
 
-    def as_image(self, resolution='stage', save_to=None):
+    def save_image(self, save_to=None):
         """
         Writes the :class:`TaskGraph` as an image.
         gat
@@ -100,22 +65,10 @@ class TaskGraph(object):
         dag.edge_attr['fontcolor'] = '#586e75'
         dag.graph_attr['bgcolor'] = '#fdf6e3'
 
-        if resolution == 'stage':
-            dag.add_nodes_from([n.label for n in self.stage_G.nodes()])
-            for u, v, attr in self.stage_G.edges(data=True):
-                if isinstance(v.rel, rel.many2one):
-                    dag.add_edge(u.label, v.label, label=v.rel, style='dotted', arrowhead='odiamond')
-                elif isinstance(v.rel, rel.one2many):
-                    dag.add_edge(u.label, v.label, label=v.rel, style='dashed', arrowhead='crow')
-                else:
-                    dag.add_edge(u.label, v.label, label=v.rel, arrowhead='vee')
-        elif resolution == 'task':
-            dag.add_nodes_from(self.task_G.nodes())
-            dag.add_edges_from(self.task_G.edges())
-            for stage, tasks in groupby(self.task_G.nodes(), lambda x: x.stage):
-                sg = dag.add_subgraph(name="cluster_{0}".format(stage), label=stage.label, color='lightgrey')
-        else:
-            raise TypeError, '`resolution` must be `stage` or `task'
+        dag.add_nodes_from(self.task_G.nodes())
+        dag.add_edges_from(self.task_G.edges())
+        for stage, tasks in groupby(self.task_G.nodes(), lambda x: x.stage):
+            sg = dag.add_subgraph(name="cluster_{0}".format(stage), label=stage.label, color='lightgrey')
 
         dag.layout(prog="dot")
         return dag.draw(path=save_to, format='svg')

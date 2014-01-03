@@ -4,7 +4,7 @@ from inspect import getargspec, getcallargs
 import os
 import json
 
-from ..helpers import parse_cmd, cosmos_format
+from ..helpers import parse_cmd, cosmos_format, groupby
 from .TaskFile import TaskFile
 
 opj = os.path.join
@@ -208,7 +208,7 @@ class Task(object):
                                  self.inputs])
 
             input_dict = dict(
-                (name, list(input_files)) for name, input_files in it.groupby(all_inputs, lambda i: i.name))
+                (name, list(input_files)) for name, input_files in groupby(all_inputs, lambda i: i.name))
 
             for k in self.inputs:
                 if k not in input_dict or len(input_dict[k]) == 0:

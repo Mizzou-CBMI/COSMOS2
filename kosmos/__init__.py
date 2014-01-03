@@ -1,22 +1,20 @@
 import os
-settings = dict(
-    library_path=os.path.dirname(__file__)
-)
-# from .utils import apipkg
-#
-# apipkg.initpkg(__name__, dict(
-#     Task='.models.Task:Task',
-#     TaskFile='.models.TaskFile:TaskFile',
-#     INPUT='.models.TaskFile:INPUT',
-#     rel='.models.rel',
-#     TaskGraph='.models.TaskGraph:TaskGraph',
-#     Stage='.models.Stage:Stage',
-#     run='.drm.taskgraph_runner:run',
-# ), locals())
 
-from models.TaskFile import TaskFile
-from models.Task import Task, INPUT
-from kosmos.models import rel
-from models.TaskGraph import TaskGraph
-from models.Stage import Stage
-from kosmos.drm.taskgraph_runner import run
+app_store_path = os.path.expanduser('~/.kosmos')
+if not os.path.exists(app_store_path):
+    os.mkdir(app_store_path)
+
+
+settings = dict(
+    library_path=os.path.dirname(__file__),
+    app_store_path=app_store_path
+)
+
+from .models import rel
+from .models.Recipe import Recipe
+from .models.TaskFile import TaskFile
+from .models.Task import Task, INPUT
+from .models import rel
+from .models.TaskGraph import TaskGraph
+from .models.Stage import Stage
+from .models.Execution import Execution
