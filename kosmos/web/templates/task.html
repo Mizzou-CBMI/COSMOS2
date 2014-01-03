@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <table class="table table-condensed table-striped datatable" id="table_expected">
+    <thead>
+      <tr>
+        {% for k in stage.tasks[0].as_dict() %}
+            <th>{{k}}</th>
+        {%endfor%}
+            <th>action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in stage.tasks %}
+        <tr>
+        {% for k,v in t.as_dict().items() %}
+            <td>{{ v }}</td>
+        {% endfor %}
+            <td><a href="{{ url_for('.task', id=t.id) }}">view</a></td>
+         </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
