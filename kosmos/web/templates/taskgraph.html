@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<ul class="breadcrumb">
+    <li><a href="{{ url_for('.index') }}">Home</a></li>
+    <li><a href="{{ url_for('.execution', id=execution.id ) }}">{{execution}}</a></li>
+    <li class="active">taskgraph</li>
+</ul>
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <span class="pull-right"></span>
+
+        <h3 class="panel-title">TaskGraph</h3>
+    </div>
+    <div class="panel-body">
+        <div class="center-block">
+            <object type="image/svg+xml" data="{{ url_for('.taskgraph_svg', id=execution.id) }}"></object>
+        </div>
+
+
+    </div>
+</div>
+
+{% endblock %}

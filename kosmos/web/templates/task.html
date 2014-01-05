@@ -1,26 +1,55 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<ul class="breadcrumb">
+  <li><a href="{{ url_for('.index') }}">Home</a></li>
+  <li><a href="{{ url_for('.execution', id=task.execution.id ) }}">{{task.execution}}</a></li>
+  <li><a href="{{ url_for('.stage', id=task.stage.id ) }}">{{task.stage}}</a></li>
+  <li class="active">{{task}}</li>
+</ul>
 
-    <table class="table table-condensed table-striped datatable" id="table_expected">
-    <thead>
-      <tr>
-        {% for k in stage.tasks[0].as_dict() %}
-            <th>{{k}}</th>
-        {%endfor%}
-            <th>action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in stage.tasks %}
-        <tr>
-        {% for k,v in t.as_dict().items() %}
-            <td>{{ v }}</td>
+    <dl class="dl-horizontal">
+        {% for k,v in task.as_dict().items() %}
+        <dt>{{k}}</dt>
+         <dd>{{ v }}</dd>
         {% endfor %}
-            <td><a href="{{ url_for('.task', id=t.id) }}">view</a></td>
-         </tr>
-      {% endfor %}
-    </tbody>
-</table>
+        {% for tf in task.taskfiles %}
+        <dt>output</dt>
+        <dd>{{tf}}</dd>
+        {% endfor %}
+    </dl>
+    {{ task.log_dir }}
+    {{ task.output_profile_path }}
 
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_command_script_path }}</span>
+        <h3 class="panel-title">Command</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ command }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-info">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_stdout_path }}</span>
+          <h3 class="panel-title">STDOUT</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ stdout }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+      <span class="pull-right">{{ task.output_stderr_path }}</span>
+        <h3 class="panel-title">STDERR </h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ stderr }}</pre>
+
+      </div>
+    </div>
 {% endblock %}

@@ -1,0 +1,1 @@
+/bin/sh: 1: /home/egafni/tmp/log/ECHO/world/command.bash: not found

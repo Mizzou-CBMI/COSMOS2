@@ -4,39 +4,71 @@ from inspect import getargspec, getcallargs
 import os
 import json
 
-from ..helpers import parse_cmd, cosmos_format, groupby
+from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, inspect, Table, UniqueConstraint
+from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.ext.declarative import declared_attr
+from flask import url_for
+
+from ..util.helpers import parse_cmd, cosmos_format, groupby
 from .TaskFile import TaskFile
+from ..db import Base
+from ..util.sqla import Enum34_ColumnType
+from .. import TaskStatus, StageStatus, signal_task_status_change
+
 
 opj = os.path.join
 
-i = 0
-
-
-def get_id():
-    global i
-    i += 1
-    return i
-
-
-files = []
-
 
 class ExpectedError(Exception): pass
+
+
 class ToolError(Exception): pass
+
+
 class ToolValidationError(Exception): pass
+
+
 class GetOutputError(Exception): pass
 
-from ..signals import task_finished
+
+@signal_task_status_change.connect
+def task_status_changed(task):
+    task.log.info('status %s %s' % (task, task.status))
+    if task.status == TaskStatus.waiting:
+        task.started_on = func.now()
+    elif task.status == TaskStatus.submitted:
+        task.submitted_on = func.now()
+        if task.stage.status == StageStatus.no_attempt:
+            task.stage.status = StageStatus.running
+    elif task.status == TaskStatus.failed:
+        task.finished_on = func.now()
+        if task.attempt < 3:
+            task.log.warn('%s attempt %s failed, retrying' % (task, task.attempt))
+            task.attempt +=1
+            task.status = TaskStatus.no_attempt
+        else:
+            task.log.error('%s failed %s times'%(task, task.attempt))
+            task.execution.terminate()
 
 
-def rcv_task_finished(task):
-    task.is_finished = True
+    elif task.status == TaskStatus.successful:
+        task.finished_on = func.now()
+        if all(t.successful for t in task.stage.tasks ):
+            task.stage.status = StageStatus.finished
+    inspect(task).session.commit()
 
 
-task_finished.connect(rcv_task_finished)
+task_edge_table = Table('task_edge', Base.metadata,
+                   Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
+                   Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
+)
 
 
-class Task(object):
+def logplus(p):
+    return property(lambda self: opj(self.log_dir, p))
+
+
+class Task(Base):
     """
     A Tool is a class who's instances represent a command that gets executed.  It also contains properties which
     define the resources that are required.
@@ -45,124 +77,110 @@ class Task(object):
     :property dag: (TaskGraph) The dag that is keeping track of this Tool
     :property id: (int) A unique identifier.  Useful for debugging.
     :property input_files: (list) This Tool's input TaskFiles
-    :property output_files: (list) This Tool's output TaskFiles.  A task's output taskfile names should be unique.
+    :property taskfiles: (list) This Tool's output TaskFiles.  A task's output taskfile names should be unique.
     :property tags: (dict) This Tool's tags.
     """
-    #TODO props that cant be overridden should be private
+    __tablename__ = 'task'
+    __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
-    #: (int) Number of megabytes of memory to request.  Default is 1024.
-    mem_req = 1 * 1024
-    #: (int) Number of cores to request.  Default is 1.
-    cpu_req = 1
-    #: (int) Number of minutes to request. Default is 1.
-    time_req = None #(mins)
-    #: (bool) If True, these tasks do not contain commands that are executed.  Used for INPUT.  Default is False.
-    NOOP = False
-    #: (bool) If True, if this task's tasks' job attempts fail, the task will still be considered successful.  Default is False.
-    succeed_on_failure = False
-    #: (bool) If True, output_files described as a str in outputs will be by default be created with persist=True.
-    #: If delete_interemediates is on, they will not be deleted.
-    persist = False
-    #: forwards this task's input to get_output() calls
-    # forward_input = False
-    #: always run job as a subprocess even when DRM is not set to local
-    always_local = False
-    log_dir = None
-    output_dir = None
-    _cache_profile = None
+    id = Column(Integer, primary_key=True)
+    class_name = Column(String)
+    mem_req = Column(Integer)
+    cpu_req = Column(Integer)
+    time_req = Column(Integer)
+    NOOP = Column(Boolean, default=False, nullable=False)
+    tags = Column(PickleType, nullable=False)
+    stage_id = Column(ForeignKey('stage.id'), nullable=False)
+    stage = relationship("Stage", backref="tasks")
+    log_dir = Column(String)
+    output_dir = Column(String)
+    _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
+    successful = Column(Boolean, default=False, nullable=False)
+    started_on = Column(DateTime)
+    submitted_on = Column(DateTime)
+    finished_on = Column(DateTime)
+    attempt = Column(Integer, default=1)
+    parents = relationship("Task",
+                           secondary=task_edge_table,
+                           primaryjoin=id == task_edge_table.c.parent_id,
+                           secondaryjoin=id == task_edge_table.c.child_id,
+                           backref="children"
+    )
+
+    @declared_attr
+    def status(cls):
+        def get_status(self):
+            return self._status
+
+        def set_status(self, value):
+            if self._status != value:
+                self._status = value
+                signal_task_status_change.send(self)
+
+        return synonym('_status', descriptor=property(get_status, set_status))
+
+    @declared_attr
+    def __mapper_args__(cls):
+        return {
+            "polymorphic_on": 'class_name',
+            "polymorphic_identity": cls.__name__
+        }
 
     @property
-    def output_profile_path(self):
-        assert self.log_dir is not None
-        return opj(self.log_dir, 'profile.json')
+    def execution(self):
+        return self.stage.execution
 
     @property
-    def output_command_script_path(self):
-        assert self.log_dir is not None
-        return opj(self.log_dir, 'command.bash')
-
-    @property
-    def output_stderr_path(self):
-        assert self.log_dir is not None
-        return opj(self.log_dir, 'stderr.txt')
-
-    @property
-    def output_stdout_path(self):
-        assert self.log_dir is not None
-        return opj(self.log_dir, 'stdout.txt')
+    def log(self):
+        return self.execution.log
 
     @property
     def successful(self):
-        return self.profile.get('exit_status', None) == 0
+        return self.status == TaskStatus.successful
 
-    def __init__(self, tags, stage=None, dag=None):
+    @property
+    def finished(self):
+        return self.status in [TaskStatus.successful, TaskStatus.failed]
+
+    _cache_profile = None
+
+    output_profile_path = logplus('profile.json')
+    output_command_script_path = logplus('command.bash')
+    output_stderr_path = logplus('stderr.txt')
+    output_stdout_path = logplus('stdout.txt')
+
+
+    def __init__(self, *args, **kwargs):
         """
-        :param stage: (str) The stage this task belongs to. Required.
         :param tags: (dict) A dictionary of tags.
-        :param dag: The dag this task belongs to.
-        :param parents: A list of task instances which this task is dependent on
+        :param stage: (str) The stage this task belongs to.
         """
         #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
-        self.output_files = []
+        super(Task, self).__init__(*args, **kwargs)
+
         self.settings = {}
         self.parameters = {}
-        if not hasattr(self, 'name'): self.name = self.__class__.__name__
         if not hasattr(self, 'inputs'): self.inputs = []
         if not hasattr(self, 'outputs'): self.outputs = []
-        self.is_finished = False
 
-        self.stage = stage
-        self.dag = dag
-        self.tags = {k: str(v) for k, v in tags.copy().items()}
+        self.tags = {k: str(v) for k, v in self.tags.items()}
 
         # Because defining attributes in python creates a reference to a single instance across all class instance
         # any taskfile instances in self.outputs is used as a template for instantiating a new class
-        self.outputs = [copy.copy(o) if isinstance(o, TaskFile) else o for o in self.outputs]
-        self.id = get_id()
-
         # Create empty output TaskFiles
         for output in self.outputs:
-            if isinstance(output, TaskFile):
-                self.output_files.append(output)
+            if isinstance(output, tuple):
+                tf = TaskFile(name=output[0], basename=output[1])
             elif isinstance(output, str):
-                tf = TaskFile(name=output, task=self)
-                self.output_files.append(tf)
+                tf = TaskFile(name=output)
             else:
-                raise ToolValidationError, "{0}.outputs must be a list of strs or Taskfile instances.".format(self)
+                raise ToolValidationError, "{0}.outputs must be a list of strs or tuples.".format(self)
+            self.taskfiles.append(tf)
 
-        #validate inputs are strs
-        if any([not isinstance(i, str) for i in self.inputs]):
-            raise ToolValidationError, "{0} has elements in self.inputs that are not of type str".format(self)
-
-        if len(self.inputs) != len(set(self.inputs)):
-            raise ToolValidationError(
-                'Duplicate names in task.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
-
-        output_names = [o.name for o in self.output_files]
-        if len(output_names) != len(set(output_names)):
-            raise ToolValidationError(
-                'Duplicate names in task.output_files detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
-                    self))
-
-    @property
-    def children(self):
-        return self.dag.task_G.successors(self)
-
-    @property
-    def parents(self):
-        return self.dag.task_G.predecessors(self)
-
-    @property
-    def parent(self):
-        if len(self.parents) > 1:
-            raise ToolError('{0} has more than one parent.  The parents are: {1}'.format(self, self.parents))
-        elif len(self.parents) == 0:
-            raise ToolError('{0} has no parents'.format(self))
-        else:
-            return self.parents[0]
+        self._validate()
 
     def get_output(self, name, error_if_missing=True):
-        for o in self.output_files:
+        for o in self.taskfiles:
             if o.name == name:
                 return o
 
@@ -186,10 +204,11 @@ class Task(object):
 
     @property
     def label(self):
-        "Label used for the TaskGraph image"
+        "Label used for the graphviz image"
         tags = '' if len(self.tags) == 0 else "\\n {0}".format(
             "\\n".join(["{0}: {1}".format(k, v) for k, v in self.tags.items()]))
-        return "[{3}] {0}{1}".format(self.name, tags, self.pcmd, self.id)
+
+        return "[%s] %s%s" % ( self.id, self.stage.name, tags)
 
     def map_inputs(self):
         """
@@ -201,7 +220,7 @@ class Task(object):
 
         else:
             if '*' in self.inputs:
-                return {'*': [o for p in self.parents for o in p.output_files]}
+                return {'*': [o for p in self.parents for o in p.taskfiles]}
 
             all_inputs = filter(lambda x: x is not None,
                                 [p.get_output(name, error_if_missing=False) for p in self.parents for name in
@@ -241,7 +260,7 @@ class Task(object):
                 raise ToolValidationError, "{0} is a reserved name, and cannot be used as a tag keyword".format(l)
 
         try:
-            kwargs = dict(i=self.map_inputs(), o={o.name: o for o in self.output_files}, s=self.settings, **p)
+            kwargs = dict(i=self.map_inputs(), o={o.name: o for o in self.taskfiles}, s=self.settings, **p)
             callargs = getcallargs(self.cmd, **kwargs)
         except TypeError:
             raise TypeError, 'Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys())
@@ -259,14 +278,15 @@ class Task(object):
         return parse_cmd(cosmos_format(pcmd, callargs))
 
 
-    def cmd(self, i, s, o, p):
+    def cmd(self, i, o, s, **kwargs):
         """
         Constructs the preformatted command string.  The string will be .format()ed with the i,s,p dictionaries,
         and later, $OUT.outname  will be replaced with a TaskFile associated with the output name `outname`
 
         :param i: (dict) Input TaskFiles.
-        :param s: (dict) Settings.  The settings dictionary, set by using :py:meth:`lib.ezflow.dag.configure`
-        :param p: (dict) Parameters.
+        :param o: (dict) Input TaskFiles.
+        :param s: (dict) Settings.
+        :param kwargs: (dict) Parameters.
         :returns: (str|tuple(str,dict)) A preformatted command string, or a tuple of the former and a dict with extra values to use for
             formatting
         """
@@ -281,8 +301,27 @@ class Task(object):
         return self
 
 
-    def __str__(self):
-        return '<{0} {1}>'.format(self.__class__.__name__, self.tags)
+    def _validate(self):
+        #validate inputs are strs
+        if any([not isinstance(i, str) for i in self.inputs]):
+            raise ToolValidationError, "{0} has elements in self.inputs that are not of type str".format(self)
+
+        if len(self.inputs) != len(set(self.inputs)):
+            raise ToolValidationError(
+                'Duplicate names in task.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
+
+        output_names = [o.name for o in self.taskfiles]
+        if len(output_names) != len(set(output_names)):
+            raise ToolValidationError(
+                'Duplicate names in task.taskfiles detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
+                    self))
+
+    @property
+    def url(self):
+        return url_for('.task', id=self.id)
+
+    def __repr__(self):
+        return '<Task[%s] %s %s>' % (self.id or '', self.stage.name, self.tags)
 
 
 class INPUT(Task):
@@ -294,11 +333,6 @@ class INPUT(Task):
     >>> INPUT('/path/to/file.ext',tags={'key':'val'})
     >>> INPUT(path='/path/to/file.ext.gz',name='ext',fmt='ext.gz',tags={'key':'val'})
     """
-    name = "Load_Input_Files"
-    NOOP = True
-    mem_req = 0
-    cpu_req = 0
-    persist = True
 
     def __init__(self, path, tags, name=None, fmt=None, *args, **kwargs):
         """
@@ -308,7 +342,9 @@ class INPUT(Task):
         """
         path = os.path.abspath(path)
         super(INPUT, self).__init__(tags=tags, *args, **kwargs)
-        self.output_files.append(TaskFile(path=path, name=name, task=self))
+        self.NOOP = True
+        self.persist = True
+        self.taskfiles.append(TaskFile(path=path, name=name, task=self))
 
-    def __str__(self):
-        return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)
+    # def __str__(self):
+    #     return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)

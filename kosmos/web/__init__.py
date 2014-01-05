@@ -6,7 +6,12 @@ def runweb(host, port):
     '''start the flask development webserver'''
     flask_app = Flask(__name__)
     flask_app.register_blueprint(bprint)
-    print flask_app.url_map
+    #print flask_app.url_map
+
+    # Remove polymorphic mapping for the website
+    from .. import Task
+    Task.__mapper__.polymorphic_on = None
+
     flask_app.run(debug=True, host=host, port=port)
 
 from . import views

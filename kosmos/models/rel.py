@@ -1,6 +1,7 @@
-from ..helpers import groupby
 import re
 import itertools as it
+
+from ..util.helpers import groupby
 
 
 class Relationship(object):
@@ -106,7 +107,6 @@ class Many2many(Relationship):
     @classmethod
     def reduce_split(klass, stage):
         for tags, parent_task_group in Many2one.reduce(stage, stage.rel.keywords):
-            print tags, stage.rel.split_by
             for new_tags in One2many.split(stage.rel.split_by):
                 new_tags.update(tags)
                 yield new_tags, parent_task_group

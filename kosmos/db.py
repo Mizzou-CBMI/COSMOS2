@@ -15,8 +15,6 @@ Session = sessionmaker(autocommit=False,
 session = Session()
 Base = declarative_base()
 Base.as_dict = lambda r: OrderedDict([ (c.name, getattr(r, c.name)) for c in r.__table__.columns])
-
-
 #Base.query = session.query_property()
 
 

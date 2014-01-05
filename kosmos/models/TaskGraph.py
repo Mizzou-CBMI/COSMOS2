@@ -1,7 +1,9 @@
 import re
 
-from ..helpers import groupby
 import networkx as nx
+from ..util.helpers import groupby
+from .. import TaskStatus
+
 
 class TaskGraph(object):
     """
@@ -13,6 +15,10 @@ class TaskGraph(object):
         self.stages = []
         if recipe:
             self.resolve(recipe)
+
+    def add_tasks(self, tasks):
+        self.task_G.add_nodes_from(tasks)
+        self.task_G.add_edges_from([ (parent, task) for task in tasks for parent in task.parents ])
 
     def resolve(self,recipe):
         for stage in nx.topological_sort(recipe.stage_G):
@@ -47,31 +53,46 @@ class TaskGraph(object):
 
         self.task_G.add_node(new_task)
         for p in parents:
+            new_task.parents=parents
             self.task_G.add_edge(p, new_task)
 
         return self
 
-    def save_image(self, save_to=None):
-        """
-        Writes the :class:`TaskGraph` as an image.
-        gat
-        :param path: the path to write to
-        """
+
+    def createAGraph(self):
         import pygraphviz as pgv
+        agraph = pgv.AGraph(strict=False, directed=True, fontname="Courier")
+        agraph.node_attr['fontname'] = "Courier"
+        agraph.node_attr['fontcolor'] = '#000'
+        agraph.node_attr['fontsize'] = 8
+        agraph.graph_attr['fontsize'] = 8
+        agraph.edge_attr['fontcolor'] = '#586e75'
+        #dag.graph_attr['bgcolor'] = '#fdf6e3'
 
-        dag = pgv.AGraph(strict=False, directed=True, fontname="Courier", fontsize=11)
-        dag.node_attr['fontname'] = "Courier"
-        dag.node_attr['fontsize'] = 8
-        dag.edge_attr['fontcolor'] = '#586e75'
-        dag.graph_attr['bgcolor'] = '#fdf6e3'
-
-        dag.add_nodes_from(self.task_G.nodes())
-        dag.add_edges_from(self.task_G.edges())
+        agraph.add_edges_from(self.task_G.edges())
         for stage, tasks in groupby(self.task_G.nodes(), lambda x: x.stage):
-            sg = dag.add_subgraph(name="cluster_{0}".format(stage), label=stage.label, color='lightgrey')
+            sg = agraph.add_subgraph(name="cluster_{0}".format(stage), label=str(stage), color='grey', style='dotted')
+            for task in tasks:
+                def truncate_val(kv):
+                    v = "{0}".format(kv[1])
+                    v = v if len(v) < 10 else v[1:8] + '..'
+                    return "{0}: {1}".format(kv[0], v)
 
-        dag.layout(prog="dot")
-        return dag.draw(path=save_to, format='svg')
+                label = " \\n".join(map(truncate_val, task.tags.items()))
+                status2color = {TaskStatus.no_attempt: 'black',
+                                TaskStatus.waiting: 'gold1',
+                                TaskStatus.successful: 'darkgreen',
+                                TaskStatus.failed: 'darkred'}
+
+                sg.add_node(task, label=label, URL=task.url, target="_blank",
+                            color=status2color[task.status])
+
+        return agraph
+
+    def as_image(self, path=None):
+        g = self.createAGraph()
+        g.layout(prog="dot")
+        return g.draw(path=path, format='svg')
 
 class DAGError(Exception): pass
 class StageNameCollision(Exception): pass

@@ -1,9 +1,10 @@
 import os
 
 opj = os.path.join
-from ..helpers import mkdir
+from ..util.helpers import mkdir
 from .local import DRM_Local
 from .. import settings
+from .. import TaskStatus
 import time
 
 
@@ -14,18 +15,16 @@ class JobManager(object):
 
     def submit(self, task):
         self.running_tasks.append(task)
+        task.status = TaskStatus.waiting
 
         if task.profile.get('exit_status', None) == 0:
-            print '%s already done, skip run ' % task
-            task.status = 'already_successful'
+            task.status = TaskStatus.successful
         else:
             mkdir(task.output_dir)
             mkdir(task.log_dir)
             self.create_command_sh(task)
 
-            task.status = 'submitted'
-            print '%s submitted' % task
-
+            task.status = TaskStatus.submitted
             self.drm.submit_job(task)
 
     def wait_for_a_job_to_finish(self):
@@ -36,7 +35,7 @@ class JobManager(object):
             return None
         while True:
             for task in self.running_tasks:
-                if task.NOOP or task.status == 'already_successful':
+                if task.NOOP or task.status == TaskStatus.successful:
                     self.running_tasks.remove(task)
                     return task
                 else:

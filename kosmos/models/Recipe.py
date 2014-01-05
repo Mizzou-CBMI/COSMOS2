@@ -1,7 +1,6 @@
 from .Stage import Stage
 from .Task import INPUT
 from . import rel
-
 class Recipe(object):
     def __init__(self):
         import networkx as nx
@@ -10,8 +9,9 @@ class Recipe(object):
     def add_source(self, tasks, name=None):
         assert isinstance(tasks, list), 'tasks must be a list'
         assert len(tasks) > 0, '`tasks` cannot be empty'
+
         if name is None:
-            name = tasks[0].name
+            name = tasks[0].__class__.__name__
         tags = [tuple(t.tags.items()) for t in tasks]
         assert len(tags) == len(
             set(tags)), 'Duplicate inputs tags detected for {0}.  Tags within a stage must be unique.'.format(INPUT)
@@ -21,18 +21,12 @@ class Recipe(object):
             task.stage = stage
 
         self.stage_G.add_node(stage)
-
         return stage
 
     def add_stage(self, task_class, parents, rel=rel.One2one, name=None, extra_tags=None):
         """
         Creates a Stage in this TaskGraph
         """
-        if name is None:
-            if hasattr(task_class, 'name'):
-                name = task_class.name
-            else:
-                name = task_class.__name__
         stage = Stage(name, task_class, parents, rel, extra_tags)
 
         assert stage.name not in [n.name for n in self.stage_G.nodes()], 'Duplicate stage names detected: {0}'.format(
@@ -51,7 +45,8 @@ class Recipe(object):
         dag.node_attr['fontname'] = "Courier"
         dag.node_attr['fontsize'] = 8
         dag.edge_attr['fontcolor'] = '#586e75'
-        dag.graph_attr['bgcolor'] = '#fdf6e3'
+        #dag.graph_attr['bgcolor'] = '#fdf6e3'
+
         dag.add_nodes_from([n.label for n in self.stage_G.nodes()])
         for u, v, attr in self.stage_G.edges(data=True):
             if isinstance(v.rel, rel.Many2one):

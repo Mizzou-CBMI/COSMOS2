@@ -33,16 +33,6 @@ def validate_is_type_or_list(variable, klass):
     else:
         raise TypeError, '{0} must be a list of {1} or a {1}'.format(variable, klass)
 
-
-def validate_name(txt, field_name=''):
-    """
-    Validates that txt is alphanumeric and underscores, decimals, or hyphens only
-    """
-    if re.match('^[a-zA-Z0-9_\.-]+$', txt) == None:
-        raise Exception(
-            'Field {0} must be alphanumeric, periods, or hyphens only.  Text that failed: {1}'.format(field_name, txt))
-
-
 def parse_cmd(txt, **kwargs):
     """removes empty lines and white spaces, and appends a \ to the end of every line.
     also .format()s with the **kwargs dictioanry"""
@@ -69,3 +59,31 @@ def formatError(txt, dict):
 
     logging.warning('*' * 76)
     raise Exception("Format() KeyError.  You did not pass the proper arguments to format() the txt.")
+
+def get_logger(name,path):
+    """
+    Gets a logger of name `name` that prints to stderr and to path
+
+    :returns: (logger, True if the logger was initialized, else False)
+    """
+    log = logging.getLogger(name)
+    #logging.basicConfig(level=logging.DEBUG)
+
+    #check if we've already configured logger
+    if len(log.handlers) > 0:
+        return log
+
+    log.setLevel(logging.INFO)
+    # create file handler which logs debug messages
+    if path:
+        fh = logging.FileHandler(path)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s',"%Y-%m-%d %H:%M:%S"))
+        log.addHandler(fh)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s',"%Y-%m-%d %H:%M:%S"))
+    log.addHandler(ch)
+
+    return log

@@ -1,5 +1,12 @@
 from . import web, db
 
+def shell():
+    import IPython
+    from kosmos import *
+    from kosmos.db import session
+    Task.__mapper__.polymorphic_on = None
+    IPython.embed()
+
 def parse_args():
     import argparse
 
@@ -12,6 +19,9 @@ def parse_args():
 
     sp = sps.add_parser('resetdb', help=db.resetdb.__doc__)
     sp.set_defaults(func=db.resetdb)
+
+    sp = sps.add_parser('shell', help=shell.__doc__)
+    sp.set_defaults(func=shell)
 
     sp = sps.add_parser('runweb', help=web.runweb.__doc__)
     sp.add_argument('-p', '--port', type=int, default=4848,

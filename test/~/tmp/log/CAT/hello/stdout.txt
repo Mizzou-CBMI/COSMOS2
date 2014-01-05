@@ -1,0 +1,1 @@
+/bin/sh: 1: /home/egafni/tmp/log/CAT/hello/command.bash: not found
