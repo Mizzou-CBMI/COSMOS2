@@ -25,13 +25,13 @@ def cosmos_format(s, d):
         raise
 
 
-def validate_is_type_or_list(variable, klass):
-    if isinstance(variable, list) and (len(variable) == 0 or isinstance(variable[0], klass)):
-        return variable
-    elif isinstance(variable, klass):
-        return [variable]
-    else:
-        raise TypeError, '{0} must be a list of {1} or a {1}'.format(variable, klass)
+# def validate_is_type_or_list(variable, klass):
+#     if isinstance(variable, list) and (len(variable) == 0 or isinstance(variable[0], klass)):
+#         return variable
+#     elif isinstance(variable, klass):
+#         return [variable]
+#     else:
+#         raise TypeError, '{0} must be a list of {1} or a {1}'.format(variable, klass)
 
 def parse_cmd(txt, **kwargs):
     """removes empty lines and white spaces, and appends a \ to the end of every line.
@@ -87,3 +87,4 @@ def get_logger(name,path):
     log.addHandler(ch)
 
     return log
+

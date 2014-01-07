@@ -44,23 +44,23 @@ def task_status_changed(task):
         task.finished_on = func.now()
         if task.attempt < 3:
             task.log.warn('%s attempt %s failed, retrying' % (task, task.attempt))
-            task.attempt +=1
+            task.attempt += 1
             task.status = TaskStatus.no_attempt
         else:
-            task.log.error('%s failed %s times'%(task, task.attempt))
+            task.log.error('%s failed %s times' % (task, task.attempt))
             task.execution.terminate()
 
-
     elif task.status == TaskStatus.successful:
+        task.successful=True
         task.finished_on = func.now()
-        if all(t.successful for t in task.stage.tasks ):
+        if all(t.successful for t in task.stage.tasks):
             task.stage.status = StageStatus.finished
     inspect(task).session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
-                   Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-                   Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
+                        Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
+                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
 )
 
 
@@ -133,10 +133,6 @@ class Task(Base):
     @property
     def log(self):
         return self.execution.log
-
-    @property
-    def successful(self):
-        return self.status == TaskStatus.successful
 
     @property
     def finished(self):
@@ -321,7 +317,8 @@ class Task(Base):
         return url_for('.task', id=self.id)
 
     def __repr__(self):
-        return '<Task[%s] %s %s>' % (self.id or '', self.stage.name, self.tags)
+        s = self.stage.name if self.stage else ''
+        return '<Task[%s] %s %s %s>' % (self.id or '', s, self.tags, getattr(self,'copied',False))
 
 
 class INPUT(Task):
@@ -346,5 +343,5 @@ class INPUT(Task):
         self.persist = True
         self.taskfiles.append(TaskFile(path=path, name=name, task=self))
 
-    # def __str__(self):
-    #     return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)
+        # def __str__(self):
+        #     return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)

@@ -47,7 +47,7 @@ from .models.Recipe import Recipe
 from .models.TaskFile import TaskFile
 from .models.Task import Task, INPUT
 from .models import rel
-from .models.TaskGraph import TaskGraph
+from .models import taskgraph
 from .models.Stage import Stage
 from .models.Execution import Execution
 

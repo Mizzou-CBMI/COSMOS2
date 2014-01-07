@@ -1,7 +1,7 @@
 from . import bprint
 from flask import make_response, request, jsonify, abort, render_template, send_file
 import io
-from .. import Execution, Stage, Task, TaskGraph
+from .. import Execution, Stage, Task
 from ..db import session
 
 
@@ -38,9 +38,9 @@ def taskgraph(id):
     return render_template('taskgraph.html', execution=session.query(Execution).get(id))
 
 
-@bprint.route('/execution/<int:id>/taskgraph/svg/')
-def taskgraph_svg(id):
-    e = session.query(Execution).get(id)
-    tg = TaskGraph()
-    tg.add_tasks(e.tasks)
-    return send_file(io.BytesIO(tg.as_image()), mimetype='image/svg+xml')
+# @bprint.route('/execution/<int:id>/taskgraph/svg/')
+# def taskgraph_svg(id):
+#     e = session.query(Execution).get(id)
+#     tg = TaskGraph()
+#     tg.from_tasks(e.tasks)
+#     return send_file(io.BytesIO(tg.as_image()), mimetype='image/svg+xml')

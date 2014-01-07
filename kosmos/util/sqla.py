@@ -21,3 +21,11 @@ class Enum34_ColumnType(types.TypeDecorator):
     def copy(self):
         return Enum34_ColumnType(self.enum_class)
 
+def get_or_create(session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance, False
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        return instance, True
