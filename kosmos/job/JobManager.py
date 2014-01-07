@@ -4,7 +4,7 @@ opj = os.path.join
 from ..util.helpers import mkdir
 from .local import DRM_Local
 from .. import settings
-from .. import TaskStatus
+from .. import TaskStatus, StageStatus
 import time
 
 
@@ -17,15 +17,22 @@ class JobManager(object):
         self.running_tasks.append(task)
         task.status = TaskStatus.waiting
 
-        if task.profile.get('exit_status', None) == 0:
-            task.status = TaskStatus.successful
-        else:
-            mkdir(task.output_dir)
-            mkdir(task.log_dir)
-            self.create_command_sh(task)
+        # if task.profile.get('exit_status', None) == 0:
+        #     task.status = TaskStatus.successful
+        # else:
+        mkdir(task.output_dir)
+        mkdir(task.log_dir)
+        self.create_command_sh(task)
 
-            task.status = TaskStatus.submitted
-            self.drm.submit_job(task)
+        task.status = TaskStatus.submitted
+        self.drm.submit_job(task)
+
+    def terminate(self):
+        for task in self.running_tasks:
+            self.drm.kill(task)
+            task.status = TaskStatus.killed
+            task.stage.status = StageStatus.killed
+
 
     def wait_for_a_job_to_finish(self):
         """
@@ -35,7 +42,7 @@ class JobManager(object):
             return None
         while True:
             for task in self.running_tasks:
-                if task.NOOP or task.status == TaskStatus.successful:
+                if task.NOOP:
                     self.running_tasks.remove(task)
                     return task
                 else:

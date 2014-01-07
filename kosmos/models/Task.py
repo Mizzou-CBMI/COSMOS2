@@ -1,15 +1,16 @@
 import itertools as it
-import copy
 from inspect import getargspec, getcallargs
 import os
 import json
-
-from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, inspect, Table, UniqueConstraint
+import re
+from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table,\
+    UniqueConstraint, event
+from sqlalchemy.orm import Session, backref
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
-from ..util.helpers import parse_cmd, cosmos_format, groupby
+from ..util.helpers import parse_cmd, kosmos_format, groupby
 from .TaskFile import TaskFile
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
@@ -33,13 +34,15 @@ class GetOutputError(Exception): pass
 
 @signal_task_status_change.connect
 def task_status_changed(task):
-    task.log.info('status %s %s' % (task, task.status))
+    task.log.info('%s %s' % (task, task.status))
     if task.status == TaskStatus.waiting:
         task.started_on = func.now()
+
     elif task.status == TaskStatus.submitted:
         task.submitted_on = func.now()
         if task.stage.status == StageStatus.no_attempt:
             task.stage.status = StageStatus.running
+
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
         if task.attempt < 3:
@@ -51,17 +54,29 @@ def task_status_changed(task):
             task.execution.terminate()
 
     elif task.status == TaskStatus.successful:
-        task.successful=True
+        task.successful = True
         task.finished_on = func.now()
         if all(t.successful for t in task.stage.tasks):
             task.stage.status = StageStatus.finished
-    inspect(task).session.commit()
+
+    if task.status in [TaskStatus.successful, TaskStatus.failed]:
+        for k, v in task.profile.items():
+            setattr(task, k, v)
+
+    task.session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
-                        Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
+                        Column('parent_id', Integer, ForeignKey('task.id', ondelete='cascade'), primary_key=True),
+                        Column('child_id', Integer, ForeignKey('task.id', ondelete='cascade'), primary_key=True)
 )
+
+
+# @event.listens_for(Session, 'after_flush')
+# def delete_tag_orphans(session, ctx):
+#     session.query(Task). \
+#         filter(~Task.children.any()). \
+#         delete(synchronize_session=False)
 
 
 def logplus(p):
@@ -104,8 +119,57 @@ class Task(Base):
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
                            secondaryjoin=id == task_edge_table.c.child_id,
-                           backref="children"
+                           backref='children',
+                           cascade='all'
     )
+
+    #drmaa related input fields
+    drmaa_native_specification = Column(String)
+
+    #drmaa related and job output fields
+    drmaa_jobID = Column(Integer) #drmaa drmaa_jobID, note: not database primary key
+
+    #time
+    system_time = Column(Integer)
+    user_time = Column(Integer)
+    cpu_time = Column(Integer)
+    wall_time = Column(Integer)
+    percent_cpu = Column(Integer)
+
+    #memory
+    avg_rss_mem = Column(Integer)
+    max_rss_mem = Column(Integer)
+    single_proc_max_peak_rss = Column(Integer)
+    avg_virtual_mem = Column(Integer)
+    max_virtual_mem = Column(Integer)
+    single_proc_max_peak_virtual_mem = Column(Integer)
+    major_page_faults = Column(Integer)
+    minor_page_faults = Column(Integer)
+    avg_data_mem = Column(Integer)
+    max_data_mem = Column(Integer)
+    avg_lib_mem = Column(Integer)
+    max_lib_mem = Column(Integer)
+    avg_locked_mem = Column(Integer)
+    max_locked_mem = Column(Integer)
+    avg_num_threads = Column(Integer)
+    max_num_threads = Column(Integer)
+    avg_pte_mem = Column(Integer)
+    max_pte_mem = Column(Integer)
+
+    #io
+    nonvoluntary_context_switches = Column(Integer)
+    voluntary_context_switches = Column(Integer)
+    block_io_delays = Column(Integer)
+    avg_fdsize = Column(Integer)
+    max_fdsize = Column(Integer)
+
+    #misc
+    num_polls = Column(Integer)
+    names = Column(String)
+    num_processes = Column(Integer)
+    pids = Column(String)
+    exit_status = Column(Integer)
+    SC_CLK_TCK = Column(Integer)
 
     @declared_attr
     def status(cls):
@@ -194,8 +258,11 @@ class Task(Base):
             if not os.path.exists(self.output_profile_path):
                 return {}
             else:
-                with open(self.output_profile_path, 'r') as fh:
-                    self._cache_profile = json.load(fh)
+                try:
+                    with open(self.output_profile_path, 'r') as fh:
+                        self._cache_profile = json.load(fh)
+                except ValueError:
+                    return {}
         return self._cache_profile
 
     @property
@@ -271,7 +338,12 @@ class Task(Base):
         #format() return string with callargs
         callargs['self'] = self
         callargs.update(extra_format_dict)
-        return parse_cmd(cosmos_format(pcmd, callargs))
+        cmd = kosmos_format(pcmd, callargs)
+
+        #fix TaskFiles paths
+        cmd = re.sub('<TaskFile\[\d+?\] (.+?)>', lambda x: x.group(1), cmd)
+
+        return parse_cmd(cmd)
 
 
     def cmd(self, i, o, s, **kwargs):
@@ -318,7 +390,7 @@ class Task(Base):
 
     def __repr__(self):
         s = self.stage.name if self.stage else ''
-        return '<Task[%s] %s %s %s>' % (self.id or 'id_%s'%id(self), s, self.tags, getattr(self,'copied',False))
+        return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
 
 
 class INPUT(Task):

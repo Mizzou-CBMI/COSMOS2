@@ -9,7 +9,7 @@
 </ul>
 
     <dl class="dl-horizontal">
-        {% for k,v in task.as_dict().items() %}
+        {% for k,v in task.attrs_as_dict().items() %}
         <dt>{{k}}</dt>
          <dd>{{ v }}</dd>
         {% endfor %}

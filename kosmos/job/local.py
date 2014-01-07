@@ -48,8 +48,9 @@ class DRM_Local():
         return 'has not been queued'
 
 
-    def terminate(self, task):
+    def kill(self, task):
         "Terminates a task"
+
         try:
             psutil.Process(task.drmaa_jobID).kill()
         except psutil.NoSuchProcess:
@@ -58,7 +59,7 @@ class DRM_Local():
 
 def preexec_function():
     # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
+    # signal handler SIG_IGN.  This allows Kosmos to cleanly
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
 

@@ -8,17 +8,25 @@
   <li><a class="active">{{stage}}</a></li>
 </ul>
 
+<dl class="dl-horizontal">
+    {% for k,v in stage.attrs_as_dict().items() %}
+    <dt>{{k}}</dt>
+    <dd>{{v}}</dd>
+    {% endfor %}
+</dl>
+
 <div class="panel panel-primary">
   <div class="panel-heading">
       <span class="pull-right"></span>
-    <h3 class="panel-title">{{stage}}</h3>
+    <h3 class="panel-title">Tasks</h3>
   </div>
   <div class="panel-body">
 
 <table class="table table-condensed table-striped datatable" id="table_expected">
     <thead>
       <tr>
-            <th>task/th>
+            <th>task</th>
+            <th>successful</th>
             <th>status</th>
             <th>tags</th>
             <th>started_on</th>
@@ -29,6 +37,7 @@
       {% for t in stage.tasks %}
       <tr>
             <td><a href="{{ t.url }}">{{t}}</a></td>
+            <td>{{t.successful}}</td>
             <td>{{t.status}}</td>
             <td>{{t.tags}}</td>
             <td>{{t.started_on}}</td>

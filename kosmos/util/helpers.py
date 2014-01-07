@@ -1,16 +1,17 @@
-
 import sys, pprint, re, logging, itertools
 import subprocess as sp
 
+
 def mkdir(path):
     sp.check_output('mkdir -p {0}'.format(path).split(' '))
+
 
 def groupby(iterable, fxn):
     """aggregates an iterable using a function"""
     return itertools.groupby(sorted(iterable, key=fxn), fxn)
 
 
-def cosmos_format(s, d):
+def kosmos_format(s, d):
     """
     Format()s string s with d.  If there is an error, print helpful messages .
     """
@@ -24,14 +25,6 @@ def cosmos_format(s, d):
         print >> sys.stderr, "\tWith: {0}".format(pprint.pformat(d))
         raise
 
-
-# def validate_is_type_or_list(variable, klass):
-#     if isinstance(variable, list) and (len(variable) == 0 or isinstance(variable[0], klass)):
-#         return variable
-#     elif isinstance(variable, klass):
-#         return [variable]
-#     else:
-#         raise TypeError, '{0} must be a list of {1} or a {1}'.format(variable, klass)
 
 def parse_cmd(txt, **kwargs):
     """removes empty lines and white spaces, and appends a \ to the end of every line.
@@ -60,7 +53,8 @@ def formatError(txt, dict):
     logging.warning('*' * 76)
     raise Exception("Format() KeyError.  You did not pass the proper arguments to format() the txt.")
 
-def get_logger(name,path):
+
+def get_logger(name, path):
     """
     Gets a logger of name `name` that prints to stderr and to path
 
@@ -78,12 +72,12 @@ def get_logger(name,path):
     if path:
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s',"%Y-%m-%d %H:%M:%S"))
+        fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
         log.addHandler(fh)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    ch.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s',"%Y-%m-%d %H:%M:%S"))
+    ch.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
     log.addHandler(ch)
 
     return log
