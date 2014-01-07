@@ -318,7 +318,7 @@ class Task(Base):
 
     def __repr__(self):
         s = self.stage.name if self.stage else ''
-        return '<Task[%s] %s %s %s>' % (self.id or '', s, self.tags, getattr(self,'copied',False))
+        return '<Task[%s] %s %s %s>' % (self.id or 'id_%s'%id(self), s, self.tags, getattr(self,'copied',False))
 
 
 class INPUT(Task):

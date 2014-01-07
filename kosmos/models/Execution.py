@@ -26,8 +26,10 @@ class Execution(Base):
         if ex:
             session.add(ex)
             q = ex.tasksq.filter_by(successful=False)
-            ex.log.info('Deleting %s failed tasks' % q.count())
-            q.delete('fetch')
+            n = q.count()
+            if n:
+                ex.log.info('Deleting %s failed tasks' % n)
+                q.delete('fetch')
             return ex
         else:
             ex = Execution(name=name, output_dir=output_dir)
@@ -56,9 +58,7 @@ class Execution(Base):
         terminate_on_ctrl_c(self)
 
         task_g, stage_g = taskgraph.render_recipe(self, recipe)
-
-        # for stage in stage_g.nodes():
-        #     stage.execution = self
+        session.add_all([t for t in task_g.nodes() ])
         session.commit()
 
         from ..job.JobManager import JobManager
@@ -66,6 +66,7 @@ class Execution(Base):
         job_manager = JobManager()
         task_queue = _copy_graph(task_g)
         successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
+        self.log.info('Skipping %s successful tasks'%len(successful))
         task_queue.remove_nodes_from(successful)
 
         while len(task_queue) > 0:
@@ -82,6 +83,7 @@ class Execution(Base):
                     # if all(t.finished for t in taskgraph.task_G.nodes()):
                     #     break
 
+        self.log.info('Execution successful')
         return self
 
     def terminate(self):

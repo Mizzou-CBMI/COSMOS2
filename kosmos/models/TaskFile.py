@@ -56,7 +56,7 @@ class TaskFile(Base):
 
 
     def __repr__(self):
-        return '<TaskFile[%s] %s>' % (self.id or '', self.path or 'no_path_yet')
+        return '<TaskFile[%s] %s>' % (self.id or 'id_%s'%id(self), self.path or 'no_path_yet')
         #return '<TaskFile[%s] %s%s>' % (self.id or '', self.name, ' '+self.path or '')
 
     def delete(self):

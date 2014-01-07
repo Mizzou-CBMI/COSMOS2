@@ -21,7 +21,7 @@ class One2one(Relationship):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
             tags2 = parent_task.tags.copy()
             tags2.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags2)
+            new_task = stage.task_class(tags=tags2)
             yield new_task, [parent_task]
 
 
@@ -34,7 +34,7 @@ class Many2one(Relationship):
     def gen_tasks(klass, stage):
         for tags, parent_task_group in Many2one.reduce(stage, stage.rel.keywords):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags)
+            new_task = stage.task_class(tags=tags)
             yield new_task, parent_task_group
 
     @classmethod
@@ -79,7 +79,7 @@ class One2many(Relationship):
             for tags in One2many.split(stage.rel.split_by):
                 tags.update(parent_task.tags)
                 tags.update(stage.extra_tags)
-                new_task = stage.task_class(stage=stage, tags=tags)
+                new_task = stage.task_class(tags=tags)
                 yield new_task, [parent_task]
 
     @classmethod
@@ -101,7 +101,7 @@ class Many2many(Relationship):
     def gen_tasks(klass, stage):
         for tags, parent_task_group in Many2many.reduce_split(stage):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags)
+            new_task = stage.task_class(tags=tags)
             yield new_task, parent_task_group
 
     @classmethod

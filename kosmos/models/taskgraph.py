@@ -17,21 +17,25 @@ def render_recipe(execution, recipe):
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
 
     # This replicates the recipe_stage_G into a stage_G of Stage objects rather than RecipeStages
-    f = functools.partial(_recipe_stage2stage, execution=execution)
+    f = functools.partial(_recipe_stage2stage, execution=execution, existing_tasks=existing_tasks)
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, f, copy=True)
 
     for stage in nx.topological_sort(stage_g):
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
             if stage.is_source:
-                for task in stage.tasks:
-                    task_g.add_node(task)
+                for manually_instantiated_class in stage.recipe_stage.tasks:
+                    existing_task = existing_tasks.get((stage, frozenset(manually_instantiated_class.tags.items())), None)
+                    if existing_task:
+                        task_g.add_node(existing_task)
+                    else:
+                        stage.tasks.append(manually_instantiated_class)
+                        task_g.add_node(manually_instantiated_class)
+
             else:
                 for new_task, parent_tasks in stage.rel.__class__.gen_tasks(stage):
-                    # new_task.dag = task_g
                     existing_task = existing_tasks.get((stage, frozenset(new_task.tags.items())), None)
                     if existing_task:
-                        session.remove(new_task)
                         new_task = existing_task
                     else:
                         stage.tasks.append(new_task)
@@ -87,13 +91,14 @@ def as_image(taskgraph, path=None):
     return g.draw(path=path, format='svg')
 
 
-def _recipe_stage2stage(recipe_stage, execution):
+def _recipe_stage2stage(recipe_stage, execution, existing_tasks):
     """
     Creates a Stage object from a RecipeStage object
     """
     session = inspect(execution).session
     stage, created = get_or_create(session=session, model=Stage, name=recipe_stage.name,
                                    execution=execution)
+    session.commit()
 
     if not created:
         execution.log.info('loaded %s' % stage)
@@ -101,26 +106,9 @@ def _recipe_stage2stage(recipe_stage, execution):
         execution.log.info('created %s' % stage)
 
     for k, v in recipe_stage.properties.items():
-        if k != 'tasks': #dont want these in the session
+        if k != 'tasks':
             setattr(stage, k, v)
-
-    if stage.is_source:
-        def clone(task):
-            #copy already instantiated tasks in case Recipe is re-used
-            if task.id:
-            task2 = copy.copy(task)
-            task2.id = None
-            task2.copied = True
-            return task2
-        print 'preclone', session.identity_map.values()
-
-        clones = [clone(t) for t in recipe_stage.tasks]
-        print 'postclone', session.identity_map.values()
-        print 'clones', clones
-        print 'stage.tasks',stage.tasks
-        stage.tasks = clones
-        print 'clones2',clones
-        print 'post', session.identity_map.values()
-
+    stage.recipe_stage = recipe_stage
     session.add(stage)
+    session.commit()
     return stage
