@@ -15,14 +15,10 @@ def kosmos_format(s, d):
     """
     Format()s string s with d.  If there is an error, print helpful messages .
     """
-    if not isinstance(s, str):
-        raise Exception('Wrapped function must return a str')
     try:
         return s.format(**d)
-    except (KeyError, IndexError, TypeError) as e:
-        print >> sys.stderr, "Format Error: {0}".format(e)
-        print >> sys.stderr, "\tTried to format: {0}".format(pprint.pformat(s))
-        print >> sys.stderr, "\tWith: {0}".format(pprint.pformat(d))
+    except Exception as e:
+        formatError(s, d)
         raise
 
 
@@ -37,6 +33,7 @@ def parse_cmd(txt, **kwargs):
         x = ' \\\n'.join(x)
     except (KeyError, TypeError):
         formatError(txt, kwargs)
+        raise
     return x
 
 
@@ -44,14 +41,18 @@ def formatError(txt, dict):
     """
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
-    logging.warning('*' * 76)
-    logging.warning("format() error occurred here:")
-    logging.warning('txt is:\n' + txt)
-    logging.warning('-' * 76)
-    logging.warning('dict available is:\n' + pprint.pformat(dict, indent=4))
-
-    logging.warning('*' * 76)
-    raise Exception("Format() KeyError.  You did not pass the proper arguments to format() the txt.")
+    s = "{star}\n" \
+    "format() error:\n" \
+    "txt:\n" \
+    "{txt}\n" \
+    "{dash}\n" \
+    "{dic}\n" \
+    "{star}\n".format(
+        star='*' * 76,
+        txt=txt,
+        dash='-' * 76,
+        dic=pprint.pformat(dict, indent=4))
+    print s
 
 
 def get_logger(name, path):

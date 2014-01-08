@@ -12,7 +12,6 @@ def render_recipe(execution, recipe):
 
     task_g = nx.DiGraph()
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
-
     # This replicates the recipe_stage_G, a graph of RecipeStage objects, into a stage_G a graph of Stage objects
     f = functools.partial(_recipe_stage2stage, execution=execution)
     #want to add stages in the correct order

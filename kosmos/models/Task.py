@@ -3,9 +3,8 @@ from inspect import getargspec, getcallargs
 import os
 import json
 import re
-from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table,\
+from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
     UniqueConstraint, event
-from sqlalchemy.orm import Session, backref
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
@@ -34,14 +33,15 @@ class GetOutputError(Exception): pass
 
 @signal_task_status_change.connect
 def task_status_changed(task):
-    task.log.info('%s %s' % (task, task.status))
+    if task.status in [TaskStatus.successful, TaskStatus.failed, TaskStatus.killed, TaskStatus.submitted]:
+        task.log.info('%s %s' % (task, task.status))
+
     if task.status == TaskStatus.waiting:
         task.started_on = func.now()
 
     elif task.status == TaskStatus.submitted:
         task.submitted_on = func.now()
-        if task.stage.status == StageStatus.no_attempt:
-            task.stage.status = StageStatus.running
+        task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
@@ -52,6 +52,7 @@ def task_status_changed(task):
         else:
             task.log.error('%s failed %s times' % (task, task.attempt))
             task.execution.terminate()
+            raise SystemExit, 'Workflow terminated due to task failure'
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -60,10 +61,9 @@ def task_status_changed(task):
             task.stage.status = StageStatus.finished
 
     if task.status in [TaskStatus.successful, TaskStatus.failed]:
+        # Get data from profile output
         for k, v in task.profile.items():
             setattr(task, k, v)
-
-    task.session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
@@ -97,6 +97,9 @@ class Task(Base):
     """
     __tablename__ = 'task'
     __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
+
+    class Defaults:
+        pass
 
     id = Column(Integer, primary_key=True)
     class_name = Column(String)
@@ -183,6 +186,7 @@ class Task(Base):
 
         return synonym('_status', descriptor=property(get_status, set_status))
 
+
     @declared_attr
     def __mapper_args__(cls):
         return {
@@ -209,13 +213,16 @@ class Task(Base):
     output_stderr_path = logplus('stderr.txt')
     output_stdout_path = logplus('stdout.txt')
 
-
     def __init__(self, *args, **kwargs):
         """
         :param tags: (dict) A dictionary of tags.
         :param stage: (str) The stage this task belongs to.
         """
         #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
+        for attr in ['mem_req', 'time_req', 'cpu_req']:
+            if hasattr(self.Defaults, attr):
+                setattr(self, attr, getattr(self.Defaults, attr))
+
         super(Task, self).__init__(*args, **kwargs)
 
         self.settings = {}
@@ -225,12 +232,10 @@ class Task(Base):
 
         self.tags = {k: str(v) for k, v in self.tags.items()}
 
-        # Because defining attributes in python creates a reference to a single instance across all class instance
-        # any taskfile instances in self.outputs is used as a template for instantiating a new class
         # Create empty output TaskFiles
         for output in self.outputs:
             if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1])
+                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags))
             elif isinstance(output, str):
                 tf = TaskFile(name=output)
             else:
@@ -384,6 +389,11 @@ class Task(Base):
                 'Duplicate names in task.taskfiles detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
                     self))
 
+    def tags_as_query_string(self):
+        import urllib
+
+        return urllib.urlencode(self.tags)
+
     @property
     def url(self):
         return url_for('.task', id=self.id)
@@ -417,3 +427,4 @@ class INPUT(Task):
 
         # def __str__(self):
         #     return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)
+

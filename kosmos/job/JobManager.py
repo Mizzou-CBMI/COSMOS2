@@ -20,12 +20,15 @@ class JobManager(object):
         # if task.profile.get('exit_status', None) == 0:
         #     task.status = TaskStatus.successful
         # else:
-        mkdir(task.output_dir)
-        mkdir(task.log_dir)
-        self.create_command_sh(task)
 
-        task.status = TaskStatus.submitted
-        self.drm.submit_job(task)
+        if task.NOOP:
+            task.status = TaskStatus.submitted
+        else:
+            mkdir(task.output_dir)
+            mkdir(task.log_dir)
+            self.create_command_sh(task)
+            task.status = TaskStatus.submitted
+            self.drm.submit_job(task)
 
     def terminate(self):
         for task in self.running_tasks:
