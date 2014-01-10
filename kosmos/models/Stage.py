@@ -1,7 +1,7 @@
 import re
 
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import relationship, synonym
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint, Boolean
+from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Table
 from flask import url_for
@@ -17,6 +17,7 @@ def task_status_changed(stage):
     if stage.status == StageStatus.running:
         stage.started_on = func.now()
     elif stage.status == StageStatus.finished:
+        stage.successful = True
         stage.finished_on = func.now()
 
     stage.session.commit()
@@ -37,7 +38,7 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     execution_id = Column(ForeignKey('execution.id'))
-    execution = relationship("Execution", backref="stages")
+    execution = relationship("Execution", backref=backref("stages", cascade="all, delete-orphan"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     parents = relationship("Stage",
@@ -46,6 +47,7 @@ class Stage(Base):
                            secondaryjoin=id == stage_edge_table.c.child_id,
                            backref="children"
     )
+    successful = Column(Boolean, nullable=False, default=False)
     _status = _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
 
 
@@ -69,11 +71,15 @@ class Stage(Base):
 
     @property
     def url(self):
-        return url_for('.stage', id=self.id)
+        return url_for('.stage', execution_id=self.execution_id, stage_name=self.name)
 
     @property
     def log(self):
         return self.execution.log
+
+    def delete(self):
+        self.session.delete(self)
+        self.session.commit()
 
     @property
     def label(self):

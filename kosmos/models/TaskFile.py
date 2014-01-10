@@ -3,7 +3,7 @@ import shutil
 
 from ..db import Base
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 class TaskFileValidationError(Exception): pass
 class TaskFileError(Exception): pass
@@ -17,7 +17,7 @@ class TaskFile(Base):
 
     id = Column(Integer, primary_key=True)
     output_for_task_id = Column(ForeignKey('task.id'))
-    task = relationship("Task", backref='taskfiles')
+    task = relationship("Task", backref=backref('taskfiles', cascade="all, delete-orphan"))
     path = Column(String)
     name = Column(String, nullable=False)
     basename = Column(String)
@@ -63,4 +63,6 @@ class TaskFile(Base):
         """
         Deletes this task and all files associated with it
         """
+        self.session.delete(self)
+        self.session.commit()
         shutil.rmtree(self.path)

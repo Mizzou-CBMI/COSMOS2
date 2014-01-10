@@ -1,11 +1,17 @@
 from . import web, db
 
+
 def shell():
     import IPython
     from kosmos import *
     from kosmos.db import session
+
     Task.__mapper__.polymorphic_on = None
+    ex = session.query(Execution).first()
+    s = session.query(Stage).first()
+    t = session.query(Task).first()
     IPython.embed()
+
 
 def parse_args():
     import argparse
@@ -25,19 +31,21 @@ def parse_args():
 
     sp = sps.add_parser('runweb', help=web.runweb.__doc__)
     sp.add_argument('-p', '--port', type=int, default=4848,
-                    help='port to bind the server to.  Note IGV will be launched on sequential ports, default: %(default)s')
-    sp.add_argument('-H', '--host', default='localhost',
-                    help='port to bind the server to.  Note IGV will be launched on sequential ports, default: %(default)s')
-    sp.set_defaults(func=web.runweb)
+                    help='port to bind the server to')
 
+    sp.add_argument('-H', '--host', default='localhost',
+                    help='host to bind the server to')
+
+    sp.set_defaults(func=web.runweb)
 
     args = parser.parse_args()
     kwargs = dict(args._get_kwargs())
     del kwargs['func']
 
-    debug = kwargs.pop('debug',False)
+    debug = kwargs.pop('debug', False)
     if debug:
         import ipdb
+
         with ipdb.launch_ipdb_on_exception():
             args.func(**kwargs)
     else:

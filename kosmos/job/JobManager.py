@@ -37,23 +37,28 @@ class JobManager(object):
             task.stage.status = StageStatus.killed
 
 
-    def wait_for_a_job_to_finish(self):
+    def get_finished_tasks(self, at_least_one=True):
         """
         :returns: A completed task, or None if there are no tasks to wait for
         """
-        if len(self.running_tasks) == 0:
-            return None
-        while True:
-            for task in self.running_tasks:
-                if task.NOOP:
-                    self.running_tasks.remove(task)
-                    return task
-                else:
-                    r = self.drm.poll(task)
-                    if r is not None:
+        def task_is_finished(task):
+            if task.NOOP:
+                return True
+            return self.drm.poll(task) is not None
+
+        if len(self.running_tasks):
+            while True:
+                finished_tasks = filter(task_is_finished, self.running_tasks)
+                if len(finished_tasks):
+                    for task in finished_tasks:
                         self.running_tasks.remove(task)
-                        return task
-            time.sleep(.1)
+                    return finished_tasks
+                if at_least_one:
+                    time.sleep(.1)
+                else:
+                    return []
+        else:
+            return []
 
     def create_command_sh(self, task):
         """Create a sh script that will execute a command"""

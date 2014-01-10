@@ -1,9 +1,9 @@
-from . import bprint
-from flask import make_response, request, jsonify, abort, render_template, send_file
+from flask import make_response, request, jsonify, abort, render_template, send_file, Blueprint
 import io
 from .. import Execution, Stage, Task, taskgraph as taskgraph_
-from ..db import session
-
+from ..db import get_session
+session = get_session()
+bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static')
 
 @bprint.route('/')
 def index():
@@ -17,9 +17,9 @@ def execution(id):
     return render_template('execution.html', execution=execution)
 
 
-@bprint.route('/stage/<int:id>/')
-def stage(id):
-    stage = session.query(Stage).get(id)
+@bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
+def stage(execution_id, stage_name):
+    stage = session.query(Stage).filter_by(execution_id=execution_id,name=stage_name).one()
     return render_template('stage.html', stage=stage)
 
 

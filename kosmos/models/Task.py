@@ -5,7 +5,7 @@ import json
 import re
 from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
     UniqueConstraint, event
-from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
@@ -33,7 +33,7 @@ class GetOutputError(Exception): pass
 
 @signal_task_status_change.connect
 def task_status_changed(task):
-    if task.status in [TaskStatus.successful, TaskStatus.failed, TaskStatus.killed, TaskStatus.submitted]:
+    if task.status in [TaskStatus.successful, TaskStatus.killed, TaskStatus.submitted]:
         task.log.info('%s %s' % (task, task.status))
 
     if task.status == TaskStatus.waiting:
@@ -46,13 +46,13 @@ def task_status_changed(task):
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
         if task.attempt < 3:
-            task.log.warn('%s attempt %s failed, retrying' % (task, task.attempt))
+            task.log.warn('%s attempt #%s failed' % (task, task.attempt))
             task.attempt += 1
             task.status = TaskStatus.no_attempt
         else:
             task.log.error('%s failed %s times' % (task, task.attempt))
             task.execution.terminate()
-            raise SystemExit, 'Workflow terminated due to task failure'
+            raise SystemExit('Workflow terminated due to task failure')
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -65,10 +65,11 @@ def task_status_changed(task):
         for k, v in task.profile.items():
             setattr(task, k, v)
 
+    task.session.commit()
 
 task_edge_table = Table('task_edge', Base.metadata,
-                        Column('parent_id', Integer, ForeignKey('task.id', ondelete='cascade'), primary_key=True),
-                        Column('child_id', Integer, ForeignKey('task.id', ondelete='cascade'), primary_key=True)
+                        Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
+                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
 )
 
 
@@ -109,7 +110,7 @@ class Task(Base):
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(PickleType, nullable=False)
     stage_id = Column(ForeignKey('stage.id'), nullable=False)
-    stage = relationship("Stage", backref="tasks")
+    stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
     log_dir = Column(String)
     output_dir = Column(String)
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
@@ -122,8 +123,7 @@ class Task(Base):
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
                            secondaryjoin=id == task_edge_table.c.child_id,
-                           backref='children',
-                           cascade='all'
+                           backref='children'
     )
 
     #drmaa related input fields

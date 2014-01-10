@@ -26,7 +26,9 @@ class One2one(Relationship):
 
 
 class Many2one(Relationship):
-    def __init__(self, keywords):
+    def __init__(self, keywords=None):
+        if keywords is None:
+            keywords = []
         assert isinstance(keywords, list), '`keywords` must be a list'
         self.keywords = keywords
 

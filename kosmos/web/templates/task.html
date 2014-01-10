@@ -3,8 +3,8 @@
 {% block content %}
 <ul class="breadcrumb">
   <li><a href="{{ url_for('.index') }}">Home</a></li>
-  <li><a href="{{ url_for('.execution', id=task.execution.id ) }}">{{task.execution}}</a></li>
-  <li><a href="{{ url_for('.stage', id=task.stage.id ) }}">{{task.stage}}</a></li>
+  <li><a href="{{task.execution.url}}">{{task.execution}}</a></li>
+  <li><a href="{{ task.stage.url }}">{{task.stage}}</a></li>
   <li class="active">{{task}}</li>
 </ul>
 

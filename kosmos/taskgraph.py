@@ -17,7 +17,6 @@ def render_recipe(execution, recipe):
     #want to add stages in the correct order
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
-
     for stage in nx.topological_sort(stage_g):
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
@@ -77,6 +76,7 @@ def taskdag_to_agraph(taskdag):
             label = " \\n".join(map(truncate_val, task.tags.items()))
             status2color = {TaskStatus.no_attempt: 'black',
                             TaskStatus.waiting: 'gold1',
+                            TaskStatus.submitted: 'darkgreen',
                             TaskStatus.successful: 'darkgreen',
                             TaskStatus.failed: 'darkred'}
 
@@ -102,7 +102,7 @@ def _recipe_stage2stage(recipe_stage, execution):
     session.commit()
 
     if not created:
-        execution.log.info('loaded %s' % stage)
+        execution.log.info('loaded %s (%s tasks)' % (stage, len(stage.tasks)))
     else:
         execution.log.info('created %s' % stage)
 

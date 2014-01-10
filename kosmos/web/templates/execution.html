@@ -12,13 +12,16 @@
     <dt>{{k}}</dt>
     <dd>{{v}}</dd>
     {% endfor %}
-    <dt>TaskGraph</dt>
+    <dt>Visualize</dt>
     <dd>
+        <div class="btn-group">
         <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
-            <button type="button" class="btn btn-info btn-sm">
-                <span class="glyphicon glyphicon-eye-open"></span> View TaskGraph
-            </button>
+                <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
+        </a> |
+        <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
+                <span class="glyphicon glyphicon-eye-open"></span> RecipeGraph
         </a>
+        </div>
     </dd>
 </dl>
 
@@ -34,7 +37,9 @@
             <thead>
             <tr>
                 <th>stage</th>
+                <th>successful</th>
                 <th>status</th>
+                <th>num tasks</th>
                 <th>started_on</th>
                 <th>finished_on</th>
             </tr>
@@ -43,7 +48,9 @@
             {% for s in execution.stages %}
             <tr>
                 <td><a href="{{ s.url  }}">{{ s }}</a></td>
+                <td>{{s.successful|to_thumb}}</td>
                 <td>{{ s.status }}</td>
+                <td>{{ s.tasks|length }}</td>
                 <td>{{ s.started_on }}</td>
                 <td>{{ s.finished_on }}</td>
             </tr>

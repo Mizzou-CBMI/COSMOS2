@@ -91,6 +91,8 @@ class RecipeStage():
             extra_tags = {}
         if rel == _rel.One2one or rel is None:
             rel = _rel.One2one()
+        elif rel == _rel.Many2one:
+            rel = _rel.Many2one()
 
         assert issubclass(task_class, Task), '`task` must be a subclass of `Task`'
         # assert rel is None or isinstance(rel, Relationship), '`rel` must be of type `Relationship`'

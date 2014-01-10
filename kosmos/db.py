@@ -8,13 +8,15 @@ from sqlalchemy.engine import Engine
 import os, sys
 from . import settings
 
-DEFAULT_ENGINE_URL = 'sqlite:////' + os.path.join(settings['app_store_path'], 'sqlite.db')
+def get_session(engine_url=None):
+    if engine_url is None:
+        engine_url ='sqlite:////' + os.path.join(settings['app_store_path'], 'sqlite.db')
+    engine = create_engine(engine_url, echo=False)
+    Session = sessionmaker(autocommit=False,
+                           autoflush=False,
+                           bind=engine)
+    return Session()
 
-engine = create_engine(DEFAULT_ENGINE_URL, echo=False)
-Session = sessionmaker(autocommit=False,
-                       autoflush=False,
-                       bind=engine)
-session = Session()
 
 #http://docs.sqlalchemy.org/en/rel_0_8/dialects/sqlite.html#foreign-key-support
 @event.listens_for(Engine, "connect")
@@ -38,11 +40,12 @@ class Base(declarative_base()):
     def query(self):
         return self.session.query(self.__class__)
 
-def initdb():
+def initdb(url=None):
+    session = get_session(url)
     Base.metadata.create_all(bind=session.bind)
 
-
-def resetdb():
+def resetdb(url=None):
+    session = get_session(url)
     print >> sys.stderr, 'Resetting db..'
     Base.metadata.drop_all(bind=session.bind)
     initdb()
