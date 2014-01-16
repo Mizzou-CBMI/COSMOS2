@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="{{ url_for('.index') }}">Home</a></li>
+</ul>
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading">
+      <span class="pull-right"></span>
+    <h3 class="panel-title">Executions</h3>
+  </div>
+  <div class="panel-body">
+
+<table class="table table-condensed table-striped datatable" id="table_expected">
+    <thead>
+      <tr>
+            <th>execution</th>
+            <th>created_on</th>
+            <th>finished_on</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in executions %}
+        <tr>
+            <td><a href="{{ url_for('.execution', id=e.id) }}">{{ e }}</a></td>
+            <td>{{ e.created_on }}</td>
+            <td>{{ e.finished_on }}</td>
+         </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+  </div>
+</div>
+
+
+{% endblock %}

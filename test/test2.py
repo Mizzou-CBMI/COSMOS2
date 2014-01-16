@@ -6,9 +6,11 @@ opj = os.path.join
 def run(ex, **kwargs):
     r = Recipe()
     echo = r.add_source([ECHO(tags={'word': 'hello'}), ECHO(tags={'word': 'world'}), ECHO(tags={'word': 'world2'})])
+
+    ex.run(r)
     cat = r.add_stage(CAT, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
 
-    ex.run(r, lambda x: x.execution.output_dir)
+    ex.run(r)
 
 
 if __name__ == '__main__':

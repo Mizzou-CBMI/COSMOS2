@@ -1,10 +1,11 @@
-from ..helpers import groupby
 import re
 import itertools as it
 
+from ..util.helpers import groupby
+
 
 class Relationship(object):
-    """Abstract Class for the various rel strategies"""
+    """Abstract Class for the various relationship strategies"""
 
     def __str__(self):
         m = re.search("^(\w).+2(\w).+$", type(self).__name__)
@@ -14,26 +15,28 @@ class Relationship(object):
 class RelationshipError(Exception):pass
 
 
-class one2one(Relationship):
+class One2one(Relationship):
     @classmethod
     def gen_tasks(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
             tags2 = parent_task.tags.copy()
             tags2.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags2)
+            new_task = stage.task_class(tags=tags2)
             yield new_task, [parent_task]
 
 
-class many2one(Relationship):
-    def __init__(self, keywords):
+class Many2one(Relationship):
+    def __init__(self, keywords=None):
+        if keywords is None:
+            keywords = []
         assert isinstance(keywords, list), '`keywords` must be a list'
         self.keywords = keywords
 
     @classmethod
     def gen_tasks(klass, stage):
-        for tags, parent_task_group in many2one.reduce(stage, stage.rel.keywords):
+        for tags, parent_task_group in Many2one.reduce(stage, stage.rel.keywords):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags)
+            new_task = stage.task_class(tags=tags)
             yield new_task, parent_task_group
 
     @classmethod
@@ -58,9 +61,9 @@ class many2one(Relationship):
             yield tags, parent_task_group
 
 
-class one2many(Relationship):
+class One2many(Relationship):
     def __init__(self, split_by):
-        one2many.validate_split_by(split_by)
+        One2many.validate_split_by(split_by)
         self.split_by = split_by
 
     @classmethod
@@ -75,10 +78,10 @@ class one2many(Relationship):
     @classmethod
     def gen_tasks(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
-            for tags in one2many.split(stage.rel.split_by):
+            for tags in One2many.split(stage.rel.split_by):
                 tags.update(parent_task.tags)
                 tags.update(stage.extra_tags)
-                new_task = stage.task_class(stage=stage, tags=tags)
+                new_task = stage.task_class(tags=tags)
                 yield new_task, [parent_task]
 
     @classmethod
@@ -89,24 +92,23 @@ class one2many(Relationship):
             yield new_tags
 
 
-class many2many(Relationship):
+class Many2many(Relationship):
     def __init__(self, keywords, split_by):
-        one2many.validate_split_by(split_by)
+        One2many.validate_split_by(split_by)
         self.split_by = split_by
         assert isinstance(keywords, list), '`keywords` must be a list'
         self.keywords = keywords
 
     @classmethod
     def gen_tasks(klass, stage):
-        for tags, parent_task_group in many2many.reduce_split(stage):
+        for tags, parent_task_group in Many2many.reduce_split(stage):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(stage=stage, tags=tags)
+            new_task = stage.task_class(tags=tags)
             yield new_task, parent_task_group
 
     @classmethod
     def reduce_split(klass, stage):
-        for tags, parent_task_group in many2one.reduce(stage, stage.rel.keywords):
-            print tags, stage.rel.split_by
-            for new_tags in one2many.split(stage.rel.split_by):
+        for tags, parent_task_group in Many2one.reduce(stage, stage.rel.keywords):
+            for new_tags in One2many.split(stage.rel.split_by):
                 new_tags.update(tags)
                 yield new_tags, parent_task_group
