@@ -65,7 +65,7 @@ class JobManager(object):
         with open(task.output_command_script_path, 'wb') as f:
             f.write("#!/bin/bash\n")
             f.write(task.generate_cmd() + "\n")
-        os.system('chmod 700 {0}'.format(task.output_command_script_path))
+        os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 
     def get_command_str(self, task):
         "The command to be stored in the command.sh script"

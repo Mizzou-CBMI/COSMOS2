@@ -7,7 +7,7 @@ import networkx as nx
 class Recipe(object):
     def __init__(self):
         self.recipe_stage_G = nx.DiGraph()
-        self.consumed = False
+        self.execution = None
 
     def add_source(self, tasks, name=None):
         assert isinstance(tasks, list), 'tasks must be a list'

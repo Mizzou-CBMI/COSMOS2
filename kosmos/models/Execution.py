@@ -14,6 +14,8 @@ from ..util.helpers import get_logger, mkdir
 
 def default_task_log_output_dir(task):
     return opj(task.execution.output_dir, 'log', task.stage.name, task.tags_as_query_string())
+def default_task_output_dir(task):
+    return opj(task.execution.output_dir, task.stage.name, task.tags_as_query_string())
 
 
 class Execution(Base):
@@ -21,6 +23,7 @@ class Execution(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
+    description = Column(String)
     successful = Column(Boolean, nullable=False, default=False)
     output_dir = Column(String, nullable=False)
     created_on = Column(DateTime, default=func.now())
@@ -73,13 +76,14 @@ class Execution(Base):
         self.log = get_logger('kosmos-%s' % Execution, opj(self.output_dir, 'execution.log'))
         self.info = {}
 
-    def run(self, recipe, task_output_dir, task_log_output_dir=default_task_log_output_dir, settings={},
+    def run(self, recipe, task_output_dir=default_task_output_dir, task_log_output_dir=default_task_log_output_dir, settings={},
             parameters={}, ):
         try:
             session = self.session
             assert session, 'Execution must be part of a sqlalchemy session'
             jobmanager = JobManager()
-            self.started_on = func.now()
+            if self.started_on is None:
+                self.started_on = func.now()
 
             # Render task graph and save to db
             task_g, stage_g = taskgraph.render_recipe(self, recipe)
@@ -91,6 +95,7 @@ class Execution(Base):
             successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
             self.log.info('Skipping %s successful tasks' % len(successful))
             task_queue.remove_nodes_from(successful)
+            self.log.info('Queueing %s tasks' % len(task_queue.nodes()))
 
             terminate_on_ctrl_c(self, jobmanager, task_queue)
 
@@ -145,7 +150,7 @@ class Execution(Base):
         self.session.delete(self)
         import shutil
 
-        shutil.rmtree(self.output_dir)
+        #shutil.rmtree(self.output_dir)
         self.session.commit()
 
 
@@ -183,6 +188,8 @@ def _process_finished_tasks(jobmanager, task_queue, at_least_one=True):
             task.status = TaskStatus.successful
             task_queue.remove_node(task)
         else:
+            if not task.must_succeed:
+                task_queue.remove_node(task)
             task.status = TaskStatus.failed
 
 

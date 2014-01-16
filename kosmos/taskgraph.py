@@ -7,8 +7,10 @@ import networkx as nx
 
 
 def render_recipe(execution, recipe):
-    assert not recipe.consumed, 'cannot render the same recipe twice'
-    recipe.consumed = True
+    # the below assertion is because i can't figure out how to copy manually instantiated source tasks in sqlalchemy
+    assert recipe.execution is None or recipe.execution == execution,\
+        'cannot render the same recipe multiple times unless it is for the same execution'
+    recipe.execution = execution
 
     task_g = nx.DiGraph()
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
@@ -102,9 +104,9 @@ def _recipe_stage2stage(recipe_stage, execution):
     session.commit()
 
     if not created:
-        execution.log.info('loaded %s (%s tasks)' % (stage, len(stage.tasks)))
+        execution.log.info('Loaded %s (%s tasks)' % (stage, len(stage.tasks)))
     else:
-        execution.log.info('created %s' % stage)
+        execution.log.info('Created %s' % stage)
 
     for k, v in recipe_stage.properties.items():
         if k != 'tasks':

@@ -31,6 +31,18 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
+task_failed_printout = """<command path="{task.output_command_script_path}">
+{cmd}
+</command>
+<stderr>
+{stderr}
+</stderr>
+<stdout>
+{stdout}
+</stdout>
+"""
+
+
 @signal_task_status_change.connect
 def task_status_changed(task):
     if task.status in [TaskStatus.successful, TaskStatus.killed, TaskStatus.submitted]:
@@ -45,19 +57,31 @@ def task_status_changed(task):
 
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
-        if task.attempt < 3:
+        msg = task_failed_printout.format(
+            task=task,
+            stdout=readfile(task.output_stderr_path).strip(),
+            stderr=readfile(task.output_stdout_path).strip(),
+            cmd=readfile(task.output_command_script_path).strip()
+        )
+        if not task.must_succeed:
+            task.log.warn('%s failed, but must_succeed is False' % task)
+            task.log.warn(msg)
+        elif task.attempt < 3:
             task.log.warn('%s attempt #%s failed' % (task, task.attempt))
+            task.log.warn(msg)
             task.attempt += 1
             task.status = TaskStatus.no_attempt
         else:
             task.log.error('%s failed %s times' % (task, task.attempt))
+            task.log.warn(msg)
             task.execution.terminate()
+            task.session.commit()
             raise SystemExit('Workflow terminated due to task failure')
 
     elif task.status == TaskStatus.successful:
         task.successful = True
         task.finished_on = func.now()
-        if all(t.successful for t in task.stage.tasks):
+        if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.finished
 
     if task.status in [TaskStatus.successful, TaskStatus.failed]:
@@ -67,22 +91,18 @@ def task_status_changed(task):
 
     task.session.commit()
 
+
 task_edge_table = Table('task_edge', Base.metadata,
                         Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
                         Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
 )
 
 
-# @event.listens_for(Session, 'after_flush')
-# def delete_tag_orphans(session, ctx):
-#     session.query(Task). \
-#         filter(~Task.children.any()). \
-#         delete(synchronize_session=False)
-
-
 def logplus(p):
     return property(lambda self: opj(self.log_dir, p))
-
+def readfile(path):
+    with open(path,'r') as fh:
+        return fh.read()
 
 class Task(Base):
     """
@@ -119,6 +139,7 @@ class Task(Base):
     submitted_on = Column(DateTime)
     finished_on = Column(DateTime)
     attempt = Column(Integer, default=1)
+    must_succeed = Column(Integer, default=True)
     parents = relationship("Task",
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
@@ -213,13 +234,14 @@ class Task(Base):
     output_stderr_path = logplus('stderr.txt')
     output_stdout_path = logplus('stdout.txt')
 
+
     def __init__(self, *args, **kwargs):
         """
         :param tags: (dict) A dictionary of tags.
         :param stage: (str) The stage this task belongs to.
         """
         #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
-        for attr in ['mem_req', 'time_req', 'cpu_req']:
+        for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']:
             if hasattr(self.Defaults, attr):
                 setattr(self, attr, getattr(self.Defaults, attr))
 
@@ -410,10 +432,10 @@ class INPUT(Task):
     Does not actually execute anything, but provides a way to load an input file.
 
     >>> INPUT('/path/to/file.ext',tags={'key':'val'})
-    >>> INPUT(path='/path/to/file.ext.gz',name='ext',fmt='ext.gz',tags={'key':'val'})
+    >>> INPUT(path='/path/to/file.ext.gz',name='ext',tags={'key':'val'})
     """
 
-    def __init__(self, path, tags, name=None, fmt=None, *args, **kwargs):
+    def __init__(self, path, tags, name=None, *args, **kwargs):
         """
         :param path: the path to the input file
         :param name: the name or keyword for the input file
@@ -423,6 +445,10 @@ class INPUT(Task):
         super(INPUT, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
         self.persist = True
+        if name is None:
+            _, name = os.path.splitext(path)
+            name = name[1:] # remove '.'
+            assert name != '', 'name not specified, and path has no extension'
         self.taskfiles.append(TaskFile(path=path, name=name, task=self))
 
         # def __str__(self):

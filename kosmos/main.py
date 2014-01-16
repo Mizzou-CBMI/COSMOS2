@@ -4,7 +4,8 @@ from . import web, db
 def shell():
     import IPython
     from kosmos import *
-    from kosmos.db import session
+    from kosmos.db import get_session
+    session=get_session()
 
     Task.__mapper__.polymorphic_on = None
     ex = session.query(Execution).first()
