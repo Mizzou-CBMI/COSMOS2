@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<ul class="breadcrumb">
+  <li><a href="{{ url_for('.index') }}">Home</a></li>
+  <li><a href="{{ url_for('.execution', id=stage.execution.id ) }}">{{stage.execution}}</a></li>
+  <li><a class="active">{{stage}}</a></li>
+</ul>
+
+<dl class="dl-horizontal">
+    {% for k,v in stage.attrs_as_dict().items() %}
+    <dt>{{k}}</dt>
+    <dd>{{v}}</dd>
+    {% endfor %}
+</dl>
+
+<div class="panel panel-primary">
+  <div class="panel-heading">
+      <span class="pull-right"></span>
+    <h3 class="panel-title">Tasks</h3>
+  </div>
+  <div class="panel-body">
+
+<table class="table table-condensed table-striped datatable" id="table_expected">
+    <thead>
+      <tr>
+            <th>task</th>
+            <th>successful</th>
+            <th>status</th>
+            <th>tags</th>
+            <th>started_on</th>
+            <th>submitted_on</th>
+            <th>finished_on</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in stage.tasks %}
+      <tr>
+            <td><a href="{{ t.url }}">{{t}}</a></td>
+            <td>{{t.successful}}</td>
+            <td>{{t.status}}</td>
+            <td>{{t.tags}}</td>
+            <td>{{t.started_on}}</td>
+            <td>{{t.submitted_on}}</td>
+            <td>{{t.finished_on}}</td>
+         </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+  </div>
+</div>
+
+
+{% endblock %}

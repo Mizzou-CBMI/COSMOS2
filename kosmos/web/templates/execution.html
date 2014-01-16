@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<ul class="breadcrumb">
+    <li><a href="{{ url_for('.index') }}">Home</a></li>
+    <li class="active">{{execution}}</li>
+</ul>
+
+<dl class="dl-horizontal">
+    {% for k,v in execution.attrs_as_dict().items() %}
+    <dt>{{k}}</dt>
+    <dd>{{v}}</dd>
+    {% endfor %}
+    <dt>Visualize</dt>
+    <dd>
+        <div class="btn-group">
+        <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
+                <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
+        </a> |
+        <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
+                <span class="glyphicon glyphicon-eye-open"></span> RecipeGraph
+        </a>
+        </div>
+    </dd>
+</dl>
+
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <span class="pull-right"></span>
+
+        <h3 class="panel-title">Stages</h3>
+    </div>
+    <div class="panel-body">
+        <table class="table table-condensed table-striped datatable" id="table_expected">
+            <thead>
+            <tr>
+                <th>stage</th>
+                <th>successful</th>
+                <th>status</th>
+                <th>num tasks</th>
+                <th>started_on</th>
+                <th>finished_on</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for s in execution.stages %}
+            <tr>
+                <td><a href="{{ s.url  }}">{{ s }}</a></td>
+                <td>{{s.successful|to_thumb}}</td>
+                <td>{{ s.status }}</td>
+                <td>{{ s.tasks|length }}</td>
+                <td>{{ s.started_on }}</td>
+                <td>{{ s.finished_on }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+{% endblock %}

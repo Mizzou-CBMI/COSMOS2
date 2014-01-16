@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<ul class="breadcrumb">
+  <li><a href="{{ url_for('.index') }}">Home</a></li>
+  <li><a href="{{task.execution.url}}">{{task.execution}}</a></li>
+  <li><a href="{{ task.stage.url }}">{{task.stage}}</a></li>
+  <li class="active">{{task}}</li>
+</ul>
+
+    <dl class="dl-horizontal">
+        {% for k,v in task.attrs_as_dict().items() %}
+        <dt>{{k}}</dt>
+         <dd>{{ v }}</dd>
+        {% endfor %}
+        {% for tf in task.taskfiles %}
+        <dt>output</dt>
+        <dd>{{tf}}</dd>
+        {% endfor %}
+    </dl>
+    {{ task.log_dir }}
+    {{ task.output_profile_path }}
+
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_command_script_path }}</span>
+        <h3 class="panel-title">Command</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ command }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-info">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_stdout_path }}</span>
+          <h3 class="panel-title">STDOUT</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ stdout }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+      <span class="pull-right">{{ task.output_stderr_path }}</span>
+        <h3 class="panel-title">STDERR </h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ stderr }}</pre>
+
+      </div>
+    </div>
+{% endblock %}
