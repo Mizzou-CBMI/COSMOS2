@@ -36,10 +36,11 @@
         <table class="table table-condensed table-striped datatable" id="table_expected">
             <thead>
             <tr>
+                <th>id</th>
                 <th>stage</th>
                 <th>successful</th>
                 <th>status</th>
-                <th>num tasks</th>
+                <th>successful tasks</th>
                 <th>started_on</th>
                 <th>finished_on</th>
             </tr>
@@ -47,10 +48,11 @@
             <tbody>
             {% for s in execution.stages %}
             <tr>
-                <td><a href="{{ s.url  }}">{{ s }}</a></td>
+                <td>{{s.id}}</td>
+                <td><a href="{{ s.url  }}">{{ s.name }}</a></td>
                 <td>{{s.successful|to_thumb}}</td>
                 <td>{{ s.status }}</td>
-                <td>{{ s.tasks|length }}</td>
+                <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
                 <td>{{ s.started_on }}</td>
                 <td>{{ s.finished_on }}</td>
             </tr>

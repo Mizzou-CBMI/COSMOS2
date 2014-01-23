@@ -8,10 +8,11 @@ from sqlalchemy.engine import Engine
 import os, sys
 from . import settings
 
-def get_session(engine_url=None):
-    if engine_url is None:
-        engine_url ='sqlite:////' + os.path.join(settings['app_store_path'], 'sqlite.db')
-    engine = create_engine(engine_url, echo=False)
+def get_session(database_url=None, echo=False):
+    if database_url is None:
+        #database_url ='sqlite:////' + os.path.join(settings['app_store_path'], 'sqlite.db')
+        raise ValueError('database_url cannot be None.')
+    engine = create_engine(database_url, echo=echo)
     Session = sessionmaker(autocommit=False,
                            autoflush=False,
                            bind=engine)
@@ -40,12 +41,12 @@ class Base(declarative_base()):
     def query(self):
         return self.session.query(self.__class__)
 
-def initdb(url=None):
-    session = get_session(url)
+def initdb(database_url=None):
+    session = get_session(database_url, echo=True)
     Base.metadata.create_all(bind=session.bind)
 
-def resetdb(url=None):
-    session = get_session(url)
+def resetdb(database_url=None):
     print >> sys.stderr, 'Resetting db..'
+    session = get_session(database_url, echo=True)
     Base.metadata.drop_all(bind=session.bind)
-    initdb()
+    initdb(database_url=database_url)

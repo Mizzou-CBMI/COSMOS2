@@ -58,6 +58,8 @@ class JobManager(object):
                 else:
                     return []
         else:
+            if at_least_one:
+                raise AttributeError, 'No tasks are running, and at_least_one is set to True'
             return []
 
     def create_command_sh(self, task):

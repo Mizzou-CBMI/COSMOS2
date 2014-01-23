@@ -8,6 +8,7 @@ import networkx as nx
 
 def render_recipe(execution, recipe):
     # the below assertion is because i can't figure out how to copy manually instantiated source tasks in sqlalchemy
+    # TODO: now that im using tools this restriction does not apply
     assert recipe.execution is None or recipe.execution == execution,\
         'cannot render the same recipe multiple times unless it is for the same execution'
     recipe.execution = execution
@@ -45,7 +46,9 @@ def render_recipe(execution, recipe):
                     new_task.parents = parent_tasks
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
-        #TODO: assert no duplicate tags
+
+        tags = [ frozenset(t.tags.items()) for t in stage.tasks ]
+        assert len(tags) == len(set(tags)), 'Duplicate tags detected in %s' % stage
     return task_g, stage_g
 
 
@@ -104,7 +107,7 @@ def _recipe_stage2stage(recipe_stage, execution):
     session.commit()
 
     if not created:
-        execution.log.info('Loaded %s (%s tasks)' % (stage, len(stage.tasks)))
+        execution.log.info('Loaded %s' % stage)
     else:
         execution.log.info('Created %s' % stage)
 

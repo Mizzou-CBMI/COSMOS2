@@ -1,4 +1,5 @@
-from .Task import INPUT, Task
+#from .Task import INPUT, Task
+from .Tool import Tool, INPUT
 from . import rel as _rel
 
 import networkx as nx
@@ -9,18 +10,17 @@ class Recipe(object):
         self.recipe_stage_G = nx.DiGraph()
         self.execution = None
 
-    def add_source(self, tasks, name=None):
-        assert isinstance(tasks, list), 'tasks must be a list'
-        assert len(tasks) > 0, '`tasks` cannot be empty'
+    def add_source(self, tools, name=None):
+        assert isinstance(tools, list), 'tasks must be a list'
+        assert len(tools) > 0, '`tasks` cannot be empty'
 
         if name is None:
-            name = tasks[0].__class__.__name__
-        tags = [tuple(t.tags.items()) for t in tasks]
+            name = tools[0].__class__.__name__
+        tags = [tuple(t.tags.items()) for t in tools]
         assert len(tags) == len(
-            set(tags)), 'Duplicate inputs tags detected for {0}.  Tags within a recipe_stage must be unique.'.format(
-            INPUT)
+            set(tags)), 'Duplicate inputs tags detected for {0}, {1}.  Tags within a recipe_stage must be unique.'.format(name, tags)
 
-        recipe_stage = RecipeStage(task_class=type(tasks[0]), tasks=tasks, rel=None, name=name, is_source=True)
+        recipe_stage = RecipeStage(tool_class=type(tools[0]), tasks=tools, rel=None, name=name, is_source=True)
         self.recipe_stage_G.add_node(recipe_stage)
         return recipe_stage
 
@@ -75,18 +75,18 @@ def recipe_image(stage_graph, save_to=None):
 class RecipeStage():
     ntasks = None
 
-    def __init__(self, name, task_class=None, rel=None, extra_tags=None, tasks=None,
+    def __init__(self, name, tool_class=None, rel=None, extra_tags=None, tasks=None,
                  is_source=False):
         if name is None:
-            if hasattr(task_class, 'name'):
-                name = task_class.name
+            if hasattr(tool_class, 'name'):
+                name = tool_class.name
             else:
-                name = task_class.__name__
+                name = tool_class.__name__
 
         if tasks is None:
             tasks = []
-        if tasks and task_class and not is_source:
-            raise TypeError('cannot initialize with both a `task` and `tasks` unless `is_source`=True')
+        if tasks and tool_class and not is_source:
+            raise TypeError('cannot initialize with both a `tool` and `tools` unless `is_source`=True')
         if extra_tags is None:
             extra_tags = {}
         if rel == _rel.One2one or rel is None:
@@ -94,12 +94,12 @@ class RecipeStage():
         elif rel == _rel.Many2one:
             rel = _rel.Many2one()
 
-        assert issubclass(task_class, Task), '`task` must be a subclass of `Task`'
+        assert issubclass(tool_class, Tool), '`task` must be a subclass of `Tool`'
         # assert rel is None or isinstance(rel, Relationship), '`rel` must be of type `Relationship`'
 
         self.properties = dict(name=name,
                                tasks=tasks,
-                               task_class=task_class,
+                               task_class=tool_class,
                                rel=rel,
                                is_source=is_source,
                                resolved=False,

@@ -68,8 +68,8 @@ class One2many(Relationship):
 
     @classmethod
     def validate_split_by(cls, split_by):
-        assert isinstance(split_by, list), '`split_by` must be a list'
-        if len(split_by) > 0:
+        assert isinstance(split_by, list) or hasattr(split_by, '__call__'), '`split_by` must be a list or function'
+        if isinstance(split_by, list) and len(split_by) > 0:
             assert isinstance(split_by[0], tuple), '`split_by` must be a list of tuples'
             assert isinstance(split_by[0][0], str), 'the first element of tuples in `split_by` must be a str'
             assert isinstance(split_by[0][1],
@@ -78,18 +78,23 @@ class One2many(Relationship):
     @classmethod
     def gen_tasks(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
-            for tags in One2many.split(stage.rel.split_by):
+            for tags in One2many.split(stage.rel.split_by, parent_task):
                 tags.update(parent_task.tags)
                 tags.update(stage.extra_tags)
                 new_task = stage.task_class(tags=tags)
                 yield new_task, [parent_task]
 
     @classmethod
-    def split(cls, split_by):
-        splits = [list(it.product([split[0]], split[1])) for split in split_by]
-        for new_tags in it.product(*splits):
-            new_tags = dict(new_tags)
-            yield new_tags
+    def split(cls, split_by, parent_task):
+        if hasattr(split_by, '__call__'):
+            for new_tags in split_by(parent_task):
+                assert isinstance(new_tags,dict), 'split_by function did not return a dict'
+                yield new_tags
+        else:
+            splits = [list(it.product([split[0]], split[1])) for split in split_by]
+            for new_tags in it.product(*splits):
+                new_tags = dict(new_tags)
+                yield new_tags
 
 
 class Many2many(Relationship):
