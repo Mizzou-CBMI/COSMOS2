@@ -8,9 +8,9 @@ import shutil
 opj = os.path.join
 import signal
 
-from .. import taskgraph
+from .. import taskgraph, ExecutionFailed
 from ..job.JobManager import JobManager
-from .. import TaskStatus, Task, __version__, StageStatus, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, Task, __version__, ExecutionStatus, signal_execution_status_change
 from .Recipe import recipe_image
 
 from ..util.helpers import get_logger, mkdir, confirm
@@ -93,7 +93,7 @@ class Execution(Base):
         if ex:
             #resuming.
             ex.max_cpus = max_cpus
-            assert ex.output_dir == output_dir, 'cannot change the output_dir of a workflow being resumed.'
+            assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
 
             ex.log.info(msg)
             session.add(ex)
@@ -134,16 +134,17 @@ class Execution(Base):
         try:
             session = self.session
             assert session, 'Execution must be part of a sqlalchemy session'
+            self.status = ExecutionStatus.running
+
             self.jobmanager = JobManager()
             if self.started_on is None:
                 self.started_on = func.now()
 
             # Render task graph and save to db
-            task_g, stage_g = taskgraph.render_recipe(self, recipe)
+            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
             self.recipe_graph = recipe_image(stage_g)
             session.add_all(stage_g.nodes())
             session.add_all(task_g.nodes())
-
             # Create Task Queue
             task_queue = _copy_graph(task_g)
             successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
@@ -154,7 +155,8 @@ class Execution(Base):
             terminate_on_ctrl_c(self)
 
             session.commit()  # required to set IDs for some of the output_dir generation functions
-            # Set output_dirs of task_queue tasks
+
+            # Set output_dirs of new tasks
             log_dirs = {t.log_dir: t for t in successful}
             for task in task_queue.nodes():
                 task.output_dir = task_output_dir(task)
@@ -162,27 +164,42 @@ class Execution(Base):
                 assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
                 log_dirs[log_dir] = task
                 task.log_dir = log_dir
+                for tf in task.output_files:
+                    if tf.path is None:
+                        tf.path = opj(task.output_dir, tf.basename)
+
+            # set commands of new tasks
+            for task in task_queue.nodes():
+                if not task.NOOP:
+                    task.command = task.tool.generate_command(task)
 
             session.commit()
+
             if not dry:
                 while len(task_queue) > 0:
-                    _run_ready_tasks(task_queue, settings, parameters, self)
+                    _run_ready_tasks(task_queue, self)
                     for task in _process_finished_tasks(self.jobmanager):
                         task_queue.remove_node(task)
 
                 self.status = ExecutionStatus.successful
             session.commit()
-            return self
 
+            return self
+        except ExecutionFailed:
+            self.terminate()
+            return self
         except Exception as e:
             self.log.error(e)
             session.commit()
             raise
 
     def terminate(self):
+        self.log.info('Terminating')
         if self.jobmanager:
             self.log.info('Processing finished tasks')
             _process_finished_tasks(self.jobmanager, at_least_one=False)
+            self.log.info('Terminating running tasks')
+            self.jobmanager.terminate()
         self.status = ExecutionStatus.killed
 
     @property
@@ -192,6 +209,12 @@ class Execution(Base):
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
+
+    def get_stage(self, name):
+        for s in self.stages:
+            if s.name == name:
+                return s
+        raise ValueError('Stage with name %s does not exist' % name)
 
     @property
     def url(self):
@@ -221,8 +244,7 @@ def _copy_graph(graph):
     graph2.add_nodes_from(graph.nodes())
     return graph2
 
-
-def _run_ready_tasks(task_queue, settings, parameters, execution):
+def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
@@ -232,10 +254,8 @@ def _run_ready_tasks(task_queue, settings, parameters, execution):
             execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
             break
 
-        ready_task.configure(settings, parameters)
-
         ## render taskfile paths
-        for f in ready_task.taskfiles:
+        for f in ready_task.output_files:
             if f.path is None:
                 f.path = os.path.join(ready_task.output_dir, f.basename)
 
@@ -257,9 +277,10 @@ def terminate_on_ctrl_c(execution):
 #terminate on ctrl+c
     try:
         def ctrl_c(signal, frame):
-            execution.log.info('Caught SIGINT (ctrl+c)')
-            execution.terminate()
-            raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
+            if not execution.successful:
+                execution.log.info('Caught SIGINT (ctrl+c)')
+                execution.terminate()
+                raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
         signal.signal(signal.SIGINT, ctrl_c)
     except ValueError: #signal only works in parse_args thread and django complains

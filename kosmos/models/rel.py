@@ -17,12 +17,11 @@ class RelationshipError(Exception):pass
 
 class One2one(Relationship):
     @classmethod
-    def gen_tasks(klass, stage):
+    def gen_task_tags(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
             tags2 = parent_task.tags.copy()
             tags2.update(stage.extra_tags)
-            new_task = stage.task_class(tags=tags2)
-            yield new_task, [parent_task]
+            yield tags2, [parent_task]
 
 
 class Many2one(Relationship):
@@ -33,11 +32,10 @@ class Many2one(Relationship):
         self.keywords = keywords
 
     @classmethod
-    def gen_tasks(klass, stage):
+    def gen_task_tags(klass, stage):
         for tags, parent_task_group in Many2one.reduce(stage, stage.rel.keywords):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(tags=tags)
-            yield new_task, parent_task_group
+            yield tags, parent_task_group
 
     @classmethod
     def reduce(cls, stage, keywords):
@@ -76,13 +74,12 @@ class One2many(Relationship):
                               list), 'the second element of the tuples in the `split_by` list must also be a list'
 
     @classmethod
-    def gen_tasks(klass, stage):
+    def gen_task_tags(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
             for tags in One2many.split(stage.rel.split_by, parent_task):
                 tags.update(parent_task.tags)
                 tags.update(stage.extra_tags)
-                new_task = stage.task_class(tags=tags)
-                yield new_task, [parent_task]
+                yield tags, [parent_task]
 
     @classmethod
     def split(cls, split_by, parent_task):
@@ -105,11 +102,11 @@ class Many2many(Relationship):
         self.keywords = keywords
 
     @classmethod
-    def gen_tasks(klass, stage):
+    def gen_task_tags(klass, stage):
         for tags, parent_task_group in Many2many.reduce_split(stage):
             tags.update(stage.extra_tags)
-            new_task = stage.task_class(tags=tags)
-            yield new_task, parent_task_group
+            #TODO only instantiate once
+            yield tags, parent_task_group
 
     @classmethod
     def reduce_split(klass, stage):

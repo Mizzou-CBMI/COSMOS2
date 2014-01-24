@@ -22,6 +22,22 @@ class Enum34_ColumnType(types.TypeDecorator):
     def copy(self):
         return Enum34_ColumnType(self.enum_class)
 
+class ListOfStrings(types.TypeDecorator):
+    """
+    Enum compatible with enum34 package
+    """
+    impl = types.String
+
+    def __init__(self):
+        return types.TypeDecorator.__init__(self, '')
+
+    def process_bind_param(self, value, dialect):
+        assert isinstance(value, list), '%s must be a list' % value
+        return ', '.join(value) if value else None
+
+    def process_result_value(self, value, dialect):
+        return value.split(', ') if value else []
+
 def get_or_create(session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:

@@ -1,20 +1,16 @@
 import itertools as it
-from inspect import getargspec, getcallargs
 import os
 import json
-import re
 from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
-    UniqueConstraint, event
+    UniqueConstraint, Text
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
-from ..util.helpers import parse_cmd, kosmos_format, groupby
-from .TaskFile import TaskFile
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType
+from ..util.sqla import Enum34_ColumnType, ListOfStrings
 from .. import TaskStatus, StageStatus, signal_task_status_change
-
+from .. import ExecutionFailed
 
 opj = os.path.join
 
@@ -76,9 +72,8 @@ def task_status_changed(task):
             task.log.error('%s failed %s times' % (task, task.attempt))
             task.log.warn(msg)
             task.stage.status = StageStatus.failed
-            task.execution.terminate()
             task.session.commit()
-            raise SystemExit('Workflow terminated due to task failure')
+            raise ExecutionFailed
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -126,11 +121,7 @@ class Task(Base):
     __tablename__ = 'task'
     __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
-    class Defaults:
-        pass
-
     id = Column(Integer, primary_key=True)
-    # class_name = Column(String)
     mem_req = Column(Integer)
     cpu_req = Column(Integer, default=1, nullable=False)
     time_req = Column(Integer)
@@ -151,15 +142,15 @@ class Task(Base):
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
                            secondaryjoin=id == task_edge_table.c.child_id,
-                           backref='children'
-    )
-
+                           backref='children')
+    command = Column(Text)
+    forward_inputs = Column(ListOfStrings)
 
     #drmaa related input fields
     drmaa_native_specification = Column(String)
 
     #drmaa related and job output fields
-    drmaa_jobID = Column(Integer) #drmaa drmaa_jobID, note: not database primary key
+    drmaa_jobID = Column(Integer)
 
     profile_fields = [('time', ['user_time', 'system_time', 'cpu_time', 'wall_time', 'percent_cpu']),
                       ('memory', ['avg_rss_mem', 'max_rss_mem', 'single_proc_max_peak_virtual_mem',
@@ -175,7 +166,8 @@ class Task(Base):
                                 'avg_num_threads', 'max_num_threads'])
     ]
 
-    exclude_from_dict = [field for cat, fields in profile_fields for field in fields]
+    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command']
+
     #time
     system_time = Column(Integer)
     user_time = Column(Integer)
@@ -231,15 +223,6 @@ class Task(Base):
         return synonym('_status', descriptor=property(get_status, set_status))
 
 
-    # @declared_attr
-    # def __mapper_args__(cls):
-    #     return {
-    #         "polymorphic_on": 'class_name',
-    #         "polymorphic_identity": cls.__name__
-    #     }
-
-    forward_inputs = []
-
     @property
     def execution(self):
         return self.stage.execution
@@ -271,46 +254,16 @@ class Task(Base):
     def command_script_text(self):
         return readfile(self.output_command_script_path).strip()
 
-    def __init__(self, *args, **kwargs):
-        """
-        :param tags: (dict) A dictionary of tags.
-        :param stage: (str) The stage this task belongs to.
-        """
-        #if len(tags)==0: raise ToolValidationError('Empty tag dictionary.  All tasks should have at least one tag.')
-        for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']:
-            if hasattr(self.Defaults, attr):
-                setattr(self, attr, getattr(self.Defaults, attr))
-
-        super(Task, self).__init__(*args, **kwargs)
-
-        self.settings = {}
-        self.parameters = {}
-        if not hasattr(self, 'inputs'): self.inputs = []
-        if not hasattr(self, 'outputs'): self.outputs = []
-
-        self.tags = {k: str(v) for k, v in self.tags.items()}
-
-        # Create empty output TaskFiles
-        for output in self.outputs:
-            if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags))
-            elif isinstance(output, str):
-                tf = TaskFile(name=output)
-            else:
-                raise ToolValidationError, "{0}.outputs must be a list of strs or tuples.".format(self)
-            self.taskfiles.append(tf)
-
-        self._validate()
-
     def get_output(self, name, error_if_missing=True):
-        for o in self.taskfiles:
+        for o in self.output_files:
             if o.name == name:
                 return o
 
-        if self.forward_inputs:
-            for k,v in self.map_inputs().items():
-                if k in self.forward_inputs:
-                    return v[0]
+        for input_name in self.forward_inputs:
+            for p in self.parents:
+                o = p.get_output(input_name, error_if_missing=False)
+                if o:
+                    return o
 
         if error_if_missing:
             raise ToolError('Output named `{0}` does not exist in {1}'.format(name, self))
@@ -341,119 +294,15 @@ class Task(Base):
 
         return "[%s] %s%s" % ( self.id, self.stage.name, tags)
 
-    def map_inputs(self):
-        """
-        Default method to map inputs.  Can be overriden if a different behavior is desired
-        :returns: (dict) A dictionary of taskfiles which are inputs to this task.  Keys are names of the taskfiles, values are a list of taskfiles.
-        """
-        if not self.inputs:
-            return {}
-
-        else:
-            if '*' in self.inputs:
-                return {'*': [o for p in self.parents for o in p.taskfiles]}
-
-            all_inputs = filter(lambda x: x is not None,
-                                [p.get_output(name, error_if_missing=False) for p in self.parents for name in
-                                 self.inputs])
-
-            input_dict = dict(
-                (name, list(input_files)) for name, input_files in groupby(all_inputs, lambda i: i.name))
-
-            for k in self.inputs:
-                if k not in input_dict or len(input_dict[k]) == 0:
-                    raise ToolValidationError, "Could not find input '{0}' for {1}".format(k, self)
-
-            return input_dict
-
-
-    def generate_cmd(self):
-        """
-        Calls map_inputs() and processes the output of cmd()
-        """
-        p = self.parameters.copy()
-        argspec = getargspec(self.cmd)
-
-        for k, v in self.tags.items():
-            if k in argspec.args:
-                p[k] = v
-
-        ## Validation
-        # Helpful error message
-        if not argspec.keywords: #keywords is the **kwargs name or None if not specified
-            for k in p.keys():
-                if k not in argspec.args:
-                    raise ToolValidationError, '{0} received the parameter "{1}" which is not defined in it\'s signature.  Parameters are {2}.  Accept the parameter **kwargs in cmd() to generalize the parameters accepted.'.format(
-                        self, k, argspec.args)
-
-        for l in ['i', 'o', 's']:
-            if l in p.keys():
-                raise ToolValidationError, "{0} is a reserved name, and cannot be used as a tag keyword".format(l)
-
-        try:
-            kwargs = dict(i=self.map_inputs(), o={o.name: o for o in self.taskfiles}, s=self.settings, **p)
-            callargs = getcallargs(self.cmd, **kwargs)
-        except TypeError:
-            raise TypeError, 'Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys())
-
-        del callargs['self']
-        r = self.cmd(**callargs)
-
-        #if tuple is returned, second element is a dict to format with
-        extra_format_dict = r[1] if len(r) == 2 and r else {}
-        pcmd = r[0] if len(r) == 2 else r
-
-        #format() return string with callargs
-        callargs['self'] = self
-        callargs.update(extra_format_dict)
-        cmd = kosmos_format(pcmd, callargs)
-
-        #fix TaskFiles paths
-        cmd = re.sub('<TaskFile\[\d+?\] (.+?)>', lambda x: x.group(1), cmd)
-
-        return parse_cmd(cmd)
-
-
-    def cmd(self, i, o, s, **kwargs):
-        """
-        Constructs the preformatted command string.  The string will be .format()ed with the i,s,p dictionaries,
-        and later, $OUT.outname  will be replaced with a TaskFile associated with the output name `outname`
-
-        :param i: (dict who's values are lists) Input TaskFiles.
-        :param o: (dict) Output TaskFiles.
-        :param s: (dict) Settings.
-        :param kwargs: (dict) Parameters.
-        :returns: (str|tuple(str,dict)) A preformatted command string, or a tuple of the former and a dict with extra values to use for
-            formatting
-        """
-        raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
-
-    def configure(self, settings={}, parameters={}):
-        """
-        """
-        self.parameters = parameters
-        self.settings = settings
-        return self
-
-    # def _validate(self):
-    #     #validate inputs are strs
-    #     if any([not isinstance(i, str) for i in self.inputs]):
-    #         raise ToolValidationError, "{0} has elements in self.inputs that are not of type str".format(self)
-    #
-    #     if len(self.inputs) != len(set(self.inputs)):
-    #         raise ToolValidationError(
-    #             'Duplicate names in task.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
-    #
-    #     output_names = [o.name for o in self.taskfiles]
-    #     if len(output_names) != len(set(output_names)):
-    #         raise ToolValidationError(
-    #             'Duplicate names in task.taskfiles detected in {0}.  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(
-    #                 self))
-
     def tags_as_query_string(self):
         import urllib
 
         return urllib.urlencode(self.tags)
+
+    def delete(self):
+        self.session.delete(self)
+        self.session.commit()
+
 
     @property
     def url(self):
@@ -462,34 +311,3 @@ class Task(Base):
     def __repr__(self):
         s = self.stage.name if self.stage else ''
         return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
-
-class INPUT(Task):
-    """
-    An Input File.
-
-    Does not actually execute anything, but provides a way to load an input file.
-
-    >>> INPUT('/path/to/file.ext',tags={'key':'val'})
-    >>> INPUT(path='/path/to/file.ext.gz',name='ext',tags={'key':'val'})
-    """
-
-    def __init__(self, path, tags, name=None, *args, **kwargs):
-        """
-        :param path: the path to the input file
-        :param name: the name or keyword for the input file
-        :param fmt: the format of the input file
-        """
-        path = os.path.abspath(path)
-        super(INPUT, self).__init__(tags=tags, *args, **kwargs)
-        self.NOOP = True
-        self.persist = True
-        if name is None:
-            _, name = os.path.splitext(path)
-            name = name[1:] # remove '.'
-            assert name != '', 'name not specified, and path has no extension'
-        self.taskfiles.append(TaskFile(path=path, name=name, task=self))
-        assert os.path.exists(path), '%s.path, %s, is missing from the filesystem' % (self, self.path)
-
-        # def __str__(self):
-        #     return '[{0}] {1} {2}'.format(self.id, self.__class__.__name__, self.tags)
-

@@ -6,7 +6,6 @@ from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
 import os, sys
-from . import settings
 
 def get_session(database_url=None, echo=False):
     if database_url is None:

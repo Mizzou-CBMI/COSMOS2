@@ -1,17 +1,17 @@
 from .util.helpers import groupby
 from .util.sqla import get_or_create
-from . import TaskStatus, Stage
+from . import TaskStatus, Stage, Input
 import functools
 
 import networkx as nx
 
 
-def render_recipe(execution, recipe):
+def render_recipe(execution, recipe, settings, parameters):
     # the below assertion is because i can't figure out how to copy manually instantiated source tasks in sqlalchemy
     # TODO: now that im using tools this restriction does not apply
-    assert recipe.execution is None or recipe.execution == execution,\
-        'cannot render the same recipe multiple times unless it is for the same execution'
-    recipe.execution = execution
+    # assert recipe.execution is None or recipe.execution == execution,\
+    #     'cannot render the same recipe multiple times unless it is for the same execution'
+    # recipe.execution = execution
 
     task_g = nx.DiGraph()
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
@@ -24,31 +24,30 @@ def render_recipe(execution, recipe):
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
             if stage.is_source:
-                for manually_instantiated_class in stage.recipe_stage.tasks:
-                    existing_task = existing_tasks.get((stage, frozenset(manually_instantiated_class.tags.items())),
+                for source_tool in stage.recipe_stage.source_tools:
+                    existing_task = existing_tasks.get((stage, frozenset(source_tool.tags.items())),
                                                        None)
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
-                        # these manually instantiated classes are difficult to copy without mucking up the session,
-                        # which is why recipes can only be consumed once
-                        stage.tasks.append(manually_instantiated_class)
-                        task_g.add_node(manually_instantiated_class)
+                        new_task = source_tool.generate_task(parents=[], settings=settings, parameters=parameters)
+                        stage.tasks.append(new_task)
+                        task_g.add_node(new_task)
 
             else:
-                for new_task, parent_tasks in stage.rel.__class__.gen_tasks(stage):
-                    existing_task = existing_tasks.get((stage, frozenset(new_task.tags.items())), None)
+                for new_task_tags, parent_tasks in stage.rel.__class__.gen_task_tags(stage):
+                    existing_task = existing_tasks.get((stage, frozenset(new_task_tags.items())), None)
                     if existing_task:
                         new_task = existing_task
                     else:
+                        new_task = stage.tool_class(tags=new_task_tags).generate_task(parents=parent_tasks, settings=settings, parameters=parameters)
                         stage.tasks.append(new_task)
 
-                    new_task.parents = parent_tasks
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
 
-        tags = [ frozenset(t.tags.items()) for t in stage.tasks ]
-        assert len(tags) == len(set(tags)), 'Duplicate tags detected in %s' % stage
+        tagz = [ frozenset(t.tags.items()) for t in stage.tasks ]
+        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s' % stage
     return task_g, stage_g
 
 

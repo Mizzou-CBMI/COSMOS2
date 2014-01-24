@@ -28,6 +28,9 @@ def parse_and_start(parser, session, root_output_dir=None):
 
     d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'prompt_confirm', 'max_cpus']}
     if d['output_dir'] is None:
+        assert root_output_dir and os.path.exists(root_output_dir), 'root_output_dir `%s` does not exist.  Reset your' \
+                                                                    'configuration file' % root_output_dir
+
         d['output_dir'] = os.path.join(root_output_dir, d['name'])
     ex = Execution.start(session=session, **d)
     cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
@@ -36,13 +39,18 @@ def parse_and_start(parser, session, root_output_dir=None):
     return ex, kwargs
 
 
-def default_argparser(session=None):
-    if session is None:
-        from .. import get_session
+from .. import config
 
-        session = get_session()
+database_url = config['database_url']
+root_output_dir = config['root_output_dir']
+
+
+def default_argparser(database_url=database_url, root_output_dir=root_output_dir):
+    from .. import get_session
+
+    session = get_session(database_url)
     import argparse
 
     p = argparse.ArgumentParser()
     add_execution_args(p)
-    return parse_and_start(p, session)
+    return parse_and_start(p, session, root_output_dir=root_output_dir)

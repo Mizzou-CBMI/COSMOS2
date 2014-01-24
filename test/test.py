@@ -1,10 +1,11 @@
 import os
 from tools import ECHO, CAT
-from kosmos import rel, Recipe
+from kosmos import rel, Recipe, Input
 opj = os.path.join
 
 def run(ex, **kwargs):
     r = Recipe()
+    inp = r.add_source([Input('blah', '/tmp', {'test':'tag'})])
     echo = r.add_source([ECHO(tags={'word': 'hello'}), ECHO(tags={'word': 'world'}), ECHO(tags={'word': 'world2'})])
     cat = r.add_stage(CAT, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
 

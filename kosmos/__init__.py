@@ -4,7 +4,6 @@ __version__ = '0.1'
 # Settings
 ########################################################################################################################
 import os
-import sys
 from collections import defaultdict
 
 opj = os.path.join
@@ -28,7 +27,8 @@ else:
 ########################################################################################################################
 # Misc
 ########################################################################################################################
-from collections import namedtuple
+
+class ExecutionFailed(Exception): pass
 
 ########################################################################################################################
 # Signals
@@ -78,12 +78,13 @@ class ExecutionStatus(enum.Enum):
 from .models import rel
 from .models.Recipe import Recipe
 from .models.TaskFile import TaskFile
-from .models.Task import Task, INPUT
+from .models.Task import Task
 from .models import rel
 from .models.Stage import Stage
+from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args, parse_and_start, default_argparser
 from .db import get_session
 
 
-__all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'INPUT', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus']
+__all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Input', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus']
