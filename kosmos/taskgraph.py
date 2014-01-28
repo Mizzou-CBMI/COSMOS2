@@ -7,11 +7,10 @@ import networkx as nx
 
 
 def render_recipe(execution, recipe, settings, parameters):
-    # the below assertion is because i can't figure out how to copy manually instantiated source tasks in sqlalchemy
-    # TODO: now that im using tools this restriction does not apply
-    # assert recipe.execution is None or recipe.execution == execution,\
-    #     'cannot render the same recipe multiple times unless it is for the same execution'
-    # recipe.execution = execution
+    """
+    Generates a stagegraph and taskgraph described by a Recipe
+    :returns: (nx.DiGraph taskgraph, nx.DiGraph stagegraph)
+    """
 
     task_g = nx.DiGraph()
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
@@ -20,7 +19,8 @@ def render_recipe(execution, recipe, settings, parameters):
     #want to add stages in the correct order
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
-    for stage in nx.topological_sort(stage_g):
+    for i, stage in enumerate(nx.topological_sort(stage_g)):
+        stage.number = i + 1
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
             if stage.is_source:
@@ -40,25 +40,23 @@ def render_recipe(execution, recipe, settings, parameters):
                     if existing_task:
                         new_task = existing_task
                     else:
-                        new_task = stage.tool_class(tags=new_task_tags).generate_task(parents=parent_tasks, settings=settings, parameters=parameters)
+                        new_task = stage.tool_class(tags=new_task_tags).generate_task(parents=parent_tasks,
+                                                                                      settings=settings,
+                                                                                      parameters=parameters)
                         stage.tasks.append(new_task)
 
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
 
-        tagz = [ frozenset(t.tags.items()) for t in stage.tasks ]
+        tagz = [frozenset(t.tags.items()) for t in stage.tasks]
         assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s' % stage
     return task_g, stage_g
 
 
-def dag_from_tasks(tasks):
-    g = nx.DiGraph()
-    g.add_nodes_from(tasks)
-    g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
-    return g
-
-
 def taskdag_to_agraph(taskdag):
+    """
+    Converts a networkx graph into a pygraphviz Agraph
+    """
     import pygraphviz as pgv
 
     agraph = pgv.AGraph(strict=False, directed=True, fontname="Courier")
@@ -80,7 +78,7 @@ def taskdag_to_agraph(taskdag):
             label = " \\n".join(map(truncate_val, task.tags.items()))
             status2color = {TaskStatus.no_attempt: 'black',
                             TaskStatus.waiting: 'gold1',
-                            TaskStatus.submitted: 'darkgreen',
+                            TaskStatus.submitted: 'darkblue',
                             TaskStatus.successful: 'darkgreen',
                             TaskStatus.failed: 'darkred'}
 
@@ -90,8 +88,15 @@ def taskdag_to_agraph(taskdag):
     return agraph
 
 
-def as_image(taskdag, path=None):
-    g = taskdag_to_agraph(taskdag)
+def tasks_to_image(tasks, path=None):
+    """
+    Converts a list of tasks into a SVG image of the taskgraph DAG
+    """
+    g = nx.DiGraph()
+    g.add_nodes_from(tasks)
+    g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
+
+    g = taskdag_to_agraph(g)
     g.layout(prog="dot")
     return g.draw(path=path, format='svg')
 

@@ -18,6 +18,7 @@ settings = dict(
 conf_path = opj(app_store_path, 'kosmos.conf')
 if os.path.exists(conf_path):
     from configparser import ConfigParser
+
     configp = ConfigParser()
     configp.read(conf_path)
     config = defaultdict(lambda: None, configp.values()[1].items())
@@ -71,12 +72,18 @@ class ExecutionStatus(enum.Enum):
     killed = 'Manually Killed'
 
 
+class RelationshipType(enum.Enum):
+    one2one = 'pne2one',
+    one2many = 'one2many',
+    many2one = 'many2one',
+    many2many = 'many2many'
+
 ########################################################################################################################
 # Imports
 ########################################################################################################################
 
 from .models import rel
-from .models.Recipe import Recipe
+from .models.Recipe import Recipe, stagegraph_to_agraph
 from .models.TaskFile import TaskFile
 from .models.Task import Task
 from .models import rel
@@ -87,4 +94,5 @@ from .util.args import add_execution_args, parse_and_start, default_argparser
 from .db import get_session
 
 
-__all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Input', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus']
+__all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
+           'Tool']

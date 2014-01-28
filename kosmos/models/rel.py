@@ -2,10 +2,12 @@ import re
 import itertools as it
 
 from ..util.helpers import groupby
-
+from .. import RelationshipType
 
 class Relationship(object):
     """Abstract Class for the various relationship strategies"""
+
+    type = None
 
     def __str__(self):
         m = re.search("^(\w).+2(\w).+$", type(self).__name__)
@@ -16,6 +18,8 @@ class RelationshipError(Exception):pass
 
 
 class One2one(Relationship):
+    type = RelationshipType.one2many
+
     @classmethod
     def gen_task_tags(klass, stage):
         for parent_task in it.chain(*[s.tasks for s in stage.parents]):
@@ -25,6 +29,7 @@ class One2one(Relationship):
 
 
 class Many2one(Relationship):
+    type = RelationshipType.many2one
     def __init__(self, keywords=None):
         if keywords is None:
             keywords = []
@@ -60,6 +65,7 @@ class Many2one(Relationship):
 
 
 class One2many(Relationship):
+    type = RelationshipType.one2many
     def __init__(self, split_by):
         One2many.validate_split_by(split_by)
         self.split_by = split_by
@@ -95,6 +101,7 @@ class One2many(Relationship):
 
 
 class Many2many(Relationship):
+    type = RelationshipType.many2many
     def __init__(self, keywords, split_by):
         One2many.validate_split_by(split_by)
         self.split_by = split_by

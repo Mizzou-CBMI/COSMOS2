@@ -1,31 +1,34 @@
 from ..db import Base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates, synonym
 from flask import url_for
 import os, re
 import shutil
+
 opj = os.path.join
 import signal
 
 from .. import taskgraph, ExecutionFailed
 from ..job.JobManager import JobManager
 from .. import TaskStatus, Task, __version__, ExecutionStatus, signal_execution_status_change
-from .Recipe import recipe_image
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 
 
-def default_task_log_output_dir(task):
+def _default_task_log_output_dir(task):
+    """The default function for computing Task.log_output_dir"""
     return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
 
 
-def default_task_output_dir(task):
+def _default_task_output_dir(task):
+    """The default function for computing Task.output_dir"""
     return opj(task.execution.output_dir, task.stage.name, str(task.id))
 
+
 @signal_execution_status_change.connect
-def execution_status_changed(ex):
+def _execution_status_changed(ex):
     ex.log.info('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
 
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
@@ -38,6 +41,9 @@ def execution_status_changed(ex):
 
 
 class Execution(Base):
+    """
+    The primary object.  An Execution is an instantiation of a recipe being run.
+    """
     __tablename__ = 'execution'
 
     id = Column(Integer, primary_key=True)
@@ -48,12 +54,11 @@ class Execution(Base):
     created_on = Column(DateTime, default=func.now())
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    recipe_graph = Column(PickleType)
     max_cpus = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
 
-    exclude_from_dict = ['recipe_graph']
+    exclude_from_dict = ['info']
 
     @declared_attr
     def status(cls):
@@ -75,6 +80,18 @@ class Execution(Base):
 
     @classmethod
     def start(cls, session, name, output_dir, restart=False, prompt_confirm=True, max_cpus=None):
+        """
+        Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
+
+        :param session: (sqlalchemy.session)
+        :param name: (str) a name for the workflow.
+        :param output_dir: (str) the directory to write files to
+        :param restart: (bool) if True and the execution exists, delete it first
+        :param prompt_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
+        :max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
+
+        :returns: an instance of Execution
+        """
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
 
@@ -127,71 +144,89 @@ class Execution(Base):
             self.info = dict()
         self.jobmanager = None
 
-    def run(self, recipe, task_output_dir=default_task_output_dir, task_log_output_dir=default_task_log_output_dir,
+    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir,
             settings={},
             parameters={},
             dry=False):
-        try:
-            session = self.session
-            assert session, 'Execution must be part of a sqlalchemy session'
-            self.status = ExecutionStatus.running
+        """
+        Executes the :param:`recipe` using the configured :term:`DRM`.
 
-            self.jobmanager = JobManager()
-            if self.started_on is None:
-                self.started_on = func.now()
+        :param recipe: (Recipe) the Recipe to render and execute.
+        :param task_output_dir: a function that computes a tasks' output_dir.
+            It receives one parameter: the task instance.  By default task output is stored in
+            output_dir/stage_name/task_id.
+        :param task_log_output_dir: a function that computes a tasks' log_output_dir.  By default task log output is
+            stored in output_dir/log/stage_name/task_id.
+        :param settings: (dict) A dict which contains settings used when rendering a recipe to generate the commands.
+            keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
+            stage as the `s` parameter.
+        :param parameters: (dict) Structure is the same as settings, but values are passed to the Tool.cmd() as
+            **kwargs.  ex: if parameters={'MyTool':{'x':1}}, then MyTool.cmd will be passed the parameter x=1.
+        :param dry: (bool) if True, do not actually run any jobs.
 
-            # Render task graph and save to db
-            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
-            self.recipe_graph = recipe_image(stage_g)
-            session.add_all(stage_g.nodes())
-            session.add_all(task_g.nodes())
-            # Create Task Queue
-            task_queue = _copy_graph(task_g)
-            successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
-            self.log.info('Skipping %s successful tasks' % len(successful))
-            task_queue.remove_nodes_from(successful)
-            self.log.info('Queueing %s new tasks' % len(task_queue.nodes()))
+        """
+        # try:
+        session = self.session
+        assert session, 'Execution must be part of a sqlalchemy session'
+        self.status = ExecutionStatus.running
 
-            terminate_on_ctrl_c(self)
+        self.jobmanager = JobManager()
+        if self.started_on is None:
+            self.started_on = func.now()
 
-            session.commit()  # required to set IDs for some of the output_dir generation functions
+        # Render task graph and save to db
+        task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
+        session.add_all(stage_g.nodes())
+        session.add_all(task_g.nodes())
+        # Create Task Queue
+        task_queue = _copy_graph(task_g)
+        successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
+        self.log.info('Skipping %s successful tasks' % len(successful))
+        task_queue.remove_nodes_from(successful)
+        self.log.info('Queueing %s new tasks' % len(task_queue.nodes()))
 
-            # Set output_dirs of new tasks
-            log_dirs = {t.log_dir: t for t in successful}
-            for task in task_queue.nodes():
-                task.output_dir = task_output_dir(task)
-                log_dir = task_log_output_dir(task)
-                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-                log_dirs[log_dir] = task
-                task.log_dir = log_dir
-                for tf in task.output_files:
-                    if tf.path is None:
-                        tf.path = opj(task.output_dir, tf.basename)
+        terminate_on_ctrl_c(self)
 
-            # set commands of new tasks
-            for task in task_queue.nodes():
-                if not task.NOOP:
-                    task.command = task.tool.generate_command(task)
+        session.commit()  # required to set IDs for some of the output_dir generation functions
 
-            session.commit()
+        # Set output_dirs of new tasks
+        log_dirs = {t.log_dir: t for t in successful}
+        for task in task_queue.nodes():
+            task.output_dir = task_output_dir(task)
+            log_dir = task_log_output_dir(task)
+            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+            log_dirs[log_dir] = task
+            task.log_dir = log_dir
+            for tf in task.output_files:
+                if tf.path is None:
+                    tf.path = opj(task.output_dir, tf.basename)
 
-            if not dry:
-                while len(task_queue) > 0:
-                    _run_ready_tasks(task_queue, self)
-                    for task in _process_finished_tasks(self.jobmanager):
-                        task_queue.remove_node(task)
+        # set commands of new tasks
+        for task in task_queue.nodes():
+            if not task.NOOP:
+                task.command = task.tool.generate_command(task)
 
-                self.status = ExecutionStatus.successful
-            session.commit()
+        session.commit()
 
-            return self
-        except ExecutionFailed:
-            self.terminate()
-            return self
-        except Exception as e:
-            self.log.error(e)
-            session.commit()
-            raise
+        if not dry:
+            while len(task_queue) > 0:
+                _run_ready_tasks(task_queue, self)
+                for task in _process_finished_tasks(self.jobmanager):
+                    task_queue.remove_node(task)
+
+            self.status = ExecutionStatus.successful
+        session.commit()
+
+        return self
+        # except ExecutionFailed as e:
+        #     self.terminate()
+        #     raise
+
+        # except Exception as e:
+        #     self.log.error(e)
+        #     session.commit()
+        #     raise e
+
 
     def terminate(self):
         self.log.info('Terminating')
@@ -202,13 +237,16 @@ class Execution(Base):
             self.jobmanager.terminate()
         self.status = ExecutionStatus.killed
 
+
     @property
     def tasksq(self):
         return self.session.query(Task).filter(Task.stage_id.in_(s.id for s in self.stages))
 
+
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
+
 
     def get_stage(self, name):
         for s in self.stages:
@@ -216,12 +254,15 @@ class Execution(Base):
                 return s
         raise ValueError('Stage with name %s does not exist' % name)
 
+
     @property
     def url(self):
         return url_for('kosmos.execution', id=self.id)
 
+
     def __repr__(self):
         return '<Execution[%s] %s>' % (self.id or '', self.name)
+
 
     def delete(self, delete_output_dir=False):
         if delete_output_dir:
@@ -243,6 +284,7 @@ def _copy_graph(graph):
     graph2.add_edges_from(graph.edges())
     graph2.add_nodes_from(graph.nodes())
     return graph2
+
 
 def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus

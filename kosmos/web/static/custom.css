@@ -1,0 +1,23 @@
+#menu-bar p, #menu-bar a {
+    color: white;
+    -webkit-text-shadow: none;
+    text-shadow: none;
+}
+
+.container-full {
+  margin: 0 auto;
+  width: 100%;
+}
+
+.table-condensed {
+    font-size: .8em
+}
+
+body, h1, h2, h3, h4, h5, p {
+    color: #000;
+    font-family: monospace;
+}
+
+table {
+    font-family: monospace;
+}

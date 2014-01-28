@@ -1,2 +1,11 @@
+.project
+.idea/
+.git/
+build/
+dist/
+doc/build
+alembic/
 *.pyc
-*.idea
+*.swp
+*.*~
+lsync/

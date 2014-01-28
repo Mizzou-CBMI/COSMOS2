@@ -12,6 +12,9 @@ class ToolValidationError(Exception): pass
 
 
 class Tool(object):
+    """
+    Essentially a factory that produces Tasks.  It's :meth:`cmd` must be overridden unless it is a NOOP task.
+    """
     mem_req = None
     time_req = None
     cpu_req = None
@@ -144,6 +147,7 @@ class Tool(object):
 
         #format() return string with callargs
         callargs['self'] = self
+        callargs['task'] = task
         callargs.update(extra_format_dict)
         cmd = kosmos_format(pcmd, callargs)
 
@@ -170,7 +174,7 @@ class Tool(object):
 
 class Input(Tool):
     """
-    An Input File.
+    A NOOP Task who's output_files contain a *single* file that already exists on the filesystem.
 
     Does not actually execute anything, but provides a way to load an input file.
 
@@ -199,9 +203,9 @@ class Input(Tool):
 
 class Inputs(Tool):
     """
-    An Input File.
+    An Input File.A NOOP Task who's output_files contain a *multiple* files that already exists on the filesystem.
 
-    Does not actually execute anything, but provides a way to load an input file.
+    Does not actually execute anything, but provides a way to load a set of input file.
 
     >>> Input('ext','/path/to/file.ext',tags={'key':'val'})
     >>> Input(path='/path/to/file.ext.gz',name='ext',tags={'key':'val'})

@@ -21,6 +21,11 @@ def add_execution_args(parser):
 
 
 def parse_and_start(parser, session, root_output_dir=None):
+    """
+    Parses the args of :param:`parser`
+
+    :returns: (Execution, dict kwargs)
+    """
     parsed = parser.parse_args()
     kwargs = dict(parsed._get_kwargs())
 
@@ -46,6 +51,12 @@ root_output_dir = config['root_output_dir']
 
 
 def default_argparser(database_url=database_url, root_output_dir=root_output_dir):
+    """
+    Creates an argparser with all of the default options.  On a successful argparse,
+    calls and returns the output of :func:`parse_and_start`
+
+    :returns: (Execution, dict kwargs)
+    """
     from .. import get_session
 
     session = get_session(database_url)

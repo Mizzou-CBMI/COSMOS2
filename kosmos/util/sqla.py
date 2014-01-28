@@ -13,11 +13,11 @@ class Enum34_ColumnType(types.TypeDecorator):
         return types.TypeDecorator.__init__(self, *enum_class._member_names_)
 
     def process_bind_param(self, value, dialect):
-        assert isinstance(value, self.enum_class), "'%s' must be of type %s" % (value, self.enum_class)
-        return value.name
+        assert isinstance(value, self.enum_class) or value is None, "'%s' must be of type %s" % (value, self.enum_class)
+        return None if value is None else value.name
 
     def process_result_value(self, value, dialect):
-        return getattr(self.enum_class, value)
+        return None if value is None else getattr(self.enum_class, value)
 
     def copy(self):
         return Enum34_ColumnType(self.enum_class)

@@ -1,10 +1,11 @@
-from flask import make_response, request, jsonify, abort, render_template, send_file, Blueprint
+from flask import make_response, request, jsonify, Markup, render_template, send_file, Blueprint
 import io
 from .. import Execution, Stage, Task, taskgraph as taskgraph_
 from . import filters
+from ..models.Recipe import stages_to_image
+
 
 def gen_bprint(session):
-
     bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static')
     filters.add_filters(bprint)
 
@@ -36,20 +37,27 @@ def gen_bprint(session):
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):
-        return render_template('taskgraph.html', execution=session.query(Execution).get(id), type=type)
-
-
-    @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')
-    def taskgraph_svg(id, type):
-        e = session.query(Execution).get(id)
+        ex = session.query(Execution).get(id)
 
         if type == 'task':
-            dag = taskgraph_.dag_from_tasks(e.tasks)
-            return send_file(io.BytesIO(taskgraph_.as_image(dag)), mimetype='image/svg+xml')
+            svg = Markup(taskgraph_.tasks_to_image(ex.tasks))
         else:
-            return send_file(io.BytesIO(e.recipe_graph), mimetype='image/svg+xml')
+            svg = Markup(stages_to_image(ex.stages))
 
+        return render_template('taskgraph.html', execution=ex, type=type,
+                               svg=svg)
+
+    # @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')
+    # def taskgraph_svg(id, type, ):
+    #     e = session.query(Execution).get(id)
+    #
+    #     if type == 'task':
+    #         return send_file(io.BytesIO(taskgraph_.tasks_to_image(e.tasks)), mimetype='image/svg+xml')
+    #     else:
+    #         return send_file(io.BytesIO(stages_to_image(e.stages)), mimetype='image/svg+xml')
+    #
     return bprint
+
 
 profile_help = dict(
     #time

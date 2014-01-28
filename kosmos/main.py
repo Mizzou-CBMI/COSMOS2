@@ -20,7 +20,6 @@ def shell(database_url=None):
 def parse_args():
     import argparse
     from . import config
-    print config
 
     parser = argparse.ArgumentParser(prog='kosmos', description=__doc__,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)

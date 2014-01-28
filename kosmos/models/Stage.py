@@ -8,8 +8,7 @@ from flask import url_for
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
-from .. import StageStatus, signal_stage_status_change
-from .. import Task
+from .. import StageStatus, signal_stage_status_change, RelationshipType
 
 
 @signal_stage_status_change.connect
@@ -50,6 +49,7 @@ class Stage(Base):
                            secondaryjoin=id == stage_edge_table.c.child_id,
                            backref="children"
     )
+    relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
 
@@ -90,16 +90,20 @@ class Stage(Base):
         return self.execution.log
 
     def delete(self):
+        self.log.info('Deleting %s' % self)
         self.session.delete(self)
         self.session.commit()
 
     def get_tasks(self, **filter_by):
-        return [t for t in self.tasks if all(str(t.tags.get(k,None)) == v for k, v in filter_by.items())]
+        return [t for t in self.tasks if all(str(t.tags.get(k, None)) == v for k, v in filter_by.items())]
 
     def get_task(self, **filter_by):
         tasks = self.get_tasks(**filter_by)
         assert len(tasks) <= 1, 'get_task returned more than 1 result!'
         return tasks[0]
+
+    def percent_successful(self):
+        return round(float(self.num_successful_tasks()) / float(len(self.tasks)) * 100, 2)
 
     @property
     def label(self):

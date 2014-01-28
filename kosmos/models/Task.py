@@ -107,18 +107,10 @@ def readfile(path):
 
 
 class Task(Base):
-    """
-    A Tool is a class who's instances represent a command that gets executed.  It also contains properties which
-    define the resources that are required.
-
-    :property stage: (str) The Tool's Stage
-    :property dag: (TaskGraph) The dag that is keeping track of this Tool
-    :property id: (int) A unique identifier.  Useful for debugging.
-    :property input_files: (list) This Tool's input TaskFiles
-    :property taskfiles: (list) This Tool's output TaskFiles.  A task's output taskfile names should be unique.
-    :property tags: (dict) This Tool's tags.
-    """
     __tablename__ = 'task'
+    """
+    A job that gets executed.  Has a unique set of tags within its Stage.
+    """
     __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
@@ -166,7 +158,7 @@ class Task(Base):
                                 'avg_num_threads', 'max_num_threads'])
     ]
 
-    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command']
+    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command','info']
 
     #time
     system_time = Column(Integer)
@@ -259,18 +251,18 @@ class Task(Base):
             if o.name == name:
                 return o
 
-        for input_name in self.forward_inputs:
+        if name in self.forward_inputs:
             for p in self.parents:
-                o = p.get_output(input_name, error_if_missing=False)
+                o = p.get_output(name, error_if_missing=False)
                 if o:
                     return o
 
         if error_if_missing:
-            raise ToolError('Output named `{0}` does not exist in {1}'.format(name, self))
+            raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
 
     @property
     def input_files(self):
-        "A list of input TaskFiles"
+        """A list of input TaskFiles"""
         return list(it.chain(*[tf for tf in self.map_inputs().values()]))
 
     @property
@@ -288,7 +280,7 @@ class Task(Base):
 
     @property
     def label(self):
-        "Label used for the graphviz image"
+        """Label used for the taskgraph image"""
         tags = '' if len(self.tags) == 0 else "\\n {0}".format(
             "\\n".join(["{0}: {1}".format(k, v) for k, v in self.tags.items()]))
 
@@ -302,7 +294,6 @@ class Task(Base):
     def delete(self):
         self.session.delete(self)
         self.session.commit()
-
 
     @property
     def url(self):

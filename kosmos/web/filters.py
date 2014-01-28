@@ -1,9 +1,16 @@
 import datetime, re
+from .. import StageStatus, TaskStatus
+from flask import Markup
+
 
 def add_filters(bprint):
     @bprint.add_app_template_filter
     def to_thumb(b):
-        return 'yes' if b else 'no'
+        if b:
+            s = '<span class="glyphicon glyphicon-thumbs-up"></span>'
+        else:
+            s = '<span class="glyphicon glyphicon-thumbs-down"></span>'
+        return Markup(s) if b else 'no'
 
     def format_time(amount, type="seconds"):
         if amount is None or amount == '':
@@ -27,6 +34,17 @@ def add_filters(bprint):
         elif type(val) in [int, long]:
             return intWithCommas(val)
         return str(val)
+
+    @bprint.add_app_template_filter
+    def stage_status2bootstrap(status):
+        d = {
+            StageStatus.no_attempt: 'info',
+            StageStatus.running: 'warning',
+            StageStatus.successful: 'success',
+            StageStatus.failed: 'failure',
+            StageStatus.killed: 'failure'
+        }
+        return d.get(status)
 
 
     def intWithCommas(x):

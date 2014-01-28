@@ -12,16 +12,25 @@
     <dt>{{k}}</dt>
     <dd>{{v}}</dd>
     {% endfor %}
+
+    {% for k,v in execution.info.items() %}
+       <dt>info.{{k}}</dt><dd>{{v}}</dd>
+    {% endfor %}
+
+    <dt>output_dir</dt>
+    <dd>execution.output_dir</dd>
     <dt>Visualize</dt>
     <dd>
-        <div class="btn-group">
         <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
-                <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-        </a> |
+        <button type="button" class="btn btn-primary btn-xs">
+            <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
+        </button></a>
+
         <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
-                <span class="glyphicon glyphicon-eye-open"></span> RecipeGraph
-        </a>
-        </div>
+        <button type="button" class="btn btn-primary btn-xs">
+            <span class="glyphicon glyphicon-eye-open"></span> StageGraph
+        </button></a>
+
     </dd>
 </dl>
 
@@ -36,11 +45,12 @@
         <table class="table table-condensed table-striped datatable" id="table_expected">
             <thead>
             <tr>
-                <th>id</th>
+                <th></th>
                 <th>stage</th>
-                <th>successful</th>
+                <th></th>
                 <th>status</th>
-                <th>successful tasks</th>
+                <th>tasks</th>
+                <th>progress</th>
                 <th>started_on</th>
                 <th>finished_on</th>
             </tr>
@@ -48,11 +58,21 @@
             <tbody>
             {% for s in execution.stages %}
             <tr>
-                <td>{{s.id}}</td>
-                <td><a href="{{ s.url  }}">{{ s.name }}</a></td>
+                <td>{{s.number}}</td>
+                <td><a href="{{ s.url  }}">{{ s }}</a></td>
                 <td>{{s.successful|to_thumb}}</td>
                 <td>{{ s.status }}</td>
                 <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
+                <td>
+
+                    <div class="progress progress-striped ">
+                      <div class="progress-bar"  role="progressbar"
+                           aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"
+                           style="width: {{s.percent_successful()}}%">
+                        <span class="sr-only">{{s.percent_successful()}}% Complete</span>
+                      </div>
+                    </div>
+                </td>
                 <td>{{ s.started_on }}</td>
                 <td>{{ s.finished_on }}</td>
             </tr>

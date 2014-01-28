@@ -26,7 +26,7 @@ class TaskFile(Base):
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))
     task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan"))
-    tasks_input_for = relationship("Task", backref=backref('input_files', cascade=""), secondary=association_table)
+    tasks_input_for = relationship("Task", backref=backref('input_files'), secondary=association_table)
     path = Column(String)
     name = Column(String, nullable=False)
     basename = Column(String)
