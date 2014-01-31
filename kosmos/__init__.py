@@ -7,23 +7,11 @@ import os
 from collections import defaultdict
 
 opj = os.path.join
-app_store_path = os.path.expanduser('~/.kosmos')
-if not os.path.exists(app_store_path):
-    os.mkdir(app_store_path)
 
 settings = dict(
-    library_path=os.path.dirname(__file__),
-    app_store_path=app_store_path
+    library_path=os.path.dirname(os.path.realpath(__file__))
 )
-conf_path = opj(app_store_path, 'kosmos.conf')
-if os.path.exists(conf_path):
-    from configparser import ConfigParser
 
-    configp = ConfigParser()
-    configp.read(conf_path)
-    config = defaultdict(lambda: None, configp.values()[1].items())
-else:
-    config = defaultdict(lambda: None)
 
 ########################################################################################################################
 # Misc
@@ -46,37 +34,40 @@ signal_execution_status_change = blinker.Signal()
 ########################################################################################################################
 import enum
 
+class MyEnum(enum.Enum):
+    def __str__(self):
+        return "%s" % (self._value_)
 
-class TaskStatus(enum.Enum):
+class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
     waiting = 'Waiting to execute',
     submitted = 'Submitted to the job manager',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
-    killed = 'Manually Killed'
+    killed = 'Manually killed'
 
 
-class StageStatus(enum.Enum):
+class StageStatus(MyEnum):
     no_attempt = 'Has not been attempted',
     running = 'Stage is running',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
-    killed = 'Manually Killed'
+    killed = 'Manually killed'
 
 
-class ExecutionStatus(enum.Enum):
+class ExecutionStatus(MyEnum):
     no_attempt = 'Has not been attempted',
     running = 'Execution is running',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
-    killed = 'Manually Killed'
+    killed = 'Manually killed'
 
 
-class RelationshipType(enum.Enum):
-    one2one = 'pne2one',
-    one2many = 'one2many',
-    many2one = 'many2one',
-    many2many = 'many2many'
+class RelationshipType(MyEnum):
+    one2one = 'One2one',
+    one2many = 'One2many',
+    many2one = 'Many2one',
+    many2many = 'Many2many'
 
 ########################################################################################################################
 # Imports

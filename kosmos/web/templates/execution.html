@@ -14,7 +14,8 @@
     {% endfor %}
 
     {% for k,v in execution.info.items() %}
-       <dt>info.{{k}}</dt><dd>{{v}}</dd>
+    <dt>info.{{k}}</dt>
+    <dd>{{v}}</dd>
     {% endfor %}
 
     <dt>output_dir</dt>
@@ -22,14 +23,13 @@
     <dt>Visualize</dt>
     <dd>
         <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
-        <button type="button" class="btn btn-primary btn-xs">
-            <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-        </button></a>
-
+            <button type="button" class="btn btn-primary btn-xs">
+                <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
+            </button></a>
         <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
-        <button type="button" class="btn btn-primary btn-xs">
-            <span class="glyphicon glyphicon-eye-open"></span> StageGraph
-        </button></a>
+            <button type="button" class="btn btn-primary btn-xs">
+                <span class="glyphicon glyphicon-eye-open"></span> StageGraph
+            </button></a>
 
     </dd>
 </dl>
@@ -39,18 +39,19 @@
     <div class="panel-heading">
         <span class="pull-right"></span>
 
-        <h3 class="panel-title">Stages</h3>
+        <h3 class="panel-title">{{execution}}.stages</h3>
     </div>
     <div class="panel-body">
         <table class="table table-condensed table-striped datatable" id="table_expected">
             <thead>
             <tr>
-                <th></th>
+                <th>#</th>
                 <th>stage</th>
-                <th></th>
+                <th>successful</th>
                 <th>status</th>
                 <th>tasks</th>
                 <th>progress</th>
+                <th>relationship</th>
                 <th>started_on</th>
                 <th>finished_on</th>
             </tr>
@@ -64,15 +65,14 @@
                 <td>{{ s.status }}</td>
                 <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
                 <td>
-
-                    <div class="progress progress-striped ">
-                      <div class="progress-bar"  role="progressbar"
-                           aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"
-                           style="width: {{s.percent_successful()}}%">
-                        <span class="sr-only">{{s.percent_successful()}}% Complete</span>
-                      </div>
+                    <div class="progress progress-striped">
+                        <div class="progress-bar" role="progressbar"
+                             aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"
+                             style="width: {{s.percent_successful()}}%"><span class="sr-only">{{s.percent_successful()}}% Complete</span>
+                        </div>
                     </div>
                 </td>
+                <td>{{ s.relationship_type }}</td>
                 <td>{{ s.started_on }}</td>
                 <td>{{ s.finished_on }}</td>
             </tr>

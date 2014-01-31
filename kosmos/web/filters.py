@@ -7,10 +7,10 @@ def add_filters(bprint):
     @bprint.add_app_template_filter
     def to_thumb(b):
         if b:
-            s = '<span class="glyphicon glyphicon-thumbs-up"></span>'
+            s = '<span class="glyphicon glyphicon-thumbs-up"></span> yes'
         else:
-            s = '<span class="glyphicon glyphicon-thumbs-down"></span>'
-        return Markup(s) if b else 'no'
+            s = '<span class="glyphicon glyphicon-thumbs-down"></span> no'
+        return Markup(s)
 
     def format_time(amount, type="seconds"):
         if amount is None or amount == '':
@@ -26,7 +26,7 @@ def add_filters(bprint):
             return ''
         elif re.search(r"\(Kb\)", help_txt):
             if val == 0: return '0'
-            return "{0} ({1})".format(val, format_memory_kb(val))
+            return "{0}({1})".format(intWithCommas(val), format_memory_kb(val))
         elif re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
         elif field_name == 'percent_cpu':
@@ -48,9 +48,11 @@ def add_filters(bprint):
 
 
     def intWithCommas(x):
-        if x == None: return ''
+        if x is None:
+            return ''
         if type(x) not in [type(0), type(0L)]:
-            raise TypeError("Parameter must be an integer.")
+            #raise TypeError("Parameter must be an integer.")
+            return x
         if x < 0:
             return '-' + intWithCommas(-x)
         result = ''
@@ -58,7 +60,6 @@ def add_filters(bprint):
             x, r = divmod(x, 1000)
             result = ",%03d%s" % (r, result)
         return "%d%s" % (x, result)
-
 
     def format_memory_kb(kb):
         """converts kb to human readible"""

@@ -107,7 +107,7 @@ class Stage(Base):
 
     @property
     def label(self):
-        return '{0} (x{1})'.format(self.name, len(self.tasks))
+        return '{0} ({1}/{2})'.format(self.name, self.num_successful_tasks(), len(self.tasks))
 
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)

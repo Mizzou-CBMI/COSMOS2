@@ -1,6 +1,9 @@
 import os
 import sys
 
+def get_last_cmd_executed():
+    cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
+    return '$ ' + ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
 
 def add_execution_args(parser):
     parser.add_argument('-n', '--name',
@@ -24,6 +27,8 @@ def parse_and_start(parser, session, root_output_dir=None):
     """
     Parses the args of :param:`parser`
 
+    :param root_output_dir: if output_dir is None, it will be set to root_output_dir/execution_name
+
     :returns: (Execution, dict kwargs)
     """
     parsed = parser.parse_args()
@@ -33,33 +38,24 @@ def parse_and_start(parser, session, root_output_dir=None):
 
     d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'prompt_confirm', 'max_cpus']}
     if d['output_dir'] is None:
-        assert root_output_dir and os.path.exists(root_output_dir), 'root_output_dir `%s` does not exist.  Reset your' \
-                                                                    'configuration file' % root_output_dir
+        assert root_output_dir and os.path.exists(root_output_dir),\
+            'root_output_dir `%s` does not exist.' % root_output_dir
 
         d['output_dir'] = os.path.join(root_output_dir, d['name'])
     ex = Execution.start(session=session, **d)
-    cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
-    ex.info['last_cmd_executed'] = '$ ' + ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
+    ex.info['last_cmd_executed'] = get_last_cmd_executed()
     session.commit()
     return ex, kwargs
 
 
-from .. import config
 
-database_url = config['database_url']
-root_output_dir = config['root_output_dir']
-
-
-def default_argparser(database_url=database_url, root_output_dir=root_output_dir):
+def default_argparser(session, root_output_dir='.'):
     """
     Creates an argparser with all of the default options.  On a successful argparse,
     calls and returns the output of :func:`parse_and_start`
 
     :returns: (Execution, dict kwargs)
     """
-    from .. import get_session
-
-    session = get_session(database_url)
     import argparse
 
     p = argparse.ArgumentParser()
