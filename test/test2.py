@@ -1,5 +1,5 @@
 import os
-from tools import ECHO, CAT
+from tools import Echo, Cat
 from kosmos import rel, Recipe, signal_execution_status_change, ExecutionStatus
 
 opj = os.path.join
@@ -7,8 +7,8 @@ opj = os.path.join
 
 def run(ex, **kwargs):
     r = Recipe()
-    echo = r.add_source([ECHO(tags={'word': 'hello'}), ECHO(tags={'word': 'world'}), ECHO(tags={'word': 'world2'})])
-    cat = r.add_stage(CAT, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
+    echo = r.add_source([Echo(tags={'word': 'hello'}), Echo(tags={'word': 'world'}), Echo(tags={'word': 'world2'})])
+    cat = r.add_stage(Cat, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
 
     ex.run(r)
 
@@ -23,10 +23,7 @@ def s(ex):
 
 def text_message(message):
     import smtplib
-    from kosmos import app_store_path
-
-    with open(opj(app_store_path, 'email.conf'), 'r') as fh:
-        username, password, phonenumber = fh.read().strip().split("\n")
+    username, password, phonenumber = '', '', 123
 
     vtext = "%s@vtext.com" % phonenumber
 

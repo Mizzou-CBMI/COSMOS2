@@ -18,7 +18,7 @@ class RelationshipError(Exception):pass
 
 
 class One2one(Relationship):
-    type = RelationshipType.one2many
+    type = RelationshipType.one2one
 
     @classmethod
     def gen_task_tags(klass, stage):
@@ -89,9 +89,12 @@ class One2many(Relationship):
 
     @classmethod
     def split(cls, split_by, parent_task):
+        def default_split_by(task):
+            pass
+
         if hasattr(split_by, '__call__'):
             for new_tags in split_by(parent_task):
-                assert isinstance(new_tags,dict), 'split_by function did not return a dict'
+                assert isinstance(new_tags, dict), 'split_by function did not return a dict'
                 yield new_tags
         else:
             splits = [list(it.product([split[0]], split[1])) for split in split_by]

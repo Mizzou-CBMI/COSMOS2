@@ -97,15 +97,15 @@ def stagegraph_to_agraph(stage_graph):
 
     for stage in stage_graph.nodes():
         agraph.add_node(stage, color=status2color.get(getattr(stage, 'status', None), 'black'),
-                        URL=stage.url)
+                        URL=stage.url, label=stage.label)
 
     for u, v in stage_graph.edges():
         if v.relationship_type == RelationshipType.many2one:
-            agraph.add_edge(u, v, label=rel2abbrev[v.relationship_type], style='dotted', arrowhead='odiamond')
+            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dotted', arrowhead='odiamond')
         elif v.relationship_type == RelationshipType.one2many:
-            agraph.add_edge(u, v, label=rel2abbrev[v.relationship_type], style='dashed', arrowhead='crow')
+            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dashed', arrowhead='crow')
         else:
-            agraph.add_edge(u, v, label=rel2abbrev[v.relationship_type], arrowhead='vee')
+            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), arrowhead='vee')
 
     return agraph
 
@@ -151,7 +151,7 @@ class RecipeStage():
         from .Tool import Tool
 
         assert issubclass(tool_class, Tool), '`tool` must be a subclass of `Tool`'
-        assert rel is None or isinstance(rel, _rel.Relationship), '`rel` must be of type `Relationship`'
+        assert isinstance(rel, _rel.Relationship), '`rel` must be of type `Relationship`'
         assert isinstance(extra_tags, dict), '`extra_tags` must be of type `dict`'
 
         self.properties = dict(name=name,

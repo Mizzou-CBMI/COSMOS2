@@ -1,16 +1,7 @@
-import time
-from kosmos.profile import read_man_proc
-
-start_time = time.time()
-
-import subprocess, sys, re, os, sqlite3, json, signal
-import logging
-import argparse
-
 """
     Samples resource usage statistics about a process and all of its descendants from /proc/[pid]/status
     The output is a JSON dictionary that summarizes the resource usage
-     
+
     polls these fields from /proc/pid/stat:
     see "man proc" for more info, or see read_man_proc.py
     minflt, cminflt, majflt, utime, stime, cutime, cstime, priority, nice, num_threads, exit_signal, delayacct_blkio_ticks
@@ -26,10 +17,19 @@ import argparse
     * VmData, VmStk, VmExe: Size of data, stack, and text segments.
     * VmLib: Shared library code size.
     * VmPTE: Page table entries size (since Linux 2.6.10).
-    
+
     And returns:
-    MAX(FDSize), AVG(FDSize), MAX(VmPeak), AVG(VmSize), MAX(VmLck), AVG(VmLck), AVG(VmRSS), AVG(VmData), MAX(VmData), AVG(VmLib), MAX(VmPTE), AVG(VmPTE) 
+    MAX(FDSize), AVG(FDSize), MAX(VmPeak), AVG(VmSize), MAX(VmLck), AVG(VmLck), AVG(VmRSS), AVG(VmData), MAX(VmData), AVG(VmLib), MAX(VmPTE), AVG(VmPTE)
 """
+
+import time
+from kosmos.profile.read_man_proc import get_stat_and_status_fields
+
+start_time = time.time()
+
+import subprocess, sys, re, os, sqlite3, json, signal
+import logging
+import argparse
 
 
 class Profile:
@@ -37,11 +37,10 @@ class Profile:
                                ['minflt', 'majflt', 'utime', 'stime', 'delayacct_blkio_ticks',
                                 'voluntary_ctxt_switches', 'nonvoluntary_ctxt_switches'], #/proc/stat removed
                      'INSERT': ['FDSize', 'VmSize', 'VmLck', 'VmRSS', 'VmData', 'VmLib', 'VmPTE'] + #/proc/status
-                               ['num_threads'] #/proc/stat
-    }
+                               ['num_threads']}#/proc/stat
 
-    proc = None #the parse_args subprocess object
-    poll_number = 0 #number of polls so far
+    proc = None  # the subprocess instance
+    poll_number = 0  # number of polls so far
 
     @property
     def all_pids(self):
@@ -80,7 +79,8 @@ class Profile:
         #setup logging
         self.log = logging
 
-    def _unnest(self, a_list):
+    @staticmethod
+    def _unnest(a_list):
         """
         unnests a list
         
@@ -90,14 +90,15 @@ class Profile:
         """
         return [item for items in a_list for item in items]
 
-    def get_children(self, pid):
-        "returns a list of this pid's children"
+    @staticmethod
+    def get_children(pid):
+        """returns a list of this pid's children"""
         p = subprocess.Popen('/bin/ps h --ppid {0} -o pid'.format(pid).split(' '), shell=False, stdout=subprocess.PIPE)
         children = map(lambda x: x.strip(), filter(lambda x: x != '', p.communicate()[0].strip().split('\n')))
         return children
 
     def and_descendants(self, pid):
-        "Returns a list of this pid and all of its descendant process (children's children, etc) ids"
+        """Returns a list of `pid` and all of its descendant process (children's children, etc) ids"""
         children = self.get_children(pid)
 
         if len(children) == 0:
@@ -107,28 +108,30 @@ class Profile:
 
     def run(self):
         """
-        Runs a process and records the memory usage of it and all of its descendants"""
+        Runs a process and records the resource usage of it and all of its descendants
+        """
         self.proc = subprocess.Popen(self.command, shell=True)
         while True:
             self.poll_all_procs(pids=self.all_pids)
 
             time.sleep(self.poll_interval)
-            if self.proc.poll() != None:
+            if self.proc.poll() is not None:
                 self.finish()
 
-    def parseVal(self, val):
-        "Remove kB and return ints."
+    @staticmethod
+    def parse_val(val):
+        """Remove kB and return ints."""
         return int(val) if val[-2:] != 'kB' else int(val[0:-3])
 
     def poll_all_procs(self, pids):
         """Updates the sql table with all descendant processes' resource usage"""
-        self.poll_number = self.poll_number + 1
+        self.poll_number += 1
         for pid in pids:
             try:
                 all_stats = self.read_proc_stat(pid)
                 all_stats += self.read_proc_status(pid)
                 #Inserts
-                inserts = [(name, self.parseVal(val)) for name, val in all_stats if
+                inserts = [(name, self.parse_val(val)) for name, val in all_stats if
                            name in self.fields_to_get['INSERT']] + [('pid', pid), ('poll_number', self.poll_number)]
                 keys, vals = zip(*inserts) #unzip
                 q = "INSERT INTO record ({keys}) values({s})".format(s=', '.join(['?'] * len(vals)),
@@ -136,7 +139,7 @@ class Profile:
                 self.c.execute(q, vals)
                 #Updates
                 proc_name = filter(lambda x: x[0] == 'Name', all_stats)[0][1]
-                updates = [(name, self.parseVal(val)) for name, val in all_stats if
+                updates = [(name, self.parse_val(val)) for name, val in all_stats if
                            name in self.fields_to_get['UPDATE']] + [('pid', pid), ('Name', proc_name),
                                                                     ('poll_number', self.poll_number)]
                 keys, vals = zip(*updates) #unzip
@@ -145,19 +148,20 @@ class Profile:
                 self.c.execute(q, vals)
 
             except IOError:
-                pass # process finished before file could be read
+                pass  # process finished before file could be read
 
-
-    def read_proc_stat(self, pid):
+    @staticmethod
+    def read_proc_stat(pid):
         """
         :returns: (field_name,value) from /proc/pid/stat or None if its empty
         """
-        stat_fields = read_man_proc.get_stat_and_status_fields()
+        stat_fields = get_stat_and_status_fields()
         with open('/proc/{0}/stat'.format(pid), 'r') as f:
             stat_all = f.readline().split(' ')
             return map(lambda x: (x[0][0], x[1]), zip(stat_fields, stat_all))
 
-    def read_proc_status(self, pid):
+    @staticmethod
+    def read_proc_status(pid):
         """
         :returns: (field_name,value) from /proc/pid/status or None if its empty
         """
@@ -168,7 +172,6 @@ class Profile:
 
         with open('/proc/{0}/status'.format(pid), 'r') as f:
             return map(line2tuple, f.readlines())
-
 
     def analyze_records(self):
         """
@@ -233,26 +236,26 @@ class Profile:
         #        keys = [ x[0] for x in self.c.description]
         #        self.log.debug([dict(zip(keys,vals)) for vals in self.c])
 
-        profiled_procs = dict(profiled_inserts + profiled_updates)
-        SC_CLK_TCK = os.sysconf(os.sysconf_names['SC_CLK_TCK'])
+        d = dict(profiled_inserts + profiled_updates)
+        sl_clk_tck = os.sysconf(os.sysconf_names['SC_CLK_TCK'])
 
-        for time_var in ['user_time', 'system_time', 'block_io_delays']: #convert to seconds
-            profiled_procs[time_var] = int(profiled_procs[time_var] / SC_CLK_TCK)
+        for time_var in ['user_time', 'system_time', 'block_io_delays']:  # convert to seconds
+            d[time_var] = int(d[time_var] / sl_clk_tck)
 
-        profiled_procs['cpu_time'] = profiled_procs['user_time'] + profiled_procs['system_time']
-        profiled_procs['exit_status'] = self.proc.poll()
+        d['cpu_time'] = d['user_time'] + d['system_time']
+        d['exit_status'] = self.proc.poll()
         #profiled_procs['SC_CLK_TCK'] = SC_CLK_TCK #usually is 100, or centiseconds 
 
-        end_time = time.time() #waiting till last second
-        profiled_procs['wall_time'] = round(end_time - start_time)
-        profiled_procs['percent_cpu'] = int(
-            round(float(profiled_procs['cpu_time']) / float(profiled_procs['wall_time']), 2) * 100)
-        return profiled_procs
+        end_time = time.time()  # waiting till last second
+        d['wall_time'] = round(end_time - start_time)
+        d['percent_cpu'] = int(
+            round(float(d['cpu_time']) / float(d['wall_time']), 2) * 100)
+        return d
 
     def finish(self):
         """Executed when self.proc has finished"""
         result = self.analyze_records()
-        if self.output_file != None:
+        if self.output_file is not None:
             self.output_file.write(json.dumps(result, indent=4, sort_keys=True))
         else:
             print >> sys.stderr, json.dumps(result, indent=4, sort_keys=True)
@@ -265,7 +268,8 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--interval', type=int, default=1,
                         help='How often to poll the resource usage information in /proc, in seconds.')
     parser.add_argument('-db', '--dbfile', type=str, default=':memory:',
-                        help='File to store sqlite data to (default is in memory).  Will overwrite if the database already exists.')
+                        help='File to store sqlite data to (default is in memory).  '
+                             'Will overwrite if the database already exists.')
     parser.add_argument('command', nargs=argparse.REMAINDER, help="The command to run. Required.")
     args = parser.parse_args()
     if len(args.command) == 0:
@@ -276,7 +280,7 @@ if __name__ == '__main__':
     profile = Profile(command=args.command, output_file=args.file, database_file=args.dbfile,
                       poll_interval=args.interval)
     try:
-        result = profile.run()
+        profile.run()
     except KeyboardInterrupt:
         os.kill(profile.proc.pid, signal.SIGINT)
         profile.finish()

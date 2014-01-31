@@ -49,19 +49,21 @@ class Base(declarative_base()):
         return self.session.query(self.__class__)
 
 
-def initdb(database_url=None):
+def initdb(database_url=None, echo=True):
     """
     Initialize the database via sql CREATE statements
     """
-    session = get_session(database_url, echo=True)
+    session = get_session(database_url, echo=echo)
     Base.metadata.create_all(bind=session.bind)
+    return session
 
 
-def resetdb(database_url=None):
+def resetdb(database_url=None, echo=True):
     """
     Resets the database.  This is not reversible!
     """
     print >> sys.stderr, 'Resetting db..'
-    session = get_session(database_url, echo=True)
+    session = get_session(database_url, echo=echo)
     Base.metadata.drop_all(bind=session.bind)
     initdb(database_url=database_url)
+    return session
