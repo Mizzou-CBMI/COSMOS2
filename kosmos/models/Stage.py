@@ -36,7 +36,7 @@ class Stage(Base):
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
-    name = Column(String)
+    name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     execution_id = Column(ForeignKey('execution.id'))
@@ -89,8 +89,11 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self):
+    def delete(self, delete_output_files=False):
         self.log.info('Deleting %s' % self)
+        if delete_output_files:
+            for t in self.tasks:
+                t.delete(delete_output_files=True)
         self.session.delete(self)
         self.session.commit()
 

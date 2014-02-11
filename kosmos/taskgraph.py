@@ -30,8 +30,8 @@ def render_recipe(execution, recipe, settings, parameters):
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
-                        new_task = source_tool.generate_task(parents=[], settings=settings, parameters=parameters)
-                        stage.tasks.append(new_task)
+                        new_task = source_tool.generate_task(stage=stage, parents=[], settings=settings,
+                                                             parameters=parameters)
                         task_g.add_node(new_task)
 
             else:
@@ -40,10 +40,10 @@ def render_recipe(execution, recipe, settings, parameters):
                     if existing_task:
                         new_task = existing_task
                     else:
-                        new_task = stage.tool_class(tags=new_task_tags).generate_task(parents=parent_tasks,
+                        new_task = stage.tool_class(tags=new_task_tags).generate_task(stage=stage,
+                                                                                      parents=parent_tasks,
                                                                                       settings=settings,
                                                                                       parameters=parameters)
-                        stage.tasks.append(new_task)
 
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
@@ -78,7 +78,7 @@ def taskdag_to_agraph(taskdag):
             label = " \\n".join(map(truncate_val, task.tags.items()))
             status2color = {TaskStatus.no_attempt: 'black',
                             TaskStatus.waiting: 'gold1',
-                            TaskStatus.submitted: 'darkblue',
+                            TaskStatus.submitted: 'navy',
                             TaskStatus.successful: 'darkgreen',
                             TaskStatus.failed: 'darkred'}
 

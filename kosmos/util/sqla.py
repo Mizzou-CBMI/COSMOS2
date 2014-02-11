@@ -26,7 +26,7 @@ class ListOfStrings(types.TypeDecorator):
     """
     Enum compatible with enum34 package
     """
-    impl = types.String
+    impl = types.Text
 
     def __init__(self):
         return types.TypeDecorator.__init__(self, '')
@@ -53,7 +53,7 @@ import json
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."
 
-    impl = VARCHAR
+    impl = types.Text
 
     def process_bind_param(self, value, dialect):
         if value is not None:

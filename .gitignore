@@ -1,10 +1,11 @@
 test/*.db
+test/out
 .project
 .idea/
 .git/
 build/
 dist/
-doc/build
+docs/_build
 alembic/
 *.pyc
 *.swp

@@ -43,7 +43,6 @@ def parse_and_start(parser, session, root_output_dir=None):
 
         d['output_dir'] = os.path.join(root_output_dir, d['name'])
     ex = Execution.start(session=session, **d)
-    ex.info['last_cmd_executed'] = get_last_cmd_executed()
     session.commit()
     return ex, kwargs
 

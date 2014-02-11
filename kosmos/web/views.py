@@ -3,6 +3,7 @@ import io
 from .. import Execution, Stage, Task, taskgraph as taskgraph_
 from . import filters
 from ..models.Recipe import stages_to_image
+from sqlalchemy import desc
 
 
 def gen_bprint(session):
@@ -11,7 +12,7 @@ def gen_bprint(session):
 
     @bprint.route('/')
     def index():
-        executions = session.query(Execution).all()
+        executions = session.query(Execution).order_by(desc(Execution.created_on)).all()
         return render_template('index.html', executions=executions)
 
 

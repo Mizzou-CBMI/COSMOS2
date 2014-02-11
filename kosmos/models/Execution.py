@@ -1,5 +1,5 @@
 from ..db import Base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates, synonym
 from flask import url_for
@@ -15,6 +15,7 @@ from .. import TaskStatus, Task, __version__, ExecutionStatus, signal_execution_
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from ..util.args import get_last_cmd_executed
 
 
 def _default_task_log_output_dir(task):
@@ -47,15 +48,16 @@ class Execution(Base):
     __tablename__ = 'execution'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    description = Column(String)
+    name = Column(VARCHAR(200), unique=True)
+    description = Column(String(255))
     successful = Column(Boolean, nullable=False, default=False)
-    output_dir = Column(String, nullable=False)
+    output_dir = Column(String(255), nullable=False)
     created_on = Column(DateTime, default=func.now())
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cpus = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
+    #recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
 
     exclude_from_dict = ['info']
@@ -94,10 +96,12 @@ class Execution(Base):
         """
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
+        old_id = None
 
         if restart:
             ex = session.query(Execution).filter_by(name=name).first()
             if ex:
+                old_id = ex.id
                 msg = 'Are you sure you want to `rm -rf %s` and delete all sql records of %s?' % (ex.output_dir, ex)
                 if prompt_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
@@ -110,7 +114,10 @@ class Execution(Base):
         if ex:
             #resuming.
             ex.max_cpus = max_cpus
-            assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
+            if output_dir is None:
+                output_dir = ex.output_dir
+            else:
+                assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
 
             ex.log.info(msg)
             session.add(ex)
@@ -122,12 +129,13 @@ class Execution(Base):
                     session.delete(t)
         else:
             #start from scratch
-            assert not os.path.exists(output_dir), '%s already exists'.format(output_dir)
+            assert not os.path.exists(output_dir), '%s already exists' % (output_dir)
             mkdir(output_dir)
-            ex = Execution(name=name, output_dir=output_dir, max_cpus=max_cpus)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, max_cpus=max_cpus)
             ex.log.info(msg)
             session.add(ex)
 
+        ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
         return ex
 
@@ -169,6 +177,7 @@ class Execution(Base):
             session = self.session
             assert session, 'Execution must be part of a sqlalchemy session'
             self.status = ExecutionStatus.running
+            self.successful = False
 
             self.jobmanager = JobManager()
             if self.started_on is None:
@@ -222,10 +231,10 @@ class Execution(Base):
             self.terminate()
             raise
 
-        # except Exception as e:
-        #     self.log.error(e)
-        #     session.commit()
-        #     raise e
+            # except Exception as e:
+            #     self.log.error(e)
+            #     session.commit()
+            #     raise e
 
 
     def terminate(self):
@@ -247,11 +256,17 @@ class Execution(Base):
         return [t for s in self.stages for t in s.tasks]
 
 
-    def get_stage(self, name):
-        for s in self.stages:
-            if s.name == name:
-                return s
-        raise ValueError('Stage with name %s does not exist' % name)
+    def get_stage(self, name_or_id):
+        if isinstance(name_or_id, int):
+            f = lambda s: s.id == name_or_id
+        else:
+            f = lambda s: s.name == name_or_id
+
+        for stage in self.stages:
+            if f(stage):
+                return stage
+
+        raise ValueError('Stage with name %s does not exist' % name_or_id)
 
 
     @property
@@ -281,6 +296,7 @@ class Execution(Base):
         if r is None:
             raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
         return r
+
 
 @event.listens_for(Execution, 'before_delete')
 def before_delete(mapper, connection, target):

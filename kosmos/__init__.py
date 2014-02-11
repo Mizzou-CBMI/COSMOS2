@@ -64,10 +64,10 @@ class ExecutionStatus(MyEnum):
 
 
 class RelationshipType(MyEnum):
-    one2one = 'One2one',
-    one2many = 'One2many',
-    many2one = 'Many2one',
-    many2many = 'Many2many'
+    one2one = 'one2one',
+    one2many = 'one2many',
+    many2one = 'many2one',
+    many2many = 'many2many'
 
 ########################################################################################################################
 # Imports
@@ -82,7 +82,7 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args, parse_and_start, default_argparser
-from .db import get_session
+from .db import get_scoped_session
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',

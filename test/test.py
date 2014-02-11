@@ -1,7 +1,6 @@
 import os
 from tools import Echo, Cat
 from kosmos import rel, Recipe, Input
-
 opj = os.path.join
 
 
@@ -16,12 +15,14 @@ def run(ex, **kwargs):
 
 if __name__ == '__main__':
     from kosmos import default_argparser, db
+    from kosmos.util.helpers import mkdir
     import ipdb
 
     with ipdb.launch_ipdb_on_exception():
         # get the directory this file is stored in
         test_dir = os.path.dirname(os.path.realpath(__file__))
         root_output_dir = os.path.join(test_dir, 'out')
+        mkdir(root_output_dir)
         session = db.initdb('sqlite:///test.db', echo=False)
         ex, kwargs = default_argparser(session, root_output_dir)
         run(ex, **kwargs)

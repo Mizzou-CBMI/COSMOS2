@@ -1,34 +1,36 @@
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from collections import OrderedDict
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
+from sqlite3 import Connection as SQLite3Connection
 
 import sys
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-def get_session(database_url=None, echo=False):
+def get_scoped_session(database_url=None, echo=False):
     """
     :returns: a sqlalchemy session
     """
     if database_url is None:
-        #database_url ='sqlite:////' + os.path.join(settings['app_store_path'], 'sqlite.db')
         raise ValueError('database_url cannot be None.')
     engine = create_engine(database_url, echo=echo)
-    Session = sessionmaker(autocommit=False,
+    session_factory = sessionmaker(autocommit=False,
                            autoflush=False,
                            bind=engine)
-    return Session()
+    Session = scoped_session(session_factory)
+    return Session
 
 
 #http://docs.sqlalchemy.org/en/rel_0_8/dialects/sqlite.html#foreign-key-support
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     """Turn on sqlite foreignkey support"""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    if isinstance(dbapi_connection, SQLite3Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 class Base(declarative_base()):
@@ -49,21 +51,20 @@ class Base(declarative_base()):
         return self.session.query(self.__class__)
 
 
-def initdb(database_url=None, echo=True):
+def initdb(session):
     """
     Initialize the database via sql CREATE statements
     """
-    session = get_session(database_url, echo=echo)
+    print >> sys.stderr, 'Initializing db...'
     Base.metadata.create_all(bind=session.bind)
     return session
 
 
-def resetdb(database_url=None, echo=True):
+def resetdb(session):
     """
     Resets the database.  This is not reversible!
     """
-    print >> sys.stderr, 'Resetting db..'
-    session = get_session(database_url, echo=echo)
+    print >> sys.stderr, 'Resetting db...'
     Base.metadata.drop_all(bind=session.bind)
-    initdb(database_url=database_url)
+    initdb(session)
     return session

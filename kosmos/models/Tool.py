@@ -39,7 +39,7 @@ class Tool(object):
 
         #TODO validate tags are strings and 1 level
         #self.tags = {k: str(v) for k, v in self.tags.items()}
-        self.tags=tags
+        self.tags = tags
 
         self._validate()
 
@@ -66,33 +66,35 @@ class Tool(object):
 
             return all_inputs
 
-    def generate_task(self, parents, settings, parameters):
+    def generate_task(self, stage, parents, settings, parameters):
+        d = {attr: getattr(self, attr) for attr in
+             ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
+        task = Task(stage=stage, tags=self.tags, input_files=self.map_inputs(parents), parents=parents,
+                    forward_inputs=self.forward_inputs,
+                    **d)
+
         # Create output TaskFiles
         output_files = []
         for output in self.outputs:
             if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags), persist=self.persist)
+                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags),
+                              task_output_for=task,
+                              persist=self.persist)
             elif isinstance(output, str):
-                tf = TaskFile(name=output, persist=self.persist)
+                tf = TaskFile(name=output, task_output_for=task, persist=self.persist)
             else:
                 raise ToolValidationError("{0}.outputs must be a list of strs or tuples.".format(self))
             output_files.append(tf)
         if isinstance(self, Input):
-                output_files.append(TaskFile(name=self.input_name, path=self.input_path, persist=True))
+            output_files.append(
+                TaskFile(name=self.input_name, path=self.input_path, task_output_for=task, persist=True))
         elif isinstance(self, Inputs):
             for name, path in self.input_args:
-                output_files.append(TaskFile(name=name, path=path, persist=True))
+                output_files.append(TaskFile(name=name, path=path, task_output_for=task, persist=True))
 
-        d = {attr: getattr(self, attr) for attr in
-             ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        task = Task(tags=self.tags, output_files=output_files, input_files=self.map_inputs(parents), parents=parents,
-                    forward_inputs=self.forward_inputs,
-                    **d)
         task.tool = self
         self.settings = settings
         self.parameters = parameters
-
-
 
         return task
 
@@ -183,6 +185,7 @@ class Input(Tool):
     """
 
     name = 'Load_Input_Files'
+
     def __init__(self, name, path, tags, *args, **kwargs):
         """
         :param path: the path to the input file
@@ -211,6 +214,7 @@ class Inputs(Tool):
     >>> Input(path='/path/to/file.ext.gz',name='ext',tags={'key':'val'})
     """
     name = 'Load_Input_Files'
+
     def __init__(self, inputs, tags, *args, **kwargs):
         """
         :param path: the path to the input file

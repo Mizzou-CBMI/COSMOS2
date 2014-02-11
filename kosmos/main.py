@@ -1,14 +1,9 @@
 from . import web, db
 
 
-def shell(database_url=None):
+def shell(session):
     import IPython
     from kosmos import *
-    from kosmos.db import get_session
-
-    session = get_session(database_url=database_url)
-
-    Task.__mapper__.polymorphic_on = None
 
     executions = session.query(Execution).all()
     ex = session.query(Execution).first()
@@ -19,6 +14,7 @@ def shell(database_url=None):
 
 def parse_args():
     import os
+    from kosmos.db import get_scoped_session
 
     default_db_url = os.environ.get('KOSMOS_DB', None)
     import argparse
@@ -60,6 +56,9 @@ def parse_args():
     del kwargs['func']
 
     debug = kwargs.pop('debug', False)
+    db_url = kwargs.pop('database_url',None)
+    if db_url:
+        kwargs['session'] = get_scoped_session(database_url=db_url)()
     if debug:
         import ipdb
 

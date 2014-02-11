@@ -87,7 +87,7 @@ def stagegraph_to_agraph(stage_graph):
     agraph.edge_attr['fontcolor'] = '#586e75'
 
     status2color = {StageStatus.no_attempt: 'black',
-                    StageStatus.running: 'darkblue',
+                    StageStatus.running: 'navy',
                     StageStatus.successful: 'darkgreen',
                     StageStatus.failed: 'darkred'}
     rel2abbrev = {RelationshipType.one2one: 'o2o',

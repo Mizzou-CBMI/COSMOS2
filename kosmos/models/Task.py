@@ -71,8 +71,10 @@ def task_status_changed(task):
         else:
             task.log.error('%s failed %s times' % (task, task.attempt))
             task.log.warn(msg)
+            task.finished_on = func.now()
             task.stage.status = StageStatus.failed
             task.session.commit()
+            task.update_from_profile_output()
             raise ExecutionFailed
 
     elif task.status == TaskStatus.successful:
@@ -80,11 +82,8 @@ def task_status_changed(task):
         task.finished_on = func.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
+        task.update_from_profile_output()
 
-    if task.status in [TaskStatus.successful, TaskStatus.failed]:
-        # Get data from profile output
-        for k, v in task.profile.items():
-            setattr(task, k, v)
 
     task.session.commit()
 
@@ -111,7 +110,8 @@ class Task(Base):
     """
     A job that gets executed.  Has a unique set of tags within its Stage.
     """
-    __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
+    # causes a problem with mysql.  its checked a the application level so should be okay
+    #__table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
     mem_req = Column(Integer)
@@ -121,8 +121,8 @@ class Task(Base):
     tags = Column(PickleType, nullable=False)
     stage_id = Column(ForeignKey('stage.id'), nullable=False)
     stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
-    log_dir = Column(String)
-    output_dir = Column(String)
+    log_dir = Column(String(255))
+    output_dir = Column(String(255))
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
     successful = Column(Boolean, default=False, nullable=False)
     started_on = Column(DateTime)
@@ -139,7 +139,7 @@ class Task(Base):
     forward_inputs = Column(ListOfStrings)
 
     #drmaa related input fields
-    drmaa_native_specification = Column(String)
+    drmaa_native_specification = Column(String(255))
 
     #drmaa related and job output fields
     drmaa_jobID = Column(Integer)
@@ -196,9 +196,9 @@ class Task(Base):
 
     #misc
     num_polls = Column(Integer)
-    names = Column(String)
+    names = Column(Text)
     num_processes = Column(Integer)
-    pids = Column(String)
+    pids = Column(Text)
     exit_status = Column(Integer)
     SC_CLK_TCK = Column(Integer)
 
@@ -278,6 +278,10 @@ class Task(Base):
                     return {}
         return self._cache_profile
 
+    def update_from_profile_output(self):
+        for k, v in self.profile.items():
+            setattr(self, k, v)
+
     @property
     def label(self):
         """Label used for the taskgraph image"""
@@ -291,7 +295,11 @@ class Task(Base):
 
         return urllib.urlencode(self.tags)
 
-    def delete(self):
+    def delete(self, delete_output_files=False):
+        if delete_output_files:
+            for tf in self.output_files:
+                tf.delete()
+
         self.session.delete(self)
         self.session.commit()
 

@@ -1,6 +1,7 @@
 import sys, pprint, re, logging, itertools
 import subprocess as sp
 import signal
+import os
 
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
@@ -122,6 +123,7 @@ def get_logger(name, path):
     log.setLevel(logging.INFO)
     # create file handler which logs debug messages
     if path:
+        assert os.path.exists(os.path.dirname(path)), '%s does not exist' % path
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
