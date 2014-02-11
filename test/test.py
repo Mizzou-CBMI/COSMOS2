@@ -23,6 +23,7 @@ if __name__ == '__main__':
         test_dir = os.path.dirname(os.path.realpath(__file__))
         root_output_dir = os.path.join(test_dir, 'out')
         mkdir(root_output_dir)
-        session = db.initdb('sqlite:///test.db', echo=False)
+        session = db.get_session('sqlite:///test.db')
+        session = db.initdb(session)
         ex, kwargs = default_argparser(session, root_output_dir)
         run(ex, **kwargs)

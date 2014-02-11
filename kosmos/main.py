@@ -14,7 +14,7 @@ def shell(session):
 
 def parse_args():
     import os
-    from kosmos.db import get_scoped_session
+    from kosmos.db import get_session
 
     default_db_url = os.environ.get('KOSMOS_DB', None)
     import argparse
@@ -58,7 +58,7 @@ def parse_args():
     debug = kwargs.pop('debug', False)
     db_url = kwargs.pop('database_url',None)
     if db_url:
-        kwargs['session'] = get_scoped_session(database_url=db_url)()
+        kwargs['session'] = get_session(database_url=db_url)()
     if debug:
         import ipdb
 

@@ -9,7 +9,7 @@ import sys
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-def get_scoped_session(database_url=None, echo=False):
+def get_session(database_url=None, echo=False):
     """
     :returns: a sqlalchemy session
     """

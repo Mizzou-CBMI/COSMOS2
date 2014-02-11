@@ -82,7 +82,7 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args, parse_and_start, default_argparser
-from .db import get_scoped_session
+from .db import get_session
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
