@@ -1,56 +1,62 @@
-from kosmos.models.Task import Task, TaskFile
+from kosmos import Tool
 
 
-class Sleep(Task):
+class Sleep(Tool):
     inputs = ['*']
 
-    def cmd(self,i,o,s):
+    def cmd(self, i, o, s):
         return 'sleep 10'
 
-class ECHO(Task):
+
+class Echo(Tool):
     outputs = ['txt']
-    
-    def cmd (self,i,o,s,word):
+
+    def cmd(self, i, o, s, word):
         return 'echo {word} > {o[txt]}'
-    
-class CAT(Task):
-    inputs = ['txt']
-    outputs = [('txt','cat.txt',)]
 
-    def cmd(self,i,o,s,**kwargs):
+
+class Cat(Tool):
+    inputs = ['txt']
+    outputs = [('txt', 'cat.txt',)]
+
+    def cmd(self, i, o, s, **kwargs):
         return 'cat {input} > {o[txt]}', {
-                'input':' '.join(map(lambda x: str(x),i['txt']))
-                }
-    
-class PASTE(Task):
-    inputs = ['txt']
-    outputs = [TaskFile(name='txt',basename='paste.txt')]
+            'input': ' '.join(map(str, i['txt']))
+        }
 
-    def cmd(self,i,o,s,**kwargs):
+
+class Paste(Tool):
+    inputs = ['txt']
+    outputs = [('txt', 'paste.txt')]
+
+    def cmd(self, i, o, s, **kwargs):
         return 'paste {input} > {o[txt]}', {
-                'input':' '.join(map(lambda x: str(x),i['txt']))
-                }
-    
-class WC(Task):
+            'input': ' '.join(map(str, i['txt']))
+        }
+
+
+class WordCount(Tool):
     inputs = ['txt']
     outputs = ['txt']
 
-    default_para = { 'args': '' }
-    
-    def cmd(self,i,o,s,**kwargs):
+    default_para = {'args': ''}
+
+    def cmd(self, i, o, s, **kwargs):
         return 'wc {input} > {o[txt]}', {
-                'input':' '.join(map(lambda x: str(x),i['txt']))
-                }
+            'input': ' '.join(map(str, i['txt']))
+        }
 
-class FAIL(Task):
+
+class Fail(Tool):
     outputs = ['txt']
-    def cmd(self,i,o,s,**kwargs):
 
+    def cmd(self, i, o, s, **kwargs):
         return '{o[txt]} __fail__'
 
-class MD5Sum(Task):
+
+class MD5Sum(Tool):
     inputs = ['*']
     outputs = ['md5']
 
-    def cmd(self,i,o,s,**kwargs):
-        return 'md5sum {inp}', dict(inp=" ".join(map(lambda x: str(x), i)))
+    def cmd(self, i, o, s, **kwargs):
+        return 'md5sum {inp}', dict(inp=" ".join(map(str, i)))

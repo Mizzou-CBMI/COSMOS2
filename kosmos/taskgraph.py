@@ -1,16 +1,16 @@
 from .util.helpers import groupby
 from .util.sqla import get_or_create
-from . import TaskStatus, Stage
+from . import TaskStatus, Stage, Input
 import functools
 
 import networkx as nx
 
 
-def render_recipe(execution, recipe):
-    # the below assertion is because i can't figure out how to copy manually instantiated source tasks in sqlalchemy
-    assert recipe.execution is None or recipe.execution == execution,\
-        'cannot render the same recipe multiple times unless it is for the same execution'
-    recipe.execution = execution
+def render_recipe(execution, recipe, settings, parameters):
+    """
+    Generates a stagegraph and taskgraph described by a Recipe
+    :returns: (nx.DiGraph taskgraph, nx.DiGraph stagegraph)
+    """
 
     task_g = nx.DiGraph()
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
@@ -19,44 +19,44 @@ def render_recipe(execution, recipe):
     #want to add stages in the correct order
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
-    for stage in nx.topological_sort(stage_g):
+    for i, stage in enumerate(nx.topological_sort(stage_g)):
+        stage.number = i + 1
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
             if stage.is_source:
-                for manually_instantiated_class in stage.recipe_stage.tasks:
-                    existing_task = existing_tasks.get((stage, frozenset(manually_instantiated_class.tags.items())),
+                for source_tool in stage.recipe_stage.source_tools:
+                    existing_task = existing_tasks.get((stage, frozenset(source_tool.tags.items())),
                                                        None)
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
-                        # these manually instantiated classes are difficult to copy without mucking up the session,
-                        # which is why recipes can only be consumed once
-                        stage.tasks.append(manually_instantiated_class)
-                        task_g.add_node(manually_instantiated_class)
+                        new_task = source_tool.generate_task(stage=stage, parents=[], settings=settings,
+                                                             parameters=parameters)
+                        task_g.add_node(new_task)
 
             else:
-                for new_task, parent_tasks in stage.rel.__class__.gen_tasks(stage):
-                    existing_task = existing_tasks.get((stage, frozenset(new_task.tags.items())), None)
+                for new_task_tags, parent_tasks in stage.rel.__class__.gen_task_tags(stage):
+                    existing_task = existing_tasks.get((stage, frozenset(new_task_tags.items())), None)
                     if existing_task:
                         new_task = existing_task
                     else:
-                        stage.tasks.append(new_task)
+                        new_task = stage.tool_class(tags=new_task_tags).generate_task(stage=stage,
+                                                                                      parents=parent_tasks,
+                                                                                      settings=settings,
+                                                                                      parameters=parameters)
 
-                    new_task.parents = parent_tasks
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
-        #TODO: assert no duplicate tags
+
+        tagz = [frozenset(t.tags.items()) for t in stage.tasks]
+        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s' % stage
     return task_g, stage_g
 
 
-def dag_from_tasks(tasks):
-    g = nx.DiGraph()
-    g.add_nodes_from(tasks)
-    g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
-    return g
-
-
 def taskdag_to_agraph(taskdag):
+    """
+    Converts a networkx graph into a pygraphviz Agraph
+    """
     import pygraphviz as pgv
 
     agraph = pgv.AGraph(strict=False, directed=True, fontname="Courier")
@@ -78,7 +78,7 @@ def taskdag_to_agraph(taskdag):
             label = " \\n".join(map(truncate_val, task.tags.items()))
             status2color = {TaskStatus.no_attempt: 'black',
                             TaskStatus.waiting: 'gold1',
-                            TaskStatus.submitted: 'darkgreen',
+                            TaskStatus.submitted: 'navy',
                             TaskStatus.successful: 'darkgreen',
                             TaskStatus.failed: 'darkred'}
 
@@ -88,8 +88,15 @@ def taskdag_to_agraph(taskdag):
     return agraph
 
 
-def as_image(taskdag, path=None):
-    g = taskdag_to_agraph(taskdag)
+def tasks_to_image(tasks, path=None):
+    """
+    Converts a list of tasks into a SVG image of the taskgraph DAG
+    """
+    g = nx.DiGraph()
+    g.add_nodes_from(tasks)
+    g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
+
+    g = taskdag_to_agraph(g)
     g.layout(prog="dot")
     return g.draw(path=path, format='svg')
 
@@ -104,7 +111,7 @@ def _recipe_stage2stage(recipe_stage, execution):
     session.commit()
 
     if not created:
-        execution.log.info('Loaded %s (%s tasks)' % (stage, len(stage.tasks)))
+        execution.log.info('Loaded %s' % stage)
     else:
         execution.log.info('Created %s' % stage)
 

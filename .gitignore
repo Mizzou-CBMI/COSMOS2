@@ -1,2 +1,13 @@
+test/*.db
+test/out
+.project
+.idea/
+.git/
+build/
+dist/
+docs/_build
+alembic/
 *.pyc
-*.idea
+*.swp
+*.*~
+lsync/

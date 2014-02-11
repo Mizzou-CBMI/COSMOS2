@@ -1,7 +1,7 @@
 """
 Returns a sorted dictionary of all fields in /proc/pid/stat
 """
-manpage ="""      pid %d      The process ID.
+manpage = """      pid %d      The process ID.
 
               comm %s     The filename of the executable, in parentheses.  This is
                           visible whether or not the executable is swapped out.
@@ -174,10 +174,12 @@ manpage ="""      pid %d      The process ID.
 
 import re
 
+
 def yield_fields(manpage):
-    for i,g in enumerate(re.findall("(\w+)\s+(%\w+).*",manpage.strip())):
-        yield g[0],i
-        
+    for i, g in enumerate(re.findall("(\w+)\s+(%\w+).*", manpage.strip())):
+        yield g[0], i
+
+
 def get_stat_and_status_fields():
     """
     Returns a list of all the items in /proc/pid/stat
@@ -187,7 +189,10 @@ def get_stat_and_status_fields():
     
     You can easily convert to a dict using dict(get_stat_and_status_fields())
     """
-    return [ field for field in yield_fields(manpage) ]
+    return [field for field in yield_fields(manpage)]
+
+
 if __name__ == '__main__':
     import pprint
-    pprint.pprint(get_stat_and_status_fields(),indent=2)
+
+    pprint.pprint(get_stat_and_status_fields(), indent=2)

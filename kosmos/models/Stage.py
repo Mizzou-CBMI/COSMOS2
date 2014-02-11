@@ -1,23 +1,25 @@
 import re
 
 from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint, Boolean
-from sqlalchemy.orm import relationship, synonym, backref
+from sqlalchemy.orm import relationship, synonym, backref, validates
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy import Table
 from flask import url_for
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
-from .. import StageStatus, signal_stage_status_change
+from .. import StageStatus, signal_stage_status_change, RelationshipType
 
 
 @signal_stage_status_change.connect
 def task_status_changed(stage):
     stage.log.info('%s %s' % (stage, stage.status))
+    if stage.status == StageStatus.successful:
+        stage.successful = True
+
     if stage.status == StageStatus.running:
         stage.started_on = func.now()
-    elif stage.status == StageStatus.finished:
-        stage.successful = True
+    elif stage.status in [StageStatus.successful, StageStatus.failed, StageStatus.killed]:
         stage.finished_on = func.now()
 
     stage.session.commit()
@@ -25,8 +27,7 @@ def task_status_changed(stage):
 
 stage_edge_table = Table('stage_edge', Base.metadata,
                          Column('parent_id', Integer, ForeignKey('stage.id'), primary_key=True),
-                         Column('child_id', Integer, ForeignKey('stage.id'), primary_key=True)
-)
+                         Column('child_id', Integer, ForeignKey('stage.id'), primary_key=True))
 
 
 class Stage(Base):
@@ -34,7 +35,8 @@ class Stage(Base):
     __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    number = Column(Integer)
+    name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     execution_id = Column(ForeignKey('execution.id'))
@@ -47,6 +49,7 @@ class Stage(Base):
                            secondaryjoin=id == stage_edge_table.c.child_id,
                            backref="children"
     )
+    relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
 
@@ -63,27 +66,51 @@ class Stage(Base):
 
         return synonym('_status', descriptor=property(get_status, set_status))
 
+    @validates('name')
+    def validate_name(self, key, name):
+        assert re.match('^[\w]+$', name), 'Invalid stage name.'
+        return name
+
     def __init__(self, *args, **kwargs):
         super(Stage, self).__init__(*args, **kwargs)
 
         if not re.match('^[a-zA-Z0-9_\.-]+$', self.name):
             raise Exception('invalid stage name %s' % self.name)
 
+    def num_successful_tasks(self):
+        #return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
+        return len(filter(lambda t: t.successful, self.tasks))
+
     @property
     def url(self):
-        return url_for('.stage', execution_id=self.execution_id, stage_name=self.name)
+        return url_for('kosmos.stage', execution_id=self.execution_id, stage_name=self.name)
 
     @property
     def log(self):
         return self.execution.log
 
-    def delete(self):
+    def delete(self, delete_output_files=False):
+        self.log.info('Deleting %s' % self)
+        if delete_output_files:
+            for t in self.tasks:
+                t.delete(delete_output_files=True)
         self.session.delete(self)
         self.session.commit()
 
+    def get_tasks(self, **filter_by):
+        return [t for t in self.tasks if all(str(t.tags.get(k, None)) == v for k, v in filter_by.items())]
+
+    def get_task(self, **filter_by):
+        tasks = self.get_tasks(**filter_by)
+        assert len(tasks) <= 1, 'get_task returned more than 1 result!'
+        return tasks[0]
+
+    def percent_successful(self):
+        return round(float(self.num_successful_tasks()) / float(len(self.tasks)) * 100, 2)
+
     @property
     def label(self):
-        return '{0} (x{1})'.format(self.name, len(self.tasks))
+        return '{0} ({1}/{2})'.format(self.name, self.num_successful_tasks(), len(self.tasks))
 
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)

@@ -3,3 +3,4 @@ blinker
 networkx
 pygraphviz
 psutil
+sqlalchemy

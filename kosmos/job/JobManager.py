@@ -58,13 +58,15 @@ class JobManager(object):
                 else:
                     return []
         else:
+            if at_least_one:
+                raise AttributeError, 'No tasks are running, and at_least_one is set to True'
             return []
 
     def create_command_sh(self, task):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
             f.write("#!/bin/bash\n")
-            f.write(task.generate_cmd() + "\n")
+            f.write(task.command + "\n")
         os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 
     def get_command_str(self, task):
