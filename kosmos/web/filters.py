@@ -1,6 +1,8 @@
 import datetime, re
 from .. import StageStatus, TaskStatus
 from flask import Markup
+from sqlalchemy import func
+from .. import Task, Stage, Execution
 
 
 def add_filters(bprint):
@@ -11,13 +13,6 @@ def add_filters(bprint):
         else:
             s = '<span class="glyphicon glyphicon-thumbs-down"></span> no'
         return Markup(s)
-
-    def format_time(amount, type="seconds"):
-        if amount is None or amount == '':
-            return ''
-        if type == 'minutes':
-            amount = amount * 60
-        return datetime.timedelta(seconds=int(amount))
 
 
     @bprint.add_app_template_filter
@@ -46,33 +41,65 @@ def add_filters(bprint):
         }
         return d.get(status)
 
+    @bprint.add_app_template_filter
+    def or_datetime_now(x):
+        return x or datetime.datetime.now()
 
-    def intWithCommas(x):
-        if x is None:
+
+    @bprint.add_app_template_filter
+    def stage_stat(stage, attribute, func_name):
+        f = getattr(func, func_name)
+        session = stage.session
+        a = session.query(f(getattr(Task, attribute))).join(Stage).filter(Stage.id == stage.id).scalar()
+        if a is None:
             return ''
-        if type(x) not in [type(0), type(0L)]:
-            #raise TypeError("Parameter must be an integer.")
-            return x
-        if x < 0:
-            return '-' + intWithCommas(-x)
-        result = ''
-        while x >= 1000:
-            x, r = divmod(x, 1000)
-            result = ",%03d%s" % (r, result)
-        return "%d%s" % (x, result)
-
-    def format_memory_kb(kb):
-        """converts kb to human readible"""
-        if kb is None:
-            return ''
-        mb = kb / 1024.0
-        gb = mb / 1024.0
-        if gb > 1:
-            return "%sGB" % round(gb, 1)
-        else:
-            return "%sMB" % round(mb, 1)
+        a = int(a)
+        if 'rss' in attribute:
+            return format_memory_kb(a)
+        if 'mem_req' in attribute:
+            return format_memory_mb(a)
+        if 'time' in attribute:
+            return format_time(a)
+        if 'percent' in attribute:
+            return '{}%'.format(a)
+        return a
 
 
-    def format_memory_mb(mb):
-        """converts mb to human readible"""
-        return format_memory_kb(mb * 1024.0) if mb else ""
+def intWithCommas(x):
+    if x is None:
+        return ''
+    if type(x) not in [type(0), type(0L)]:
+        #raise TypeError("Parameter must be an integer.")
+        return x
+    if x < 0:
+        return '-' + intWithCommas(-x)
+    result = ''
+    while x >= 1000:
+        x, r = divmod(x, 1000)
+        result = ",%03d%s" % (r, result)
+    return "%d%s" % (x, result)
+
+
+def format_memory_kb(kb):
+    """converts kb to human readible"""
+    if kb is None:
+        return ''
+    mb = kb / 1024.0
+    gb = mb / 1024.0
+    if gb > 1:
+        return "%sGB" % round(gb, 1)
+    else:
+        return "%sMB" % round(mb, 1)
+
+
+def format_memory_mb(mb):
+    """converts mb to human readible"""
+    return format_memory_kb(mb * 1024.0) if mb else ""
+
+
+def format_time(amount, type="seconds"):
+    if amount is None or amount == '':
+        return ''
+    if type == 'minutes':
+        amount = amount * 60
+    return datetime.timedelta(seconds=int(amount))

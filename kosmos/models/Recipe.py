@@ -69,7 +69,7 @@ class Recipe(object):
         :param save_to:
         :returns:
         """
-        g = stagegraph_to_agraph(self.recipe_stage_G, save_to)
+        g = stagegraph_to_agraph(self.recipe_stage_G)
         g.layout(prog="dot")
         return g.draw(path=save_to, format='svg')
 
@@ -173,4 +173,4 @@ class RecipeStage():
         return ''
 
     def __repr__(self):
-        return 'RecipeStage %s' % self.name or ''
+        return '<RecipeStage %s>' % self.name or ''

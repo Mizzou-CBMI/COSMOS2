@@ -21,7 +21,6 @@
     <h3 class="panel-title">{{stage}}.tasks</h3>
   </div>
   <div class="panel-body">
-
 <table class="table table-condensed table-striped datatable" id="table_expected">
     <thead>
       <tr>
@@ -29,9 +28,11 @@
             <th>task</th>
             <th>successful</th>
             <th>status</th>
-            <th>started_on</th>
+            <th>drm_status</th>
+            <th>drm_jobid</th>
+            <th>attempts</th>
             <th>submitted_on</th>
-            <th>finished_on</th>
+            <th>wall_time</th>
       </tr>
     </thead>
     <tbody>
@@ -41,9 +42,12 @@
             <td><a href="{{ t.url }}">{{t.tags}}</a></td>
             <td>{{t.successful|to_thumb}}</td>
             <td>{{t.status}}</td>
-            <td>{{t.started_on}}</td>
+            <td>{{drm_statuses.get(t.drmaa_jobID,'')}}</td>
+            <th>{{t.drmaa_jobID}}</th>
+            <td>{{t.attempt}}</td>
             <td>{{t.submitted_on}}</td>
-            <td>{{t.finished_on}}</td>
+            <td>{{t.submitted_on}}</td>
+            <td>{% if t.finished_on %}{{ t.finished_on - t.started_on|or_datetime_now }}{% endif %}</td>
          </tr>
       {% endfor %}
     </tbody>

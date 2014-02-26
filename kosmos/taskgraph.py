@@ -80,7 +80,8 @@ def taskdag_to_agraph(taskdag):
                             TaskStatus.waiting: 'gold1',
                             TaskStatus.submitted: 'navy',
                             TaskStatus.successful: 'darkgreen',
-                            TaskStatus.failed: 'darkred'}
+                            TaskStatus.failed: 'darkred',
+                            TaskStatus.killed: 'darkred'}
 
             sg.add_node(task, label=label, URL=task.url, target="_blank",
                         color=status2color[task.status])

@@ -10,7 +10,6 @@
 }
 
 .table-condensed {
-    font-size: .8em
 }
 
 body, h1, h2, h3, h4, h5, p {
@@ -25,4 +24,8 @@ table {
 a:visited
 {
     color:#395c82
+}
+
+.table-striped tbody tr.row_highlight>td {
+    background-color: lightyellow;
 }

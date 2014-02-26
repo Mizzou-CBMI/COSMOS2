@@ -34,6 +34,10 @@ class One2one(Relationship):
 
 
 class Many2one(Relationship):
+    """
+    Group parent tasks by keywords.  If a parent task is missing a keyword it acts as a wildcard. ex:
+    {a:1, b:2, c:5}, {a:1, b:2, c:5}, {a:1, b:2} is a valid group using keywords ['a','b','c'] or ['a','b'].
+    """
     type = RelationshipType.many2one
 
     def __init__(self, keywords=None):
@@ -55,18 +59,31 @@ class Many2one(Relationship):
         if any(k == '' for k in keywords):
             raise TypeError('keyword cannot be an empty string')
 
+        def wildcard_subset(dict1, dict2):
+            """
+            :return: True if all items in dict1 are equivalent or missing in dict2.
+            """
+            return all(dict2.get(k, v) == v for k, v in dict1.items())
+
+        def only_keywords(task):
+            return dict((k, task.tags[k]) for k in keywords if k in task.tags)
+
         parent_tasks = list(it.chain(*[s.tasks for s in stage.parents]))
         parent_tasks_without_all_keywords = filter(lambda t: not all([k in t.tags for k in keywords]),
                                                    parent_tasks)
         parent_tasks_with_all_keywords = filter(lambda t: all(k in t.tags for k in keywords), parent_tasks)
 
         if len(parent_tasks_with_all_keywords) == 0:
-            raise RelationshipError, 'Parent stages must have at least one task with all many2one keywords of {0}'.format(
-                keywords)
+            raise RelationshipError(
+                'Parent stages must have at least one task with all many2one keywords of %s' % keywords)
 
-        for tags, parent_task_group in groupby(parent_tasks_with_all_keywords,
-                                               lambda t: dict((k, t.tags[k]) for k in keywords if k in t.tags)):
-            parent_task_group = list(parent_task_group) + parent_tasks_without_all_keywords
+        for tags, parent_task_group in groupby(parent_tasks_with_all_keywords, only_keywords):
+            subsets = filter(lambda t: wildcard_subset(t.tags, tags), parent_tasks_without_all_keywords)
+            # if stage.name == 'CGACallDiff':
+            #     import IPython;
+            #
+            #     IPython.embed()
+            parent_task_group = list(parent_task_group) + subsets
             yield tags, parent_task_group
 
 

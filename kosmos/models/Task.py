@@ -8,9 +8,10 @@ from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, ListOfStrings
+from ..util.sqla import Enum34_ColumnType, ListOfStrings, JSONEncodedDict, MutableDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from .. import ExecutionFailed
+import shutil
 
 opj = os.path.join
 
@@ -27,55 +28,50 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-task_failed_printout = """<command path="{task.output_command_script_path}">
-{cmd}
-</command>
-<stderr>
-{stderr}
-</stderr>
-<stdout>
-{stdout}
-</stdout>
-"""
+task_failed_printout = """Failure Info:
+<COMMAND path="{0.output_command_script_path}" drmaa_jobID={0.drmaa_jobID}>
+{0.command_script_text}
+</COMMAND>
+<STDOUT path="{0.output_stdout_path}">
+{0.stdout_text}
+</STDOUT>
+<STDERR path="{0.output_stderr_path}">
+{0.stderr_text}
+</STDERR>"""
 
 
 @signal_task_status_change.connect
 def task_status_changed(task):
-    if task.status in [TaskStatus.successful, TaskStatus.killed, TaskStatus.submitted]:
+    if task.status in [TaskStatus.successful]:
         task.log.info('%s %s' % (task, task.status))
-        task.session.commit()
 
     if task.status == TaskStatus.waiting:
         task.started_on = func.now()
 
     elif task.status == TaskStatus.submitted:
+        task.log.info('%s %s, drm_jobid is %s' % (task, task.status, task.drmaa_jobID))
         task.submitted_on = func.now()
         task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
-        msg = task_failed_printout.format(
-            task=task,
-            stdout=task.stdout_text,
-            stderr=task.stderr_text,
-            cmd=task.command_script_text
-        )
+        fail_info = task_failed_printout.format(task)
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
-            task.log.warn(msg)
-        # elif task.attempt < 3:
-        #     task.log.warn('%s attempt #%s failed' % (task, task.attempt))
-        #     task.log.warn(msg)
-        #     task.attempt += 1
-        #     task.status = TaskStatus.no_attempt
+            task.log.warn(fail_info)
         else:
-            task.log.error('%s failed %s times' % (task, task.attempt))
-            task.log.warn(msg)
-            task.finished_on = func.now()
-            task.stage.status = StageStatus.failed
-            task.session.commit()
-            task.update_from_profile_output()
-            raise ExecutionFailed
+            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.execution.max_attempts))
+            task.log.warn(fail_info)
+            if task.attempt < task.execution.max_attempts:
+                task.attempt += 1
+                task.status = TaskStatus.no_attempt
+            else:
+                task.log.error('%s has failed too many times' % task)
+                task.finished_on = func.now()
+                task.stage.status = StageStatus.failed
+                task.session.commit()
+                task.update_from_profile_output()
+                raise ExecutionFailed
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -84,18 +80,17 @@ def task_status_changed(task):
             task.stage.status = StageStatus.successful
         task.update_from_profile_output()
 
-
     task.session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
                         Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True)
-)
+                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
 
 
-def logplus(p):
-    return property(lambda self: opj(self.log_dir, p))
+def logplus(filename):
+    prefix, suffix = os.path.splitext(filename)
+    return property(lambda self: opj(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
 
 
 def readfile(path):
@@ -114,11 +109,12 @@ class Task(Base):
     #__table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
-    mem_req = Column(Integer)
+    mem_req = Column(Integer, default=1024)
     cpu_req = Column(Integer, default=1, nullable=False)
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
-    tags = Column(PickleType, nullable=False)
+    tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
+    #tags = Column(MutableDict.as_mutable(JSONEncodedDict))
     stage_id = Column(ForeignKey('stage.id'), nullable=False)
     stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
     log_dir = Column(String(255))
@@ -158,7 +154,7 @@ class Task(Base):
                                 'avg_num_threads', 'max_num_threads'])
     ]
 
-    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command','info']
+    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command', 'info']
 
     #time
     system_time = Column(Integer)
@@ -299,6 +295,7 @@ class Task(Base):
         if delete_output_files:
             for tf in self.output_files:
                 tf.delete()
+            shutil.rmtree(self.log_dir)
 
         self.session.delete(self)
         self.session.commit()

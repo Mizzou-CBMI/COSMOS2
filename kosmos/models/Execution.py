@@ -11,7 +11,7 @@ import signal
 
 from .. import taskgraph, ExecutionFailed
 from ..job.JobManager import JobManager
-from .. import TaskStatus, Task, __version__, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
@@ -56,6 +56,7 @@ class Execution(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cpus = Column(Integer)
+    max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     #recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
@@ -81,7 +82,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, session, name, output_dir, restart=False, prompt_confirm=True, max_cpus=None):
+    def start(cls, kosmos_app, name, output_dir, restart=False, prompt_confirm=True, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -94,15 +95,21 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
+        output_dir = os.path.abspath(output_dir)
+        session = kosmos_app.sqla.session
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
-        old_id = None
+        x = output_dir if output_dir[-1] != '/' else output_dir[0:]
+        prefix_dir = os.path.split(x)[0]
+        assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
 
+        old_id = None
         if restart:
             ex = session.query(Execution).filter_by(name=name).first()
             if ex:
                 old_id = ex.id
-                msg = 'Are you sure you want to `rm -rf %s` and delete all sql records of %s?' % (ex.output_dir, ex)
+                msg = 'Are you sure you want to delete the contents of`%s` and delete all sql records of %s?' % (
+                    ex.output_dir, ex)
                 if prompt_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
@@ -110,16 +117,17 @@ class Execution(Base):
 
         #resuming?
         ex = session.query(Execution).filter_by(name=name).first()
-        msg = 'Execution started, Kosmos v%s' % __version__
+        #msg = 'Execution started, Kosmos v%s' % __version__
         if ex:
             #resuming.
             ex.max_cpus = max_cpus
+            ex.max_attempts = max_attempts
             if output_dir is None:
                 output_dir = ex.output_dir
             else:
                 assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
 
-            ex.log.info(msg)
+            #ex.log.info(msg)
             session.add(ex)
             q = ex.tasksq.filter_by(successful=False)
             n = q.count()
@@ -129,21 +137,25 @@ class Execution(Base):
                     session.delete(t)
         else:
             #start from scratch
-            assert not os.path.exists(output_dir), '%s already exists' % (output_dir)
+            assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             mkdir(output_dir)
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, max_cpus=max_cpus)
-            ex.log.info(msg)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, max_cpus=max_cpus, max_attempts=max_attempts,
+                           manual_instantiation=False)
+            #ex.log.info(msg)
             session.add(ex)
 
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
+        ex.kosmos_app = kosmos_app
         return ex
 
     @orm.reconstructor
     def constructor(self):
-        self.__init__()
+        self.__init__(manual_instantiation=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, manual_instantiation=True, *args, **kwargs):
+        if manual_instantiation:
+            raise TypeError, 'Do not instantiate an Execution manually.  Use the Execution.start staticmethod.'
         super(Execution, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
         mkdir(self.output_dir)
@@ -173,23 +185,28 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
+        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized by the Execution.start method'
+        assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
+        assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
         try:
             session = self.session
             assert session, 'Execution must be part of a sqlalchemy session'
             self.status = ExecutionStatus.running
             self.successful = False
 
-            self.jobmanager = JobManager()
+            self.jobmanager = self.kosmos_app.jobmanager
+
             if self.started_on is None:
                 self.started_on = func.now()
 
-            # Render task graph and save to db
+            # Render task graph and to session
             task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
             session.add_all(stage_g.nodes())
             session.add_all(task_g.nodes())
+
             # Create Task Queue
             task_queue = _copy_graph(task_g)
-            successful = filter(lambda t: t.status == TaskStatus.successful, task_g.nodes())
+            successful = filter(lambda t: t.successful, task_g.nodes())
             self.log.info('Skipping %s successful tasks' % len(successful))
             task_queue.remove_nodes_from(successful)
             self.log.info('Queueing %s new tasks' % len(task_queue.nodes()))
@@ -217,6 +234,11 @@ class Execution(Base):
 
             session.commit()
 
+            # make sure we've got enough cores
+            for t in task_queue:
+                assert t.cpu_req <= self.max_cpus or self.max_cpus is None,\
+                    '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
+
             if not dry:
                 while len(task_queue) > 0:
                     _run_ready_tasks(task_queue, self)
@@ -240,7 +262,7 @@ class Execution(Base):
     def terminate(self):
         self.log.warning('Terminating!')
         if self.jobmanager:
-            self.log.info('Processing finished tasks and terminating running ones')
+            self.log.info('Processing finished and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager, at_least_one=False)
             self.jobmanager.terminate()
         self.status = ExecutionStatus.killed
@@ -254,6 +276,7 @@ class Execution(Base):
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
+        #return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
 
     def get_stage(self, name_or_id):
@@ -277,10 +300,19 @@ class Execution(Base):
     def __repr__(self):
         return '<Execution[%s] %s>' % (self.id or '', self.name)
 
+    def __unicode__(self):
+        return self.__repr__()
 
-    def delete(self, delete_output_dir=False):
+
+    def delete(self, delete_output_dir):
+        """
+        :param delete_output_dir: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
+        """
+        self.log.info('Deleting %s' % self)
+        for h in self.log.handlers:
+            self.log.removeHandler(h)
+            h.close()
         if delete_output_dir:
-            self.log.info('Deleting %s' % self.output_dir)
             shutil.rmtree(self.output_dir)
         self.session.delete(self)
         self.session.commit()

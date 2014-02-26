@@ -114,6 +114,7 @@ def get_logger(name, path):
     :returns: (logger, True if the logger was initialized, else False)
     """
     log = logging.getLogger(name)
+    log.propagate = False
     #logging.basicConfig(level=logging.DEBUG)
 
     #check if we've already configured logger

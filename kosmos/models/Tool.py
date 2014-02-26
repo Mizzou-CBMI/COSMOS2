@@ -69,7 +69,9 @@ class Tool(object):
     def generate_task(self, stage, parents, settings, parameters):
         d = {attr: getattr(self, attr) for attr in
              ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        task = Task(stage=stage, tags=self.tags, input_files=self.map_inputs(parents), parents=parents,
+        input_files = self.map_inputs(parents)
+        input_dict = {name: list(input_files) for name, input_files in groupby(input_files, lambda i: i.name)}
+        task = Task(stage=stage, tags=self.tags, input_files=input_files, parents=parents,
                     forward_inputs=self.forward_inputs,
                     **d)
 
@@ -77,7 +79,8 @@ class Tool(object):
         output_files = []
         for output in self.outputs:
             if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags),
+                tf = TaskFile(name=output[0], basename=output[1].format(inputs=input_dict, i=input_dict,
+                                                                        name=output[0], **self.tags),
                               task_output_for=task,
                               persist=self.persist)
             elif isinstance(output, str):
@@ -120,6 +123,13 @@ class Tool(object):
         p = self.parameters.copy()
         argspec = getargspec(self.cmd)
 
+        if {'inputs', 'outputs', 'settings'}.issubset(argspec.args):
+            signature_type = 'A'
+        elif {'i', 'o', 's'}.issubset(argspec.args):
+            signature_type = 'B'
+        else:
+            raise ToolValidationError('Invalid %s.cmd signature'.format(self))
+
         # add tags to params
         for k, v in task.tags.items():
             if k in argspec.args:
@@ -129,16 +139,20 @@ class Tool(object):
             if k not in argspec.args:
                 del p[k]
 
-        for l in ['i', 'o', 's']:
+        for l in ['i', 'o', 's', 'inputs', 'outputs', 'settings']:
             if l in p.keys():
-                raise ToolValidationError, "{0} is a reserved name, and cannot be used as a tag keyword".format(l)
+                raise ToolValidationError("{0} is a reserved name, and cannot be used as a tag keyword".format(l))
 
         try:
             input_dict = {name: list(input_files) for name, input_files in groupby(task.input_files, lambda i: i.name)}
-            kwargs = dict(i=input_dict, o={o.name: o for o in task.output_files}, s=self.settings, **p)
+            if signature_type == 'A':
+                kwargs = dict(inputs=input_dict, outputs={o.name: o for o in task.output_files}, settings=self.settings,
+                              **p)
+            elif signature_type == 'B':
+                kwargs = dict(i=input_dict, o={o.name: o for o in task.output_files}, s=self.settings, **p)
             callargs = getcallargs(self.cmd, **kwargs)
         except TypeError:
-            raise TypeError, 'Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys())
+            raise TypeError('Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys()))
 
         del callargs['self']
         r = self.cmd(**callargs)

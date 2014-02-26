@@ -33,6 +33,10 @@ class TaskFile(Base):
     basename = Column(String(255))
     persist = Column(Boolean)
 
+    @property
+    def basename_prefix(self):
+        return self.basename.split('.')[0]
+
     def __init__(self, *args, **kwargs):
         super(TaskFile, self).__init__(*args, **kwargs)
         if self.basename is None:
@@ -47,6 +51,9 @@ class TaskFile(Base):
         Deletes this task and all files associated with it
         """
         if delete_file and os.path.exists(self.path):
-            shutil.rmtree(self.path)
+            if os.path.isdir(self.path):
+                shutil.rmtree(self.path)
+            else:
+                os.remove(self.path)
         self.session.delete(self)
         self.session.commit()

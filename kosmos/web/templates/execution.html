@@ -51,9 +51,13 @@
                 <th>status</th>
                 <th>tasks</th>
                 <th>progress</th>
+                <th>avg(%_cpu)</th>
+                <th>avg(cpu_req)</th>
+                <th>avg(avg_rss_mem)</th>
+                <th>avg(mem_req)</th>
+                <th>avg(wall_time)</th>
+                <th>avg(cpu_time)</th>
                 <th>relationship</th>
-                <th>started_on</th>
-                <th>finished_on</th>
             </tr>
             </thead>
             <tbody>
@@ -72,9 +76,13 @@
                         </div>
                     </div>
                 </td>
+                <td>{{s|stage_stat('percent_cpu', 'avg')}}</td>
+                <td>{{s|stage_stat('cpu_req', 'avg')}}</td>
+                <td>{{s|stage_stat('avg_rss_mem', 'avg')}}</td>
+                <td>{{s|stage_stat('mem_req', 'avg')}}</td>
+                <td>{{s|stage_stat('wall_time', 'avg')}}</td>
+                <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
                 <td>{{ s.relationship_type }}</td>
-                <td>{{ s.started_on }}</td>
-                <td>{{ s.finished_on }}</td>
             </tr>
             {% endfor %}
             </tbody>
