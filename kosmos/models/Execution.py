@@ -96,7 +96,7 @@ class Execution(Base):
         :returns: an instance of Execution
         """
         output_dir = os.path.abspath(output_dir)
-        session = kosmos_app.sqla.session
+        session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
         x = output_dir if output_dir[-1] != '/' else output_dir[0:]
@@ -113,7 +113,7 @@ class Execution(Base):
                 if prompt_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
-                ex.delete(delete_output_dir=True)
+                ex.delete(delete_files=True)
 
         #resuming?
         ex = session.query(Execution).filter_by(name=name).first()
@@ -251,12 +251,8 @@ class Execution(Base):
             return self
         except ExecutionFailed as e:
             self.terminate()
+            self.session.commit()
             raise
-
-            # except Exception as e:
-            #     self.log.error(e)
-            #     session.commit()
-            #     raise e
 
 
     def terminate(self):
@@ -304,15 +300,15 @@ class Execution(Base):
         return self.__repr__()
 
 
-    def delete(self, delete_output_dir):
+    def delete(self, delete_files):
         """
-        :param delete_output_dir: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
+        :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
         self.log.info('Deleting %s' % self)
         for h in self.log.handlers:
             self.log.removeHandler(h)
             h.close()
-        if delete_output_dir:
+        if delete_files:
             shutil.rmtree(self.output_dir)
         self.session.delete(self)
         self.session.commit()

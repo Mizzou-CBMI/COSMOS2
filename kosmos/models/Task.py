@@ -109,8 +109,8 @@ class Task(Base):
     #__table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
-    mem_req = Column(Integer, default=1024)
-    cpu_req = Column(Integer, default=1, nullable=False)
+    mem_req = Column(Integer, default=None)
+    cpu_req = Column(Integer, default=1)
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(MutableDict.as_mutable(PickleType), nullable=False)

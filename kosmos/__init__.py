@@ -47,28 +47,22 @@ def default_get_drmaa_native_specification(drm, task):
 
 class KosmosApp(object):
     def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification,
-                 default_drm='local',
-                 url_prefix=''):
+                 default_drm='local'):
         from .job.JobManager import JobManager
-        from .web.views import gen_bprint
-        from .web import filters
-        from flask.ext.sqlalchemy import SQLAlchemy
+        from .db import get_session
+        #from flask.ext.sqlalchemy import SQLAlchemy
 
         self.default_drm = default_drm
         self.get_drmaa_native_specification = get_drmaa_native_specification
 
-        self.flask_app = Flask(__name__)
-        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-        self.sqla = SQLAlchemy(self.flask_app)
-        self.session = self.sqla.session
+        #self.flask_app = Flask(__name__)
+        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.sqla = SQLAlchemy(self.flask_app)
+        #self.session = self.sqla.session
+        self.session = get_session(database_url)
 
         self.jobmanager = JobManager(get_drmaa_native_specification=get_drmaa_native_specification,
                                      default_drm=default_drm)
-
-        #print flask_app.url_map
-        self.flask_app.register_blueprint(gen_bprint(self), url_prefix=url_prefix)
-        self.flask_app.config['DEBUG'] = True
-        self.flask_app.secret_key = '\x07F\xdd\x98egfd\xc1\xe5\x9f\rv\xbe\xdbl\x93x\xc2\x19\x9e\xc0\xd7\xea'
 
         # expire sessions after every request to prevent stale data
         # def expire_session(**extra):
@@ -83,18 +77,27 @@ class KosmosApp(object):
         Initialize the database via sql CREATE statements
         """
         print >> sys.stderr, 'Initializing db...'
-        Base.metadata.create_all(bind=self.sqla.session.bind)
+        Base.metadata.create_all(bind=self.session.bind)
 
     def resetdb(self):
         """
         Resets the database.  This is not reversible!
         """
         print >> sys.stderr, 'Dropping tables in db...'
-        Base.metadata.drop_all(bind=self.sqla.session.bind)
+        Base.metadata.drop_all(bind=self.session.bind)
         self.initdb()
 
-    def runweb(self, host, port):
-        return self.flask_app.run(debug=True, host=host, port=port)
+    # def runweb(self, host, port):
+    #     from .web.views import gen_bprint
+    #     from .web import filters
+    #     from kosmos.web.admin import add_kosmos_admin
+    #     #print flask_app.url_map
+    #     self.flask_app.register_blueprint(gen_bprint(self), url_prefix='/kosmos')
+    #     self.flask_app.config['DEBUG'] = True
+    #     self.flask_app.secret_key = '\x07F\xdd\x98egfd\xc1\xe5\x9f\rv\xbe\xdbl\x93x\xc2\x19\x9e\xc0\xd7\xea'
+    #     add_kosmos_admin(self.flask_app, self.sqla.session)
+    #
+    #     return self.flask_app.run(debug=True, host=host, port=port)
 
 
 ########################################################################################################################

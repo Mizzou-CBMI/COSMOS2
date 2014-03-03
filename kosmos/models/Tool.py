@@ -11,16 +11,25 @@ opj = os.path.join
 class ToolValidationError(Exception): pass
 
 
+class _ToolMeta(type):
+    def __init__(cls, name, bases, dct):
+        cls.name = name
+        return super(_ToolMeta, cls).__init__(name, bases, dct)
+
+
 class Tool(object):
     """
     Essentially a factory that produces Tasks.  It's :meth:`cmd` must be overridden unless it is a NOOP task.
     """
+    __metaclass__ = _ToolMeta
+
     mem_req = None
     time_req = None
     cpu_req = None
     must_succeed = None
     NOOP = False
     persist = False
+
 
     def __init__(self, tags, *args, **kwargs):
         """
@@ -119,9 +128,13 @@ class Tool(object):
         """
 
         """
-        #TODO this copy probably can be removed
-        p = self.parameters.copy()
         argspec = getargspec(self.cmd)
+
+        for k in self.parameters:
+            if k not in argspec.args:
+                raise ToolValidationError('Parameter %s is not a part of the %s.cmd signature' % (k, self))
+
+        p = self.parameters.copy()
 
         if {'inputs', 'outputs', 'settings'}.issubset(argspec.args):
             signature_type = 'A'
@@ -130,18 +143,13 @@ class Tool(object):
         else:
             raise ToolValidationError('Invalid %s.cmd signature'.format(self))
 
-        # add tags to params
-        for k, v in task.tags.items():
-            if k in argspec.args:
-                p[k] = v
 
-        for k in p:
-            if k not in argspec.args:
-                del p[k]
+        # add tags to params
+        p.update({k: v for k, v in task.tags.items() if k in argspec.args})
 
         for l in ['i', 'o', 's', 'inputs', 'outputs', 'settings']:
             if l in p.keys():
-                raise ToolValidationError("{0} is a reserved name, and cannot be used as a tag keyword".format(l))
+                raise ToolValidationError("%s is a reserved name, and cannot be used as a tag keyword" % l)
 
         try:
             input_dict = {name: list(input_files) for name, input_files in groupby(task.input_files, lambda i: i.name)}

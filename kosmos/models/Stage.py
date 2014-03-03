@@ -101,7 +101,7 @@ class Stage(Base):
 
     def get_task(self, **filter_by):
         tasks = self.get_tasks(**filter_by)
-        assert len(tasks) <= 1, 'get_task returned more than 1 result!'
+        assert len(tasks) == 1, 'filters did not return a single result'
         return tasks[0]
 
     def percent_successful(self):

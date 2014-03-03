@@ -8,10 +8,10 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
 
-    <title>Kosmos</title>
+    <title>{% block title %}Kosmos{% endblock %}</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('kosmos.static', filename='bootstrap3/spacelab/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('kosmos.static', filename='bootstrap3/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('kosmos.static', filename='bootstrap3/datatables/assets/css/datatables.css') }}"
           rel="stylesheet">
     <link href="{{ url_for('kosmos.static', filename='custom.css') }}" rel="stylesheet">
@@ -24,9 +24,9 @@
 </head>
 
 <body>
-
+{% block nav %}
 <!-- Fixed navbar -->
-<div class="navbar navbar-inverse">
+<div class="navbar navbar-default">
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -34,10 +34,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Kosmos</a>
+            <a class="navbar-brand" href="/">{% block brand %}Kosmos{% endblock %}</a>
         </div>
         <div class="navbar-collapse collapse">
-            <p class="navbar-text navbar-right">Workflow Management System</p>
+            <p class="navbar-text navbar-right">{% block navtext %}Workflow Management System{%endblock%}</p>
+            {% block navmenu %}
             <ul class="nav navbar-nav">
                 <li class="active"><a href="http://cosmos-workflow.rtfd.org/" target="_blank">Documentation</a></li>
                 <li class="dropdown">
@@ -51,11 +52,12 @@
                     </ul>
                 </li>
             </ul>
+            {% endblock %}
         </div>
         <!--/.nav-collapse -->
     </div>
 </div>
-
+{% endblock %}
 {% if messages %}
 {% for message in messages %}
 <div class="alert alert-{{ message.tags }} alert-dismissable">

@@ -34,7 +34,7 @@ class TaskFile(Base):
     persist = Column(Boolean)
 
     @property
-    def basename_prefix(self):
+    def prefix(self):
         return self.basename.split('.')[0]
 
     def __init__(self, *args, **kwargs):
