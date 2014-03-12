@@ -25,11 +25,13 @@
         <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
             <button type="button" class="btn btn-primary btn-xs">
                 <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-            </button></a>
+            </button>
+        </a>
         <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
             <button type="button" class="btn btn-primary btn-xs">
                 <span class="glyphicon glyphicon-eye-open"></span> StageGraph
-            </button></a>
+            </button>
+        </a>
 
     </dd>
 </dl>
@@ -58,6 +60,7 @@
                 <th>avg(wall_time)</th>
                 <th>avg(cpu_time)</th>
                 <th>relationship</th>
+                <th>action</th>
             </tr>
             </thead>
             <tbody>
@@ -83,6 +86,14 @@
                 <td>{{s|stage_stat('wall_time', 'avg')}}</td>
                 <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
                 <td>{{ s.relationship_type }}</td>
+                <td>
+                    <a href="{{ url_for('kosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"
+                       onclick="return confirm('This will delete all files associated with {{s}}.  Are you sure?')">
+                        <button type="button" class="btn btn-primary btn-xs">
+                            <span class="glyphicon glyphicon-remove"></span> delete
+                        </button>
+                    </a>
+                </td>
             </tr>
             {% endfor %}
             </tbody>

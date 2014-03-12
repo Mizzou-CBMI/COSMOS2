@@ -43,13 +43,15 @@ task_failed_printout = """Failure Info:
 @signal_task_status_change.connect
 def task_status_changed(task):
     if task.status in [TaskStatus.successful]:
-        task.log.info('%s %s' % (task, task.status))
+        if not task.NOOP:
+            task.log.info('%s %s' % (task, task.status))
 
     if task.status == TaskStatus.waiting:
         task.started_on = func.now()
 
     elif task.status == TaskStatus.submitted:
-        task.log.info('%s %s, drm_jobid is %s' % (task, task.status, task.drmaa_jobID))
+        if not task.NOOP:
+            task.log.info('%s %s, drm_jobid is %s' % (task, task.status, task.drmaa_jobID))
         task.submitted_on = func.now()
         task.stage.status = StageStatus.running
 
@@ -242,6 +244,12 @@ class Task(Base):
     def command_script_text(self):
         return readfile(self.output_command_script_path).strip()
 
+    def all_outputs(self):
+        """
+        :return: all output taskfiles, including any being forwarded
+        """
+        return self.taskfiles + [self.get_output(name, False) for name in self.forward_inputs]
+
     def get_output(self, name, error_if_missing=True):
         for o in self.output_files:
             if o.name == name:
@@ -291,11 +299,12 @@ class Task(Base):
 
         return urllib.urlencode(self.tags)
 
-    def delete(self, delete_output_files=False):
-        if delete_output_files:
+    def delete(self, delete_files=False):
+        if delete_files:
             for tf in self.output_files:
                 tf.delete()
-            shutil.rmtree(self.log_dir)
+            if os.path.exists(self.log_dir):
+                shutil.rmtree(self.log_dir)
 
         self.session.delete(self)
         self.session.commit()

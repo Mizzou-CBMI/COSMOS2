@@ -10,7 +10,6 @@ opj = os.path.join
 import signal
 
 from .. import taskgraph, ExecutionFailed
-from ..job.JobManager import JobManager
 from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
@@ -132,9 +131,14 @@ class Execution(Base):
             q = ex.tasksq.filter_by(successful=False)
             n = q.count()
             if n:
-                ex.log.info('Deleting %s failed tasks' % n)
+                ex.log.info('Deleting %s failed task(s)' % n)
                 for t in q.all():
                     session.delete(t)
+            stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
+            if stages:
+                ex.log.info('Deleting %s stage(s) without a successful task' % len(stages))
+                for stage in stages:
+                    session.delete(stage)
         else:
             #start from scratch
             assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)

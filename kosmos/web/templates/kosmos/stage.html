@@ -32,6 +32,7 @@
             <th>drm_jobid</th>
             <th>attempts</th>
             <th>submitted_on</th>
+            <th>finished_on</th>
             <th>wall_time</th>
       </tr>
     </thead>
@@ -46,7 +47,7 @@
             <th>{{t.drmaa_jobID}}</th>
             <td>{{t.attempt}}</td>
             <td>{{t.submitted_on}}</td>
-            <td>{{t.submitted_on}}</td>
+            <td>{{t.finished_on}}</td>
             <td>{% if t.finished_on %}{{ t.finished_on - t.started_on|or_datetime_now }}{% endif %}</td>
          </tr>
       {% endfor %}

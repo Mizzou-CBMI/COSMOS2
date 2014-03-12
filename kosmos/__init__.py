@@ -46,25 +46,26 @@ def default_get_drmaa_native_specification(drm, task):
 
 
 class KosmosApp(object):
-    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification,
+    def __init__(self, flask_app, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification,
                  default_drm='local'):
         from .job.JobManager import JobManager
-        from .db import get_session
-        #from flask.ext.sqlalchemy import SQLAlchemy
+        #from .db import get_session
+        self.flask_app = flask_app
+        from flask.ext.sqlalchemy import SQLAlchemy
 
         self.default_drm = default_drm
         self.get_drmaa_native_specification = get_drmaa_native_specification
 
         #self.flask_app = Flask(__name__)
-        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-        # self.sqla = SQLAlchemy(self.flask_app)
-        #self.session = self.sqla.session
-        self.session = get_session(database_url)
+        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        self.sqla = SQLAlchemy(self.flask_app)
+        self.session = self.sqla.session
+        #self.session = get_session(database_url)
 
         self.jobmanager = JobManager(get_drmaa_native_specification=get_drmaa_native_specification,
                                      default_drm=default_drm)
 
-        # expire sessions after every request to prevent stale data
+        #expire sessions after every request to prevent stale data
         # def expire_session(**extra):
         #     print >> sys.stderr, 'caughtcaughtcaughtcaught'
         #     self.sqla.session.expire_all()

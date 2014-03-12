@@ -4,8 +4,6 @@ from collections import OrderedDict
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 from sqlite3 import Connection as SQLite3Connection
-
-import sys
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 

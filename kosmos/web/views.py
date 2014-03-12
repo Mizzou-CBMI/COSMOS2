@@ -1,4 +1,4 @@
-from flask import make_response, request, jsonify, Markup, render_template, Blueprint, redirect, url_for
+from flask import make_response, request, jsonify, Markup, render_template, Blueprint, redirect, url_for, flash
 import io
 from .. import Execution, Stage, Task, taskgraph as taskgraph_, TaskStatus
 from . import filters
@@ -8,13 +8,15 @@ from sqlalchemy import desc
 
 def gen_bprint(kosmos_app):
     session = kosmos_app.session
-    bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static', static_url_path='/kosmos/static')
+    bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static',
+                       static_url_path='/kosmos/static')
     filters.add_filters(bprint)
 
     @bprint.route('/execution/delete/<int:id>')
     def execution_delete(id):
         e = session.query(Execution).get(id)
         e.delete(delete_files=True)
+        flash('Deleted %s' % e)
         return redirect(url_for('kosmos.index'))
 
     @bprint.route('/')
@@ -36,8 +38,16 @@ def gen_bprint(kosmos_app):
         drm_statuses = kosmos_app.jobmanager.default_drm.drm_statuses(
             filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
-        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses, x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses,
+                               x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
+
+    @bprint.route('/execution/<int:ex_id>/stage/<stage_name>/delete/')
+    def stage_delete(ex_id, stage_name):
+        s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
+        s.delete(delete_files=True)
+        flash('Deleted %s' % s)
+        return redirect(url_for('kosmos.execution', id=ex_id))
 
     @bprint.route('/task/<int:id>/')
     def task(id):

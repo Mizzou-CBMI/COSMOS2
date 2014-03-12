@@ -47,7 +47,7 @@ def parse_and_start(kosmos_app, parser, root_output_dir=None):
     return ex, kwargs
 
 
-def default_argparser(kosmos_app, root_output_dir='.'):
+def default_argparser(kosmos_app, root_output_dir):
     """
     Creates an argparser with all of the default options.  On a successful argparse,
     calls and returns the output of :func:`parse_and_start`

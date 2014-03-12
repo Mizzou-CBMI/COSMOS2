@@ -88,11 +88,11 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self, delete_output_files=False):
+    def delete(self, delete_files=False):
         self.log.info('Deleting %s' % self)
-        if delete_output_files:
+        if delete_files:
             for t in self.tasks:
-                t.delete(delete_output_files=True)
+                t.delete(delete_files=True)
         self.session.delete(self)
         self.session.commit()
 
@@ -101,7 +101,8 @@ class Stage(Base):
 
     def get_task(self, **filter_by):
         tasks = self.get_tasks(**filter_by)
-        assert len(tasks) == 1, 'filters did not return a single result'
+        assert len(tasks) > 0, 'no task found with tags %s' % filter_by
+        assert len(tasks) == 1, 'more than one task with tags %s' % filter_by
         return tasks[0]
 
     def percent_successful(self):

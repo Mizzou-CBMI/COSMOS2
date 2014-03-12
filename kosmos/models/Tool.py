@@ -62,7 +62,7 @@ class Tool(object):
 
         else:
             if '*' in self.inputs:
-                return {'*': [o for p in parents for o in p.taskfiles]}
+                return {'*': [tf for p in parents for tf in p.all_outputs()]}
 
             all_inputs = filter(lambda x: x is not None,
                                 [p.get_output(name, error_if_missing=False) for p in parents for name in
@@ -215,6 +215,7 @@ class Input(Tool):
         :param fmt: the format of the input file
         """
         path = os.path.abspath(path)
+        assert os.path.exists(path), '%s path does not exist for %s' % (path, self)
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
         # if name is None:
