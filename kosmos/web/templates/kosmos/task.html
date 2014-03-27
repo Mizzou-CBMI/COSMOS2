@@ -1,5 +1,7 @@
-{% extends "layout.html" %}
-
+{% extends "kosmos/layout.html" %}
+{% block title %}
+  {{ task }}
+{% endblock %}
 {% block content %}
 <ul class="breadcrumb">
   <li><a href="{{ url_for('.index') }}">Home</a></li>

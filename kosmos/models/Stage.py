@@ -1,9 +1,8 @@
 import re
 
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint, Boolean, Table
 from sqlalchemy.orm import relationship, synonym, backref, validates
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import Table
 from flask import url_for
 
 from ..db import Base
@@ -40,7 +39,7 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     execution_id = Column(ForeignKey('execution.id'))
-    execution = relationship("Execution", backref=backref("stages", cascade="all, delete-orphan"))
+    execution = relationship("Execution", backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     parents = relationship("Stage",
@@ -89,11 +88,11 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self, delete_output_files=False):
+    def delete(self, delete_files=False):
         self.log.info('Deleting %s' % self)
-        if delete_output_files:
+        if delete_files:
             for t in self.tasks:
-                t.delete(delete_output_files=True)
+                t.delete(delete_files=True)
         self.session.delete(self)
         self.session.commit()
 
@@ -102,11 +101,12 @@ class Stage(Base):
 
     def get_task(self, **filter_by):
         tasks = self.get_tasks(**filter_by)
-        assert len(tasks) <= 1, 'get_task returned more than 1 result!'
+        assert len(tasks) > 0, 'no task found with tags %s' % filter_by
+        assert len(tasks) == 1, 'more than one task with tags %s' % filter_by
         return tasks[0]
 
     def percent_successful(self):
-        return round(float(self.num_successful_tasks()) / float(len(self.tasks)) * 100, 2)
+        return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
 
     @property
     def label(self):

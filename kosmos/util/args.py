@@ -5,6 +5,7 @@ def get_last_cmd_executed():
     cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
     return '$ ' + ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
 
+
 def add_execution_args(parser):
     parser.add_argument('-n', '--name',
                         help="A name for this execution", required=True)
@@ -15,6 +16,9 @@ def add_execution_args(parser):
     parser.add_argument('-c', '--max_cpus', type=int,
                         help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means"
                              "unlimited", default=None)
+    parser.add_argument('-m', '--max_attempts', type=int,
+                        help="Maximum number of times to try running a Task that must succeed before the execution "
+                             "fails", default=1)
     parser.add_argument('-r', '--restart', action='store_true',
                         help="Completely restart the execution.  Note this will delete all record of the execution in"
                              "the database")
@@ -23,7 +27,7 @@ def add_execution_args(parser):
                              "always yes.")
 
 
-def parse_and_start(parser, session, root_output_dir=None):
+def parse_and_start(kosmos_app, parser, root_output_dir=None):
     """
     Parses the args of :param:`parser`
 
@@ -31,24 +35,19 @@ def parse_and_start(parser, session, root_output_dir=None):
 
     :returns: (Execution, dict kwargs)
     """
+    from kosmos import Execution
     parsed = parser.parse_args()
     kwargs = dict(parsed._get_kwargs())
 
-    from kosmos import Execution
 
-    d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'prompt_confirm', 'max_cpus']}
-    if d['output_dir'] is None:
-        assert root_output_dir and os.path.exists(root_output_dir),\
-            'root_output_dir `%s` does not exist.' % root_output_dir
+    d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'prompt_confirm', 'max_cpus', 'max_attempts']}
+    d['output_dir'] = os.path.join(root_output_dir, d['name'])
 
-        d['output_dir'] = os.path.join(root_output_dir, d['name'])
-    ex = Execution.start(session=session, **d)
-    session.commit()
+    ex = Execution.start(kosmos_app=kosmos_app, **d)
     return ex, kwargs
 
 
-
-def default_argparser(session, root_output_dir='.'):
+def default_argparser(kosmos_app, root_output_dir):
     """
     Creates an argparser with all of the default options.  On a successful argparse,
     calls and returns the output of :func:`parse_and_start`
@@ -59,4 +58,4 @@ def default_argparser(session, root_output_dir='.'):
 
     p = argparse.ArgumentParser()
     add_execution_args(p)
-    return parse_and_start(p, session, root_output_dir=root_output_dir)
+    return parse_and_start(kosmos_app, p, root_output_dir=root_output_dir)

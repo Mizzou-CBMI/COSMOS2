@@ -1,56 +1,80 @@
-from flask import make_response, request, jsonify, Markup, render_template, send_file, Blueprint
+from flask import make_response, request, jsonify, Markup, render_template, Blueprint, redirect, url_for, flash
 import io
-from .. import Execution, Stage, Task, taskgraph as taskgraph_
+from .. import Execution, Stage, Task, taskgraph as taskgraph_, TaskStatus
 from . import filters
 from ..models.Recipe import stages_to_image
 from sqlalchemy import desc
 
 
-def gen_bprint(session):
-    bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static')
+def gen_bprint(kosmos_app):
+    session = kosmos_app.session
+    def get_execution(id):
+        return session.query(Execution).filter_by(id=id).one()
+
+    bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static',
+                       static_url_path='/kosmos/static')
     filters.add_filters(bprint)
+
+    @bprint.route('/execution/delete/<int:id>')
+    def execution_delete(id):
+        e = get_execution(id)
+        e.delete(delete_files=True)
+        flash('Deleted %s' % e)
+        return redirect(url_for('kosmos.index'))
 
     @bprint.route('/')
     def index():
         executions = session.query(Execution).order_by(desc(Execution.created_on)).all()
-        return render_template('index.html', executions=executions)
+        session.expire_all()
+        return render_template('kosmos/index.html', executions=executions)
 
 
     @bprint.route('/execution/<int:id>/')
     def execution(id):
-        execution = session.query(Execution).get(id)
-        return render_template('execution.html', execution=execution)
+        execution = get_execution(id)
+        return render_template('kosmos/execution.html', execution=execution)
 
 
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
-        return render_template('stage.html', stage=stage)
+        drm_statuses = kosmos_app.jobmanager.default_drm.drm_statuses(
+            filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
+        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses,
+                               x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+
+
+    @bprint.route('/execution/<int:ex_id>/stage/<stage_name>/delete/')
+    def stage_delete(ex_id, stage_name):
+        s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
+        s.delete(delete_files=True)
+        flash('Deleted %s' % s)
+        return redirect(url_for('kosmos.execution', id=ex_id))
 
     @bprint.route('/task/<int:id>/')
     def task(id):
         task = session.query(Task).get(id)
         resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
                           task.profile_fields for field in fields]
-        return render_template('task.html', task=task, resource_usage=resource_usage)
+        return render_template('kosmos/task.html', task=task, resource_usage=resource_usage)
 
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):
-        ex = session.query(Execution).get(id)
+        ex = get_execution(id)
 
         if type == 'task':
             svg = Markup(taskgraph_.tasks_to_image(ex.tasks))
         else:
             svg = Markup(stages_to_image(ex.stages))
 
-        return render_template('taskgraph.html', execution=ex, type=type,
+        return render_template('kosmos/taskgraph.html', execution=ex, type=type,
                                svg=svg)
 
     # @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')
     # def taskgraph_svg(id, type, ):
-    #     e = session.query(Execution).get(id)
+    #     e = get_execution(id)
     #
     #     if type == 'task':
     #         return send_file(io.BytesIO(taskgraph_.tasks_to_image(e.tasks)), mimetype='image/svg+xml')

@@ -1,4 +1,8 @@
-{% extends "layout.html" %}
+{% extends "kosmos/layout.html" %}
+
+{% block title %}
+  {{ execution.name }}
+{% endblock %}
 
 {% block content %}
 
@@ -25,11 +29,13 @@
         <a href="{{ url_for('.taskgraph',id=execution.id, type='task') }}">
             <button type="button" class="btn btn-primary btn-xs">
                 <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-            </button></a>
+            </button>
+        </a>
         <a href="{{ url_for('.taskgraph',id=execution.id, type='recipe') }}">
             <button type="button" class="btn btn-primary btn-xs">
                 <span class="glyphicon glyphicon-eye-open"></span> StageGraph
-            </button></a>
+            </button>
+        </a>
 
     </dd>
 </dl>
@@ -51,9 +57,14 @@
                 <th>status</th>
                 <th>tasks</th>
                 <th>progress</th>
+                <th>avg(%_cpu)</th>
+                <th>avg(cpu_req)</th>
+                <th>avg(avg_rss_mem)</th>
+                <th>avg(mem_req)</th>
+                <th>avg(wall_time)</th>
+                <th>avg(cpu_time)</th>
                 <th>relationship</th>
-                <th>started_on</th>
-                <th>finished_on</th>
+                <th>action</th>
             </tr>
             </thead>
             <tbody>
@@ -72,9 +83,21 @@
                         </div>
                     </div>
                 </td>
+                <td>{{s|stage_stat('percent_cpu', 'avg')}}</td>
+                <td>{{s|stage_stat('cpu_req', 'avg')}}</td>
+                <td>{{s|stage_stat('avg_rss_mem', 'avg')}}</td>
+                <td>{{s|stage_stat('mem_req', 'avg')}}</td>
+                <td>{{s|stage_stat('wall_time', 'avg')}}</td>
+                <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
                 <td>{{ s.relationship_type }}</td>
-                <td>{{ s.started_on }}</td>
-                <td>{{ s.finished_on }}</td>
+                <td>
+                    <a href="{{ url_for('kosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"
+                       onclick="return confirm('This will delete all files associated with {{s}}.  Are you sure?')">
+                        <button type="button" class="btn btn-primary btn-xs">
+                            <span class="glyphicon glyphicon-remove"></span> delete
+                        </button>
+                    </a>
+                </td>
             </tr>
             {% endfor %}
             </tbody>

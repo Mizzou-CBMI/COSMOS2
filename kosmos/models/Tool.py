@@ -11,16 +11,25 @@ opj = os.path.join
 class ToolValidationError(Exception): pass
 
 
+class _ToolMeta(type):
+    def __init__(cls, name, bases, dct):
+        cls.name = name
+        return super(_ToolMeta, cls).__init__(name, bases, dct)
+
+
 class Tool(object):
     """
     Essentially a factory that produces Tasks.  It's :meth:`cmd` must be overridden unless it is a NOOP task.
     """
+    __metaclass__ = _ToolMeta
+
     mem_req = None
     time_req = None
     cpu_req = None
     must_succeed = None
     NOOP = False
     persist = False
+
 
     def __init__(self, tags, *args, **kwargs):
         """
@@ -53,7 +62,7 @@ class Tool(object):
 
         else:
             if '*' in self.inputs:
-                return {'*': [o for p in parents for o in p.taskfiles]}
+                return {'*': [tf for p in parents for tf in p.all_outputs()]}
 
             all_inputs = filter(lambda x: x is not None,
                                 [p.get_output(name, error_if_missing=False) for p in parents for name in
@@ -69,7 +78,9 @@ class Tool(object):
     def generate_task(self, stage, parents, settings, parameters):
         d = {attr: getattr(self, attr) for attr in
              ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        task = Task(stage=stage, tags=self.tags, input_files=self.map_inputs(parents), parents=parents,
+        input_files = self.map_inputs(parents)
+        input_dict = {name: list(input_files) for name, input_files in groupby(input_files, lambda i: i.name)}
+        task = Task(stage=stage, tags=self.tags, input_files=input_files, parents=parents,
                     forward_inputs=self.forward_inputs,
                     **d)
 
@@ -77,7 +88,11 @@ class Tool(object):
         output_files = []
         for output in self.outputs:
             if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1].format(name=output[0], **self.tags),
+                if hasattr(output[1], '__call__'):
+                    basename = output[1](i=input_dict, s=settings)
+                else:
+                    basename = output[1].format(i=input_dict, s=settings, **self.tags)
+                tf = TaskFile(name=output[0], basename=basename,
                               task_output_for=task,
                               persist=self.persist)
             elif isinstance(output, str):
@@ -116,29 +131,39 @@ class Tool(object):
         """
 
         """
-        #TODO this copy probably can be removed
-        p = self.parameters.copy()
         argspec = getargspec(self.cmd)
 
-        # add tags to params
-        for k, v in task.tags.items():
-            if k in argspec.args:
-                p[k] = v
-
-        for k in p:
+        for k in self.parameters:
             if k not in argspec.args:
-                del p[k]
+                raise ToolValidationError('Parameter %s is not a part of the %s.cmd signature' % (k, self))
 
-        for l in ['i', 'o', 's']:
+        p = self.parameters.copy()
+
+        if {'inputs', 'outputs', 'settings'}.issubset(argspec.args):
+            signature_type = 'A'
+        elif {'i', 'o', 's'}.issubset(argspec.args):
+            signature_type = 'B'
+        else:
+            raise ToolValidationError('Invalid %s.cmd signature'.format(self))
+
+
+        # add tags to params
+        p.update({k: v for k, v in task.tags.items() if k in argspec.args})
+
+        for l in ['i', 'o', 's', 'inputs', 'outputs', 'settings']:
             if l in p.keys():
-                raise ToolValidationError, "{0} is a reserved name, and cannot be used as a tag keyword".format(l)
+                raise ToolValidationError("%s is a reserved name, and cannot be used as a tag keyword" % l)
 
         try:
             input_dict = {name: list(input_files) for name, input_files in groupby(task.input_files, lambda i: i.name)}
-            kwargs = dict(i=input_dict, o={o.name: o for o in task.output_files}, s=self.settings, **p)
+            if signature_type == 'A':
+                kwargs = dict(inputs=input_dict, outputs={o.name: o for o in task.output_files}, settings=self.settings,
+                              **p)
+            elif signature_type == 'B':
+                kwargs = dict(i=input_dict, o={o.name: o for o in task.output_files}, s=self.settings, **p)
             callargs = getcallargs(self.cmd, **kwargs)
         except TypeError:
-            raise TypeError, 'Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys())
+            raise TypeError('Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys()))
 
         del callargs['self']
         r = self.cmd(**callargs)
@@ -193,6 +218,7 @@ class Input(Tool):
         :param fmt: the format of the input file
         """
         path = os.path.abspath(path)
+        assert os.path.exists(path), '%s path does not exist for %s' % (path, self)
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
         # if name is None:
@@ -215,14 +241,22 @@ class Inputs(Tool):
     """
     name = 'Load_Input_Files'
 
-    def __init__(self, inputs, tags, *args, **kwargs):
+    def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         :param path: the path to the input file
         :param name: the name or keyword for the input file
         :param fmt: the format of the input file
         """
-        #path = os.path.abspath(path)
+        if tags is None:
+            tags = dict()
+            #path = os.path.abspath(path)
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
 
+        def abs(path):
+            path2 = os.path.abspath(path)
+            assert os.path.exists(path2), '%s path does not exist for %s' % (path2, self)
+            return path2
+
+        inputs = [(name, abs(path)) for name, path in inputs]
         self.input_args = inputs

@@ -3,6 +3,16 @@ import subprocess as sp
 import signal
 import os
 
+def descendants(node):
+    """
+    :param node: A Task or Stage instance
+    :yields: a list of descendent task or stages
+    """
+    for c in node.children:
+        for n in descendents(c):
+            yield n
+    yield node
+
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
     False for no.
@@ -114,6 +124,7 @@ def get_logger(name, path):
     :returns: (logger, True if the logger was initialized, else False)
     """
     log = logging.getLogger(name)
+    log.propagate = False
     #logging.basicConfig(level=logging.DEBUG)
 
     #check if we've already configured logger

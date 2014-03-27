@@ -3,23 +3,27 @@ import os
 opj = os.path.join
 from ..util.helpers import mkdir
 from .local import DRM_Local
-from .. import settings
-from .. import TaskStatus, StageStatus
+from .lsf import DRM_LSF
+from .. import TaskStatus, StageStatus, library_path
 import time
+import shutil
 
 
 class JobManager(object):
-    def __init__(self):
-        self.drm = DRM_Local(self)
+    def __init__(self, get_drmaa_native_specification, default_drm='local'):
+        if default_drm == 'local':
+            self.default_drm = DRM_Local(self)
+        elif default_drm == 'lsf':
+            self.default_drm = DRM_LSF(self)
+        else:
+            raise ValueError("default_drm `%s` not supported.  "
+                             "`default_drm` must be one of: 'local', 'lsf'" % default_drm)
         self.running_tasks = []
+        self.get_drmaa_native_specification = get_drmaa_native_specification
 
     def submit(self, task):
         self.running_tasks.append(task)
         task.status = TaskStatus.waiting
-
-        # if task.profile.get('exit_status', None) == 0:
-        #     task.status = TaskStatus.successful
-        # else:
 
         if task.NOOP:
             task.status = TaskStatus.submitted
@@ -27,12 +31,14 @@ class JobManager(object):
             mkdir(task.output_dir)
             mkdir(task.log_dir)
             self.create_command_sh(task)
+            task.drmaa_native_specification = self.get_drmaa_native_specification(self.default_drm.name, task)
+            self.default_drm.submit_job(task)
             task.status = TaskStatus.submitted
-            self.drm.submit_job(task)
+            task.session.commit()
 
     def terminate(self):
         for task in self.running_tasks:
-            self.drm.kill(task)
+            self.default_drm.kill(task)
             task.status = TaskStatus.killed
             task.stage.status = StageStatus.killed
 
@@ -41,14 +47,12 @@ class JobManager(object):
         """
         :returns: A completed task, or None if there are no tasks to wait for
         """
-        def task_is_finished(task):
-            if task.NOOP:
-                return True
-            return self.drm.poll(task) is not None
-
         if len(self.running_tasks):
             while True:
-                finished_tasks = filter(task_is_finished, self.running_tasks)
+                noops = filter(lambda t: t.NOOP, self.running_tasks)
+                non_noops = filter(lambda t: not t.NOOP, self.running_tasks)
+                finished_tasks = self.default_drm.filter_is_done(non_noops) if len(non_noops) else []
+                finished_tasks += noops
                 if len(finished_tasks):
                     for task in finished_tasks:
                         self.running_tasks.remove(task)
@@ -59,7 +63,7 @@ class JobManager(object):
                     return []
         else:
             if at_least_one:
-                raise AttributeError, 'No tasks are running, and at_least_one is set to True'
+                raise AttributeError('No tasks are running, and `at_least_one` is set to True')
             return []
 
     def create_command_sh(self, task):
@@ -72,8 +76,9 @@ class JobManager(object):
     def get_command_str(self, task):
         "The command to be stored in the command.sh script"
         return "python {profile} -f {profile_out} {command_script_path}".format(
-            profile=os.path.join(settings['library_path'], 'profile/profile.py'),
+            profile=os.path.join(library_path, 'profile/profile.py'),
             #db = task.profile_output_path+'.sqlite',
             profile_out=task.output_profile_path,
             command_script_path=task.output_command_script_path
         )
+

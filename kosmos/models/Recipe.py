@@ -33,7 +33,7 @@ class Recipe(object):
         self.recipe_stage_G.add_node(recipe_stage)
         return recipe_stage
 
-    def add_stage(self, tool_class, parents, rel=_rel.One2one, name=None, extra_tags=None):
+    def add_stage(self, tool_class, parents, rel=_rel.One2one, name=None, add_tags=None):
         """
         Creates a Stage
 
@@ -51,7 +51,7 @@ class Recipe(object):
             parents = [parents]
             #assert issubclass(tool_class, Tool), 'tool_class must be a class'
 
-        recipe_stage = RecipeStage(name, tool_class, rel, extra_tags)
+        recipe_stage = RecipeStage(name, tool_class, rel, add_tags)
 
         assert recipe_stage.name not in [n.name for n in self.recipe_stage_G.nodes()], \
             'Duplicate recipe_stage names detected: %s' % recipe_stage.name
@@ -69,7 +69,7 @@ class Recipe(object):
         :param save_to:
         :returns:
         """
-        g = stagegraph_to_agraph(self.recipe_stage_G, save_to)
+        g = stagegraph_to_agraph(self.recipe_stage_G)
         g.layout(prog="dot")
         return g.draw(path=save_to, format='svg')
 
@@ -173,4 +173,4 @@ class RecipeStage():
         return ''
 
     def __repr__(self):
-        return 'RecipeStage %s' % self.name or ''
+        return '<RecipeStage %s>' % self.name or ''

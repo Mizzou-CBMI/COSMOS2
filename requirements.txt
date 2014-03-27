@@ -4,3 +4,5 @@ networkx
 pygraphviz
 psutil
 sqlalchemy
+flask-admin
+flask-sqlalchemy

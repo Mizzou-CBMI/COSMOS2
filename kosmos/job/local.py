@@ -4,11 +4,13 @@ import os
 import psutil
 import json
 
+from .. import TaskStatus
+
 class DRM_Local():
     """
     Note there can only be one of these instantiated at a time
     """
-
+    name = 'local'
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
 
@@ -17,36 +19,40 @@ class DRM_Local():
                   stdout=open(task.output_stderr_path, 'w'),
                   stderr=open(task.output_stdout_path, 'w'),
                   preexec_fn=preexec_function()
-                  )
+        )
         task.drmaa_jobID = p.pid
 
-    def poll(self,task):
+    def is_done(self, task):
         try:
             p = psutil.Process(task.drmaa_jobID)
             exit_code = p.wait(timeout=0)
-            return exit_code
+            return True
         except psutil.TimeoutExpired:
             pass
         except psutil.NoSuchProcess:
             profile_output = json.load(open(task.output_profile_path, 'r'))
             exit_code = profile_output['exit_status']
-            return exit_code
+            return True
 
-        return None
+        return False
 
-    def status(self, task):
+    def filter_is_done(self, tasks):
+        return filter(self.is_done, tasks)
+
+
+    def drm_statuses(self, tasks):
         """
-        Queries the DRM for the status of the job
+        :returns: (dict) task.drmaa_jobID -> drm_status
         """
-        if task.queue_status == 'queued':
-            return 'job is running'
-        if task.queue_status == 'completed':
-            if task.exit_status == 0:
-                return 'job finished normally'
+        def f(task):
+            if task.drmaa_jobID is None:
+                return '!'
+            if task.status == TaskStatus.submitted:
+                return 'Running'
             else:
-                return 'job finished, but failed'
-        return 'has not been queued'
+                return ''
 
+        return {task.drmaa_jobID: f(task) for task in tasks}
 
     def kill(self, task):
         "Terminates a task"

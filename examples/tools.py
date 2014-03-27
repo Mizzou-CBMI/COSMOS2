@@ -39,19 +39,15 @@ class WordCount(Tool):
     inputs = ['txt']
     outputs = ['txt']
 
-    default_para = {'args': ''}
-
-    def cmd(self, i, o, s, **kwargs):
+    def cmd(self, i, o, s):
         return 'wc {input} > {o[txt]}', {
             'input': ' '.join(map(str, i['txt']))
         }
 
 
 class Fail(Tool):
-    outputs = ['txt']
-
     def cmd(self, i, o, s, **kwargs):
-        return '{o[txt]} __fail__'
+        return '__fail__'
 
 
 class MD5Sum(Tool):

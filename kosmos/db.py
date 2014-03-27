@@ -4,8 +4,6 @@ from collections import OrderedDict
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 from sqlite3 import Connection as SQLite3Connection
-
-import sys
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
@@ -17,8 +15,8 @@ def get_session(database_url=None, echo=False):
         raise ValueError('database_url cannot be None.')
     engine = create_engine(database_url, echo=echo)
     session_factory = sessionmaker(autocommit=False,
-                           autoflush=False,
-                           bind=engine)
+                                   autoflush=False,
+                                   bind=engine)
     Session = scoped_session(session_factory)
     return Session
 
@@ -49,22 +47,3 @@ class Base(declarative_base()):
     @property
     def query(self):
         return self.session.query(self.__class__)
-
-
-def initdb(session):
-    """
-    Initialize the database via sql CREATE statements
-    """
-    print >> sys.stderr, 'Initializing db...'
-    Base.metadata.create_all(bind=session.bind)
-    return session
-
-
-def resetdb(session):
-    """
-    Resets the database.  This is not reversible!
-    """
-    print >> sys.stderr, 'Resetting db...'
-    Base.metadata.drop_all(bind=session.bind)
-    initdb(session)
-    return session
