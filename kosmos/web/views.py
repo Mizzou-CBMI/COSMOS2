@@ -8,13 +8,16 @@ from sqlalchemy import desc
 
 def gen_bprint(kosmos_app):
     session = kosmos_app.session
+    def get_execution(id):
+        return session.query(Execution).filter_by(id=id).one()
+
     bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static',
                        static_url_path='/kosmos/static')
     filters.add_filters(bprint)
 
     @bprint.route('/execution/delete/<int:id>')
     def execution_delete(id):
-        e = session.query(Execution).get(id)
+        e = get_execution(id)
         e.delete(delete_files=True)
         flash('Deleted %s' % e)
         return redirect(url_for('kosmos.index'))
@@ -28,7 +31,7 @@ def gen_bprint(kosmos_app):
 
     @bprint.route('/execution/<int:id>/')
     def execution(id):
-        execution = session.query(Execution).get(id)
+        execution = get_execution(id)
         return render_template('kosmos/execution.html', execution=execution)
 
 
@@ -59,7 +62,7 @@ def gen_bprint(kosmos_app):
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):
-        ex = session.query(Execution).get(id)
+        ex = get_execution(id)
 
         if type == 'task':
             svg = Markup(taskgraph_.tasks_to_image(ex.tasks))
@@ -71,7 +74,7 @@ def gen_bprint(kosmos_app):
 
     # @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')
     # def taskgraph_svg(id, type, ):
-    #     e = session.query(Execution).get(id)
+    #     e = get_execution(id)
     #
     #     if type == 'task':
     #         return send_file(io.BytesIO(taskgraph_.tasks_to_image(e.tasks)), mimetype='image/svg+xml')

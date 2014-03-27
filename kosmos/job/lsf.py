@@ -93,7 +93,7 @@ def bjobs_all():
     """
     try:
         lines = sp.check_output(['bjobs', '-a']).split('\n')
-    except sp.CalledProcessError:
+    except (sp.CalledProcessError, OSError):
         return {}
     bjobs = {}
     header = re.split("\s\s+", lines[0])

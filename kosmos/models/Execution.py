@@ -119,6 +119,8 @@ class Execution(Base):
         #msg = 'Execution started, Kosmos v%s' % __version__
         if ex:
             #resuming.
+            ex.successful = False
+            ex.finished_on = None
             ex.max_cpus = max_cpus
             ex.max_attempts = max_attempts
             if output_dir is None:
@@ -131,9 +133,11 @@ class Execution(Base):
             q = ex.tasksq.filter_by(successful=False)
             n = q.count()
             if n:
-                ex.log.info('Deleting %s failed task(s)' % n)
+                ex.log.info('Deleting %s failed task(s), delete_files=%s' % (n, False))
+                #stages_with_failed_tasks = set()
                 for t in q.all():
                     session.delete(t)
+                    #stages_with_failed_tasks.add(t.stage)
             stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
             if stages:
                 ex.log.info('Deleting %s stage(s) without a successful task' % len(stages))
@@ -238,9 +242,20 @@ class Execution(Base):
 
             session.commit()
 
+            def reset_stage_attrs():
+                """Update stage attributes if new tasks were added to them"""
+                from .. import Stage, StageStatus
+                # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
+                # there shouldn't be that many stages to update.
+                for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id):
+                    s.successful = False
+                    s.finished_on = None
+                    s.status = StageStatus.running
+            reset_stage_attrs()
+
             # make sure we've got enough cores
             for t in task_queue:
-                assert t.cpu_req <= self.max_cpus or self.max_cpus is None,\
+                assert t.cpu_req <= self.max_cpus or self.max_cpus is None, \
                     '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
             if not dry:
@@ -259,13 +274,16 @@ class Execution(Base):
             raise
 
 
-    def terminate(self):
+    def terminate(self, failed=True):
         self.log.warning('Terminating!')
         if self.jobmanager:
             self.log.info('Processing finished and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager, at_least_one=False)
             self.jobmanager.terminate()
-        self.status = ExecutionStatus.killed
+        if failed:
+            self.status = ExecutionStatus.failed
+        else:
+            self.status = ExecutionStatus.killed
 
 
     @property
@@ -308,7 +326,7 @@ class Execution(Base):
         """
         :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
-        self.log.info('Deleting %s' % self)
+        self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
         for h in self.log.handlers:
             self.log.removeHandler(h)
             h.close()
@@ -379,7 +397,7 @@ def terminate_on_ctrl_c(execution):
         def ctrl_c(signal, frame):
             if not execution.successful:
                 execution.log.info('Caught SIGINT (ctrl+c)')
-                execution.terminate()
+                execution.terminate(failed=False)
                 raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
         signal.signal(signal.SIGINT, ctrl_c)

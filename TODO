@@ -1,2 +1,3 @@
 validate stage name at Recipe Stage
-validate uniqe stage names if multiple sources
+validate unique stage names if multiple input sources
+rename drmaa_jobid to drm_jobid

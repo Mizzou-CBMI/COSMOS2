@@ -88,8 +88,11 @@ class Tool(object):
         output_files = []
         for output in self.outputs:
             if isinstance(output, tuple):
-                tf = TaskFile(name=output[0], basename=output[1].format(inputs=input_dict, i=input_dict,
-                                                                        name=output[0], **self.tags),
+                if hasattr(output[1], '__call__'):
+                    basename = output[1](i=input_dict, s=settings)
+                else:
+                    basename = output[1].format(i=input_dict, s=settings, **self.tags)
+                tf = TaskFile(name=output[0], basename=basename,
                               task_output_for=task,
                               persist=self.persist)
             elif isinstance(output, str):
@@ -238,14 +241,22 @@ class Inputs(Tool):
     """
     name = 'Load_Input_Files'
 
-    def __init__(self, inputs, tags, *args, **kwargs):
+    def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         :param path: the path to the input file
         :param name: the name or keyword for the input file
         :param fmt: the format of the input file
         """
-        #path = os.path.abspath(path)
+        if tags is None:
+            tags = dict()
+            #path = os.path.abspath(path)
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
 
+        def abs(path):
+            path2 = os.path.abspath(path)
+            assert os.path.exists(path2), '%s path does not exist for %s' % (path2, self)
+            return path2
+
+        inputs = [(name, abs(path)) for name, path in inputs]
         self.input_args = inputs
