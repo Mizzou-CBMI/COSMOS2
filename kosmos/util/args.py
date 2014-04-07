@@ -3,7 +3,7 @@ import sys
 
 def get_last_cmd_executed():
     cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
-    return '$ ' + ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
+    return ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
 
 
 def add_execution_args(parser):
@@ -25,6 +25,8 @@ def add_execution_args(parser):
     parser.add_argument('-y', '--prompt_confirm', action='store_false',
                         help="Do not use confirmation prompts before restarting or deleting, and assume answer is"
                              "always yes.")
+    parser.add_argument('-dd', '--default_drm', action='store_false',
+                        help="")
 
 
 def parse_and_start(kosmos_app, parser, root_output_dir=None):

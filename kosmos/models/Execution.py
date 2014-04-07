@@ -5,6 +5,7 @@ from sqlalchemy.orm import validates, synonym
 from flask import url_for
 import os, re
 import shutil
+from collections import Counter
 
 opj = os.path.join
 import signal
@@ -217,7 +218,7 @@ class Execution(Base):
             successful = filter(lambda t: t.successful, task_g.nodes())
             self.log.info('Skipping %s successful tasks' % len(successful))
             task_queue.remove_nodes_from(successful)
-            self.log.info('Queueing %s new tasks' % len(task_queue.nodes()))
+            self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
 
             terminate_on_ctrl_c(self)
 
@@ -242,6 +243,20 @@ class Execution(Base):
 
             session.commit()
 
+            # Assert no duplicate TaskFiles
+            import itertools as it
+
+            taskfiles = self.taskfilesq.all()
+            f = lambda tf: tf.path
+            for path, group in it.groupby(sorted(taskfiles, key=f), f):
+                group = list(group)
+                if len(group) > 1:
+                    raise ValueError(
+                        'Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (
+                        group, group[0].task_output_for, group[1].task_output_for)
+                    )
+
+
             def reset_stage_attrs():
                 """Update stage attributes if new tasks were added to them"""
                 from .. import Stage, StageStatus
@@ -251,6 +266,7 @@ class Execution(Base):
                     s.successful = False
                     s.finished_on = None
                     s.status = StageStatus.running
+
             reset_stage_attrs()
 
             # make sure we've got enough cores
@@ -296,6 +312,11 @@ class Execution(Base):
         return [t for s in self.stages for t in s.tasks]
         #return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
+    @property
+    def taskfilesq(self):
+        from kosmos import TaskFile, Stage
+
+        return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
 
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):

@@ -251,6 +251,14 @@ class Task(Base):
         return self.taskfiles + [self.get_output(name, False) for name in self.forward_inputs]
 
     def get_output(self, name, error_if_missing=True):
+        """
+        Returns the output corresponding to `name`.  If `name` is a forwarded_input, the first output_file found in
+        a parent that matches will be returned.
+
+        :param name: The name of the taskfile
+        :param error_if_missing: raise a ValueError if the output file cannot be found
+        :return: (TaskFile)
+        """
         for o in self.output_files:
             if o.name == name:
                 return o
