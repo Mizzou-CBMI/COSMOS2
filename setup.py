@@ -12,7 +12,8 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="Non-commercial use only",
     install_requires=[
-        "flask",
+        "psutil",
+	"flask",
         'Flask-Admin',
         #'Flask-DebugToolbar',
         'Flask-SQLAlchemy',

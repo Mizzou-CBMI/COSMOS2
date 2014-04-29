@@ -6,6 +6,8 @@ from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey,
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
+from networkx.algorithms import breadth_first_search
+import itertools as it
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType, ListOfStrings, JSONEncodedDict, MutableDict
@@ -293,6 +295,12 @@ class Task(Base):
     def update_from_profile_output(self):
         for k, v in self.profile.items():
             setattr(self, k, v)
+
+    def successors(self):
+        """
+        :return: (list) all tasks that descend from this task in the task_graph
+        """
+        return set(it.chain(*breadth_first_search.bfs_successors(self.ex.task_graph(), self).values()))
 
     @property
     def label(self):

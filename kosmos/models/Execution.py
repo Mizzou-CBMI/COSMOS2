@@ -3,9 +3,10 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates, synonym
 from flask import url_for
-import os, re
+import os
+import re
 import shutil
-from collections import Counter
+import networkx as nx
 
 opj = os.path.join
 import signal
@@ -253,7 +254,7 @@ class Execution(Base):
                 if len(group) > 1:
                     raise ValueError(
                         'Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (
-                        group, group[0].task_output_for, group[1].task_output_for)
+                            group, group[0].task_output_for, group[1].task_output_for)
                     )
 
 
@@ -317,6 +318,24 @@ class Execution(Base):
         from kosmos import TaskFile, Stage
 
         return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
+
+    def stage_graph(self):
+        """
+        :return: (networkx.DiGraph) a DAG of the stages
+        """
+        g = nx.DiGraph()
+        g.add_nodes_from(self.stages)
+        g.add_edges_from([(s, c) for s in self.stages for c in s.children])
+        return g
+
+    def task_graph(self):
+        """
+        :return: (networkx.DiGraph) a DAG of the tasks
+        """
+        g = nx.DiGraph()
+        g.add_nodes_from(self.tasks)
+        g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
+        return g
 
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):

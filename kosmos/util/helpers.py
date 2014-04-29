@@ -9,7 +9,7 @@ def descendants(node):
     :yields: a list of descendent task or stages
     """
     for c in node.children:
-        for n in descendents(c):
+        for n in descendants(c):
             yield n
     yield node
 
