@@ -166,7 +166,8 @@ class RecipeStage():
 
     @property
     def label(self):
-        return '{0}'.format(self.name)
+        ntools = ' (x%s)' % len(self.source_tools) if self.source_tools else ''
+        return '{0}{1}'.format(self.name, ntools)
 
     @property
     def url(self):

@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import networkx as nx
+import time
 
 opj = os.path.join
 import signal
@@ -83,7 +84,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, kosmos_app, name, output_dir, restart=False, prompt_confirm=True, max_cpus=None, max_attempts=1):
+    def start(cls, kosmos_app, name, output_dir, drm, restart=False, prompt_confirm=True, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -100,8 +101,8 @@ class Execution(Base):
         session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
-        x = output_dir if output_dir[-1] != '/' else output_dir[0:]
-        prefix_dir = os.path.split(x)[0]
+        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:] # remove trailing slash
+        prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
 
         old_id = None
@@ -123,8 +124,6 @@ class Execution(Base):
             #resuming.
             ex.successful = False
             ex.finished_on = None
-            ex.max_cpus = max_cpus
-            ex.max_attempts = max_attempts
             if output_dir is None:
                 output_dir = ex.output_dir
             else:
@@ -149,14 +148,17 @@ class Execution(Base):
             #start from scratch
             assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             mkdir(output_dir)
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, max_cpus=max_cpus, max_attempts=max_attempts,
-                           manual_instantiation=False)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             #ex.log.info(msg)
             session.add(ex)
 
+        ex.max_cpus = max_cpus
+        ex.max_attempts = max_attempts
+        ex.drm = drm
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
         ex.kosmos_app = kosmos_app
+
         return ex
 
     @orm.reconstructor
@@ -169,15 +171,12 @@ class Execution(Base):
         super(Execution, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
         mkdir(self.output_dir)
-        self.log = get_logger('kosmos-%s' % Execution, opj(self.output_dir, 'execution.log'))
+        self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
         if self.info is None:
             self.info = dict()
         self.jobmanager = None
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir,
-            settings={},
-            parameters={},
-            dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, parameters={}, dry=False):
         """
         Executes the :param:`recipe` using the configured :term:`DRM`.
 
@@ -195,22 +194,26 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
-        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized by the Execution.start method'
+        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized using the Execution.start method'
+        assert self.drm in ['local', 'lsf'], '%s drm is not supported' % self.drm
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
+
+        from ..job.JobManager import JobManager
+        self.jobmanager = JobManager(get_drmaa_native_specification=self.kosmos_app.get_drmaa_native_specification, drm=self.drm)
+
         try:
+            self.log.info('Running %s using drm %s' % (self, self.drm))
             session = self.session
             assert session, 'Execution must be part of a sqlalchemy session'
             self.status = ExecutionStatus.running
             self.successful = False
 
-            self.jobmanager = self.kosmos_app.jobmanager
-
             if self.started_on is None:
                 self.started_on = func.now()
 
             # Render task graph and to session
-            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
+            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters, drm=self.drm)
             session.add_all(stage_g.nodes())
             session.add_all(task_g.nodes())
 
@@ -229,6 +232,7 @@ class Execution(Base):
             log_dirs = {t.log_dir: t for t in successful}
             for task in task_queue.nodes():
                 task.output_dir = task_output_dir(task)
+                assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
                 log_dir = task_log_output_dir(task)
                 assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
                 log_dirs[log_dir] = task
@@ -263,7 +267,7 @@ class Execution(Base):
                 from .. import Stage, StageStatus
                 # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
                 # there shouldn't be that many stages to update.
-                for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id):
+                for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id, Stage.status != StageStatus.no_attempt):
                     s.successful = False
                     s.finished_on = None
                     s.status = StageStatus.running
@@ -288,13 +292,13 @@ class Execution(Base):
         except ExecutionFailed as e:
             self.terminate()
             self.session.commit()
-            raise
+            return self
 
 
     def terminate(self, failed=True):
         self.log.warning('Terminating!')
         if self.jobmanager:
-            self.log.info('Processing finished and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager, at_least_one=False)
             self.jobmanager.terminate()
         if failed:
@@ -368,29 +372,31 @@ class Execution(Base):
         """
         self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
         for h in self.log.handlers:
-            self.log.removeHandler(h)
+            h.flush()
             h.close()
+            self.log.removeHandler(h)
+        time.sleep(.1)  # takes a second for logs to flush?
         if delete_files:
             shutil.rmtree(self.output_dir)
         self.session.delete(self)
         self.session.commit()
 
-    def yield_outputs(self, name):
-        for task in self.tasks:
-            tf = task.get_output(name, error_if_missing=False)
-            if tf is not None:
-                yield tf
+    # def yield_outputs(self, name):
+    #     for task in self.tasks:
+    #         tf = task.get_output(name, error_if_missing=False)
+    #         if tf is not None:
+    #             yield tf
+    #
+    # def get_output(self, name):
+    #     r = next(self.yield_outputs(name), None)
+    #     if r is None:
+    #         raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
+    #     return r
 
-    def get_output(self, name):
-        r = next(self.yield_outputs(name), None)
-        if r is None:
-            raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
-        return r
 
-
-@event.listens_for(Execution, 'before_delete')
-def before_delete(mapper, connection, target):
-    print 'before_delete %s ' % target
+# @event.listens_for(Execution, 'before_delete')
+# def before_delete(mapper, connection, target):
+#     print 'before_delete %s ' % target
 
 
 def _copy_graph(graph):

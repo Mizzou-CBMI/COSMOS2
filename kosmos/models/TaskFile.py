@@ -3,7 +3,7 @@ import os
 from ..db import Base
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
 from sqlalchemy.orm import relationship, backref
-
+from collections import namedtuple
 
 class TaskFileValidationError(Exception): pass
 
@@ -14,6 +14,10 @@ class TaskFileError(Exception): pass
 association_table = Table('input_files', Base.metadata,
                           Column('task', Integer, ForeignKey('task.id')),
                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
+
+class taskfile(namedtuple('taskfile', ['value', 'left', 'right'])):
+    def __new__(cls, name, format, basename=None):
+        return super(taskfile, cls).__new__(cls, name, format, basename)
 
 
 class TaskFile(Base):
@@ -29,8 +33,9 @@ class TaskFile(Base):
     tasks_input_for = relationship("Task", backref=backref('input_files'), secondary=association_table)
     path = Column(String(255))
     name = Column(String(255), nullable=False)
+    format = Column(String(255), nullable=False)
     #format = Column(String(255), nullable=False)
-    basename = Column(String(255))
+    basename = Column(String(255), nullable=False)
     persist = Column(Boolean)
 
     @property
@@ -39,11 +44,15 @@ class TaskFile(Base):
 
     def __init__(self, *args, **kwargs):
         super(TaskFile, self).__init__(*args, **kwargs)
+        assert self.name is not None, 'TaskFile name is required'
+        assert self.format is not None, 'TaskFile format is required'
+        self.format = self.format or self.name
+        self.name = self.name or self.task_output_for.stage.name.lower()
         if self.basename is None:
-            self.basename = '%s.%s' % (self.task_output_for.stage.name.lower(), self.name)
+            self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
 
     def __repr__(self):
-        return '<TaskFile[%s] %s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.path or 'no_path_yet')
+        return '<TaskFile[%s] %s.%s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
         #return '<TaskFile[%s] %s%s>' % (self.id or '', self.name, ' '+self.path or '')
 
     def delete(self, delete_file=True):

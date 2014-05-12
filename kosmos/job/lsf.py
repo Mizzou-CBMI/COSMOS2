@@ -18,7 +18,7 @@ decode_lsf_state = dict([
 
 class DRM_LSF():
     """
-    Note there can only be one of these instantiated at a time
+    Stateless
     """
     name = 'lsf'
 

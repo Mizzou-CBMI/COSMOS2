@@ -75,7 +75,7 @@ def groupby(iterable, fxn):
 
 def kosmos_format(s, d):
     """
-    Format()s string s with d.  If there is an error, print helpful messages .
+    Format()s string s with d.  If there is an error, print helpful message.
     """
     try:
         return s.format(**d)
@@ -84,19 +84,9 @@ def kosmos_format(s, d):
         raise
 
 
-def parse_cmd(txt, **kwargs):
-    """removes empty lines and white spaces, and appends a \ to the end of every line.
-    also .format()s with the **kwargs dictioanry"""
-    try:
-        x = txt.format(**kwargs)
-        x = x.split('\n')
-        x = map(lambda x: re.sub(r"\\$", '', x.strip()).strip(), x)
-        x = filter(lambda x: not x == '', x)
-        x = ' \\\n'.join(x)
-    except (KeyError, TypeError):
-        formatError(txt, kwargs)
-        raise
-    return x
+def strip_lines(txt):
+    """strip()s txt as a whole, and each line in txt"""
+    return '\n'.join(map(lambda s: s.strip(), txt.strip().split('\n')))
 
 
 def formatError(txt, dict):

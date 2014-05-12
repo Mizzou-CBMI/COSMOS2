@@ -8,7 +8,7 @@ from .. import TaskStatus
 
 class DRM_Local():
     """
-    Note there can only be one of these instantiated at a time
+    Stateless
     """
     name = 'local'
     def __init__(self, jobmanager):

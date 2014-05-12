@@ -130,6 +130,8 @@ class Task(Base):
     finished_on = Column(DateTime)
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
+    drm = Column(String(255), nullable=False)
+    always_local = Column(Boolean, default=False)
     parents = relationship("Task",
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
@@ -241,6 +243,15 @@ class Task(Base):
     @property
     def stderr_text(self):
         return readfile(self.output_stderr_path).strip()
+        # if os.path.exists(self.output_stderr_path):
+        #     return readfile(self.output_stderr_path).strip()
+        # else:
+        #     import subprocess as sp
+        #     try:
+        #         #TODO store drm value
+        #         sp.check_output('bpeek %s' % self.drmaa_jobID, shell='True')
+        #     except OSError:
+        #         return
 
     @property
     def command_script_text(self):
@@ -250,9 +261,9 @@ class Task(Base):
         """
         :return: all output taskfiles, including any being forwarded
         """
-        return self.taskfiles + [self.get_output(name, False) for name in self.forward_inputs]
+        return self.taskfiles + [self.get_outputs(name, False) for name in self.forward_inputs]
 
-    def get_output(self, name, error_if_missing=True):
+    def get_outputs(self, name, error_if_missing=True):
         """
         Returns the output corresponding to `name`.  If `name` is a forwarded_input, the first output_file found in
         a parent that matches will be returned.
@@ -261,18 +272,16 @@ class Task(Base):
         :param error_if_missing: raise a ValueError if the output file cannot be found
         :return: (TaskFile)
         """
-        for o in self.output_files:
-            if o.name == name:
-                return o
+        outputs = filter(lambda tf: tf.name==name, self.output_files)
 
         if name in self.forward_inputs:
             for p in self.parents:
-                o = p.get_output(name, error_if_missing=False)
-                if o:
-                    return o
+                outputs += p.get_outputs(name, error_if_missing=False)
 
-        if error_if_missing:
+        if error_if_missing and len(outputs) == 0:
             raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
+
+        return outputs
 
     @property
     def input_files(self):

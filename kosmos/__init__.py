@@ -1,5 +1,7 @@
 __version__ = '0.6'
 from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
+
 from .db import Base
 import sys
 
@@ -46,32 +48,13 @@ def default_get_drmaa_native_specification(drm, task):
 
 
 class KosmosApp(object):
-    def __init__(self, flask_app, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification,
-                 default_drm='local'):
-        from .job.JobManager import JobManager
-        #from .db import get_session
-        self.flask_app = flask_app
-        from flask.ext.sqlalchemy import SQLAlchemy
-
-        self.default_drm = default_drm
+    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification, flask_app=None, default_drm='local'):
+        self.default_drm=default_drm
+        self.flask_app = flask_app if flask_app else Flask(__name__)
         self.get_drmaa_native_specification = get_drmaa_native_specification
-
-        #self.flask_app = Flask(__name__)
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
-        #self.session = get_session(database_url)
-
-        self.jobmanager = JobManager(get_drmaa_native_specification=get_drmaa_native_specification,
-                                     default_drm=default_drm)
-
-        #expire sessions after every request to prevent stale data
-        # def expire_session(**extra):
-        #     print >> sys.stderr, 'caughtcaughtcaughtcaught'
-        #     self.sqla.session.expire_all()
-        #
-        # request_started.connect(expire_session, self.flask_app)
-
 
     def initdb(self):
         """
@@ -165,13 +148,13 @@ class RelationshipType(MyEnum):
 
 from .models import rel
 from .models.Recipe import Recipe, stagegraph_to_agraph
-from .models.TaskFile import TaskFile
+from .models.TaskFile import TaskFile, taskfile
 from .models.Task import Task
 from .models import rel
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
-from .util.args import add_execution_args, parse_and_start, default_argparser
+from .util.args import add_execution_args
 # from .db import get_session
 
 

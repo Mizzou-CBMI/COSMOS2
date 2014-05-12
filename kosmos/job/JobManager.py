@@ -10,16 +10,18 @@ import shutil
 
 
 class JobManager(object):
-    def __init__(self, get_drmaa_native_specification, default_drm='local'):
-        if default_drm == 'local':
-            self.default_drm = DRM_Local(self)
-        elif default_drm == 'lsf':
-            self.default_drm = DRM_LSF(self)
-        else:
-            raise ValueError("default_drm `%s` not supported.  "
-                             "`default_drm` must be one of: 'local', 'lsf'" % default_drm)
+    def __init__(self, get_drmaa_native_specification, drm='local'):
+        self.default_drm_name = drm
+        self.always_local_drm = DRM_Local(self)
         self.running_tasks = []
         self.get_drmaa_native_specification = get_drmaa_native_specification
+
+        if drm == 'local':
+            self.drm = DRM_Local(self)
+        elif drm == 'lsf':
+            self.drm = DRM_LSF(self)
+        else:
+            raise ValueError("default_drm `%s` not supported. `default_drm` must be one of: 'local', 'lsf'" % drm)
 
     def submit(self, task):
         self.running_tasks.append(task)
@@ -30,15 +32,23 @@ class JobManager(object):
         else:
             mkdir(task.output_dir)
             mkdir(task.log_dir)
-            self.create_command_sh(task)
-            task.drmaa_native_specification = self.get_drmaa_native_specification(self.default_drm.name, task)
-            self.default_drm.submit_job(task)
+            self._create_command_sh(task)
+            task.drmaa_native_specification = self.get_drmaa_native_specification(self.drm.name, task)
+            if task.always_local:
+                task.drm = 'always_local'
+                self.always_local_drm.submit_job(task)
+            else:
+                task.drm = self.default_drm_name
+                self.drm.submit_job(task)
             task.status = TaskStatus.submitted
             task.session.commit()
 
     def terminate(self):
         for task in self.running_tasks:
-            self.default_drm.kill(task)
+            if task.drm == 'always_local':
+                self.always_local_drm.kill(task)
+            else:
+                self.drm.kill(task)
             task.status = TaskStatus.killed
             task.stage.status = StageStatus.killed
 
@@ -51,7 +61,7 @@ class JobManager(object):
             while True:
                 noops = filter(lambda t: t.NOOP, self.running_tasks)
                 non_noops = filter(lambda t: not t.NOOP, self.running_tasks)
-                finished_tasks = self.default_drm.filter_is_done(non_noops) if len(non_noops) else []
+                finished_tasks = self.filter_is_done(non_noops)
                 finished_tasks += noops
                 if len(finished_tasks):
                     for task in finished_tasks:
@@ -66,7 +76,12 @@ class JobManager(object):
                 raise AttributeError('No tasks are running, and `at_least_one` is set to True')
             return []
 
-    def create_command_sh(self, task):
+    def filter_is_done(self, tasks):
+        always_locals = filter(lambda t: t.drm == 'always_local', tasks)
+        others = filter(lambda t: t.drm != 'always_local', tasks)
+        return self.always_local_drm.filter_is_done(always_locals) + self.drm.filter_is_done(others)
+
+    def _create_command_sh(self, task):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
             f.write("#!/bin/bash\n")

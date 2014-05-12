@@ -1,6 +1,7 @@
 from flask import make_response, request, jsonify, Markup, render_template, Blueprint, redirect, url_for, flash
 import io
 from .. import Execution, Stage, Task, taskgraph as taskgraph_, TaskStatus
+from ..job.JobManager import JobManager
 from . import filters
 from ..models.Recipe import stages_to_image
 from sqlalchemy import desc
@@ -38,8 +39,7 @@ def gen_bprint(kosmos_app):
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
-        drm_statuses = kosmos_app.jobmanager.default_drm.drm_statuses(
-            filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        drm_statuses = JobManager(kosmos_app.default_drm).drm.drm_statuses(filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
         return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses,
                                x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
