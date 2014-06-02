@@ -1,17 +1,37 @@
-import sys, pprint, re, logging, itertools
+import pprint
+import logging
+import itertools
 import subprocess as sp
 import signal
 import os
+import time
 
-def descendants(node):
+
+def wait_for_file(path, timeout=10):
+    # Sometimes on a shared filesystem it can take a while for a file to propagate (i.e. eventual consistency)
+    start = time.time()
+    while not os.path.exists(path):
+        time.sleep(.1)
+        if time.time() - start > timeout:
+            raise IOError('giving up on %s existing' % path)
+
+
+def has_duplicates(alist):
+    return len(alist) != len(set(alist))
+
+
+def dag_descendants(node):
     """
     :param node: A Task or Stage instance
     :yields: a list of descendent task or stages
+
+    This code is really simple because there are no cycles.
     """
     for c in node.children:
-        for n in descendants(c):
+        for n in dag_descendants(c):
             yield n
     yield node
+
 
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
@@ -32,10 +52,14 @@ def confirm(prompt=None, default=False, timeout=0):
     Create Directory? [n]|y: y
     True
     """
-    class TimeOutException(Exception): pass
+
+    class TimeOutException(Exception):
+        pass
+
     def timed_out(signum, frame):
         "called when stdin read times out"
         raise TimeOutException('Timed out')
+
     signal.signal(signal.SIGALRM, timed_out)
 
     if prompt is None:
@@ -56,13 +80,14 @@ def confirm(prompt=None, default=False, timeout=0):
             if ans not in ['y', 'Y', 'yes', 'n', 'no', 'N']:
                 print 'please enter y or n.'
                 continue
-            if ans in ['y','yes','Yes']:
+            if ans in ['y', 'yes', 'Yes']:
                 return True
-            if ans in ['n','no','N']:
+            if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout,'yes' if default else 'no')
+            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout, 'yes' if default else 'no')
             return default
+
 
 def mkdir(path):
     sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
@@ -94,12 +119,12 @@ def formatError(txt, dict):
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
     s = "{star}\n" \
-    "format() error:\n" \
-    "txt:\n" \
-    "{txt}\n" \
-    "{dash}\n" \
-    "{dic}\n" \
-    "{star}\n".format(
+        "format() error:\n" \
+        "txt:\n" \
+        "{txt}\n" \
+        "{dash}\n" \
+        "{dic}\n" \
+        "{star}\n".format(
         star='*' * 76,
         txt=txt,
         dash='-' * 76,

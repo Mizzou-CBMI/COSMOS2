@@ -8,12 +8,11 @@ import re
 import shutil
 import networkx as nx
 import time
-
 opj = os.path.join
 import signal
 
 from .. import taskgraph, ExecutionFailed
-from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change, signal_task_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
@@ -80,11 +79,11 @@ class Execution(Base):
 
     @validates('name')
     def validate_name(self, key, name):
-        assert re.match('^[\w]+$', name), 'Invalid execution name.'
+        assert re.match(r"^[\.\w-]+$", name), 'Invalid execution name.'
         return name
 
     @classmethod
-    def start(cls, kosmos_app, name, output_dir, drm, restart=False, prompt_confirm=True, max_cpus=None, max_attempts=1):
+    def start(cls, kosmos_app, name, output_dir, drm, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -112,7 +111,7 @@ class Execution(Base):
                 old_id = ex.id
                 msg = 'Are you sure you want to delete the contents of`%s` and delete all sql records of %s?' % (
                     ex.output_dir, ex)
-                if prompt_confirm and not confirm(msg):
+                if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
                 ex.delete(delete_files=True)
@@ -147,7 +146,6 @@ class Execution(Base):
         else:
             #start from scratch
             assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
-            mkdir(output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             #ex.log.info(msg)
             session.add(ex)
@@ -157,6 +155,7 @@ class Execution(Base):
         ex.drm = drm
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
+        mkdir(output_dir)
         ex.kosmos_app = kosmos_app
 
         return ex
@@ -202,97 +201,107 @@ class Execution(Base):
         from ..job.JobManager import JobManager
         self.jobmanager = JobManager(get_drmaa_native_specification=self.kosmos_app.get_drmaa_native_specification, drm=self.drm)
 
-        try:
-            self.log.info('Running %s using drm %s' % (self, self.drm))
-            session = self.session
-            assert session, 'Execution must be part of a sqlalchemy session'
-            self.status = ExecutionStatus.running
-            self.successful = False
+        self.log.info('Running %s using DRM `%s`' % (self, self.drm))
+        session = self.session
+        assert session, 'Execution must be part of a sqlalchemy session'
+        self.status = ExecutionStatus.running
+        self.successful = False
 
-            if self.started_on is None:
-                self.started_on = func.now()
+        if self.started_on is None:
+            self.started_on = func.now()
 
-            # Render task graph and to session
-            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters, drm=self.drm)
-            session.add_all(stage_g.nodes())
-            session.add_all(task_g.nodes())
+        # Render task graph and to session
+        task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters, drm=self.drm)
+        session.add_all(stage_g.nodes())
+        session.add_all(task_g.nodes())
 
-            # Create Task Queue
-            task_queue = _copy_graph(task_g)
-            successful = filter(lambda t: t.successful, task_g.nodes())
-            self.log.info('Skipping %s successful tasks' % len(successful))
-            task_queue.remove_nodes_from(successful)
-            self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
+        # Create Task Queue
+        task_queue = _copy_graph(task_g)
+        successful = filter(lambda t: t.successful, task_g.nodes())
+        self.log.info('Skipping %s successful tasks' % len(successful))
+        task_queue.remove_nodes_from(successful)
+        self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
 
-            terminate_on_ctrl_c(self)
+        terminate_on_ctrl_c(self)
 
-            session.commit()  # required to set IDs for some of the output_dir generation functions
+        session.commit()  # required to set IDs for some of the output_dir generation functions
 
-            # Set output_dirs of new tasks
-            log_dirs = {t.log_dir: t for t in successful}
-            for task in task_queue.nodes():
-                task.output_dir = task_output_dir(task)
-                assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
-                log_dir = task_log_output_dir(task)
-                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-                log_dirs[log_dir] = task
-                task.log_dir = log_dir
-                for tf in task.output_files:
-                    if tf.path is None:
-                        tf.path = opj(task.output_dir, tf.basename)
+        # Set output_dirs of new tasks
+        log_dirs = {t.log_dir: t for t in successful}
+        for task in task_queue.nodes():
+            task.output_dir = task_output_dir(task)
+            assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
+            log_dir = task_log_output_dir(task)
+            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+            log_dirs[log_dir] = task
+            task.log_dir = log_dir
+            for tf in task.output_files:
+                if tf.path is None:
+                    tf.path = opj(task.output_dir, tf.basename)
 
-            # set commands of new tasks
-            for task in task_queue.nodes():
-                if not task.NOOP:
-                    task.command = task.tool.generate_command(task)
+        # set commands of new tasks
+        for task in task_queue.nodes():
+            if not task.NOOP:
+                task.command = task.tool.generate_command(task)
 
+        session.commit()
+
+        # Assert no duplicate TaskFiles
+        import itertools as it
+
+        taskfiles = self.taskfilesq.all()
+        f = lambda tf: tf.path
+        for path, group in it.groupby(sorted(taskfiles, key=f), f):
+            group = list(group)
+            if len(group) > 1:
+                raise ValueError('Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (group, group[0].task_output_for, group[1].task_output_for))
+
+
+        def reset_stage_attrs():
+            """Update stage attributes if new tasks were added to them"""
+            from .. import Stage, StageStatus
+            # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
+            # there shouldn't be that many stages to update.
+            for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id, Stage.status != StageStatus.no_attempt):
+                s.successful = False
+                s.finished_on = None
+                s.status = StageStatus.running
+
+        reset_stage_attrs()
+
+        # make sure we've got enough cores
+        for t in task_queue:
+            assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
+
+        ###
+        # Do the execution!
+        ###
+
+        # pop all descendents when a task fails
+        from ..util.helpers import dag_descendants
+        @signal_task_status_change.connect
+        def task_status_changed(task):
+            task_queue.remove_nodes_from(dag_descendants(task))
+            self.status = ExecutionStatus.failed_but_running
+
+        if not dry:
+            while len(task_queue) > 0:
+                _run_ready_tasks(task_queue, self)
+                for task in _process_finished_tasks(self.jobmanager):
+                    task_queue.remove_node(task)
+
+        # set status
+        if self.status == ExecutionStatus.failed_but_running:
+            self.status = ExecutionStatus.failed
             session.commit()
-
-            # Assert no duplicate TaskFiles
-            import itertools as it
-
-            taskfiles = self.taskfilesq.all()
-            f = lambda tf: tf.path
-            for path, group in it.groupby(sorted(taskfiles, key=f), f):
-                group = list(group)
-                if len(group) > 1:
-                    raise ValueError(
-                        'Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (
-                            group, group[0].task_output_for, group[1].task_output_for)
-                    )
-
-
-            def reset_stage_attrs():
-                """Update stage attributes if new tasks were added to them"""
-                from .. import Stage, StageStatus
-                # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
-                # there shouldn't be that many stages to update.
-                for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id, Stage.status != StageStatus.no_attempt):
-                    s.successful = False
-                    s.finished_on = None
-                    s.status = StageStatus.running
-
-            reset_stage_attrs()
-
-            # make sure we've got enough cores
-            for t in task_queue:
-                assert t.cpu_req <= self.max_cpus or self.max_cpus is None, \
-                    '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
-
-            if not dry:
-                while len(task_queue) > 0:
-                    _run_ready_tasks(task_queue, self)
-                    for task in _process_finished_tasks(self.jobmanager):
-                        task_queue.remove_node(task)
-
-                self.status = ExecutionStatus.successful
+            return False
+        elif self.status == ExecutionStatus.running:
+            self.status = ExecutionStatus.successful
             session.commit()
+            return True
+        else:
+            raise AssertionError('Bad execution status %s' % self.status)
 
-            return self
-        except ExecutionFailed as e:
-            self.terminate()
-            self.session.commit()
-            return self
 
 
     def terminate(self, failed=True):
@@ -428,7 +437,7 @@ def _run_ready_tasks(task_queue, execution):
 
 def _process_finished_tasks(jobmanager, at_least_one=True):
     for task in jobmanager.get_finished_tasks(at_least_one=at_least_one):
-        if task.profile.get('exit_status', None) == 0 or task.NOOP:
+        if task.NOOP or task.profile['exit_status'] == 0:
             task.status = TaskStatus.successful
             yield task
         else:

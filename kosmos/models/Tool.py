@@ -2,9 +2,9 @@ from inspect import getargspec, getcallargs
 import os
 import re
 
-from .. import TaskFile, Task, taskfile
-from ..util.helpers import strip_lines, kosmos_format, groupby
-
+from .. import TaskFile, Task
+from ..util.helpers import strip_lines, kosmos_format, groupby, has_duplicates
+import itertools as it
 
 opj = os.path.join
 
@@ -65,11 +65,12 @@ class Tool(object):
             if '*' in self.inputs:
                 return {'*': [tf for p in parents for tf in p.all_outputs()]}
 
-            all_inputs = [tf for name in self.inputs for p in parents for tf in p.get_outputs(name, error_if_missing=False)]
+            all_inputs = [tf for input_args in self.inputs for p in parents for tf in p.get_outputs(input_args['name'], input_args['format'], error_if_missing=False)]
             input_names = [i.name for i in all_inputs]
+            input_formats = [i.format for i in all_inputs]
 
             for k in self.inputs:
-                if k not in input_names:
+                if k['name'] not in input_names and k['format'] not in input_formats:
                     raise ValueError("Could not find input '{0}' for {1}".format(k, self))
 
             return all_inputs
@@ -77,17 +78,18 @@ class Tool(object):
     def generate_task(self, stage, parents, settings, parameters, drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP', 'always_local']}
         input_files = self.map_inputs(parents)
-        input_dict = {format: list(input_files) for format, input_files in groupby(input_files, lambda i: i.format)}
-        input_dict = _add_names_to_input_dict(input_dict)
+        input_dict = TaskFileDict(type='input', **{name: list(input_files) for name, input_files in groupby(input_files, lambda i: i.name)})
         task = Task(stage=stage, tags=self.tags, input_files=input_files, parents=parents, drm=drm, forward_inputs=self.forward_inputs, **d)
 
         # Create output TaskFiles
         output_files = []
         for output in self.outputs:
-            output.basename = output.basename.format(i=input_dict, **self.tags)
-            assert isinstance(output, taskfile), 'outputs must be instances of a `taskfile` namedtuple'
-            tf = TaskFile(task_output_for=task, persist=self.persist, **output)
-            output_files.append(tf)
+            assert hasattr(output, '_output_taskfile'), 'Tool outputs must be instantiated using the `output_taskfile` function'
+            if output['basename']:
+                basename = kosmos_format(output['basename'], dict(i=input_dict, **self.tags))
+            else:
+                basename = None
+            output_files.append(TaskFile(task_output_for=task, persist=self.persist, name=output['name'], format=output['format'], basename=basename))
         if isinstance(self, Input):
             output_files.append(TaskFile(name=self.name, format=self.format, path=self.path, task_output_for=task, persist=True))
         elif isinstance(self, Inputs):
@@ -141,13 +143,17 @@ class Tool(object):
             if l in p.keys():
                 raise ToolValidationError("%s is a reserved name, and cannot be used as a tag keyword" % l)
 
+
+        input_dict = TaskFileDict(type='input', **{name: list(input_files) for name, input_files in groupby(task.input_files, lambda i: i.name)})
+        output_dict = TaskFileDict(type='output', **{o.name: o for o in task.output_files})
+
         try:
-            input_dict = {name: list(input_files) for name, input_files in groupby(task.input_files, lambda i: i.name)}
             if signature_type == 'A':
-                kwargs = dict(inputs=input_dict, outputs={o.name: o for o in task.output_files}, settings=self.settings, **p)
+                kwargs = dict(inputs=input_dict, outputs=output_dict, settings=self.settings, **p)
             elif signature_type == 'B':
-                kwargs = dict(i=input_dict, o={o.name: o for o in task.output_files}, s=self.settings, **p)
+                kwargs = dict(i=input_dict, o=output_dict, s=self.settings, **p)
             callargs = getcallargs(self.cmd, **kwargs)
+
         except TypeError:
             raise TypeError('Invalid parameters for {0}.cmd(): {1}'.format(self, kwargs.keys()))
 
@@ -161,7 +167,7 @@ class Tool(object):
         callargs['self'] = self
         callargs['task'] = task
         callargs.update(extra_format_dict)
-        cmd = kosmos_format(pcmd, callargs)
+        cmd = kosmos_format(strip_lines(pcmd), callargs)
 
         #fix TaskFiles paths
         cmd = re.sub('<TaskFile\[\d+?\] .+?:(.+?)>', lambda x: x.group(1), cmd)
@@ -172,17 +178,17 @@ class Tool(object):
 
     def _validate(self):
         #validate inputs are strs
-        if any([not isinstance(i, str) for i in self.inputs]):
-            raise ToolValidationError, "{0} has elements in self.inputs that are not of type str".format(self)
+        # if any([not isinstance(i, str) for i in self.inputs]):
+        #     raise ToolValidationError, "{0} has elements in self.inputs that are not of type str".format(self)
 
-        if len(self.inputs) != len(set(self.inputs)):
-            raise ToolValidationError(
-                'Duplicate names in task.inputs detected in {0}.  Perhaps try using [1.ext,2.ext,...]'.format(self))
+        assert all(hasattr(i, '_input_taskfile') for i in self.inputs), 'Tool.inputs must be instantiated using the `input_taskfile` function'
+        assert all(hasattr(o, '_output_taskfile') for o in self.outputs), 'Tool.outputs must be instantiated using the `output_taskfile` function'
 
-        if len(self.outputs) != len(set(self.outputs)):
-            raise ToolValidationError(
-                'Duplicate names in task.taskfiles detected in {0}.'
-                '  Perhaps try using [1.ext,2.ext,...] when defining outputs'.format(self))
+        if has_duplicates([(i.name, i.format) for i in self.inputs]):
+            raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
+
+        if has_duplicates([(i.name, i.format) for i in self.outputs]):
+            raise ToolValidationError("Duplicate task.outputs detected in {0}".format(self))
 
 
 class Input(Tool):
@@ -197,7 +203,7 @@ class Input(Tool):
 
     name = 'Load_Input_Files'
 
-    def __init__(self, name, path, tags, format=None, *args, **kwargs):
+    def __init__(self, name, format, path, tags, *args, **kwargs):
         """
         :param name: the name or keyword for the input file.  defaults to whatever format is set to.
         :param path: the path to the input file
@@ -209,7 +215,7 @@ class Input(Tool):
         self.NOOP = True
 
         self.name = name
-        self.format = format or name
+        self.format = format
         self.path = path
 
 
@@ -234,20 +240,19 @@ class Inputs(Tool):
         inputs = [(tpl[0], _abs(tpl[1]), tpl[2] if len(tpl) > 2 else tpl[0]) for tpl in inputs]
         self.input_args = inputs
 
+
 def _abs(path):
     path2 = os.path.abspath(path)
     assert os.path.exists(path2), '%s path does not exist' % path2
     return path2
 
+
 class TaskFileDict(dict):
-    def __init__(self, *args, **kwargs):
-        self.names = dict()
-        super(TaskFileDict, self).__init__(*args, **kwargs)
-
-def _add_names_to_input_dict(input_dict):
-    "adds the .names attribute the dict `input_dict`, which provides access to taskfiles by name"
-    import itertools as it
-    d = TaskFileDict(**input_dict)
-    d.names = {name: list(input_files) for name, input_files in groupby(it.chain(d.values()), lambda i: i.name)}
-    return d
-
+    format = None
+    def __init__(self, type,**kwargs):
+        assert type in ['input', 'output']
+        super(TaskFileDict, self).__init__(**kwargs)
+        if type == 'input':
+            self.format = {format: list(input_files) for format, input_files in groupby(it.chain(*kwargs.values()), lambda i: i.format)}
+        else:
+            self.format = {format: list(input_files) for format, input_files in groupby(it.chain(kwargs.values()), lambda i: i.format)}

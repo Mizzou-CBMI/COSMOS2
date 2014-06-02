@@ -17,9 +17,9 @@ def add_execution_args(parser):
                         help="Maximum number of times to try running a Task that must succeed before the execution fails", default=1)
     parser.add_argument('-r', '--restart', action='store_true',
                         help="Completely restart the execution.  Note this will delete all record of the execution in the database")
-    parser.add_argument('-y', '--prompt_confirm', action='store_false',
-                        help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes.")
-    parser.add_argument('-drm', help="default drm to use")
+    parser.add_argument('-y', '--skip_confirm', action='store_true',
+                        help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
+    parser.add_argument('--drm', help="the drm to use when submitting jobs")
 
 
 # def parse_and_start(kosmos_app, parser, root_output_dir=None):
@@ -35,7 +35,7 @@ def add_execution_args(parser):
 #     kwargs = dict(parsed._get_kwargs())
 #
 #
-#     d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'prompt_confirm', 'max_cpus', 'max_attempts','drm']}
+#     d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts','drm']}
 #     d['output_dir'] = os.path.join(root_output_dir, d['name'])
 #
 #     ex = Execution.start(kosmos_app=kosmos_app, **d)

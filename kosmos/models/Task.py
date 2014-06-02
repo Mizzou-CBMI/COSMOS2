@@ -13,8 +13,8 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType, ListOfStrings, JSONEncodedDict, MutableDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from .. import ExecutionFailed
+from ..util.helpers import wait_for_file
 import shutil
-
 opj = os.path.join
 
 
@@ -31,15 +31,16 @@ class GetOutputError(Exception): pass
 
 
 task_failed_printout = """Failure Info:
-<COMMAND path="{0.output_command_script_path}" drmaa_jobID={0.drmaa_jobID}>
+<COMMAND path={0.output_command_script_path} drmaa_jobID={0.drmaa_jobID}>
 {0.command_script_text}
 </COMMAND>
-<STDOUT path="{0.output_stdout_path}">
+<STDOUT path={0.output_stdout_path}>
 {0.stdout_text}
 </STDOUT>
-<STDERR path="{0.output_stderr_path}">
+<STDERR path={0.output_stderr_path}>
 {0.stderr_text}
-</STDERR>"""
+</STDERR>
+Failed Task.output_dir: {0.output_dir}"""
 
 
 @signal_task_status_change.connect
@@ -53,29 +54,30 @@ def task_status_changed(task):
 
     elif task.status == TaskStatus.submitted:
         if not task.NOOP:
-            task.log.info('%s %s, drm_jobid is %s' % (task, task.status, task.drmaa_jobID))
+            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drmaa_jobID))
         task.submitted_on = func.now()
         task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
         task.finished_on = func.now()
-        fail_info = task_failed_printout.format(task)
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
-            task.log.warn(fail_info)
+            task.log.warn(task_failed_printout.format(task))
         else:
             task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.execution.max_attempts))
-            task.log.warn(fail_info)
             if task.attempt < task.execution.max_attempts:
+                task.log.warn(task_failed_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
+                wait_for_file(task.output_stderr_path, 15)
+
+                task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
                 task.stage.status = StageStatus.failed
                 task.session.commit()
                 task.update_from_profile_output()
-                raise ExecutionFailed
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -263,23 +265,30 @@ class Task(Base):
         """
         return self.taskfiles + [self.get_outputs(name, False) for name in self.forward_inputs]
 
-    def get_outputs(self, name, error_if_missing=True):
+    def get_outputs(self, name=None, format=None, error_if_missing=True):
         """
-        Returns the output corresponding to `name`.  If `name` is a forwarded_input, the first output_file found in
+        Returns the output corresponding to `name` and `format` (if specified).  If `name` is a forwarded_input, the first output_file found in
         a parent that matches will be returned.
-
-        :param name: The name of the taskfile
+        :param name: the name of the taskfile
+        :param format: The format of the taskfile
         :param error_if_missing: raise a ValueError if the output file cannot be found
         :return: (TaskFile)
         """
-        outputs = filter(lambda tf: tf.name==name, self.output_files)
+        assert name or format, 'either `name` or `format` must be specified'
 
-        if name in self.forward_inputs:
+        def matches(taskfile):
+            a = not format or taskfile.format == format
+            b = not name or taskfile.name == name
+            return a and b
+
+        outputs = filter(matches, self.output_files)
+
+        if format in self.forward_inputs:
             for p in self.parents:
-                outputs += p.get_outputs(name, error_if_missing=False)
+                outputs += p.get_outputs(format, error_if_missing=False)
 
         if error_if_missing and len(outputs) == 0:
-            raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
+            raise ValueError('Output with params `{0}` does not exist in {1}'.format(dict(name=name, format=format), self))
 
         return outputs
 
@@ -290,15 +299,12 @@ class Task(Base):
 
     @property
     def profile(self):
+        if self.NOOP:
+            return {}
         if self._cache_profile is None:
-            if not os.path.exists(self.output_profile_path):
-                return {}
-            else:
-                try:
-                    with open(self.output_profile_path, 'r') as fh:
-                        self._cache_profile = json.load(fh)
-                except ValueError:
-                    return {}
+            wait_for_file(self.output_profile_path, 10)
+            with open(self.output_profile_path, 'r') as fh:
+                self._cache_profile = json.load(fh)
         return self._cache_profile
 
     def update_from_profile_output(self):

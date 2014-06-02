@@ -1,9 +1,11 @@
 import shutil
 import os
-from ..db import Base
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
 from sqlalchemy.orm import relationship, backref
 from collections import namedtuple
+
+from ..db import Base
+
 
 class TaskFileValidationError(Exception): pass
 
@@ -15,9 +17,35 @@ association_table = Table('input_files', Base.metadata,
                           Column('task', Integer, ForeignKey('task.id')),
                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
-class taskfile(namedtuple('taskfile', ['value', 'left', 'right'])):
-    def __new__(cls, name, format, basename=None):
-        return super(taskfile, cls).__new__(cls, name, format, basename)
+
+class taskfile_dict(dict):
+    _output_taskfile = False
+    _input_taskfile = False
+
+    @property
+    def name(self):
+        return self['name']
+
+    @property
+    def format(self):
+        return self['format']
+
+    @property
+    def basename(self):
+        return self['basename']
+
+def output_taskfile(name, format, basename=None):
+    assert name or format, 'must specify either name or format'
+    d = taskfile_dict(name=name, format=format, basename=basename)
+    d._output_taskfile = True
+    return d
+
+
+def input_taskfile(name=None, format=None):
+    assert name or format, 'must specify either name or format'
+    d = taskfile_dict(name=name, format=format)
+    d._input_taskfile = True
+    return d
 
 
 class TaskFile(Base):
@@ -25,7 +53,7 @@ class TaskFile(Base):
     Task File
     """
     __tablename__ = 'taskfile'
-    __table_args__ = (UniqueConstraint('task_output_for_id', 'name', name='_uc1'),)
+    __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))

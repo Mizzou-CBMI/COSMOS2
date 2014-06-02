@@ -6,7 +6,6 @@ from .local import DRM_Local
 from .lsf import DRM_LSF
 from .. import TaskStatus, StageStatus, library_path
 import time
-import shutil
 
 
 class JobManager(object):
@@ -90,7 +89,10 @@ class JobManager(object):
 
     def get_command_str(self, task):
         "The command to be stored in the command.sh script"
-        return "python {profile} -f {profile_out} {command_script_path}".format(
+        sleep = 'sleep 120 && ' if task.drm not in ['local', 'always_local'] else ''
+        sleep=''
+        return "{sleep}python {profile} -f {profile_out} {command_script_path}".format(
+            sleep=sleep,
             profile=os.path.join(library_path, 'profile/profile.py'),
             #db = task.profile_output_path+'.sqlite',
             profile_out=task.output_profile_path,

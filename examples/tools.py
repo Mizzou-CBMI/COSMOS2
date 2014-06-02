@@ -1,47 +1,45 @@
-from kosmos import Tool
+from kosmos import Tool, input_taskfile as itf, output_taskfile as otf
 
 
 class Sleep(Tool):
-    inputs = ['*']
-
-    def cmd(self, i, o, s):
-        return 'sleep 10'
+    def cmd(self, i, o, s, time=10):
+        return 'sleep {time}'
 
 
 class Echo(Tool):
-    outputs = ['txt']
+    outputs = [itf('echo', 'txt')]
 
     def cmd(self, i, o, s, word):
         return 'echo {word} > {o[txt]}'
 
 
 class Cat(Tool):
-    inputs = ['txt']
-    outputs = [('txt', 'cat.txt',)]
+    inputs = [itf(format='txt')]
+    outputs = [otf('cat', 'txt', 'cat_out.txt',)]
 
     def cmd(self, i, o, s, **kwargs):
         return 'cat {input} > {o[txt]}', {
-            'input': ' '.join(map(str, i['txt']))
+            'input': ' '.join(map(str, i.format['txt']))
         }
 
 
 class Paste(Tool):
-    inputs = ['txt']
-    outputs = [('txt', 'paste.txt')]
+    inputs = [itf(format='txt')]
+    outputs = [otf('paste', 'txt', 'paste.txt')]
 
     def cmd(self, i, o, s, **kwargs):
         return 'paste {input} > {o[txt]}', {
-            'input': ' '.join(map(str, i['txt']))
+            'input': ' '.join(map(str, i.format['txt']))
         }
 
 
 class WordCount(Tool):
-    inputs = ['txt']
-    outputs = ['txt']
+    inputs = [itf(format='txt')]
+    outputs = [otf('wc', 'txt')]
 
     def cmd(self, i, o, s):
         return 'wc {input} > {o[txt]}', {
-            'input': ' '.join(map(str, i['txt']))
+            'input': ' '.join(map(str, i.format['txt']))
         }
 
 
@@ -51,8 +49,8 @@ class Fail(Tool):
 
 
 class MD5Sum(Tool):
-    inputs = ['*']
-    outputs = ['md5']
+    inputs = [itf(format='*')]
+    outputs = [otf(format='md5', basename="{i.format[*].basename}.md5")]
 
     def cmd(self, i, o, s, **kwargs):
-        return 'md5sum {inp}', dict(inp=" ".join(map(str, i)))
+        return 'md5sum {inp}', dict(inp=" ".join(map(str, i.values())))

@@ -38,7 +38,8 @@ def default_get_drmaa_native_specification(drm, task):
         #     s += ' -q {0}'.format(queue)
         return s
     elif 'ge' in drm:
-        return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
+        #return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
+        return '-l cpu={cpu_req}'.format(
             mem_req=mem_req,
             cpu_req=cpu_req)
     elif drm == 'local':
@@ -132,8 +133,9 @@ class ExecutionStatus(MyEnum):
     no_attempt = 'Has not been attempted',
     running = 'Execution is running',
     successful = 'Finished successfully',
-    failed = 'Finished, but failed'
     killed = 'Manually killed'
+    failed_but_running = 'At least one task that must succeed has failed, but still running non-dependent jobs until completion.'
+    failed = 'Finished, but failed'
 
 
 class RelationshipType(MyEnum):
@@ -148,7 +150,7 @@ class RelationshipType(MyEnum):
 
 from .models import rel
 from .models.Recipe import Recipe, stagegraph_to_agraph
-from .models.TaskFile import TaskFile, taskfile
+from .models.TaskFile import TaskFile, output_taskfile, input_taskfile
 from .models.Task import Task
 from .models import rel
 from .models.Stage import Stage

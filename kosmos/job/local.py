@@ -7,37 +7,35 @@ import json
 from .. import TaskStatus
 
 class DRM_Local():
-    """
-    Stateless
-    """
     name = 'local'
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
 
     def submit_job(self, task):
-        p = Popen(self.jobmanager.get_command_str(task).split(' '),
+        p = Popen(self.jobmanager.get_command_str(task),
                   stdout=open(task.output_stderr_path, 'w'),
                   stderr=open(task.output_stdout_path, 'w'),
-                  preexec_fn=preexec_function()
+                  preexec_fn=preexec_function(),
+                  shell=True
         )
         task.drmaa_jobID = p.pid
 
-    def is_done(self, task):
+    def _is_done(self, task):
         try:
             p = psutil.Process(task.drmaa_jobID)
-            exit_code = p.wait(timeout=0)
+            p.wait(timeout=0)
             return True
         except psutil.TimeoutExpired:
             pass
         except psutil.NoSuchProcess:
-            profile_output = json.load(open(task.output_profile_path, 'r'))
-            exit_code = profile_output['exit_status']
+            # profile_output = json.load(open(task.output_profile_path, 'r'))
+            # exit_code = profile_output['exit_status']
             return True
 
         return False
 
     def filter_is_done(self, tasks):
-        return filter(self.is_done, tasks)
+        return filter(self._is_done, tasks)
 
 
     def drm_statuses(self, tasks):

@@ -24,6 +24,7 @@
 
 import time
 from kosmos.profile.read_man_proc import get_stat_and_status_fields
+import time;
 
 start_time = time.time()
 
@@ -48,14 +49,15 @@ class Profile:
         return self.and_descendants(os.getpid())
 
     def __init__(self, command, poll_interval=1, output_file=None, database_file=':memory:'):
-        def add_quotes(arg):
-            "quotes get stripped off by the shell when it interprets the command, so this adds them back in"
-            if re.search("\s", arg):
-                return "\"" + arg + "\""
-            else:
-                return arg
+        # def add_quotes(arg):
+        #     "quotes get stripped off by the shell when it interprets the command, so this adds them back in"
+        #     if re.search("\s", arg):
+        #         return "\"" + arg + "\""
+        #     else:
+        #         return arg
 
-        self.command = ' '.join(map(add_quotes, command))
+        #self.command = ' '.join(map(add_quotes, command))
+        self.command = command
         self.poll_interval = poll_interval
         self.output_file = output_file
         self.database_file = database_file
@@ -93,7 +95,7 @@ class Profile:
     @staticmethod
     def get_children(pid):
         """returns a list of this pid's children"""
-        p = subprocess.Popen('/bin/ps h --ppid {0} -o pid'.format(pid).split(' '), shell=False, stdout=subprocess.PIPE)
+        p = subprocess.Popen('/bin/ps h --ppid {0} -o pid'.format(pid).split(' '), stdout=subprocess.PIPE)
         children = map(lambda x: x.strip(), filter(lambda x: x != '', p.communicate()[0].strip().split('\n')))
         return children
 
@@ -110,7 +112,8 @@ class Profile:
         """
         Runs a process and records the resource usage of it and all of its descendants
         """
-        self.proc = subprocess.Popen(self.command, shell=True)
+        self.log.info('exec: %s' % self.command)
+        self.proc = subprocess.Popen(self.command)
         while True:
             self.poll_all_procs(pids=self.all_pids)
 
@@ -165,9 +168,9 @@ class Profile:
         """
         :returns: (field_name,value) from /proc/pid/status or None if its empty
         """
-
+        reg = re.compile(r"\s*(.+):\s*(.+)\s*")
         def line2tuple(l):
-            m = re.search(r"\s*(.+):\s*(.+)\s*", l)
+            m = re.search(reg, l)
             return m.group(1), m.group(2)
 
         with open('/proc/{0}/status'.format(pid), 'r') as f:
@@ -255,8 +258,9 @@ class Profile:
     def finish(self):
         """Executed when self.proc has finished"""
         result = self.analyze_records()
-        if self.output_file is not None:
-            self.output_file.write(json.dumps(result, indent=4, sort_keys=True))
+        if self.output_file:
+            with open(self.output_file,'w') as fh:
+                fh.write(json.dumps(result, indent=4, sort_keys=True))
         else:
             print >> sys.stderr, json.dumps(result, indent=4, sort_keys=True)
         sys.exit(result['exit_status'])
@@ -264,21 +268,29 @@ class Profile:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('-f', '--file', type=argparse.FileType('w'), help='File to store output of profile to.')
-    parser.add_argument('-i', '--interval', type=int, default=1,
+    parser.add_argument('-f', '--output_file', help='File to store output of profile to.')
+    parser.add_argument('-i', '--poll_interval', type=int, default=2,
                         help='How often to poll the resource usage information in /proc, in seconds.')
-    parser.add_argument('-db', '--dbfile', type=str, default=':memory:',
+    parser.add_argument('-db', '--database_file', type=str, default=':memory:',
                         help='File to store sqlite data to (default is in memory).  '
                              'Will overwrite if the database already exists.')
-    parser.add_argument('command', nargs=argparse.REMAINDER, help="The command to run. Required.")
+    # parser.add_argument('command', nargs=argparse.REMAINDER, help="The command to run. Required.")
+    parser.add_argument('command', help="path to a shells script to run")
     args = parser.parse_args()
+
+    #makre sure command script exists, sometimes on a shared filesystem it can take a while to propogate (i.e. eventual consistency)
+    start = time.time()
+    while not os.path.exists(args.command):
+        time.sleep(.5)
+        if time.time() - start > 20:
+            raise IOError('giving up on %s existing' % args.command)
+
     if len(args.command) == 0:
         parser.print_help()
         sys.exit(1)
 
     #Run Profile
-    profile = Profile(command=args.command, output_file=args.file, database_file=args.dbfile,
-                      poll_interval=args.interval)
+    profile = Profile(**vars(args))
     try:
         profile.run()
     except KeyboardInterrupt:
