@@ -63,7 +63,7 @@
                 <th>avg(mem_req)</th>
                 <th>avg(wall_time)</th>
                 <th>avg(cpu_time)</th>
-                <th>relationship</th>
+                <th>avg(io_delays)</th>
                 <th>action</th>
             </tr>
             </thead>
@@ -89,7 +89,7 @@
                 <td>{{s|stage_stat('mem_req', 'avg')}}</td>
                 <td>{{s|stage_stat('wall_time', 'avg')}}</td>
                 <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
-                <td>{{ s.relationship_type }}</td>
+                <td>{{s|stage_stat('block_io_delays', 'avg')}}</td>
                 <td>
                     <a href="{{ url_for('kosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"
                        onclick="return confirm('This will delete all files associated with {{s}}.  Are you sure?')">

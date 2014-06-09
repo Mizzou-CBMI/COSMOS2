@@ -112,7 +112,9 @@ class One2many(Relationship):
                 yield tags, [parent_task]
 
     @classmethod
-    def split(cls, split_by, parent_task):
+    def split(cls, split_by, parent_task=None):
+        if is_func(split_by):
+            assert parent_task is not None, 'need a parent_task if split_by is a function'
         def default_split_by(_):
             splits = [list(it.product([split[0]], split[1])) for split in split_by]
             return it.imap(dict, it.product(*splits))
@@ -128,10 +130,11 @@ class Many2many(Relationship):
     type = RelationshipType.many2many
 
     def __init__(self, keywords, split_by):
-        One2many.validate_split_by(split_by)
-        self.split_by = split_by
         assert isinstance(keywords, list), '`keywords` must be a list'
         self.keywords = keywords
+
+        One2many.validate_split_by(split_by)
+        self.split_by = split_by
 
     @classmethod
     def gen_task_tags(klass, stage):

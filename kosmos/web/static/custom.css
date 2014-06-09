@@ -13,7 +13,6 @@
 }
 
 body, h1, h2, h3, h4, h5, p {
-    color: #000;
     font-family: monospace;
 }
 
@@ -28,4 +27,7 @@ a:visited
 
 .table-striped tbody tr.row_highlight>td {
     background-color: lightyellow;
+}
+.progress {
+  margin-bottom: 2px;
 }
