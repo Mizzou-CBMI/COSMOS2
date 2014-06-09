@@ -1,18 +1,23 @@
-from ..db import Base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates, synonym
+
 from flask import url_for
 import os
 import re
 import shutil
 import networkx as nx
+import time
+from networkx.algorithms.dag import descendants
+
+from ..db import Base
+
 
 opj = os.path.join
 import signal
 
-from .. import taskgraph, ExecutionFailed
-from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
+from .. import taskgraph
+from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change, signal_task_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
@@ -79,11 +84,11 @@ class Execution(Base):
 
     @validates('name')
     def validate_name(self, key, name):
-        assert re.match('^[\w]+$', name), 'Invalid execution name.'
+        assert re.match(r"^[\.\w-]+$", name), 'Invalid execution name.'
         return name
 
     @classmethod
-    def start(cls, kosmos_app, name, output_dir, restart=False, prompt_confirm=True, max_cpus=None, max_attempts=1):
+    def start(cls, kosmos_app, name, output_dir, drm, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -100,8 +105,8 @@ class Execution(Base):
         session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
-        x = output_dir if output_dir[-1] != '/' else output_dir[0:]
-        prefix_dir = os.path.split(x)[0]
+        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
+        prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
 
         old_id = None
@@ -111,7 +116,7 @@ class Execution(Base):
                 old_id = ex.id
                 msg = 'Are you sure you want to delete the contents of`%s` and delete all sql records of %s?' % (
                     ex.output_dir, ex)
-                if prompt_confirm and not confirm(msg):
+                if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
                 ex.delete(delete_files=True)
@@ -123,8 +128,6 @@ class Execution(Base):
             #resuming.
             ex.successful = False
             ex.finished_on = None
-            ex.max_cpus = max_cpus
-            ex.max_attempts = max_attempts
             if output_dir is None:
                 output_dir = ex.output_dir
             else:
@@ -148,15 +151,18 @@ class Execution(Base):
         else:
             #start from scratch
             assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
-            mkdir(output_dir)
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, max_cpus=max_cpus, max_attempts=max_attempts,
-                           manual_instantiation=False)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             #ex.log.info(msg)
             session.add(ex)
 
+        ex.max_cpus = max_cpus
+        ex.max_attempts = max_attempts
+        ex.drm = drm
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
+        mkdir(output_dir)
         ex.kosmos_app = kosmos_app
+
         return ex
 
     @orm.reconstructor
@@ -169,15 +175,12 @@ class Execution(Base):
         super(Execution, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
         mkdir(self.output_dir)
-        self.log = get_logger('kosmos-%s' % Execution, opj(self.output_dir, 'execution.log'))
+        self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
         if self.info is None:
             self.info = dict()
         self.jobmanager = None
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir,
-            settings={},
-            parameters={},
-            dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, parameters={}, dry=False):
         """
         Executes the :param:`recipe` using the configured :term:`DRM`.
 
@@ -195,107 +198,95 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
-        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized by the Execution.start method'
+        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized using the Execution.start method'
+        assert self.drm in ['local', 'lsf'], '%s drm is not supported' % self.drm
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
-        try:
-            session = self.session
-            assert session, 'Execution must be part of a sqlalchemy session'
-            self.status = ExecutionStatus.running
-            self.successful = False
 
-            self.jobmanager = self.kosmos_app.jobmanager
+        from ..job.JobManager import JobManager
 
-            if self.started_on is None:
-                self.started_on = func.now()
+        self.jobmanager = JobManager(get_drmaa_native_specification=self.kosmos_app.get_drmaa_native_specification, drm=self.drm)
 
-            # Render task graph and to session
-            task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters)
-            session.add_all(stage_g.nodes())
-            session.add_all(task_g.nodes())
+        self.log.info('Running %s using DRM `%s`' % (self, self.drm))
+        session = self.session
+        assert session, 'Execution must be part of a sqlalchemy session'
+        self.status = ExecutionStatus.running
+        self.successful = False
 
-            # Create Task Queue
-            task_queue = _copy_graph(task_g)
-            successful = filter(lambda t: t.successful, task_g.nodes())
-            self.log.info('Skipping %s successful tasks' % len(successful))
-            task_queue.remove_nodes_from(successful)
-            self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
+        if self.started_on is None:
+            self.started_on = func.now()
 
-            terminate_on_ctrl_c(self)
+        # Render task graph and to session
+        task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters, drm=self.drm)
+        session.add_all(stage_g.nodes())
+        session.add_all(task_g.nodes())
 
-            session.commit()  # required to set IDs for some of the output_dir generation functions
+        # Create Task Queue
+        task_queue = _copy_graph(task_g)
+        successful = filter(lambda t: t.successful, task_g.nodes())
+        self.log.info('Skipping %s successful tasks' % len(successful))
+        task_queue.remove_nodes_from(successful)
+        self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
 
-            # Set output_dirs of new tasks
-            log_dirs = {t.log_dir: t for t in successful}
-            for task in task_queue.nodes():
-                task.output_dir = task_output_dir(task)
-                log_dir = task_log_output_dir(task)
-                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-                log_dirs[log_dir] = task
-                task.log_dir = log_dir
-                for tf in task.output_files:
-                    if tf.path is None:
-                        tf.path = opj(task.output_dir, tf.basename)
+        terminate_on_ctrl_c(self)
 
-            # set commands of new tasks
-            for task in task_queue.nodes():
-                if not task.NOOP:
-                    task.command = task.tool.generate_command(task)
+        session.commit()  # required to set IDs for some of the output_dir generation functions
 
-            session.commit()
+        # Set output_dirs of new tasks
+        log_dirs = {t.log_dir: t for t in successful}
+        for task in task_queue.nodes():
+            task.output_dir = task_output_dir(task)
+            assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
+            log_dir = task_log_output_dir(task)
+            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+            log_dirs[log_dir] = task
+            task.log_dir = log_dir
+            for tf in task.output_files:
+                if tf.path is None:
+                    tf.path = opj(task.output_dir, tf.basename)
 
-            # Assert no duplicate TaskFiles
-            import itertools as it
+        # set commands of new tasks
+        for task in task_queue.nodes():
+            if not task.NOOP:
+                task.command = task.tool.generate_command(task)
 
-            taskfiles = self.taskfilesq.all()
-            f = lambda tf: tf.path
-            for path, group in it.groupby(sorted(taskfiles, key=f), f):
-                group = list(group)
-                if len(group) > 1:
-                    raise ValueError(
-                        'Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (
-                            group, group[0].task_output_for, group[1].task_output_for)
-                    )
+        session.commit()
+
+        # Assert no duplicate TaskFiles
+        import itertools as it
+
+        taskfiles = self.taskfilesq.all()
+        f = lambda tf: tf.path
+        for path, group in it.groupby(sorted(taskfiles, key=f), f):
+            group = list(group)
+            if len(group) > 1:
+                raise ValueError('Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (group, group[0].task_output_for, group[1].task_output_for))
 
 
-            def reset_stage_attrs():
-                """Update stage attributes if new tasks were added to them"""
-                from .. import Stage, StageStatus
-                # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
-                # there shouldn't be that many stages to update.
-                for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id):
-                    s.successful = False
-                    s.finished_on = None
-                    s.status = StageStatus.running
+        def reset_stage_attrs():
+            """Update stage attributes if new tasks were added to them"""
+            from .. import Stage, StageStatus
+            # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
+            # there shouldn't be that many stages to update.
+            for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id, Stage.status != StageStatus.no_attempt):
+                s.successful = False
+                s.finished_on = None
+                s.status = StageStatus.running
 
-            reset_stage_attrs()
+        reset_stage_attrs()
 
-            # make sure we've got enough cores
-            for t in task_queue:
-                assert t.cpu_req <= self.max_cpus or self.max_cpus is None, \
-                    '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
+        # make sure we've got enough cores
+        for t in task_queue:
+            assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
-            if not dry:
-                while len(task_queue) > 0:
-                    _run_ready_tasks(task_queue, self)
-                    for task in _process_finished_tasks(self.jobmanager):
-                        task_queue.remove_node(task)
-
-                self.status = ExecutionStatus.successful
-            session.commit()
-
-            return self
-        except ExecutionFailed as e:
-            self.terminate()
-            self.session.commit()
-            raise
-
+        if not dry:
+            _run(self, session, task_queue)
 
     def terminate(self, failed=True):
         self.log.warning('Terminating!')
         if self.jobmanager:
-            self.log.info('Processing finished and terminating %s running tasks' % len(self.jobmanager.running_tasks))
-            _process_finished_tasks(self.jobmanager, at_least_one=False)
+            self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
         if failed:
             self.status = ExecutionStatus.failed
@@ -368,44 +359,69 @@ class Execution(Base):
         """
         self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
         for h in self.log.handlers:
-            self.log.removeHandler(h)
+            h.flush()
             h.close()
+            self.log.removeHandler(h)
+        time.sleep(.1)  # takes a second for logs to flush?
         if delete_files:
             shutil.rmtree(self.output_dir)
         self.session.delete(self)
         self.session.commit()
 
-    def yield_outputs(self, name):
-        for task in self.tasks:
-            tf = task.get_output(name, error_if_missing=False)
-            if tf is not None:
-                yield tf
-
-    def get_output(self, name):
-        r = next(self.yield_outputs(name), None)
-        if r is None:
-            raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
-        return r
-
-
-@event.listens_for(Execution, 'before_delete')
-def before_delete(mapper, connection, target):
-    print 'before_delete %s ' % target
+        # def yield_outputs(self, name):
+        #     for task in self.tasks:
+        #         tf = task.get_output(name, error_if_missing=False)
+        #         if tf is not None:
+        #             yield tf
+        #
+        # def get_output(self, name):
+        #     r = next(self.yield_outputs(name), None)
+        #     if r is None:
+        #         raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
+        #     return r
 
 
-def _copy_graph(graph):
-    import networkx as nx
+# @event.listens_for(Execution, 'before_delete')
+# def before_delete(mapper, connection, target):
+#     print 'before_delete %s ' % target
 
-    graph2 = nx.DiGraph()
-    graph2.add_edges_from(graph.edges())
-    graph2.add_nodes_from(graph.nodes())
-    return graph2
+def _run(execution, session, task_queue):
+    """
+    Do the execution!
+    """
+    execution.log.info('Executing TaskGraph')
+
+    tasks_are_ready = True
+    while len(task_queue) > 0:
+        if tasks_are_ready:
+            _run_ready_tasks(task_queue, execution)
+            tasks_are_ready = False
+
+        for task in _process_finished_tasks(execution.jobmanager):
+            if task.status == TaskStatus.failed and task.must_succeed:
+                # pop all descendents when a task fails
+                task_queue.remove_nodes_from(descendants(task_queue, task))
+                execution.status = ExecutionStatus.failed_but_running
+            task_queue.remove_node(task)
+            tasks_are_ready = True
+
+    # set status
+    if execution.status == ExecutionStatus.failed_but_running:
+        execution.status = ExecutionStatus.failed
+        session.commit()
+        return False
+    elif execution.status == ExecutionStatus.running:
+        execution.status = ExecutionStatus.successful
+        session.commit()
+        return True
+    else:
+        raise AssertionError('Bad execution status %s' % execution.status)
 
 
 def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
-    ready_tasks = [task for task, degree in task_queue.in_degree().items() if
-                   degree == 0 and task.status == TaskStatus.no_attempt]
+    ready_tasks = [task for task, degree in task_queue.in_degree().items()
+                   if degree == 0 and task.status == TaskStatus.no_attempt]
     for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
         cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
         if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
@@ -420,19 +436,18 @@ def _run_ready_tasks(task_queue, execution):
         execution.jobmanager.submit(ready_task)
 
 
-def _process_finished_tasks(jobmanager, at_least_one=True):
-    for task in jobmanager.get_finished_tasks(at_least_one=at_least_one):
-        if task.profile.get('exit_status', None) == 0 or task.NOOP:
+def _process_finished_tasks(jobmanager):
+    for task in jobmanager.get_finished_tasks():
+        if task.NOOP or task.profile['exit_status'] == 0:
             task.status = TaskStatus.successful
             yield task
         else:
-            if not task.must_succeed:
-                yield task
             task.status = TaskStatus.failed
+            yield task
 
 
 def terminate_on_ctrl_c(execution):
-#terminate on ctrl+c
+    #terminate on ctrl+c
     try:
         def ctrl_c(signal, frame):
             if not execution.successful:
@@ -441,5 +456,14 @@ def terminate_on_ctrl_c(execution):
                 raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
         signal.signal(signal.SIGINT, ctrl_c)
-    except ValueError: #signal only works in parse_args thread and django complains
+    except ValueError:  #signal only works in parse_args thread and django complains
         pass
+
+
+def _copy_graph(graph):
+    import networkx as nx
+
+    graph2 = nx.DiGraph()
+    graph2.add_edges_from(graph.edges())
+    graph2.add_nodes_from(graph.nodes())
+    return graph2

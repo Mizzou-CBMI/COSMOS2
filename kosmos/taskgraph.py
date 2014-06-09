@@ -1,4 +1,4 @@
-from .util.helpers import groupby
+from .util.helpers import groupby, duplicates
 from .util.sqla import get_or_create
 from . import TaskStatus, Stage, Input
 import functools
@@ -6,7 +6,7 @@ import functools
 import networkx as nx
 
 
-def render_recipe(execution, recipe, settings, parameters):
+def render_recipe(execution, recipe, settings, parameters, drm):
     """
     Generates a stagegraph and taskgraph described by a Recipe
     :returns: (nx.DiGraph taskgraph, nx.DiGraph stagegraph)
@@ -32,7 +32,8 @@ def render_recipe(execution, recipe, settings, parameters):
                         task_g.add_node(existing_task)
                     else:
                         new_task = source_tool.generate_task(stage=stage, parents=[], settings=settings,
-                                                             parameters=stage_parameters)
+                                                             parameters=stage_parameters,
+                                                             drm=drm)
                         task_g.add_node(new_task)
 
             else:
@@ -44,13 +45,14 @@ def render_recipe(execution, recipe, settings, parameters):
                         new_task = stage.tool_class(tags=new_task_tags).generate_task(stage=stage,
                                                                                       parents=parent_tasks,
                                                                                       settings=settings,
-                                                                                      parameters=stage_parameters)
+                                                                                      parameters=stage_parameters,
+                                                                                      drm=drm)
 
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
 
         tagz = [frozenset(t.tags.items()) for t in stage.tasks]
-        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s' % stage
+        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s: %s' % (stage, next(duplicates(tagz)))
     return task_g, stage_g
 
 
@@ -84,8 +86,7 @@ def taskdag_to_agraph(taskdag):
                             TaskStatus.failed: 'darkred',
                             TaskStatus.killed: 'darkred'}
 
-            sg.add_node(task, label=label, URL=task.url, target="_blank",
-                        color=status2color[task.status])
+            sg.add_node(task, label=label, URL=task.url, target="_blank", color=status2color[task.status])
 
     return agraph
 

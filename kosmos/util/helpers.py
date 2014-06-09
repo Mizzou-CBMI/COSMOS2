@@ -1,17 +1,36 @@
-import sys, pprint, re, logging, itertools
+import pprint
+import logging
+import itertools
 import subprocess as sp
 import signal
 import os
+import time
 
-def descendants(node):
-    """
-    :param node: A Task or Stage instance
-    :yields: a list of descendent task or stages
-    """
-    for c in node.children:
-        for n in descendants(c):
-            yield n
-    yield node
+
+def wait_for_file(path, timeout=10):
+    # Sometimes on a shared filesystem it can take a while for a file to propagate (i.e. eventual consistency)
+    start = time.time()
+    while not os.path.exists(path):
+        time.sleep(.1)
+        if time.time() - start > timeout:
+            raise IOError('giving up on %s existing' % path)
+
+
+def has_duplicates(alist):
+    return len(alist) != len(set(alist))
+#
+#
+# def dag_descendants(node):
+#     """
+#     :param node: A Task or Stage instance
+#     :yields: a list of descendent task or stages
+#
+#     This code is really simple because there are no cycles.
+#     """
+#     for c in node.children:
+#         for n in dag_descendants(c):
+#             yield n
+#     yield node
 
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
@@ -32,10 +51,14 @@ def confirm(prompt=None, default=False, timeout=0):
     Create Directory? [n]|y: y
     True
     """
-    class TimeOutException(Exception): pass
+
+    class TimeOutException(Exception):
+        pass
+
     def timed_out(signum, frame):
         "called when stdin read times out"
         raise TimeOutException('Timed out')
+
     signal.signal(signal.SIGALRM, timed_out)
 
     if prompt is None:
@@ -56,13 +79,14 @@ def confirm(prompt=None, default=False, timeout=0):
             if ans not in ['y', 'Y', 'yes', 'n', 'no', 'N']:
                 print 'please enter y or n.'
                 continue
-            if ans in ['y','yes','Yes']:
+            if ans in ['y', 'yes', 'Yes']:
                 return True
-            if ans in ['n','no','N']:
+            if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout,'yes' if default else 'no')
+            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout, 'yes' if default else 'no')
             return default
+
 
 def mkdir(path):
     sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
@@ -72,10 +96,15 @@ def groupby(iterable, fxn):
     """aggregates an iterable using a function"""
     return itertools.groupby(sorted(iterable, key=fxn), fxn)
 
+def duplicates(iterable):
+    """return a list of duplicates"""
+    for x, group in groupby(iterable, lambda x: x):
+        yield x
+
 
 def kosmos_format(s, d):
     """
-    Format()s string s with d.  If there is an error, print helpful messages .
+    Format()s string s with d.  If there is an error, print helpful message.
     """
     try:
         return s.format(**d)
@@ -84,19 +113,9 @@ def kosmos_format(s, d):
         raise
 
 
-def parse_cmd(txt, **kwargs):
-    """removes empty lines and white spaces, and appends a \ to the end of every line.
-    also .format()s with the **kwargs dictioanry"""
-    try:
-        x = txt.format(**kwargs)
-        x = x.split('\n')
-        x = map(lambda x: re.sub(r"\\$", '', x.strip()).strip(), x)
-        x = filter(lambda x: not x == '', x)
-        x = ' \\\n'.join(x)
-    except (KeyError, TypeError):
-        formatError(txt, kwargs)
-        raise
-    return x
+def strip_lines(txt):
+    """strip()s txt as a whole, and each line in txt"""
+    return '\n'.join(map(lambda s: s.strip(), txt.strip().split('\n')))
 
 
 def formatError(txt, dict):
@@ -104,12 +123,12 @@ def formatError(txt, dict):
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
     s = "{star}\n" \
-    "format() error:\n" \
-    "txt:\n" \
-    "{txt}\n" \
-    "{dash}\n" \
-    "{dic}\n" \
-    "{star}\n".format(
+        "format() error:\n" \
+        "txt:\n" \
+        "{txt}\n" \
+        "{dash}\n" \
+        "{dic}\n" \
+        "{star}\n".format(
         star='*' * 76,
         txt=txt,
         dash='-' * 76,

@@ -1,5 +1,7 @@
 __version__ = '0.6'
 from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
+
 from .db import Base
 import sys
 
@@ -36,7 +38,8 @@ def default_get_drmaa_native_specification(drm, task):
         #     s += ' -q {0}'.format(queue)
         return s
     elif 'ge' in drm:
-        return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
+        #return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
+        return '-l cpu={cpu_req}'.format(
             mem_req=mem_req,
             cpu_req=cpu_req)
     elif drm == 'local':
@@ -46,32 +49,12 @@ def default_get_drmaa_native_specification(drm, task):
 
 
 class KosmosApp(object):
-    def __init__(self, flask_app, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification,
-                 default_drm='local'):
-        from .job.JobManager import JobManager
-        #from .db import get_session
-        self.flask_app = flask_app
-        from flask.ext.sqlalchemy import SQLAlchemy
-
-        self.default_drm = default_drm
+    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification, flask_app=None):
+        self.flask_app = flask_app if flask_app else Flask(__name__)
         self.get_drmaa_native_specification = get_drmaa_native_specification
-
-        #self.flask_app = Flask(__name__)
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
-        #self.session = get_session(database_url)
-
-        self.jobmanager = JobManager(get_drmaa_native_specification=get_drmaa_native_specification,
-                                     default_drm=default_drm)
-
-        #expire sessions after every request to prevent stale data
-        # def expire_session(**extra):
-        #     print >> sys.stderr, 'caughtcaughtcaughtcaught'
-        #     self.sqla.session.expire_all()
-        #
-        # request_started.connect(expire_session, self.flask_app)
-
 
     def initdb(self):
         """
@@ -149,8 +132,9 @@ class ExecutionStatus(MyEnum):
     no_attempt = 'Has not been attempted',
     running = 'Execution is running',
     successful = 'Finished successfully',
-    failed = 'Finished, but failed'
     killed = 'Manually killed'
+    failed_but_running = 'At least one task that must succeed has failed, but still running non-dependent jobs until completion'
+    failed = 'Finished, but failed'
 
 
 class RelationshipType(MyEnum):
@@ -165,13 +149,13 @@ class RelationshipType(MyEnum):
 
 from .models import rel
 from .models.Recipe import Recipe, stagegraph_to_agraph
-from .models.TaskFile import TaskFile
+from .models.TaskFile import TaskFile, output_taskfile, input_taskfile
 from .models.Task import Task
 from .models import rel
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
-from .util.args import add_execution_args, parse_and_start, default_argparser
+from .util.args import add_execution_args
 # from .db import get_session
 
 
