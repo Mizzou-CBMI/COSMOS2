@@ -277,8 +277,8 @@ class Task(Base):
         assert name or format, 'either `name` or `format` must be specified'
 
         def matches(taskfile):
-            a = not format or taskfile.format == format
-            b = not name or taskfile.name == name
+            a = format is None or taskfile.format == format
+            b = name is None or taskfile.name == name
             return a and b
 
         outputs = filter(matches, self.output_files)

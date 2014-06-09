@@ -18,20 +18,19 @@ def wait_for_file(path, timeout=10):
 
 def has_duplicates(alist):
     return len(alist) != len(set(alist))
-
-
-def dag_descendants(node):
-    """
-    :param node: A Task or Stage instance
-    :yields: a list of descendent task or stages
-
-    This code is really simple because there are no cycles.
-    """
-    for c in node.children:
-        for n in dag_descendants(c):
-            yield n
-    yield node
-
+#
+#
+# def dag_descendants(node):
+#     """
+#     :param node: A Task or Stage instance
+#     :yields: a list of descendent task or stages
+#
+#     This code is really simple because there are no cycles.
+#     """
+#     for c in node.children:
+#         for n in dag_descendants(c):
+#             yield n
+#     yield node
 
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
@@ -96,6 +95,11 @@ def mkdir(path):
 def groupby(iterable, fxn):
     """aggregates an iterable using a function"""
     return itertools.groupby(sorted(iterable, key=fxn), fxn)
+
+def duplicates(iterable):
+    """return a list of duplicates"""
+    for x, group in groupby(iterable, lambda x: x):
+        yield x
 
 
 def kosmos_format(s, d):

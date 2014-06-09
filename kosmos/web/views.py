@@ -39,7 +39,13 @@ def gen_bprint(kosmos_app):
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
-        drm_statuses = JobManager(kosmos_app.default_drm).drm.drm_statuses(filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        # get non-local drm:
+        drm = 'local'
+        for t in stage.tasks:
+            if t.drm != 'local':
+                drm = t.drm
+
+        drm_statuses = JobManager(kosmos_app.get_drmaa_native_specification, drm=drm).drm.drm_statuses(filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
         return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses,
                                x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))

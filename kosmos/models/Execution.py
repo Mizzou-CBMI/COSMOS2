@@ -1,17 +1,22 @@
-from ..db import Base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import validates, synonym
+
 from flask import url_for
 import os
 import re
 import shutil
 import networkx as nx
 import time
+from networkx.algorithms.dag import descendants
+
+from ..db import Base
+
+
 opj = os.path.join
 import signal
 
-from .. import taskgraph, ExecutionFailed
+from .. import taskgraph
 from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change, signal_task_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
@@ -100,7 +105,7 @@ class Execution(Base):
         session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
-        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:] # remove trailing slash
+        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
 
@@ -199,6 +204,7 @@ class Execution(Base):
         assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
 
         from ..job.JobManager import JobManager
+
         self.jobmanager = JobManager(get_drmaa_native_specification=self.kosmos_app.get_drmaa_native_specification, drm=self.drm)
 
         self.log.info('Running %s using DRM `%s`' % (self, self.drm))
@@ -273,42 +279,14 @@ class Execution(Base):
         for t in task_queue:
             assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
-        ###
-        # Do the execution!
-        ###
-
-        # pop all descendents when a task fails
-        from ..util.helpers import dag_descendants
-        @signal_task_status_change.connect
-        def task_status_changed(task):
-            task_queue.remove_nodes_from(dag_descendants(task))
-            self.status = ExecutionStatus.failed_but_running
-
         if not dry:
-            while len(task_queue) > 0:
-                _run_ready_tasks(task_queue, self)
-                for task in _process_finished_tasks(self.jobmanager):
-                    task_queue.remove_node(task)
-
-        # set status
-        if self.status == ExecutionStatus.failed_but_running:
-            self.status = ExecutionStatus.failed
-            session.commit()
-            return False
-        elif self.status == ExecutionStatus.running:
-            self.status = ExecutionStatus.successful
-            session.commit()
-            return True
-        else:
-            raise AssertionError('Bad execution status %s' % self.status)
-
-
+            _run(self, session, task_queue)
 
     def terminate(self, failed=True):
         self.log.warning('Terminating!')
         if self.jobmanager:
             self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
-            _process_finished_tasks(self.jobmanager, at_least_one=False)
+            _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
         if failed:
             self.status = ExecutionStatus.failed
@@ -390,37 +368,60 @@ class Execution(Base):
         self.session.delete(self)
         self.session.commit()
 
-    # def yield_outputs(self, name):
-    #     for task in self.tasks:
-    #         tf = task.get_output(name, error_if_missing=False)
-    #         if tf is not None:
-    #             yield tf
-    #
-    # def get_output(self, name):
-    #     r = next(self.yield_outputs(name), None)
-    #     if r is None:
-    #         raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
-    #     return r
+        # def yield_outputs(self, name):
+        #     for task in self.tasks:
+        #         tf = task.get_output(name, error_if_missing=False)
+        #         if tf is not None:
+        #             yield tf
+        #
+        # def get_output(self, name):
+        #     r = next(self.yield_outputs(name), None)
+        #     if r is None:
+        #         raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
+        #     return r
 
 
 # @event.listens_for(Execution, 'before_delete')
 # def before_delete(mapper, connection, target):
 #     print 'before_delete %s ' % target
 
+def _run(execution, session, task_queue):
+    """
+    Do the execution!
+    """
+    execution.log.info('Executing TaskGraph')
 
-def _copy_graph(graph):
-    import networkx as nx
+    tasks_are_ready = True
+    while len(task_queue) > 0:
+        if tasks_are_ready:
+            _run_ready_tasks(task_queue, execution)
+            tasks_are_ready = False
 
-    graph2 = nx.DiGraph()
-    graph2.add_edges_from(graph.edges())
-    graph2.add_nodes_from(graph.nodes())
-    return graph2
+        for task in _process_finished_tasks(execution.jobmanager):
+            if task.status == TaskStatus.failed and task.must_succeed:
+                # pop all descendents when a task fails
+                task_queue.remove_nodes_from(descendants(task_queue, task))
+                execution.status = ExecutionStatus.failed_but_running
+            task_queue.remove_node(task)
+            tasks_are_ready = True
+
+    # set status
+    if execution.status == ExecutionStatus.failed_but_running:
+        execution.status = ExecutionStatus.failed
+        session.commit()
+        return False
+    elif execution.status == ExecutionStatus.running:
+        execution.status = ExecutionStatus.successful
+        session.commit()
+        return True
+    else:
+        raise AssertionError('Bad execution status %s' % execution.status)
 
 
 def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
-    ready_tasks = [task for task, degree in task_queue.in_degree().items() if
-                   degree == 0 and task.status == TaskStatus.no_attempt]
+    ready_tasks = [task for task, degree in task_queue.in_degree().items()
+                   if degree == 0 and task.status == TaskStatus.no_attempt]
     for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
         cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
         if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
@@ -435,19 +436,18 @@ def _run_ready_tasks(task_queue, execution):
         execution.jobmanager.submit(ready_task)
 
 
-def _process_finished_tasks(jobmanager, at_least_one=True):
-    for task in jobmanager.get_finished_tasks(at_least_one=at_least_one):
+def _process_finished_tasks(jobmanager):
+    for task in jobmanager.get_finished_tasks():
         if task.NOOP or task.profile['exit_status'] == 0:
             task.status = TaskStatus.successful
             yield task
         else:
-            if not task.must_succeed:
-                yield task
             task.status = TaskStatus.failed
+            yield task
 
 
 def terminate_on_ctrl_c(execution):
-#terminate on ctrl+c
+    #terminate on ctrl+c
     try:
         def ctrl_c(signal, frame):
             if not execution.successful:
@@ -456,5 +456,14 @@ def terminate_on_ctrl_c(execution):
                 raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
         signal.signal(signal.SIGINT, ctrl_c)
-    except ValueError: #signal only works in parse_args thread and django complains
+    except ValueError:  #signal only works in parse_args thread and django complains
         pass
+
+
+def _copy_graph(graph):
+    import networkx as nx
+
+    graph2 = nx.DiGraph()
+    graph2.add_edges_from(graph.edges())
+    graph2.add_nodes_from(graph.nodes())
+    return graph2

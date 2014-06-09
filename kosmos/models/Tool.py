@@ -71,7 +71,7 @@ class Tool(object):
 
             for k in self.inputs:
                 if k['name'] not in input_names and k['format'] not in input_formats:
-                    raise ValueError("Could not find input '{0}' for {1}".format(k, self))
+                    raise ValueError("Could not find input '{0}' for {1}.  Parents are {2}".format(k, self, parents))
 
             return all_inputs
 

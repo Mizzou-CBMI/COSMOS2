@@ -7,10 +7,10 @@ class Sleep(Tool):
 
 
 class Echo(Tool):
-    outputs = [itf('echo', 'txt')]
+    outputs = [otf('echo', 'txt')]
 
     def cmd(self, i, o, s, word):
-        return 'echo {word} > {o[txt]}'
+        return 'echo {word} > {o[echo]}'
 
 
 class Cat(Tool):
@@ -18,7 +18,7 @@ class Cat(Tool):
     outputs = [otf('cat', 'txt', 'cat_out.txt',)]
 
     def cmd(self, i, o, s, **kwargs):
-        return 'cat {input} > {o[txt]}', {
+        return 'cat {input} > {o[cat]}', {
             'input': ' '.join(map(str, i.format['txt']))
         }
 
@@ -28,7 +28,7 @@ class Paste(Tool):
     outputs = [otf('paste', 'txt', 'paste.txt')]
 
     def cmd(self, i, o, s, **kwargs):
-        return 'paste {input} > {o[txt]}', {
+        return 'paste {input} > {o[paste]}', {
             'input': ' '.join(map(str, i.format['txt']))
         }
 
@@ -38,7 +38,7 @@ class WordCount(Tool):
     outputs = [otf('wc', 'txt')]
 
     def cmd(self, i, o, s):
-        return 'wc {input} > {o[txt]}', {
+        return 'wc {input} > {o[wc]}', {
             'input': ' '.join(map(str, i.format['txt']))
         }
 
@@ -50,7 +50,7 @@ class Fail(Tool):
 
 class MD5Sum(Tool):
     inputs = [itf(format='*')]
-    outputs = [otf(format='md5', basename="{i.format[*].basename}.md5")]
+    outputs = [otf(name='md5', format='md5', basename="{i.format[*].basename}.md5")]
 
     def cmd(self, i, o, s, **kwargs):
         return 'md5sum {inp}', dict(inp=" ".join(map(str, i.values())))

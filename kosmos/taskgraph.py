@@ -1,4 +1,4 @@
-from .util.helpers import groupby
+from .util.helpers import groupby, duplicates
 from .util.sqla import get_or_create
 from . import TaskStatus, Stage, Input
 import functools
@@ -52,7 +52,7 @@ def render_recipe(execution, recipe, settings, parameters, drm):
         stage.resolved = True
 
         tagz = [frozenset(t.tags.items()) for t in stage.tasks]
-        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s' % stage
+        assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s: %s' % (stage, next(duplicates(tagz)))
     return task_g, stage_g
 
 

@@ -52,33 +52,51 @@ class JobManager(object):
             task.stage.status = StageStatus.killed
 
 
-    def get_finished_tasks(self, at_least_one=True):
+    def get_finished_tasks(self):
         """
         :returns: A completed task, or None if there are no tasks to wait for
         """
-        if len(self.running_tasks):
-            while True:
-                noops = filter(lambda t: t.NOOP, self.running_tasks)
-                non_noops = filter(lambda t: not t.NOOP, self.running_tasks)
-                finished_tasks = self.filter_is_done(non_noops)
-                finished_tasks += noops
-                if len(finished_tasks):
-                    for task in finished_tasks:
-                        self.running_tasks.remove(task)
-                    return finished_tasks
-                if at_least_one:
-                    time.sleep(.1)
-                else:
-                    return []
-        else:
-            if at_least_one:
-                raise AttributeError('No tasks are running, and `at_least_one` is set to True')
-            return []
+        for t in list(self.running_tasks):
+            if t.NOOP:
+                self.running_tasks.remove(t)
+                yield t
+        for t in self.filter_is_done(list(self.running_tasks)):
+            self.running_tasks.remove(t)
+            yield t
+
+
+        # if len(self.running_tasks):
+        #     while True:
+        #         noops = filter(lambda t: t.NOOP, self.running_tasks)
+        #         non_noops = filter(lambda t: not t.NOOP, self.running_tasks)
+        #         finished_tasks = self.filter_is_done(non_noops)
+        #         finished_tasks += noops
+        #         if len(finished_tasks):
+        #             for task in finished_tasks:
+        #                 self.running_tasks.remove(task)
+        #             return finished_tasks
+        #         if at_least_one:
+        #             time.sleep(.1)
+        #         else:
+        #             return []
+        # else:
+        #     if at_least_one:
+        #         raise AttributeError('No tasks are running, and `at_least_one` is set to True')
+        #     return []
 
     def filter_is_done(self, tasks):
-        always_locals = filter(lambda t: t.drm == 'always_local', tasks)
-        others = filter(lambda t: t.drm != 'always_local', tasks)
-        return self.always_local_drm.filter_is_done(always_locals) + self.drm.filter_is_done(others)
+        noops = []
+        always_locals = []
+        drms = []
+        for t in tasks:
+            if t.NOOP:
+                noops.append(t)
+            elif t.drm == 'always_local':
+                always_locals.append(t)
+            else:
+                drms.append(t)
+
+        return noops + self.always_local_drm.filter_is_done(always_locals) + self.drm.filter_is_done(drms)
 
     def _create_command_sh(self, task):
         """Create a sh script that will execute a command"""

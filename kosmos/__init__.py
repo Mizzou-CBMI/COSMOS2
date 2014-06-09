@@ -49,8 +49,7 @@ def default_get_drmaa_native_specification(drm, task):
 
 
 class KosmosApp(object):
-    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification, flask_app=None, default_drm='local'):
-        self.default_drm=default_drm
+    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification, flask_app=None):
         self.flask_app = flask_app if flask_app else Flask(__name__)
         self.get_drmaa_native_specification = get_drmaa_native_specification
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -134,7 +133,7 @@ class ExecutionStatus(MyEnum):
     running = 'Execution is running',
     successful = 'Finished successfully',
     killed = 'Manually killed'
-    failed_but_running = 'At least one task that must succeed has failed, but still running non-dependent jobs until completion.'
+    failed_but_running = 'At least one task that must succeed has failed, but still running non-dependent jobs until completion'
     failed = 'Finished, but failed'
 
 
