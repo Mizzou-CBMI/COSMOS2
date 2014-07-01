@@ -275,7 +275,7 @@ if __name__ == '__main__':
                         help='File to store sqlite data to (default is in memory).  '
                              'Will overwrite if the database already exists.')
     # parser.add_argument('command', nargs=argparse.REMAINDER, help="The command to run. Required.")
-    parser.add_argument('command', help="path to a shells script to run")
+    parser.add_argument('command', help="path to a shell script to run")
     args = parser.parse_args()
 
     #makre sure command script exists, sometimes on a shared filesystem it can take a while to propogate (i.e. eventual consistency)
@@ -285,10 +285,6 @@ if __name__ == '__main__':
         if time.time() - start > 20:
             raise IOError('giving up on %s existing' % args.command)
 
-    if len(args.command) == 0:
-        parser.print_help()
-        sys.exit(1)
-
     #Run Profile
     profile = Profile(**vars(args))
     try:
@@ -296,5 +292,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         os.kill(profile.proc.pid, signal.SIGINT)
         profile.finish()
-    except:
-        raise

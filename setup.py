@@ -22,7 +22,7 @@ setup(
         'networkx',
         # "pyzmq",
         # "ipdb",
-        # "ipython",
+        "ipython",
         "enum34"],
     scripts=["bin/kosmos"],
     # Packaging Instructions

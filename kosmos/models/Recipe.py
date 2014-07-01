@@ -1,13 +1,18 @@
+import networkx as nx
+
 from .. import RelationshipType, StageStatus
 from . import rel as _rel
 
-import networkx as nx
+
+def isgenerator(iterable):
+    return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
 
 
 class Recipe(object):
     """
     A description of how to construct a taskgraph.  A taskgraph is a :term:`DAG` of tasks which describe job dependences.
     """
+
     def __init__(self):
         self.recipe_stage_G = nx.DiGraph()
         self.execution = None
@@ -18,8 +23,14 @@ class Recipe(object):
 
         :param tools: a list of Tool instances.
         """
-        assert isinstance(tools, list), 'tasks must be a list'
-        assert len(tools) > 0, '`tasks` cannot be empty'
+        from .. import Tool
+
+        if isgenerator(tools):
+            tools = list(tools)
+        elif hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
+            tools = [tools]
+
+        assert isinstance(tools, list) and len(tools) > 0, '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
 
         if name is None:
             name = tools[0].__class__.__name__
@@ -49,7 +60,10 @@ class Recipe(object):
             'parents must be a list of RecipeStages or a RecipeStage'
         if isinstance(parents, RecipeStage):
             parents = [parents]
-            #assert issubclass(tool_class, Tool), 'tool_class must be a class'
+        parents = filter(lambda p: p is not None, parents)
+        from .. import Tool
+
+        assert issubclass(tool_class, Tool), '`tool_class` must be a subclass of Tool'
 
         recipe_stage = RecipeStage(name, tool_class, rel, add_tags)
 

@@ -1,24 +1,27 @@
 __version__ = '0.6'
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-
-from .db import Base
 import sys
 
-########################################################################################################################
+from .db import Base
+
+
+
+
+
+
+
+# #######################################################################################################################
 # Settings
-########################################################################################################################
+# #######################################################################################################################
 import os
-from collections import defaultdict
 
 opj = os.path.join
 
 library_path = os.path.dirname(os.path.realpath(__file__))
 
-from flask.signals import request_started
 
-
-def default_get_drmaa_native_specification(drm, task):
+def default_get_submit_args(drm, task, default_queue=None):
     """
     Default method for determining the arguments to pass to the drm specified by :param:`drm`
 
@@ -31,30 +34,43 @@ def default_get_drmaa_native_specification(drm, task):
     time_req = task.time_req
 
     if 'lsf' in drm:
-        s = '-R "rusage[mem={0}] span[hosts=1]" -n {1}'.format((mem_req or 0) / cpu_req, cpu_req)
-        if time_req:
-            s += ' -W 0:{0}'.format(time_req)
-            # if queue:
-        #     s += ' -q {0}'.format(queue)
-        return s
+        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue}'.format(mem=(mem_req or 0) / cpu_req,
+                                                                            cpu=cpu_req,
+                                                                            time=' -W 0:{0}'.format(time_req) if time_req else '',
+                                                                            queue=' -q %s' % default_queue if default_queue else '')
     elif 'ge' in drm:
-        #return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
-        return '-l cpu={cpu_req}'.format(
-            mem_req=mem_req,
-            cpu_req=cpu_req)
+        # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
+        return '-l cpu={cpu_req}{queue}'.format(mem_req=mem_req,
+                                         cpu_req=cpu_req,
+                                         queue=' -q %s' % default_queue if default_queue else '')
     elif drm == 'local':
         return None
     else:
         raise Exception('DRM not supported')
 
 
-class KosmosApp(object):
-    def __init__(self, database_url, get_drmaa_native_specification=default_get_drmaa_native_specification, flask_app=None):
+class Kosmos(object):
+    def __init__(self, database_url, get_submit_args=default_get_submit_args, default_queue=None, flask_app=None):
+        """
+
+        :param database_url: a sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or mysql://user:pass@localhost/insilico
+        :param get_submit_args: a function that returns arguments to be passed to the job submitter, like resource requirements or the queue to submit to.
+            see :func:`default_get_submit_args` for details
+        :param flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
+        """
+        if '://' not in database_url:
+            if database_url[0] != '/':
+                # database_url is a relative path
+                database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
+            else:
+                database_url = 'sqlite:///%s' % database_url
+
         self.flask_app = flask_app if flask_app else Flask(__name__)
-        self.get_drmaa_native_specification = get_drmaa_native_specification
+        self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
+        self.default_queue = default_queue
 
     def initdb(self):
         """
@@ -71,17 +87,21 @@ class KosmosApp(object):
         Base.metadata.drop_all(bind=self.session.bind)
         self.initdb()
 
-    # def runweb(self, host, port):
-    #     from .web.views import gen_bprint
-    #     from .web import filters
-    #     from kosmos.web.admin import add_kosmos_admin
-    #     #print flask_app.url_map
-    #     self.flask_app.register_blueprint(gen_bprint(self), url_prefix='/kosmos')
-    #     self.flask_app.config['DEBUG'] = True
-    #     self.flask_app.secret_key = '\x07F\xdd\x98egfd\xc1\xe5\x9f\rv\xbe\xdbl\x93x\xc2\x19\x9e\xc0\xd7\xea'
-    #     add_kosmos_admin(self.flask_app, self.sqla.session)
-    #
-    #     return self.flask_app.run(debug=True, host=host, port=port)
+    def shell(self):
+        """
+        Launch an IPython shell with useful variables already imported
+        """
+        kosmos_app = self
+        session = self.session
+        executions = self.session.query(Execution).all()
+        ex = executions[-1] if len(executions) else None
+
+        import IPython
+
+        IPython.embed()
+
+    def runweb(self, host, port):
+        return self.flask_app.run(debug=True, host=host, port=port)
 
 
 ########################################################################################################################
@@ -133,7 +153,7 @@ class ExecutionStatus(MyEnum):
     running = 'Execution is running',
     successful = 'Finished successfully',
     killed = 'Manually killed'
-    failed_but_running = 'At least one task that must succeed has failed, but still running non-dependent jobs until completion'
+    failed_but_running = 'Failed, but running'
     failed = 'Finished, but failed'
 
 

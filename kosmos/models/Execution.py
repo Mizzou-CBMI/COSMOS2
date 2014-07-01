@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
 from sqlalchemy.orm import validates, synonym
-
 from flask import url_for
 import os
 import re
@@ -17,7 +16,7 @@ opj = os.path.join
 import signal
 
 from .. import taskgraph
-from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change, signal_task_status_change
+from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
@@ -64,10 +63,11 @@ class Execution(Base):
     max_cpus = Column(Integer)
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
-    #recipe_graph = Column(PickleType)
+    # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
 
     exclude_from_dict = ['info']
+
 
     @declared_attr
     def status(cls):
@@ -96,11 +96,13 @@ class Execution(Base):
         :param name: (str) a name for the workflow.
         :param output_dir: (str) the directory to write files to
         :param restart: (bool) if True and the execution exists, delete it first
-        :param prompt_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
-        :max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
+        :param skip_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
+        :param max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
 
         :returns: an instance of Execution
         """
+        allowable_drms = ['lsf', 'local', 'ge']
+        assert drm in allowable_drms, 'unsupported drm, drm must be one of: %s' % allowable_drms
         output_dir = os.path.abspath(output_dir)
         session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
@@ -182,7 +184,7 @@ class Execution(Base):
 
     def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, parameters={}, dry=False):
         """
-        Executes the :param:`recipe` using the configured :term:`DRM`.
+        Renders and executes the :param:`recipe` using the configured :term:`DRM`.
 
         :param recipe: (Recipe) the Recipe to render and execute.
         :param task_output_dir: a function that computes a tasks' output_dir.
@@ -199,15 +201,14 @@ class Execution(Base):
 
         """
         assert hasattr(self, 'kosmos_app'), 'Execution was not initialized using the Execution.start method'
-        assert self.drm in ['local', 'lsf'], '%s drm is not supported' % self.drm
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_drmaa_native_specification=self.kosmos_app.get_drmaa_native_specification, drm=self.drm)
+        self.jobmanager = JobManager(get_submit_args=self.kosmos_app.get_submit_args, default_queue=self.kosmos_app.default_queue)
 
-        self.log.info('Running %s using DRM `%s`' % (self, self.drm))
+        self.log.info('Running %s using DRM `%s`, output_dir: `%s`' % (self, self.drm, self.output_dir))
         session = self.session
         assert session, 'Execution must be part of a sqlalchemy session'
         self.status = ExecutionStatus.running
@@ -316,7 +317,7 @@ class Execution(Base):
         """
         g = nx.DiGraph()
         g.add_nodes_from(self.stages)
-        g.add_edges_from([(s, c) for s in self.stages for c in s.children])
+        g.add_edges_from((s, c) for s in self.stages for c in s.children)
         return g
 
     def task_graph(self):
@@ -383,7 +384,7 @@ class Execution(Base):
 
 # @event.listens_for(Execution, 'before_delete')
 # def before_delete(mapper, connection, target):
-#     print 'before_delete %s ' % target
+# print 'before_delete %s ' % target
 
 def _run(execution, session, task_queue):
     """
@@ -401,8 +402,17 @@ def _run(execution, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
                 # pop all descendents when a task fails
                 task_queue.remove_nodes_from(descendants(task_queue, task))
+                task_queue.remove_node(task)
                 execution.status = ExecutionStatus.failed_but_running
-            task_queue.remove_node(task)
+                execution.log.info('%s tasks left in the queue' % len(task_queue))
+            elif task.status == TaskStatus.successful:
+                # just pop this task
+                task_queue.remove_node(task)
+            elif task.status == TaskStatus.no_attempt:
+                # the task must have failed, and is being reattempted
+                pass
+            else:
+                raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
             tasks_are_ready = True
 
     # set status

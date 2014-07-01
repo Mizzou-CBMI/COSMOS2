@@ -1,6 +1,5 @@
+examples/out/*
 *.db
-examples/out
-test/*.db
 test/out
 .project
 .idea/

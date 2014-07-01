@@ -32,10 +32,13 @@ class taskfile_dict(dict):
 
     @property
     def basename(self):
-        return self['basename']
+        if self._input_taskfile:
+            return self['basename']
+        else:
+            raise AssertionError, 'taskfile_dict.output_taskfiles have no basename'
 
-def output_taskfile(name, format, basename=None):
-    assert name or format, 'must specify either name or format'
+def output_taskfile(name=None, format=None, basename=None):
+    assert name and format, 'must specify name and format'
     d = taskfile_dict(name=name, format=format, basename=basename)
     d._output_taskfile = True
     return d
@@ -50,7 +53,7 @@ def input_taskfile(name=None, format=None):
 
 class TaskFile(Base):
     """
-    Task File
+    Task File.
     """
     __tablename__ = 'taskfile'
     __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc1'),)
@@ -70,27 +73,37 @@ class TaskFile(Base):
     def prefix(self):
         return self.basename.split('.')[0]
 
+    @property
+    def log(self):
+        return self.task_output_for.log
+
+    @property
+    def execution(self):
+        return self.task_output_for.execution
+
     def __init__(self, *args, **kwargs):
         super(TaskFile, self).__init__(*args, **kwargs)
-        assert self.name is not None, 'TaskFile name is required'
-        assert self.format is not None, 'TaskFile format is required'
-        self.format = self.format or self.name
-        self.name = self.name or self.task_output_for.stage.name.lower()
+        assert self.name is not None, 'TaskFile.name is required'
+        assert self.format is not None, 'TaskFile.format is required'
         if self.basename is None:
             self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
 
     def __repr__(self):
         return '<TaskFile[%s] %s.%s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
-        #return '<TaskFile[%s] %s%s>' % (self.id or '', self.name, ' '+self.path or '')
 
     def delete(self, delete_file=True):
         """
         Deletes this task and all files associated with it
         """
-        if delete_file and os.path.exists(self.path):
-            if os.path.isdir(self.path):
-                shutil.rmtree(self.path)
+        self.log.debug('Deleting %s' % self)
+
+        if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
+            if not self.path.startswith(self.execution.output_dir):
+                self.log.warn('Not deleting %s, outside of %s'%(self.path, self.execution.output_dir))
             else:
-                os.remove(self.path)
+                if os.path.isdir(self.path):
+                    shutil.rmtree(self.path)
+                else:
+                    os.remove(self.path)
         self.session.delete(self)
         self.session.commit()

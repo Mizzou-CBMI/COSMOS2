@@ -7,13 +7,20 @@ import os
 import time
 
 
-def wait_for_file(path, timeout=10):
+def wait_for_file(execution, path, timeout=60, error=True):
     # Sometimes on a shared filesystem it can take a while for a file to propagate (i.e. eventual consistency)
     start = time.time()
     while not os.path.exists(path):
         time.sleep(.1)
         if time.time() - start > timeout:
-            raise IOError('giving up on %s existing' % path)
+            if error:
+                execution.terminate(failed=True)
+                raise IOError('giving up on %s existing' % path)
+            else:
+                return False
+    return True
+
+
 
 
 def has_duplicates(alist):
@@ -102,7 +109,7 @@ def duplicates(iterable):
         yield x
 
 
-def kosmos_format(s, d):
+def str_format(s, d):
     """
     Format()s string s with d.  If there is an error, print helpful message.
     """
@@ -150,7 +157,7 @@ def get_logger(name, path):
     if len(log.handlers) > 0:
         return log
 
-    log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
     # create file handler which logs debug messages
     if path:
         assert os.path.exists(os.path.dirname(path)), '%s does not exist' % path
@@ -160,7 +167,7 @@ def get_logger(name, path):
         log.addHandler(fh)
 
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
     ch.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
     log.addHandler(ch)
 

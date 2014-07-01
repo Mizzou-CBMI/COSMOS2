@@ -59,10 +59,10 @@ def task_status_changed(task):
         task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
-        task.finished_on = func.now()
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_failed_printout.format(task))
+            task.finished_on = func.now()
         else:
             task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.execution.max_attempts))
             if task.attempt < task.execution.max_attempts:
@@ -70,21 +70,19 @@ def task_status_changed(task):
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
-                wait_for_file(task.output_stderr_path, 15)
+                wait_for_file(task.execution, task.output_stderr_path, 60)
 
                 task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
                 task.stage.status = StageStatus.failed
                 task.session.commit()
-                task.update_from_profile_output()
 
     elif task.status == TaskStatus.successful:
         task.successful = True
         task.finished_on = func.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
-        task.update_from_profile_output()
 
     task.session.commit()
 
@@ -133,7 +131,7 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-    always_local = Column(Boolean, default=False)
+    #always_local = Column(Boolean, default=False)
     parents = relationship("Task",
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
@@ -245,15 +243,6 @@ class Task(Base):
     @property
     def stderr_text(self):
         return readfile(self.output_stderr_path).strip()
-        # if os.path.exists(self.output_stderr_path):
-        #     return readfile(self.output_stderr_path).strip()
-        # else:
-        #     import subprocess as sp
-        #     try:
-        #         #TODO store drm value
-        #         sp.check_output('bpeek %s' % self.drmaa_jobID, shell='True')
-        #     except OSError:
-        #         return
 
     @property
     def command_script_text(self):
@@ -302,9 +291,11 @@ class Task(Base):
         if self.NOOP:
             return {}
         if self._cache_profile is None:
-            wait_for_file(self.output_profile_path, 10)
-            with open(self.output_profile_path, 'r') as fh:
-                self._cache_profile = json.load(fh)
+            if wait_for_file(self.execution, self.output_profile_path, 60):
+                with open(self.output_profile_path, 'r') as fh:
+                    self._cache_profile = json.load(fh)
+            else:
+                return {}
         return self._cache_profile
 
     def update_from_profile_output(self):
@@ -331,9 +322,10 @@ class Task(Base):
         return urllib.urlencode(self.tags)
 
     def delete(self, delete_files=False):
+        self.log.debug('Deleting %s' % self)
         if delete_files:
             for tf in self.output_files:
-                tf.delete()
+                tf.delete(True)
             if os.path.exists(self.log_dir):
                 shutil.rmtree(self.log_dir)
 

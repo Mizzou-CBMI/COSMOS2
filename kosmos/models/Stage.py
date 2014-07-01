@@ -8,7 +8,8 @@ from flask import url_for
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
 from .. import StageStatus, signal_stage_status_change, RelationshipType
-from networkx.algorithms import breadth_first_search
+#from networkx.algorithms import breadth_first_search
+import networkx as nx
 import itertools as it
 
 
@@ -110,11 +111,16 @@ class Stage(Base):
     def percent_successful(self):
         return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
 
-    def successors(self):
+    def descendants(self, include_self=False):
         """
         :return: (list) all stages that descend from this stage in the stage_graph
         """
-        return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
+        #return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
+        x = nx.descendants(self.execution.stage_graph(), self)
+        if include_self:
+            return {self}.union(x)
+        else:
+            return x
 
     @property
     def label(self):

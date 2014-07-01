@@ -5,7 +5,8 @@ from ..job.JobManager import JobManager
 from . import filters
 from ..models.Recipe import stages_to_image
 from sqlalchemy import desc
-
+import itertools as it
+from operator import attrgetter
 
 def gen_bprint(kosmos_app):
     session = kosmos_app.session
@@ -39,16 +40,16 @@ def gen_bprint(kosmos_app):
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
-        # get non-local drm:
-        drm = 'local'
-        for t in stage.tasks:
-            if t.drm != 'local':
-                drm = t.drm
+        submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
+        jm = JobManager(kosmos_app.get_submit_args)
 
-        drm_statuses = JobManager(kosmos_app.get_drmaa_native_specification, drm=drm).drm.drm_statuses(filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        f = attrgetter('drm')
+        drm_statuses = {}
+        for drm, tasks in it.groupby(sorted(submitted, key=f), f):
+            drm_statuses.update(jm.drms[drm].drm_statuses(list(tasks)))
 
-        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses,
-                               x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
+                               #x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
 
     @bprint.route('/execution/<int:ex_id>/stage/<stage_name>/delete/')

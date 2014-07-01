@@ -3,21 +3,18 @@ import re
 import os
 
 class DRM_GE():
-    """
-    Stateless
-    """
-    name = 'lsf'
+    name = 'ge'
 
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
 
     def submit_job(self, task):
         ns = ' ' + task.drmaa_native_specification if task.drmaa_native_specification else ''
-        qsub = 'qsub -o {stdout} -e {stderr} -b y{ns} '.format(stdout=task.output_stdout_path,
+        qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
                                                           stderr=task.output_stderr_path,
                                                           ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), bsub=qsub),
+        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), qsub=qsub),
                               env=os.environ,
                               preexec_fn=preexec_function(),
                               shell=True)
@@ -26,16 +23,16 @@ class DRM_GE():
 
     def filter_is_done(self, tasks):
         if len(tasks):
-            bjobs = qstat_all()
+            qjobs = qstat_all()
 
             def f(task):
                 jid = str(task.drmaa_jobID)
-                if jid not in bjobs:
-                    print 'missing %s %s' % (task, task.drmaa_jobID)
-                    return False
+                if jid not in qjobs:
+                    #print 'missing %s %s' % (task, task.drmaa_jobID)
+                    return True
                 else:
-                    return bjobs[jid]['state'] in ['DONE', 'EXIT', 'UNKWN', 'ZOMBI']
-
+                    if any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
+                        return True
             return filter(f, tasks)
         else:
             return []
@@ -61,27 +58,20 @@ class DRM_GE():
         os.system('qdel %s' % task.drmaa_jobID)
 
 
-# def _bjobs(task):
-    # lines = sp.check_output(['bjobs', str(task.drmaa_jobID)]).split("\n")
-    # header = re.split("\s\s+", lines[0])
-    # items = re.split("\s\s+", lines[1])
-    # return dict(zip(header, items))
-
-
 def qstat_all():
     """
     returns a dict keyed by lsf job ids, who's values are a dict of bjob
     information about the job
     """
     try:
-        lines = sp.check_output(['qstat']).split('\n')
+        lines = sp.check_output(['qstat']).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
+    keys = re.split("\s+", lines[0])
     bjobs = {}
-    header = re.split("\s\s+", lines[0])
-    for l in lines[1:]:
-        items = re.split("\s\s+", l.strip())
-        bjobs[items[0]] = dict(zip(header, items))
+    for l in lines[2:]:
+        items = re.split("\s+", l.strip())
+        bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
 
 

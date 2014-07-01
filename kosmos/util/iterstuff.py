@@ -6,6 +6,10 @@ from itertools import (chain, combinations, count, cycle, groupby, ifilterfalse,
                        islice, izip, izip_longest, repeat, starmap, tee)
 
 
+def partition(predicate, items):
+    a, b = tee((predicate(item), item) for item in items)
+    return ((item for pred, item in b if pred),(item for pred, item in a if not pred))
+
 # Python itertools recipes
 #   http://docs.python.org/2/library/itertools.html#recipes
 
