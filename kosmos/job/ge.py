@@ -2,17 +2,18 @@ import subprocess as sp
 import re
 import os
 
-class DRM_GE():
-    name = 'ge'
+from ..util.iterstuff import grouper
+from .drm import DRM
 
-    def __init__(self, jobmanager):
-        self.jobmanager = jobmanager
+
+class DRM_GE(DRM):
+    name = 'ge'
 
     def submit_job(self, task):
         ns = ' ' + task.drmaa_native_specification if task.drmaa_native_specification else ''
         qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
-                                                          stderr=task.output_stderr_path,
-                                                          ns=ns)
+                                                                                    stderr=task.output_stderr_path,
+                                                                                    ns=ns)
 
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), qsub=qsub),
                               env=os.environ,
@@ -28,11 +29,12 @@ class DRM_GE():
             def f(task):
                 jid = str(task.drmaa_jobID)
                 if jid not in qjobs:
-                    #print 'missing %s %s' % (task, task.drmaa_jobID)
+                    # print 'missing %s %s' % (task, task.drmaa_jobID)
                     return True
                 else:
                     if any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
                         return True
+
             return filter(f, tasks)
         else:
             return []
@@ -55,7 +57,13 @@ class DRM_GE():
 
     def kill(self, task):
         "Terminates a task"
-        os.system('qdel %s' % task.drmaa_jobID)
+        sp.Popen(['qdel', str(task.drmaa_jobID)])
+
+    def kill_tasks(self, tasks):
+        for group in grouper(tasks, 50):
+            group = filter(lambda x: x is not None, group)
+            pids = ','.join(map(str, group))
+            sp.Popen(['qdel', pids])
 
 
 def qstat_all():

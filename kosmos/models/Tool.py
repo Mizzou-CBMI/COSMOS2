@@ -1,7 +1,6 @@
 from inspect import getargspec, getcallargs
 import os
 import re
-import itertools as it
 
 from .. import TaskFile, Task
 from ..util.helpers import strip_lines, str_format, groupby, has_duplicates
@@ -89,7 +88,6 @@ class Tool(object):
             else:
                 basename = output['basename']
 
-
             output_files.append(TaskFile(task_output_for=task, persist=self.persist, name=name, format=output['format'], basename=basename))
         if isinstance(self, Input):
             output_files.append(TaskFile(name=self.name, format=self.format, path=self.path, task_output_for=task, persist=True))
@@ -169,11 +167,27 @@ class Tool(object):
         callargs.update(extra_format_dict)
         cmd = str_format(strip_lines(pcmd), callargs)
 
-        #fix TaskFiles paths
-        cmd = re.sub('<TaskFile\[\d+?\] .+?:(.+?)>', lambda x: x.group(1), cmd)
-        assert 'TaskFile' not in cmd, 'An error occurred in the TaskFile regular expression replacement:\n %s' % cmd
+        # def match2path(m):
+        # prefix = os.path.commonprefix([task.output_dir+'/', m])
+        # m.group(1).replace(prefix, './')
+        #     od = task.output_dir
+        #     od = od + '/' if od[-1] != '/' else od
+        #     od = m.group(1).replace(od, '')
+        #     if od.strip == '':
+        #         return '.'
+        #     else:
+        #         return od
 
-        return 'set -e\n\n' + strip_lines(cmd)
+        # fix TaskFiles paths
+        cmd = re.sub('<TaskFile\[\d+?\] .+?:(.+?)>', lambda m: m.group(1), cmd)
+        # assert 'TaskFile' not in cmd, 'An error occurred in the TaskFile regular expression replacement:\n %s' % cmd
+
+        s = 'set -e\n' \
+            'OUT={ex_out}\n' \
+            'cd {cd}\n\n'
+        s = s.format(cd=task.output_dir.replace(task.execution.output_dir, '$OUT'),
+                     ex_out=task.execution.output_dir)
+        return s + strip_lines(cmd).replace(task.execution.output_dir, '$OUT')
 
 
     def _validate(self):
@@ -257,7 +271,7 @@ class TaskFileDict(dict):
     format = None
 
     def __init__(self, taskfiles, type):
-        assert type in ['input','output']
+        assert type in ['input', 'output']
         if type == 'input':
             kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
         else:

@@ -176,11 +176,18 @@ class Execution(Base):
             raise TypeError, 'Do not instantiate an Execution manually.  Use the Execution.start staticmethod.'
         super(Execution, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
-        mkdir(self.output_dir)
-        self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
         if self.info is None:
+            # mutable dict column defaults to None
             self.info = dict()
         self.jobmanager = None
+
+    def __getattr__(self, item):
+        if item == 'log':
+            self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
+            return self.log
+        else:
+            return super(Execution, self).__getattr__(item)
+
 
     def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, parameters={}, dry=False):
         """
@@ -415,14 +422,15 @@ def _run(execution, session, task_queue):
                 raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
             tasks_are_ready = True
 
+        # only commit Task changes after processing a batch of finished ones
+        session.commit()
+
     # set status
     if execution.status == ExecutionStatus.failed_but_running:
         execution.status = ExecutionStatus.failed
-        session.commit()
         return False
     elif execution.status == ExecutionStatus.running:
         execution.status = ExecutionStatus.successful
-        session.commit()
         return True
     else:
         raise AssertionError('Bad execution status %s' % execution.status)
@@ -445,10 +453,13 @@ def _run_ready_tasks(task_queue, execution):
 
         execution.jobmanager.submit(ready_task)
 
+    # only commit submitted Tasks after submitting a batch
+    execution.session.commit()
+
 
 def _process_finished_tasks(jobmanager):
     for task in jobmanager.get_finished_tasks():
-        if task.NOOP or task.profile['exit_status'] == 0:
+        if task.NOOP or task.profile.get('exit_status', None) == 0:
             task.status = TaskStatus.successful
             yield task
         else:

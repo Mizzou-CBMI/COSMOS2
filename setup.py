@@ -20,8 +20,6 @@ setup(
         'Flask-SQLAlchemy',
         'Flask-WTF',
         'networkx',
-        # "pyzmq",
-        # "ipdb",
         "ipython",
         "enum34"],
     scripts=["bin/kosmos"],

@@ -2,11 +2,11 @@ from subprocess import Popen
 import os
 
 import psutil
-import json
+from .drm import DRM
 
 from .. import TaskStatus
 
-class DRM_Local():
+class DRM_Local(DRM):
     name = 'local'
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
@@ -59,6 +59,7 @@ class DRM_Local():
             psutil.Process(task.drmaa_jobID).kill()
         except psutil.NoSuchProcess:
             pass
+
 
 
 def preexec_function():

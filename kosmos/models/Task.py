@@ -76,7 +76,7 @@ def task_status_changed(task):
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
                 task.stage.status = StageStatus.failed
-                task.session.commit()
+                #task.session.commit()
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -84,7 +84,7 @@ def task_status_changed(task):
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
 
-    task.session.commit()
+    #task.session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
@@ -291,10 +291,11 @@ class Task(Base):
         if self.NOOP:
             return {}
         if self._cache_profile is None:
-            if wait_for_file(self.execution, self.output_profile_path, 60):
+            if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
                 with open(self.output_profile_path, 'r') as fh:
                     self._cache_profile = json.load(fh)
             else:
+                self.log.warn('%s does not exist on the filesystem' % self.output_profile_path)
                 return {}
         return self._cache_profile
 

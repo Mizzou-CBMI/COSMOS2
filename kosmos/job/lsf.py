@@ -2,6 +2,9 @@ import subprocess as sp
 import re
 import os
 
+from .drm import DRM
+
+
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
     ('PEND', 'job is queued and active'),
@@ -14,11 +17,8 @@ decode_lsf_state = dict([
 ])
 
 
-class DRM_LSF():
+class DRM_LSF(DRM):
     name = 'lsf'
-
-    def __init__(self, jobmanager):
-        self.jobmanager = jobmanager
 
     def submit_job(self, task):
         ns = ' ' + task.drmaa_native_specification if task.drmaa_native_specification else ''
@@ -33,10 +33,6 @@ class DRM_LSF():
 
         task.drmaa_jobID = int(re.search('Job <(\d+)>', out).group(1))
 
-    # def is_done(self, task):
-    #     bjobs = _bjobs(task)
-    #     return bjobs['STAT'] in ['DONE', 'EXIT', 'UNKWN', 'ZOMBI']
-
     def filter_is_done(self, tasks):
         if len(tasks):
             bjobs = bjobs_all()
@@ -45,7 +41,7 @@ class DRM_LSF():
                 jid = str(task.drmaa_jobID)
                 if jid not in bjobs:
                     # prob in history
-                    #print 'missing %s %s' % (task, task.drmaa_jobID)
+                    # print 'missing %s %s' % (task, task.drmaa_jobID)
                     return True
                 else:
                     return bjobs[jid]['STAT'] in ['DONE', 'EXIT', 'UNKWN', 'ZOMBI']
@@ -69,24 +65,14 @@ class DRM_LSF():
         else:
             return {}
 
-    #
-    # def status(self, task):
-    #     """
-    #     Queries the DRM for the status of the job
-    #     """
-    #     raise NotImplemented
-
 
     def kill(self, task):
         "Terminates a task"
         os.system('bkill {0}'.format(task.drmaa_jobID))
 
-
-# def _bjobs(task):
-#     lines = sp.check_output(['bjobs', str(task.drmaa_jobID)]).split("\n")
-#     header = re.split("\s\s+", lines[0])
-#     items = re.split("\s\s+", lines[1])
-#     return dict(zip(header, items))
+    def kill_tasks(self, tasks):
+        for t in tasks:
+            self.kill(t)
 
 
 def bjobs_all():

@@ -11,6 +11,7 @@ from .db import Base
 
 
 
+
 # #######################################################################################################################
 # Settings
 # #######################################################################################################################
@@ -34,15 +35,16 @@ def default_get_submit_args(drm, task, default_queue=None):
     time_req = task.time_req
 
     if 'lsf' in drm:
-        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue}'.format(mem=(mem_req or 0) / cpu_req,
-                                                                            cpu=cpu_req,
-                                                                            time=' -W 0:{0}'.format(time_req) if time_req else '',
-                                                                            queue=' -q %s' % default_queue if default_queue else '')
+        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue} -J "{jobname}"'.format(mem=(mem_req or 0) / cpu_req,
+                                                                                                cpu=cpu_req,
+                                                                                                time=' -W 0:{0}'.format(time_req) if time_req else '',
+                                                                                                queue=' -q %s' % default_queue if default_queue else '',
+                                                                                                jobname='%s_task(%s)' % (task.stage.name, task.id))
     elif 'ge' in drm:
         # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
         return '-l cpu={cpu_req}{queue}'.format(mem_req=mem_req,
-                                         cpu_req=cpu_req,
-                                         queue=' -q %s' % default_queue if default_queue else '')
+                                                cpu_req=cpu_req,
+                                                queue=' -q %s' % default_queue if default_queue else '')
     elif drm == 'local':
         return None
     else:
@@ -104,7 +106,7 @@ class Kosmos(object):
         return self.flask_app.run(debug=True, host=host, port=port)
 
 
-########################################################################################################################
+# #######################################################################################################################
 # Misc
 ########################################################################################################################
 

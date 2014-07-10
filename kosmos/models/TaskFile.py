@@ -2,7 +2,6 @@ import shutil
 import os
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
 from sqlalchemy.orm import relationship, backref
-from collections import namedtuple
 
 from ..db import Base
 
@@ -37,6 +36,7 @@ class taskfile_dict(dict):
         else:
             raise AssertionError, 'taskfile_dict.output_taskfiles have no basename'
 
+
 def output_taskfile(name=None, format=None, basename=None):
     assert name and format, 'must specify name and format'
     d = taskfile_dict(name=name, format=format, basename=basename)
@@ -65,7 +65,7 @@ class TaskFile(Base):
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
-    #format = Column(String(255), nullable=False)
+    # format = Column(String(255), nullable=False)
     basename = Column(String(255), nullable=False)
     persist = Column(Boolean)
 
@@ -98,8 +98,8 @@ class TaskFile(Base):
         self.log.debug('Deleting %s' % self)
 
         if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
-            if not self.path.startswith(self.execution.output_dir):
-                self.log.warn('Not deleting %s, outside of %s'%(self.path, self.execution.output_dir))
+            if not in_directory(self.path, self.execution.output_dir):
+                self.log.warn('Not deleting %s, outside of %s' % (self.path, self.execution.output_dir))
             else:
                 if os.path.isdir(self.path):
                     shutil.rmtree(self.path)
@@ -107,3 +107,13 @@ class TaskFile(Base):
                     os.remove(self.path)
         self.session.delete(self)
         self.session.commit()
+
+
+def in_directory(file, directory):
+    # make both absolute
+    directory = os.path.join(os.path.realpath(directory), '')
+    file = os.path.realpath(file)
+
+    #return true, if the common prefix of both is equal to directory
+    #e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
+    return os.path.commonprefix([file, directory]) == directory

@@ -22,11 +22,9 @@
     MAX(FDSize), AVG(FDSize), MAX(VmPeak), AVG(VmSize), MAX(VmLck), AVG(VmLck), AVG(VmRSS), AVG(VmData), MAX(VmData), AVG(VmLib), MAX(VmPTE), AVG(VmPTE)
 """
 
-import psutil
 import time
-
 from kosmos.profile.read_man_proc import get_stat_and_status_fields
-
+import time;
 
 start_time = time.time()
 
@@ -36,11 +34,11 @@ import argparse
 
 
 class Profile:
-    fields_to_get = {'UPDATE': ['VmPeak', 'VmHWM'] +  # /proc/status
+    fields_to_get = {'UPDATE': ['VmPeak', 'VmHWM'] + #/proc/status
                                ['minflt', 'majflt', 'utime', 'stime', 'delayacct_blkio_ticks',
-                                'voluntary_ctxt_switches', 'nonvoluntary_ctxt_switches'],  # /proc/stat removed
-                     'INSERT': ['FDSize', 'VmSize', 'VmLck', 'VmRSS', 'VmData', 'VmLib', 'VmPTE'] +  #/proc/status
-                               ['num_threads']}  # /proc/stat
+                                'voluntary_ctxt_switches', 'nonvoluntary_ctxt_switches'], #/proc/stat removed
+                     'INSERT': ['FDSize', 'VmSize', 'VmLck', 'VmRSS', 'VmData', 'VmLib', 'VmPTE'] + #/proc/status
+                               ['num_threads']}#/proc/stat
 
     proc = None  # the subprocess instance
     poll_number = 0  # number of polls so far
@@ -48,12 +46,11 @@ class Profile:
     @property
     def all_pids(self):
         """This parse_args process and all of its descendant's pids"""
-        pid = os.getpid()
-        return [pid] + map(lambda p: p.pid, psutil.Process(pid).get_children(recursive=True))
+        return self.and_descendants(os.getpid())
 
     def __init__(self, command, poll_interval=1, output_file=None, database_file=':memory:'):
         # def add_quotes(arg):
-        # "quotes get stripped off by the shell when it interprets the command, so this adds them back in"
+        #     "quotes get stripped off by the shell when it interprets the command, so this adds them back in"
         #     if re.search("\s", arg):
         #         return "\"" + arg + "\""
         #     else:
@@ -84,6 +81,33 @@ class Profile:
         #setup logging
         self.log = logging
 
+    @staticmethod
+    def _unnest(a_list):
+        """
+        unnests a list
+        
+        .. example::
+        >>> _unnest([1,2,[3,4],[5]])
+        [1,2,3,4,5]
+        """
+        return [item for items in a_list for item in items]
+
+    @staticmethod
+    def get_children(pid):
+        """returns a list of this pid's children"""
+        p = subprocess.Popen('/bin/ps h --ppid {0} -o pid'.format(pid).split(' '), stdout=subprocess.PIPE)
+        children = map(lambda x: x.strip(), filter(lambda x: x != '', p.communicate()[0].strip().split('\n')))
+        return children
+
+    def and_descendants(self, pid):
+        """Returns a list of `pid` and all of its descendant process (children's children, etc) ids"""
+        children = self.get_children(pid)
+
+        if len(children) == 0:
+            return [pid]
+        else:
+            return [pid] + self._unnest([self.and_descendants(int(child)) for child in children])
+
     def run(self):
         """
         Runs a process and records the resource usage of it and all of its descendants
@@ -109,10 +133,10 @@ class Profile:
             try:
                 all_stats = self.read_proc_stat(pid)
                 all_stats += self.read_proc_status(pid)
-                # Inserts
+                #Inserts
                 inserts = [(name, self.parse_val(val)) for name, val in all_stats if
                            name in self.fields_to_get['INSERT']] + [('pid', pid), ('poll_number', self.poll_number)]
-                keys, vals = zip(*inserts)  #unzip
+                keys, vals = zip(*inserts) #unzip
                 q = "INSERT INTO record ({keys}) values({s})".format(s=', '.join(['?'] * len(vals)),
                                                                      keys=', '.join(keys))
                 self.c.execute(q, vals)
@@ -121,7 +145,7 @@ class Profile:
                 updates = [(name, self.parse_val(val)) for name, val in all_stats if
                            name in self.fields_to_get['UPDATE']] + [('pid', pid), ('Name', proc_name),
                                                                     ('poll_number', self.poll_number)]
-                keys, vals = zip(*updates)  #unzip
+                keys, vals = zip(*updates) #unzip
                 q = "INSERT OR REPLACE INTO process ({keys}) values({s})".format(s=', '.join(['?'] * len(vals)),
                                                                                  keys=', '.join(keys))
                 self.c.execute(q, vals)
@@ -145,7 +169,6 @@ class Profile:
         :returns: (field_name,value) from /proc/pid/status or None if its empty
         """
         reg = re.compile(r"\s*(.+):\s*(.+)\s*")
-
         def line2tuple(l):
             m = re.search(reg, l)
             return m.group(1), m.group(2)
@@ -158,7 +181,7 @@ class Profile:
         Summarizes and aggregates all the resource usage of self.all_pids
         :returns: a dictionary of profiled statistics
         """
-        # aggregate and summarize all the polls
+        #aggregate and summarize all the polls
         self.c.execute("""
             --average and max of cross sections at each poll
             SELECT
@@ -236,7 +259,7 @@ class Profile:
         """Executed when self.proc has finished"""
         result = self.analyze_records()
         if self.output_file:
-            with open(self.output_file, 'w') as fh:
+            with open(self.output_file,'w') as fh:
                 fh.write(json.dumps(result, indent=4, sort_keys=True))
         else:
             print >> sys.stderr, json.dumps(result, indent=4, sort_keys=True)
@@ -255,7 +278,7 @@ if __name__ == '__main__':
     parser.add_argument('command', help="path to a shell script to run")
     args = parser.parse_args()
 
-    # makre sure command script exists, sometimes on a shared filesystem it can take a while to propogate (i.e. eventual consistency)
+    #makre sure command script exists, sometimes on a shared filesystem it can take a while to propogate (i.e. eventual consistency)
     start = time.time()
     while not os.path.exists(args.command):
         time.sleep(.5)
