@@ -1,20 +1,21 @@
-import itertools as it
 import os
 import json
-from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
-    UniqueConstraint, Text
+import itertools as it
+import shutil
+
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
+    Text
 from flask import url_for
 from networkx.algorithms import breadth_first_search
-import itertools as it
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, ListOfStrings, JSONEncodedDict, MutableDict
+from ..util.sqla import Enum34_ColumnType, MutableDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
-from .. import ExecutionFailed
 from ..util.helpers import wait_for_file
-import shutil
+
+
 opj = os.path.join
 
 
@@ -76,7 +77,7 @@ def task_status_changed(task):
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
                 task.stage.status = StageStatus.failed
-                #task.session.commit()
+                # task.session.commit()
 
     elif task.status == TaskStatus.successful:
         task.successful = True
@@ -84,7 +85,7 @@ def task_status_changed(task):
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
 
-    #task.session.commit()
+            # task.session.commit()
 
 
 task_edge_table = Table('task_edge', Base.metadata,
@@ -110,7 +111,7 @@ class Task(Base):
     A job that gets executed.  Has a unique set of tags within its Stage.
     """
     # causes a problem with mysql.  its checked a the application level so should be okay
-    #__table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
+    # __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
     mem_req = Column(Integer, default=None)
@@ -118,7 +119,7 @@ class Task(Base):
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
-    #tags = Column(MutableDict.as_mutable(JSONEncodedDict))
+    # tags = Column(MutableDict.as_mutable(JSONEncodedDict))
     stage_id = Column(ForeignKey('stage.id'), nullable=False)
     stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
     log_dir = Column(String(255))
@@ -131,14 +132,20 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-    #always_local = Column(Boolean, default=False)
+    # always_local = Column(Boolean, default=False)
     parents = relationship("Task",
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
                            secondaryjoin=id == task_edge_table.c.child_id,
                            backref='children')
     command = Column(Text)
-    forward_inputs = Column(ListOfStrings)
+
+    @property
+    def input_files(self):
+        return [ifa.taskfile for ifa in self.input_file_assoc]
+
+    # forward_inputs = Column(ListOfStrings)
+    # forward_inputs2 = relationship("TaskFile")
 
     #drmaa related input fields
     drmaa_native_specification = Column(String(255))
@@ -146,63 +153,39 @@ class Task(Base):
     #drmaa related and job output fields
     drmaa_jobID = Column(Integer)
 
-    profile_fields = [('time', ['user_time', 'system_time', 'cpu_time', 'wall_time', 'percent_cpu']),
-                      ('memory', ['avg_rss_mem', 'max_rss_mem', 'single_proc_max_peak_virtual_mem',
-                                  'avg_virtual_mem', 'max_virtual_mem', 'single_proc_max_peak_rss',
-                                  'minor_page_faults', 'major_page_faults',
-                                  'avg_pte_mem', 'max_pte_mem',
-                                  'avg_locked_mem', 'max_locked_mem',
-                                  'avg_data_mem', 'max_data_mem',
-                                  'avg_lib_mem', 'max_lib_mem']),
-                      ('i/o', ['voluntary_context_switches', 'nonvoluntary_context_switches', 'block_io_delays',
-                               'avg_fdsize', 'max_fdsize']),
-                      ('misc', ['exit_status', 'names', 'pids', 'num_polls', 'num_processes', 'SC_CLK_TCK',
-                                'avg_num_threads', 'max_num_threads'])
-    ]
+    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_bytes', 'io_write_bytes',
+                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem', 'max_rss_mem', 'avg_vms_mem', 'max_vms_mem', 'avg_num_threads', 'max_num_threads',
+                      'avg_num_fds', 'max_num_fds', 'exit_status']
+    exclude_from_dict = profile_fields + ['command', 'info']
 
-    exclude_from_dict = [field for cat, fields in profile_fields for field in fields] + ['command', 'info']
+    exit_status = Column(Integer)
 
-    #time
-    system_time = Column(Integer)
-    user_time = Column(Integer)
-    cpu_time = Column(Integer)
-    wall_time = Column(Integer)
     percent_cpu = Column(Integer)
+    wall_time = Column(Integer)
 
-    #memory
+    cpu_time = Column(Integer)
+    user_time = Column(Integer)
+    system_time = Column(Integer)
+
     avg_rss_mem = Column(Integer)
     max_rss_mem = Column(Integer)
-    single_proc_max_peak_rss = Column(Integer)
-    avg_virtual_mem = Column(Integer)
-    max_virtual_mem = Column(Integer)
-    single_proc_max_peak_virtual_mem = Column(Integer)
-    major_page_faults = Column(Integer)
-    minor_page_faults = Column(Integer)
-    avg_data_mem = Column(Integer)
-    max_data_mem = Column(Integer)
-    avg_lib_mem = Column(Integer)
-    max_lib_mem = Column(Integer)
-    avg_locked_mem = Column(Integer)
-    max_locked_mem = Column(Integer)
+    avg_vms_mem = Column(Integer)
+    max_vms_mem = Column(Integer)
+
+    io_read_count = Column(Integer)
+    io_write_count = Column(Integer)
+    io_read_bytes = Column(Integer)
+    io_write_bytes = Column(Integer)
+
+    ctx_switch_voluntary = Column(Integer)
+    ctx_switch_involuntary = Column(Integer)
+
     avg_num_threads = Column(Integer)
     max_num_threads = Column(Integer)
-    avg_pte_mem = Column(Integer)
-    max_pte_mem = Column(Integer)
 
-    #io
-    nonvoluntary_context_switches = Column(Integer)
-    voluntary_context_switches = Column(Integer)
-    block_io_delays = Column(Integer)
-    avg_fdsize = Column(Integer)
-    max_fdsize = Column(Integer)
+    avg_num_fds = Column(Integer)
+    max_num_fds = Column(Integer)
 
-    #misc
-    num_polls = Column(Integer)
-    names = Column(Text)
-    num_processes = Column(Integer)
-    pids = Column(Text)
-    exit_status = Column(Integer)
-    SC_CLK_TCK = Column(Integer)
 
     @declared_attr
     def status(cls):
@@ -248,43 +231,16 @@ class Task(Base):
     def command_script_text(self):
         return readfile(self.output_command_script_path).strip()
 
+    @property
+    def forwarded_inputs(self):
+        return [ifa.taskfile for ifa in self.input_file_assoc if ifa.forward]
+
+    @property
     def all_outputs(self):
         """
         :return: all output taskfiles, including any being forwarded
         """
-        return self.taskfiles + [self.get_outputs(name, False) for name in self.forward_inputs]
-
-    def get_outputs(self, name=None, format=None, error_if_missing=True):
-        """
-        Returns the output corresponding to `name` and `format` (if specified).  If `name` is a forwarded_input, the first output_file found in
-        a parent that matches will be returned.
-        :param name: the name of the taskfile
-        :param format: The format of the taskfile
-        :param error_if_missing: raise a ValueError if the output file cannot be found
-        :return: (TaskFile)
-        """
-        assert name or format, 'either `name` or `format` must be specified'
-
-        def matches(taskfile):
-            a = format is None or taskfile.format == format
-            b = name is None or taskfile.name == name
-            return a and b
-
-        outputs = filter(matches, self.output_files)
-
-        if format in self.forward_inputs:
-            for p in self.parents:
-                outputs += p.get_outputs(format, error_if_missing=False)
-
-        if error_if_missing and len(outputs) == 0:
-            raise ValueError('Output with params `{0}` does not exist in {1}'.format(dict(name=name, format=format), self))
-
-        return outputs
-
-    @property
-    def input_files(self):
-        """A list of input TaskFiles"""
-        return list(it.chain(*[tf for tf in self.map_inputs().values()]))
+        return self.output_files + self.forwarded_inputs
 
     @property
     def profile(self):

@@ -42,7 +42,7 @@ def default_get_submit_args(drm, task, default_queue=None):
                                                                                                 jobname='%s_task(%s)' % (task.stage.name, task.id))
     elif 'ge' in drm:
         # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
-        return '-l cpu={cpu_req}{queue}'.format(mem_req=mem_req,
+        return '-pe smp {cpu_req}{queue}'.format(mem_req=mem_req,
                                                 cpu_req=cpu_req,
                                                 queue=' -q %s' % default_queue if default_queue else '')
     elif drm == 'local':
@@ -178,8 +178,9 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
+from .models.Tool import collapse_tools
 # from .db import get_session
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-           'Tool']
+           'Tool', 'collapse_tools']

@@ -1,9 +1,10 @@
-from .util.helpers import groupby, duplicates
-from .util.sqla import get_or_create
-from . import TaskStatus, Stage, Input
 import functools
 
 import networkx as nx
+
+from .util.helpers import groupby, duplicates
+from .util.sqla import get_or_create
+from . import TaskStatus, Stage
 
 
 def render_recipe(execution, recipe, settings, parameters, drm):
@@ -16,7 +17,7 @@ def render_recipe(execution, recipe, settings, parameters, drm):
     existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
     # This replicates the recipe_stage_G, a graph of RecipeStage objects, into a stage_G a graph of Stage objects
     f = functools.partial(_recipe_stage2stage, execution=execution)
-    #want to add stages in the correct order
+    # want to add stages in the correct order
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
     for i, stage in enumerate(nx.topological_sort(stage_g)):
@@ -31,8 +32,7 @@ def render_recipe(execution, recipe, settings, parameters, drm):
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
-                        new_task = source_tool.generate_task(stage=stage, parents=[], settings=settings,
-                                                             parameters=stage_parameters,
+                        new_task = source_tool.generate_task(stage=stage, parents=[],
                                                              drm=drm)
                         task_g.add_node(new_task)
 
@@ -44,8 +44,6 @@ def render_recipe(execution, recipe, settings, parameters, drm):
                     else:
                         new_task = stage.tool_class(tags=new_task_tags).generate_task(stage=stage,
                                                                                       parents=parent_tasks,
-                                                                                      settings=settings,
-                                                                                      parameters=stage_parameters,
                                                                                       drm=drm)
 
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])

@@ -1,8 +1,10 @@
 import shutil
 import os
+
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
 from sqlalchemy.orm import relationship, backref
 
+from recordtype import recordtype
 from ..db import Base
 
 
@@ -16,39 +18,28 @@ association_table = Table('input_files', Base.metadata,
                           Column('task', Integer, ForeignKey('task.id')),
                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
-
-class taskfile_dict(dict):
-    _output_taskfile = False
-    _input_taskfile = False
-
-    @property
-    def name(self):
-        return self['name']
-
-    @property
-    def format(self):
-        return self['format']
-
-    @property
-    def basename(self):
-        if self._input_taskfile:
-            return self['basename']
-        else:
-            raise AssertionError, 'taskfile_dict.output_taskfiles have no basename'
+AbstractInputFile = recordtype('AbstractInputFile', ['name', 'format','forward'])
+AbstractOutputFile = recordtype('AbstractOutputFile', ['name', 'format','basename'])
 
 
 def output_taskfile(name=None, format=None, basename=None):
     assert name and format, 'must specify name and format'
-    d = taskfile_dict(name=name, format=format, basename=basename)
-    d._output_taskfile = True
-    return d
+    return AbstractOutputFile(name=name, format=format, basename=basename)
 
 
-def input_taskfile(name=None, format=None):
+def input_taskfile(name=None, format=None, forward=False):
     assert name or format, 'must specify either name or format'
-    d = taskfile_dict(name=name, format=format)
-    d._input_taskfile = True
-    return d
+    return AbstractInputFile(name=name, format=format, forward=forward)
+
+
+
+class InputFileAssociation(Base):
+    __tablename__ = 'input_file_assoc'
+    task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
+    taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
+    forward = Column(Boolean, default=False)
+    taskfile = relationship("TaskFile")
+    task = relationship("Task", backref=backref("input_file_assoc", cascade="all, delete-orphan", single_parent=True))
 
 
 class TaskFile(Base):
@@ -61,13 +52,12 @@ class TaskFile(Base):
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))
     task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan"))
-    tasks_input_for = relationship("Task", backref=backref('input_files'), secondary=association_table)
+    input_file_assoc = relationship("InputFileAssociation", backref=backref("input_file_assoc"))
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
-    # format = Column(String(255), nullable=False)
     basename = Column(String(255), nullable=False)
-    persist = Column(Boolean)
+    persist = Column(Boolean, default=False)
 
     @property
     def prefix(self):
@@ -114,6 +104,6 @@ def in_directory(file, directory):
     directory = os.path.join(os.path.realpath(directory), '')
     file = os.path.realpath(file)
 
-    #return true, if the common prefix of both is equal to directory
+    # return true, if the common prefix of both is equal to directory
     #e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([file, directory]) == directory

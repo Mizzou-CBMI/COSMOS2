@@ -64,11 +64,11 @@
     <h2>Resources</h2>
     <table class="table table-striped table-condensed">
         <tbody>
-        <tr><th>Category</th><th>Field</th><th>Value</th><th>Description</th>
+        <tr><th>Name</th><th>Value</th>
         </tbody>
-        {% for category, field, value, help in resource_usage %}
+        {% for field, value in resource_usage %}
         <tr>
-            <td>{{category}}</td><td>{{field}}</td><td>{{ field|format_resource_usage(value, help) }}</td><td>{{help}}</td>
+            <td>{{field}}</td><td>{{ field|format_resource_usage(value) }}</td>
         </tr>
         {% endfor %}
     </table>

@@ -7,6 +7,12 @@ from itertools import (chain, combinations, count, cycle, groupby, ifilterfalse,
 
 
 def partition(predicate, items):
+    """
+    Partition items into two generators, one who's predicate returns True and the other who's predicate returns False
+    :param predicate: a function
+    :param items: an iterable
+    :return: two generators
+    """
     a, b = tee((predicate(item), item) for item in items)
     return ((item for pred, item in b if pred),(item for pred, item in a if not pred))
 

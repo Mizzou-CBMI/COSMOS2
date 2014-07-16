@@ -62,8 +62,9 @@ def gen_bprint(kosmos_app):
     @bprint.route('/task/<int:id>/')
     def task(id):
         task = session.query(Task).get(id)
-        resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
-                          task.profile_fields for field in fields]
+        # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
+        #                   task.profile_fields for field in fields]
+        resource_usage = [ (field, getattr(task, field)) for field in task.profile_fields ]
         return render_template('kosmos/task.html', task=task, resource_usage=resource_usage)
 
 
@@ -128,7 +129,7 @@ profile_help = dict(
 
     #misc
     num_polls='Number of times the resource usage statistics were polled from /proc',
-    names='Names of all descendnt processes (there is always a python process for the profile.py script)',
+    names='Names of all descendnt processes (there is always a python process for the profile_working.py script)',
     num_processes='Total number of descendant processes that were spawned',
     pids='Pids of all the descendant processes',
     exit_status='Exit status of the primary process being profiled',

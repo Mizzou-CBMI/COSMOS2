@@ -35,9 +35,8 @@ def _default_task_output_dir(task):
 
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
-    ex.log.info('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
-
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
+        ex.log.info('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
         ex.finished_on = func.now()
 
     if ex.status == ExecutionStatus.successful:
@@ -256,7 +255,7 @@ class Execution(Base):
         # set commands of new tasks
         for task in task_queue.nodes():
             if not task.NOOP:
-                task.command = task.tool.generate_command(task)
+                task.command = task.tool.generate_command(task, settings=settings)
 
         session.commit()
 

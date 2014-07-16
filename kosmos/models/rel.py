@@ -162,6 +162,6 @@ class Many2many(Relationship):
     @classmethod
     def reduce_split(klass, stage):
         for tags, parent_task_group in Many2one.reduce(stage, stage.rel.reduce_by):
-            for new_tags in One2many.split(stage.rel.split_by):
+            for new_tags in One2many.split(stage.rel.split_by, None):
                 new_tags.update(tags)
                 yield new_tags, parent_task_group

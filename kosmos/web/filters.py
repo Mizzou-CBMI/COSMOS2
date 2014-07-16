@@ -15,17 +15,30 @@ def add_filters(bprint):
         return Markup(s)
 
 
+    # @bprint.add_app_template_filter
+    # def format_resource_usage(field_name, val, help_txt):
+    #     if val is None:
+    #         return ''
+    #     elif re.search(r"\(Kb\)", help_txt):
+    #         if val == 0: return '0'
+    #         return "{0}({1})".format(intWithCommas(val), format_memory_kb(val))
+    #     elif re.search(r"time", field_name):
+    #         return "{1}".format(val, format_time(val))
+    #     elif field_name == 'percent_cpu':
+    #         return "{0}%".format(val)
+    #     elif type(val) in [int, long]:
+    #         return intWithCommas(val)
+    #     return str(val)
     @bprint.add_app_template_filter
-    def format_resource_usage(field_name, val, help_txt):
+    def format_resource_usage(field_name, val):
         if val is None:
             return ''
-        elif re.search(r"\(Kb\)", help_txt):
-            if val == 0: return '0'
-            return "{0}({1})".format(intWithCommas(val), format_memory_kb(val))
-        elif re.search(r"time", field_name):
+        if re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
         elif field_name == 'percent_cpu':
             return "{0}%".format(val)
+        elif 'mem' in field_name:
+            return format_memory_bytes(val)
         elif type(val) in [int, long]:
             return intWithCommas(val)
         return str(val)
@@ -55,7 +68,7 @@ def add_filters(bprint):
             return ''
         a = int(a)
         if 'rss' in attribute:
-            return format_memory_kb(a)
+            return format_memory_bytes(a)
         if 'mem_req' in attribute:
             return format_memory_mb(a)
         if 'time' in attribute:
@@ -91,6 +104,8 @@ def format_memory_kb(kb):
     else:
         return "%sMB" % round(mb, 1)
 
+def format_memory_bytes(bytes):
+    return format_memory_kb(bytes/1024)
 
 def format_memory_mb(mb):
     """converts mb to human readible"""
