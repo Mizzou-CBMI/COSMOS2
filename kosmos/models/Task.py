@@ -5,7 +5,7 @@ import shutil
 
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, \
+from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, BigInteger, \
     Text
 from flask import url_for
 from networkx.algorithms import breadth_first_search
@@ -144,44 +144,41 @@ class Task(Base):
     def input_files(self):
         return [ifa.taskfile for ifa in self.input_file_assoc]
 
-    # forward_inputs = Column(ListOfStrings)
-    # forward_inputs2 = relationship("TaskFile")
-
-    #drmaa related input fields
+    # drmaa related input fields
     drmaa_native_specification = Column(String(255))
 
     #drmaa related and job output fields
     drmaa_jobID = Column(Integer)
 
-    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_bytes', 'io_write_bytes',
-                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem', 'max_rss_mem', 'avg_vms_mem', 'max_vms_mem', 'avg_num_threads', 'max_num_threads',
+    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
+                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads', 'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
     exclude_from_dict = profile_fields + ['command', 'info']
 
     exit_status = Column(Integer)
 
     percent_cpu = Column(Integer)
-    wall_time = Column(Integer)
+    wall_time = Column(BigInteger)
 
-    cpu_time = Column(Integer)
-    user_time = Column(Integer)
-    system_time = Column(Integer)
+    cpu_time = Column(BigInteger)
+    user_time = Column(BigInteger)
+    system_time = Column(BigInteger)
 
-    avg_rss_mem = Column(Integer)
-    max_rss_mem = Column(Integer)
-    avg_vms_mem = Column(Integer)
-    max_vms_mem = Column(Integer)
+    avg_rss_mem_kb = Column(BigInteger)
+    max_rss_mem_kb = Column(BigInteger)
+    avg_vms_mem_kb = Column(BigInteger)
+    max_vms_mem_kb = Column(BigInteger)
 
-    io_read_count = Column(Integer)
-    io_write_count = Column(Integer)
-    io_read_bytes = Column(Integer)
-    io_write_bytes = Column(Integer)
+    io_read_count = Column(BigInteger)
+    io_write_count = Column(BigInteger)
+    io_read_kb = Column(BigInteger)
+    io_write_kb = Column(BigInteger)
 
-    ctx_switch_voluntary = Column(Integer)
-    ctx_switch_involuntary = Column(Integer)
+    ctx_switch_voluntary = Column(BigInteger)
+    ctx_switch_involuntary = Column(BigInteger)
 
-    avg_num_threads = Column(Integer)
-    max_num_threads = Column(Integer)
+    avg_num_threads = Column(BigInteger)
+    max_num_threads = Column(BigInteger)
 
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
@@ -271,7 +268,7 @@ class Task(Base):
         tags = '' if len(self.tags) == 0 else "\\n {0}".format(
             "\\n".join(["{0}: {1}".format(k, v) for k, v in self.tags.items()]))
 
-        return "[%s] %s%s" % ( self.id, self.stage.name, tags)
+        return "[%s] %s%s" % (self.id, self.stage.name, tags)
 
     def tags_as_query_string(self):
         import urllib

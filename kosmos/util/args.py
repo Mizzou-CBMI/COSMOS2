@@ -19,7 +19,6 @@ def add_execution_args(parser):
                         help="Completely restart the execution.  Note this will delete all record of the execution in the database")
     parser.add_argument('-y', '--skip_confirm', action='store_true',
                         help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
-    parser.add_argument('--drm', help="the drm to use when submitting jobs")
 
 
 # def parse_and_start(kosmos_app, parser, root_output_dir=None):

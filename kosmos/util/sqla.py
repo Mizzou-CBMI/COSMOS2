@@ -1,7 +1,7 @@
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 
-class Enum34_ColumnType(types.TypeDecorator):
+class Enum34_ColumnType(types.SchemaType, types.TypeDecorator):
     """
     Enum compatible with enum34 package
     """
@@ -10,7 +10,13 @@ class Enum34_ColumnType(types.TypeDecorator):
 
     def __init__(self, enum_class):
         self.enum_class = enum_class
-        return types.TypeDecorator.__init__(self, *enum_class._member_names_)
+        return types.TypeDecorator.__init__(self, *enum_class._member_names_, name=enum_class.__name__)
+
+    def _set_table(self, table, column):
+        """
+        Required for sqlalchemy to create enum types for postgres
+        """
+        self.impl._set_table(table, column)
 
     def process_bind_param(self, value, dialect):
         assert isinstance(value, self.enum_class) or value is None, "'%s' must be of type %s" % (value, self.enum_class)

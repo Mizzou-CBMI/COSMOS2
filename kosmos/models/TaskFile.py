@@ -47,7 +47,7 @@ class TaskFile(Base):
     Task File.
     """
     __tablename__ = 'taskfile'
-    __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc1'),)
+    __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc_tf_name_fmt'),)
 
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))

@@ -45,10 +45,10 @@ class DRM_GE(DRM):
         :returns: (dict) task.drmaa_jobID -> drm_status
         """
         if len(tasks):
-            bjobs = qstat_all()
+            qjobs = qstat_all()
 
             def f(task):
-                return bjobs.get(str(task.drmaa_jobID), dict()).get('state', '???')
+                return qjobs.get(str(task.drmaa_jobID), dict()).get('state', '???')
 
             return {task.drmaa_jobID: f(task) for task in tasks}
         else:

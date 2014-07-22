@@ -33,18 +33,20 @@ def default_get_submit_args(drm, task, default_queue=None):
     cpu_req = task.cpu_req
     mem_req = task.mem_req
     time_req = task.time_req
+    jobname='%s_task(%s)' % (task.stage.name, task.id)
 
     if 'lsf' in drm:
         return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue} -J "{jobname}"'.format(mem=(mem_req or 0) / cpu_req,
                                                                                                 cpu=cpu_req,
                                                                                                 time=' -W 0:{0}'.format(time_req) if time_req else '',
                                                                                                 queue=' -q %s' % default_queue if default_queue else '',
-                                                                                                jobname='%s_task(%s)' % (task.stage.name, task.id))
+                                                                                                jobname=jobname)
     elif 'ge' in drm:
         # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
-        return '-pe smp {cpu_req}{queue}'.format(mem_req=mem_req,
+        return '-pe smp {cpu_req}{queue} -N "{jobname}"'.format(mem_req=mem_req,
                                                 cpu_req=cpu_req,
-                                                queue=' -q %s' % default_queue if default_queue else '')
+                                                queue=' -q %s' % default_queue if default_queue else '',
+                                                jobname=jobname)
     elif drm == 'local':
         return None
     else:
@@ -52,7 +54,7 @@ def default_get_submit_args(drm, task, default_queue=None):
 
 
 class Kosmos(object):
-    def __init__(self, database_url, get_submit_args=default_get_submit_args, default_queue=None, flask_app=None):
+    def __init__(self, database_url, get_submit_args=default_get_submit_args, default_drm='local', default_queue=None, flask_app=None):
         """
 
         :param database_url: a sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or mysql://user:pass@localhost/insilico
@@ -73,6 +75,7 @@ class Kosmos(object):
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
         self.default_queue = default_queue
+        self.default_drm = default_drm
 
     def initdb(self):
         """

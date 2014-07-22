@@ -34,7 +34,7 @@ stage_edge_table = Table('stage_edge', Base.metadata,
 
 class Stage(Base):
     __tablename__ = 'stage'
-    __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc1'),)
+    __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc_execution_name'),)
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)

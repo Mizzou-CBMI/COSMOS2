@@ -1,51 +1,56 @@
 """
 example output:
 {
-    "avg_num_fds": 0,
     "avg_num_threads": 1,
-    "avg_rss_mem": 0,
-    "avg_vms_mem": 0,
     "cpu_time": 0,
-    "ctx_switch_involuntary": 2,
-    "ctx_switch_voluntary": 11,
-    "exit_status": 0,
-    "max_num_fds": 0,
+    "avg_vms_mem_kb": 11427840,
+    "io_read_kb": 4096,
+    "io_write_kb": 0,
     "max_num_threads": 1,
-    "max_rss_mem": 0,
-    "max_vms_mem": 0,
-    "num_polls": 1,
-    "percent_cpu": 0,
     "system_time": 0,
+    "max_rss_mem_kb": 1470464,
+    "percent_cpu": 0,
+    "max_vms_mem_kb": 11427840,
+    "wall_time": 2,
+    "ctx_switch_voluntary": 12,
     "user_time": 0,
-    "wall_time": 2
+    "avg_num_fds": 4,
+    "num_polls": 1,
+    "max_num_fds": 4,
+    "io_write_count": 0,
+    "avg_rss_mem_kb": 1470464,
+    "ctx_switch_involuntary": 3,
+    "io_read_count": 12,
+    "exit_status": 0
 }
 """
+from __future__ import division
 import time
 import itertools as it
-import psutil
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, namedtuple
 import os
 import signal
 import json
 import sys
 
-CATEGORIES = dict(rss='memory_info',
-                  vms='memory_info',
-                  num_fds='num_fds',
-                  voluntary='num_ctx_switches',
-                  involuntary='num_ctx_switches',
-                  num_threads='num_threads',
-                  read_count='io_counters',
-                  write_count='io_counters',
-                  read_bytes='io_counters',
-                  write_bytes='io_counters',
-                  user='cpu_times',
-                  system='cpu_times')
+import psutil
 
 
-def name2category(name):
-    return CATEGORIES.get(name.replace('avg_', '').replace('max_', ''), None)
-
+data_type = namedtuple('data_type', ['new_name', 'category'])
+SCHEMA = OrderedDict([
+    ('user', data_type('user_time', 'cpu_times')),
+    ('system', data_type('system_time', 'cpu_times')),
+    ('rss', data_type('rss_mem_kb', 'memory_info')),
+    ('vms', data_type('vms_mem_kb', 'memory_info')),
+    ('read_count', data_type('read_count', 'io_counters')),
+    ('read_bytes', data_type('io_read_kb', 'io_counters')),
+    ('write_bytes', data_type('io_write_kb', 'io_counters')),
+    ('write_count', data_type('io_write_count', 'io_counters')),
+    ('num_fds', data_type('num_fds', 'num_fds')),
+    ('voluntary', data_type('ctx_switch_voluntary', 'num_ctx_switches')),
+    ('involuntary', data_type('ctx_switch_involuntary', 'num_ctx_switches')),
+    ('num_threads', data_type('num_threads', 'num_threads')),
+])
 
 def _mean(values):
     n = 0.0
@@ -68,32 +73,51 @@ def _max(values):
 
 
 def _poll(p):
+    """
+    Polls a process
+    :yields: (attribute_name, value)
+    """
+
+    def _human_readable(field, value):
+        new_name = SCHEMA[field].new_name
+        if 'kb' in new_name:
+            value = int(value /1024.)
+        return new_name, value
+
+
     attrs = ['cpu_times', 'memory_info', 'io_counters', 'num_fds', 'num_ctx_switches', 'num_threads']
-    for a in attrs:
+    for category in attrs:
         try:
-            r = getattr(p, 'get_' + a)()
+            r = getattr(p, 'get_' + category)()
         except (psutil.AccessDenied, psutil.NoSuchProcess):
             continue
 
         if hasattr(r, '_fields'):
             for field in r._fields:
-                yield field, getattr(r, field)
+                value = getattr(r, field)
         else:
-            yield a, r
+            field, value = category, r
+
+        yield _human_readable(field, value)
 
 
 def _poll_children(p):
+    """
+    :yields: (attribute_name, the sum of all polled values of a process and it's children)
+    """
     polls = (_poll(child) for child in it.chain(p.get_children(recursive=True), [p]))
     for tuples in it.izip(*polls):
-        yield tuples[0][0], sum(value for _, value in tuples)
+        name = tuples[0][0]
+        yield name, sum(value for _, value in tuples)
 
 
 def main(command_script, poll_interval=1, output_file=None):
+    command_script = os.path.abspath(command_script)
     try:
-        # Declare data stores
+        # Declare data store variables
         records = defaultdict(list)
         output = OrderedDict()
-        for place_holder in ['percent_cpu', 'wall_time', 'cpu_time']:
+        for place_holder in ['percent_cpu', 'wall_time', 'cpu_time', 'avg_rss_mem_kb', 'avg_vms_mem_kb', 'max_rss_mem_kb', 'max_vms_mem_kb']:
             output[place_holder] = None
 
         # Run the command and do the polling
@@ -103,50 +127,40 @@ def main(command_script, poll_interval=1, output_file=None):
         while proc.poll() is None:
             num_polls += 1
             for name, value in _poll_children(proc):
-                if name in ['rss', 'vms', 'num_threads', 'num_fds']:
+                if name in ['rss_mem_kb', 'vms_mem_kb', 'num_threads', 'num_fds']:
+                    # TODO consolidate values to avoid using too much ram.  need to save max to do this
+                    # if num_polls % 3600 == 0:
+                    # records[name] = [_mean(records[name])]
+
                     records[name].append(value)
                 else:
                     output[name] = int(value)
+
             time.sleep(poll_interval)
 
     except KeyboardInterrupt:
         print >> sys.stderr, 'Caught a SIGINT (ctrl+c), terminating'
         os.kill(proc.pid, signal.SIGINT)
 
-    for name in ['rss', 'vms', 'num_threads', 'num_fds']:
+    # Get means and maxes
+    for name in ['rss_mem_kb', 'vms_mem_kb', 'num_threads', 'num_fds']:
         output['avg_%s' % name] = _mean(records[name])
         output['max_%s' % name] = _max(records[name])
 
+    # Calculate some extra fielsd
     output['exit_status'] = proc.poll()
     end_time = time.time()  # waiting till last second
     output['num_polls'] = num_polls
     output['wall_time'] = int(end_time - start_time)
-    if output.get('walltime') and output.get('cpu_time'):
-        output['percent_cpu'] = int(round(float(output['cpu_time']) / float(output['wall_time']), 2) * 100)
+    if output.get('cpu_time'):
+        output['percent_cpu'] = int(round(float(output.get('cpu_time', 0) / float(output['wall_time']), 2) * 100))
     else:
         output['percent_cpu'] = 0
-    output['cpu_time'] = output['user'] + output['system']
+    output['cpu_time'] = output.get('user_time', 0) + output.get('system_time', 0)
 
 
-    # # #
     # Write output
-    # # #
-
-    def human_readable(data):
-        for name, value in data.items():
-            c = name2category(name)
-            if c == 'cpu_times':
-                name += '_time'
-            elif c == 'io_counters':
-                name = 'io_' + name
-            elif c == 'num_ctx_switches':
-                name = 'ctx_switch_' + name
-            elif c == 'memory_info':
-                name += '_mem'
-
-            yield name, value
-
-    output_json = json.dumps(dict(human_readable(output)), indent=4)
+    output_json = json.dumps(output, indent=4)
     if output_file:
         with open(output_file, 'w') as fh:
             fh.write(output_json)

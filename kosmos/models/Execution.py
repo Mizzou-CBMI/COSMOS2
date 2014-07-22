@@ -87,7 +87,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, kosmos_app, name, output_dir, drm, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
+    def start(cls, kosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -100,8 +100,6 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
-        allowable_drms = ['lsf', 'local', 'ge']
-        assert drm in allowable_drms, 'unsupported drm, drm must be one of: %s' % allowable_drms
         output_dir = os.path.abspath(output_dir)
         session = kosmos_app.session
         #assert name is not None, 'name cannot be None'
@@ -115,18 +113,22 @@ class Execution(Base):
             ex = session.query(Execution).filter_by(name=name).first()
             if ex:
                 old_id = ex.id
-                msg = 'Are you sure you want to delete the contents of`%s` and delete all sql records of %s?' % (
-                    ex.output_dir, ex)
+                msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` and all sql records for this execution?' % (ex.output_dir, ex)
                 if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
                 ex.delete(delete_files=True)
+            else:
+                if not skip_confirm and not confirm('Execution with name %s does not exist, but `restart` is set to True.  Continue by starting a new Execution?' % name):
+                    raise SystemExit('Quitting')
 
         #resuming?
         ex = session.query(Execution).filter_by(name=name).first()
         #msg = 'Execution started, Kosmos v%s' % __version__
         if ex:
             #resuming.
+            if not skip_confirm and not confirm('Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the recipe will be added and executed.  Are you sure?' % ex):
+                raise SystemExit('Quitting')
             ex.successful = False
             ex.finished_on = None
             if output_dir is None:
@@ -134,7 +136,10 @@ class Execution(Base):
             else:
                 assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
 
-            #ex.log.info(msg)
+            if not os.path.exists(ex.output_dir):
+                raise IOError('output_directory %s does not exist, cannot resume %s' % (ex.output_dir, ex))
+
+            ex.log.info('Resuming %s' % ex)
             session.add(ex)
             q = ex.tasksq.filter_by(successful=False)
             n = q.count()
@@ -158,7 +163,6 @@ class Execution(Base):
 
         ex.max_cpus = max_cpus
         ex.max_attempts = max_attempts
-        ex.drm = drm
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
         mkdir(output_dir)
@@ -185,12 +189,12 @@ class Execution(Base):
             self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
             return self.log
         else:
-            return super(Execution, self).__getattr__(item)
+            raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, parameters={}, dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, dry=False):
         """
-        Renders and executes the :param:`recipe` using the configured :term:`DRM`.
+        Renders and executes the :param:`recipe`
 
         :param recipe: (Recipe) the Recipe to render and execute.
         :param task_output_dir: a function that computes a tasks' output_dir.
@@ -201,8 +205,6 @@ class Execution(Base):
         :param settings: (dict) A dict which contains settings used when rendering a recipe to generate the commands.
             keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
             stage as the `s` parameter.
-        :param parameters: (dict) Structure is the same as settings, but values are passed to the Tool.cmd() as
-            **kwargs.  ex: if parameters={'MyTool':{'x':1}}, then MyTool.cmd will be passed the parameter x=1.
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
@@ -214,7 +216,7 @@ class Execution(Base):
 
         self.jobmanager = JobManager(get_submit_args=self.kosmos_app.get_submit_args, default_queue=self.kosmos_app.default_queue)
 
-        self.log.info('Running %s using DRM `%s`, output_dir: `%s`' % (self, self.drm, self.output_dir))
+        self.log.info('Rendering recipe for %s using DRM `%s`, output_dir: `%s`' % (self, self.kosmos_app.default_drm, self.output_dir))
         session = self.session
         assert session, 'Execution must be part of a sqlalchemy session'
         self.status = ExecutionStatus.running
@@ -224,7 +226,7 @@ class Execution(Base):
             self.started_on = func.now()
 
         # Render task graph and to session
-        task_g, stage_g = taskgraph.render_recipe(self, recipe, settings=settings, parameters=parameters, drm=self.drm)
+        task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.kosmos_app.default_drm)
         session.add_all(stage_g.nodes())
         session.add_all(task_g.nodes())
 
@@ -255,7 +257,7 @@ class Execution(Base):
         # set commands of new tasks
         for task in task_queue.nodes():
             if not task.NOOP:
-                task.command = task.tool.generate_command(task, settings=settings)
+                task.command = task.tool.generate_command(task, settings)
 
         session.commit()
 

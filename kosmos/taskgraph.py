@@ -7,7 +7,7 @@ from .util.sqla import get_or_create
 from . import TaskStatus, Stage
 
 
-def render_recipe(execution, recipe, settings, parameters, drm):
+def render_recipe(execution, recipe, default_drm):
     """
     Generates a stagegraph and taskgraph described by a Recipe
     :returns: (nx.DiGraph taskgraph, nx.DiGraph stagegraph)
@@ -21,7 +21,6 @@ def render_recipe(execution, recipe, settings, parameters, drm):
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
     for i, stage in enumerate(nx.topological_sort(stage_g)):
-        stage_parameters = parameters.get(stage.name, dict())
         stage.number = i + 1
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
@@ -32,8 +31,7 @@ def render_recipe(execution, recipe, settings, parameters, drm):
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
-                        new_task = source_tool.generate_task(stage=stage, parents=[],
-                                                             drm=drm)
+                        new_task = source_tool._generate_task(stage=stage, parents=[], default_drm=default_drm)
                         task_g.add_node(new_task)
 
             else:
@@ -42,9 +40,9 @@ def render_recipe(execution, recipe, settings, parameters, drm):
                     if existing_task:
                         new_task = existing_task
                     else:
-                        new_task = stage.tool_class(tags=new_task_tags).generate_task(stage=stage,
+                        new_task = stage.tool_class(tags=new_task_tags)._generate_task(stage=stage,
                                                                                       parents=parent_tasks,
-                                                                                      drm=drm)
+                                                                                      default_drm=default_drm)
 
                     task_g.add_edges_from([(p, new_task) for p in parent_tasks])
         stage.resolved = True
