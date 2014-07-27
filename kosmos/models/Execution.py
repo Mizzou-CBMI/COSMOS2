@@ -266,10 +266,11 @@ class Execution(Base):
 
         taskfiles = self.taskfilesq.all()
         f = lambda tf: tf.path
-        for path, group in it.groupby(sorted(taskfiles, key=f), f):
+        for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
             group = list(group)
             if len(group) > 1:
-                raise ValueError('Duplicate taskfiles paths detected.\n TaskFiles: %s\nTasks: %s, %s' % (group, group[0].task_output_for, group[1].task_output_for))
+                s = "\n".join((task, tf.task_output_for) for tf in group)
+                raise ValueError('Duplicate taskfiles paths detected.\n %s' % (s))
 
 
         def reset_stage_attrs():
