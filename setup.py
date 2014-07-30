@@ -1,11 +1,12 @@
-from setuptools import find_packages, setup
+from distutils.core import setup
+from setuptools import find_packages
 
 setup(
     # Metadata
-    name="kosmos",
+    name="cosmos-wfm",
     version="0.5",
     description="Workflow Management System",
-    url="",
+    url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
     author_email="egafni@gmail.com",
     maintainer="Erik Gafni",
@@ -17,13 +18,11 @@ setup(
 	    "flask",
         'blinker',
         'Flask-Admin',
-        #'Flask-DebugToolbar',
         'Flask-SQLAlchemy',
         'Flask-WTF',
         'networkx',
         "ipython",
         "enum34"],
-    scripts=["bin/kosmos"],
     # Packaging Instructions
     packages=find_packages(),
     include_package_data=True
