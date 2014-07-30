@@ -25,7 +25,8 @@ setup(
         "enum34"],
     # Packaging Instructions
     packages=find_packages(),
-    include_package_data=True
+    package_data={'': ['examples/*']}
+
 )
 
 
