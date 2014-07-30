@@ -1,4 +1,4 @@
-from kosmos import Execution, Kosmos, Recipe, Input, ExecutionStatus, signal_execution_status_change
+from cosmos import Execution, Cosmos, Recipe, Input, ExecutionStatus, signal_execution_status_change
 import tools
 
 @signal_execution_status_change.connect
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     inp = r.add_source([Input('blah', '/tmp', {'test': 'tag'})])
     fail = r.add_stage(tools.Fail, inp)
 
-    kosmos_app = Kosmos('sqlite:///email_on_failure.db', default_drm='local')
-    kosmos_app.initdb()
-    ex = Execution.start(kosmos_app=kosmos_app, output_dir='out/email_on_failure', name='email_on_failure', restart=True, max_attempts=2)
+    cosmos_app = Cosmos('sqlite:///email_on_failure.db', default_drm='local')
+    cosmos_app.initdb()
+    ex = Execution.start(cosmos_app=cosmos_app, output_dir='out/email_on_failure', name='email_on_failure', restart=True, max_attempts=2)
     ex.run(r, lambda x: x.execution.output_dir)

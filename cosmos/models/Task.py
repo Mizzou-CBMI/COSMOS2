@@ -55,7 +55,7 @@ def task_status_changed(task):
 
     elif task.status == TaskStatus.submitted:
         if not task.NOOP:
-            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drmaa_jobID))
+            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drm_jobID))
         task.submitted_on = func.now()
         task.stage.status = StageStatus.running
 
@@ -132,22 +132,18 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-    # always_local = Column(Boolean, default=False)
     parents = relationship("Task",
                            secondary=task_edge_table,
                            primaryjoin=id == task_edge_table.c.parent_id,
                            secondaryjoin=id == task_edge_table.c.child_id,
                            backref='children')
-    command = Column(Text)
+    #command = Column(Text)
 
     @property
     def input_files(self):
-        return [ifa.taskfile for ifa in self.input_file_assoc]
+        return [ifa.taskfile for ifa in self._input_file_assocs]
 
-    # drmaa related input fields
     drm_native_specification = Column(String(255))
-
-    #drmaa related and job output fields
     drm_jobID = Column(Integer)
 
     profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
@@ -230,14 +226,14 @@ class Task(Base):
 
     @property
     def forwarded_inputs(self):
-        return [ifa.taskfile for ifa in self.input_file_assoc if ifa.forward]
+        return [ifa.taskfile for ifa in self._input_file_assocs if ifa.forward]
 
-    @property
-    def all_outputs(self):
-        """
-        :return: all output taskfiles, including any being forwarded
-        """
-        return self.output_files + self.forwarded_inputs
+    # @property
+    # def all_outputs(self):
+    #     """
+    #     :return: all output taskfiles, including any being forwarded
+    #     """
+    #     return self.output_files + self.forwarded_inputs
 
     @property
     def profile(self):
@@ -288,7 +284,7 @@ class Task(Base):
 
     @property
     def url(self):
-        return url_for('kosmos.task', id=self.id)
+        return url_for('cosmos.task', id=self.id)
 
     def __repr__(self):
         s = self.stage.name if self.stage else ''

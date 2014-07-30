@@ -162,7 +162,7 @@ def get_logger(name, path):
     log.setLevel(logging.DEBUG)
     # create file handler which logs debug messages
     if path:
-        assert os.path.exists(os.path.dirname(path)), '%s does not exist' % path
+        assert os.path.exists(os.path.dirname(path)), '%s does not exist' % os.path.dirname(path)
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Kosmos documentation build configuration file, created by
+# Cosmos documentation build configuration file, created by
 # sphinx-quickstart on Tue Jan 28 21:33:30 2014.
 #
 # This file is execfile()d with the current directory set to its
@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Kosmos'
+project = u'Cosmos'
 copyright = u'2014, Erik Gafni'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -185,7 +185,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Kosmosdoc'
+htmlhelp_basename = 'Cosmosdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -205,7 +205,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Kosmos.tex', u'Kosmos Documentation',
+  ('index', 'Cosmos.tex', u'Cosmos Documentation',
    u'Erik Gafni', 'manual'),
 ]
 
@@ -235,7 +235,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'kosmos', u'Kosmos Documentation',
+    ('index', 'cosmos', u'Cosmos Documentation',
      [u'Erik Gafni'], 1)
 ]
 
@@ -249,8 +249,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Kosmos', u'Kosmos Documentation',
-   u'Erik Gafni', 'Kosmos', 'One line description of project.',
+  ('index', 'Cosmos', u'Cosmos Documentation',
+   u'Erik Gafni', 'Cosmos', 'One line description of project.',
    'Miscellaneous'),
 ]
 

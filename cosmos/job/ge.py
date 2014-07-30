@@ -10,7 +10,7 @@ class DRM_GE(DRM):
     name = 'ge'
 
     def submit_job(self, task):
-        ns = ' ' + task.drmaa_native_specification if task.drmaa_native_specification else ''
+        ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
                                                                                     stderr=task.output_stderr_path,
                                                                                     ns=ns)
@@ -20,14 +20,14 @@ class DRM_GE(DRM):
                               preexec_fn=preexec_function(),
                               shell=True)
 
-        task.drmaa_jobID = int(re.search('job (\d+) ', out).group(1))
+        task.drm_jobID = int(re.search('job (\d+) ', out).group(1))
 
     def filter_is_done(self, tasks):
         if len(tasks):
             qjobs = qstat_all()
 
             def f(task):
-                jid = str(task.drmaa_jobID)
+                jid = str(task.drm_jobID)
                 if jid not in qjobs:
                     # print 'missing %s %s' % (task, task.drm_jobID)
                     return True
@@ -48,16 +48,16 @@ class DRM_GE(DRM):
             qjobs = qstat_all()
 
             def f(task):
-                return qjobs.get(str(task.drmaa_jobID), dict()).get('state', '???')
+                return qjobs.get(str(task.drm_jobID), dict()).get('state', '???')
 
-            return {task.drmaa_jobID: f(task) for task in tasks}
+            return {task.drm_jobID: f(task) for task in tasks}
         else:
             return {}
 
 
     def kill(self, task):
         "Terminates a task"
-        sp.Popen(['qdel', str(task.drmaa_jobID)])
+        sp.Popen(['qdel', str(task.drm_jobID)])
 
     def kill_tasks(self, tasks):
         for group in grouper(tasks, 50):
@@ -85,6 +85,6 @@ def qstat_all():
 
 def preexec_function():
     # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Kosmos to cleanly
+    # signal handler SIG_IGN.  This allows Cosmos to cleanly
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()

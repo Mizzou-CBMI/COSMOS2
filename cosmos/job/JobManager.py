@@ -34,7 +34,7 @@ class JobManager(object):
             mkdir(task.output_dir)
             mkdir(task.log_dir)
             self._create_command_sh(task)
-            task.drmaa_native_specification = self.get_submit_args(task.drm, task, default_queue=self.default_queue)
+            task.drm_native_specification = self.get_submit_args(task.drm, task, default_queue=self.default_queue)
             assert task.drm is not None, 'task has no drm set'
             self.drms[task.drm].submit_job(task)
             task.status = TaskStatus.submitted
@@ -65,7 +65,6 @@ class JobManager(object):
     def _create_command_sh(self, task):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
-            f.write("#!/bin/bash\n")
             f.write(task.command + "\n")
         os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 

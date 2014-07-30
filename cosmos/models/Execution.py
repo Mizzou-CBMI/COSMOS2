@@ -1,13 +1,13 @@
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, event, orm, PickleType, VARCHAR
-from sqlalchemy.orm import validates, synonym
-from flask import url_for
 import os
 import re
 import shutil
+
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, orm, VARCHAR
+from sqlalchemy.orm import validates, synonym
+from flask import url_for
 import networkx as nx
-import time
-from networkx.algorithms.dag import descendants
+from networkx.algorithms.dag import descendants, topological_sort
 
 from ..db import Base
 
@@ -30,7 +30,11 @@ def _default_task_log_output_dir(task):
 
 def _default_task_output_dir(task):
     """The default function for computing Task.output_dir"""
-    return opj(task.execution.output_dir, task.stage.name, str(task.id))
+    tag_values = map(str, task.tags.values())
+    for v in tag_values:
+        assert re.match("^[\w]$", v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
+                                      'Execution.run' % v
+    return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
 
 
 @signal_execution_status_change.connect
@@ -87,7 +91,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, kosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
+    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -101,8 +105,8 @@ class Execution(Base):
         :returns: an instance of Execution
         """
         output_dir = os.path.abspath(output_dir)
-        session = kosmos_app.session
-        #assert name is not None, 'name cannot be None'
+        session = cosmos_app.session
+        # assert name is not None, 'name cannot be None'
         assert output_dir is not None, 'output_dir cannot be None'
         output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         prefix_dir = os.path.split(output_dir)[0]
@@ -124,10 +128,11 @@ class Execution(Base):
 
         #resuming?
         ex = session.query(Execution).filter_by(name=name).first()
-        #msg = 'Execution started, Kosmos v%s' % __version__
+        #msg = 'Execution started, Cosmos v%s' % __version__
         if ex:
             #resuming.
-            if not skip_confirm and not confirm('Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the recipe will be added and executed.  Are you sure?' % ex):
+            if not skip_confirm and not confirm(
+                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the recipe will be added and executed.  Are you sure?' % ex):
                 raise SystemExit('Quitting')
             ex.successful = False
             ex.finished_on = None
@@ -166,7 +171,7 @@ class Execution(Base):
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
         mkdir(output_dir)
-        ex.kosmos_app = kosmos_app
+        ex.cosmos_app = cosmos_app
 
         return ex
 
@@ -186,13 +191,13 @@ class Execution(Base):
 
     def __getattr__(self, item):
         if item == 'log':
-            self.log = get_logger('kosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
+            self.log = get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
             return self.log
         else:
             raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, task_log_output_dir=_default_task_log_output_dir, settings={}, dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, settings={}, dry=False):
         """
         Renders and executes the :param:`recipe`
 
@@ -200,7 +205,7 @@ class Execution(Base):
         :param task_output_dir: a function that computes a tasks' output_dir.
             It receives one parameter: the task instance.  By default task output is stored in
             output_dir/stage_name/task_id.
-        :param task_log_output_dir: a function that computes a tasks' log_output_dir.  By default task log output is
+        :param log_output_dir: a function that computes a tasks' log_output_dir.  By default task log output is
             stored in output_dir/log/stage_name/task_id.
         :param settings: (dict) A dict which contains settings used when rendering a recipe to generate the commands.
             keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
@@ -208,17 +213,17 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
-        assert hasattr(self, 'kosmos_app'), 'Execution was not initialized using the Execution.start method'
+        assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
-        assert hasattr(task_log_output_dir, '__call__'), 'task_log_output_dir must be a function'
+        assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
+        assert self.session, 'Execution must be part of a sqlalchemy session'
+        session = self.session
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_submit_args=self.kosmos_app.get_submit_args, default_queue=self.kosmos_app.default_queue)
+        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args, default_queue=self.cosmos_app.default_queue)
 
-        self.log.info('Rendering recipe for %s using DRM `%s`, output_dir: `%s`' % (self, self.kosmos_app.default_drm, self.output_dir))
-        session = self.session
-        assert session, 'Execution must be part of a sqlalchemy session'
+        self.log.info('Rendering recipe for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
         self.status = ExecutionStatus.running
         self.successful = False
 
@@ -226,7 +231,7 @@ class Execution(Base):
             self.started_on = func.now()
 
         # Render task graph and to session
-        task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.kosmos_app.default_drm)
+        task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
         session.add_all(stage_g.nodes())
         session.add_all(task_g.nodes())
 
@@ -235,31 +240,23 @@ class Execution(Base):
         successful = filter(lambda t: t.successful, task_g.nodes())
         self.log.info('Skipping %s successful tasks' % len(successful))
         task_queue.remove_nodes_from(successful)
-        self.log.info('Adding %s new tasks' % len(task_queue.nodes()))
 
         terminate_on_ctrl_c(self)
 
-        session.commit()  # required to set IDs for some of the output_dir generation functions
+        # session.commit()  # required to set IDs for the output_dir generation functions
 
         # Set output_dirs of new tasks
-        log_dirs = {t.log_dir: t for t in successful}
         for task in task_queue.nodes():
             task.output_dir = task_output_dir(task)
             assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
-            log_dir = task_log_output_dir(task)
-            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-            log_dirs[log_dir] = task
-            task.log_dir = log_dir
             for tf in task.output_files:
                 if tf.path is None:
                     tf.path = opj(task.output_dir, tf.basename)
 
         # set commands of new tasks
-        for task in task_queue.nodes():
+        for task in topological_sort(task_queue):
             if not task.NOOP:
-                task.command = task.tool.generate_command(task, settings)
-
-        session.commit()
+                task.command = task.tool._generate_command(task, settings)
 
         # Assert no duplicate TaskFiles
         import itertools as it
@@ -272,6 +269,17 @@ class Execution(Base):
                 s = "\n".join((task, tf.task_output_for) for tf in group)
                 raise ValueError('Duplicate taskfiles paths detected.\n %s' % (s))
 
+        # commit so task.id is set for log dir
+        self.log.info('Committing %s Tasks to the SQL database...' % len(task_queue.nodes()))
+        session.commit()
+
+        # set log dirs
+        log_dirs = {t.log_dir: t for t in successful}
+        for task in task_queue.nodes():
+            log_dir = log_output_dir(task)
+            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+            log_dirs[log_dir] = task
+            task.log_dir = log_dir
 
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
@@ -312,11 +320,11 @@ class Execution(Base):
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
-        #return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
+        # return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
     @property
     def taskfilesq(self):
-        from kosmos import TaskFile, Stage
+        from cosmos import TaskFile, Stage
 
         return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
 
@@ -353,7 +361,7 @@ class Execution(Base):
 
     @property
     def url(self):
-        return url_for('kosmos.execution', id=self.id)
+        return url_for('cosmos.execution', id=self.id)
 
 
     def __repr__(self):
@@ -367,19 +375,20 @@ class Execution(Base):
         """
         :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
-        self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
-        for h in self.log.handlers:
-            h.flush()
-            h.close()
-            self.log.removeHandler(h)
-        time.sleep(.1)  # takes a second for logs to flush?
-        if delete_files:
+        if hasattr(self, 'log'):
+            self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
+            for h in self.log.handlers:
+                h.flush()
+                h.close()
+                self.log.removeHandler(h)
+                # time.sleep(.1)  # takes a second for logs to flush?
+        if delete_files and os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
         self.session.delete(self)
         self.session.commit()
 
         # def yield_outputs(self, name):
-        #     for task in self.tasks:
+        # for task in self.tasks:
         #         tf = task.get_output(name, error_if_missing=False)
         #         if tf is not None:
         #             yield tf
@@ -448,7 +457,7 @@ def _run_ready_tasks(task_queue, execution):
             execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
             break
 
-        ## render taskfile paths
+        # # render taskfile paths
         for f in ready_task.output_files:
             if f.path is None:
                 f.path = os.path.join(ready_task.output_dir, f.basename)
@@ -470,7 +479,7 @@ def _process_finished_tasks(jobmanager):
 
 
 def terminate_on_ctrl_c(execution):
-    #terminate on ctrl+c
+    # terminate on ctrl+c
     try:
         def ctrl_c(signal, frame):
             if not execution.successful:

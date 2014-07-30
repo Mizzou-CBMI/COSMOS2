@@ -85,7 +85,7 @@ class Stage(Base):
 
     @property
     def url(self):
-        return url_for('kosmos.stage', execution_id=self.execution_id, stage_name=self.name)
+        return url_for('cosmos.stage', execution_id=self.execution_id, stage_name=self.name)
 
     @property
     def log(self):

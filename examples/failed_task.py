@@ -3,7 +3,7 @@ If a Task fails, all of it's descendants will not be executed, however, the rest
 """
 import os
 
-from kosmos import Execution, Kosmos, rel, Recipe, Input
+from cosmos import Execution, Cosmos, rel, Recipe, Input
 import tools
 
 if __name__ == '__main__':
@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     cat = r.add_stage(tools.Cat, parents=[echo, fail], rel=rel.Many2many([], [('n', [1, 2])]))
 
-    kosmos_app = Kosmos('sqlite.db')
-    kosmos_app.initdb()
-    ex = Execution.start(kosmos_app=kosmos_app, output_dir='out/Failed_Task', drm='local', name='Failed_Task', restart=True, max_attempts=1, skip_confirm=True)
+    cosmos_app = Cosmos('sqlite.db')
+    cosmos_app.initdb()
+    ex = Execution.start(cosmos_app=cosmos_app, output_dir='out/Failed_Task', drm='local', name='Failed_Task', restart=True, max_attempts=1, skip_confirm=True)
     ex.run(r)

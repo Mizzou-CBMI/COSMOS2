@@ -38,8 +38,12 @@ class InputFileAssociation(Base):
     task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
     taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
     forward = Column(Boolean, default=False)
-    taskfile = relationship("TaskFile")
-    task = relationship("Task", backref=backref("input_file_assoc", cascade="all, delete-orphan", single_parent=True))
+    taskfile = relationship("TaskFile", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
+    task = relationship("Task", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
+
+    def delete(self):
+        self.task._input_file_assocs.remove(self)
+        self.taskfile._input_file_assocs.remove(self)
 
 
 class TaskFile(Base):
@@ -52,12 +56,15 @@ class TaskFile(Base):
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))
     task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan"))
-    input_file_assoc = relationship("InputFileAssociation", backref=backref("input_file_assoc"))
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
     basename = Column(String(255), nullable=False)
     persist = Column(Boolean, default=False)
+
+    @property
+    def tasks_input_for(self):
+        return [ ifa.task for ifa in self._input_file_assocs ]
 
     @property
     def prefix(self):
@@ -95,8 +102,9 @@ class TaskFile(Base):
                     shutil.rmtree(self.path)
                 else:
                     os.remove(self.path)
+
         self.session.delete(self)
-        self.session.commit()
+        #self.session.commit()
 
 
 def in_directory(file, directory):

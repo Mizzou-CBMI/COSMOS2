@@ -53,7 +53,7 @@ def default_get_submit_args(drm, task, default_queue=None):
         raise Exception('DRM not supported')
 
 
-class Kosmos(object):
+class Cosmos(object):
     def __init__(self, database_url, get_submit_args=default_get_submit_args, default_drm='local', default_queue=None, flask_app=None):
         """
 
@@ -96,7 +96,7 @@ class Kosmos(object):
         """
         Launch an IPython shell with useful variables already imported
         """
-        kosmos_app = self
+        cosmos_app = self
         session = self.session
         executions = self.session.query(Execution).all()
         ex = executions[-1] if len(executions) else None
@@ -181,9 +181,9 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .models.Tool import collapse_tools
+from .models.Tool import chain
 # from .db import get_session
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-           'Tool', 'collapse_tools']
+           'Tool', 'chain']

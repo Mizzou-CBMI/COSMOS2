@@ -1,14 +1,14 @@
-The COSMOS IPython shell provides a powerful way to inspect, alter and debug your workflows.  The code is very simple, see `meth`:kosmos.Kosmos.shell()
+The COSMOS IPython shell provides a powerful way to inspect, alter and debug your workflows.  The code is very simple, see `meth`:cosmos.Cosmos.shell()
 
 .. code-block:: python
     # set this to an example
-    from kosmos import Kosmos
-    app = Kosmos():
+    from cosmos import Cosmos
+    app = Cosmos():
     app.shell()
 
 .. code-block:: bash
 
-    $ python examples/kosmos.py shell
+    $ python examples/cosmos.py shell
 
     In [1]: executions
     Out[1]:

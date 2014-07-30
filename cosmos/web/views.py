@@ -8,13 +8,13 @@ from sqlalchemy import desc
 import itertools as it
 from operator import attrgetter
 
-def gen_bprint(kosmos_app):
-    session = kosmos_app.session
+def gen_bprint(cosmos_app):
+    session = cosmos_app.session
     def get_execution(id):
         return session.query(Execution).filter_by(id=id).one()
 
-    bprint = Blueprint('kosmos', __name__, template_folder='templates', static_folder='static',
-                       static_url_path='/kosmos/static')
+    bprint = Blueprint('cosmos', __name__, template_folder='templates', static_folder='static',
+                       static_url_path='/cosmos/static')
     filters.add_filters(bprint)
 
     @bprint.route('/execution/delete/<int:id>')
@@ -22,33 +22,33 @@ def gen_bprint(kosmos_app):
         e = get_execution(id)
         e.delete(delete_files=True)
         flash('Deleted %s' % e)
-        return redirect(url_for('kosmos.index'))
+        return redirect(url_for('cosmos.index'))
 
     @bprint.route('/')
     def index():
         executions = session.query(Execution).order_by(desc(Execution.created_on)).all()
         session.expire_all()
-        return render_template('kosmos/index.html', executions=executions)
+        return render_template('cosmos/index.html', executions=executions)
 
 
     @bprint.route('/execution/<int:id>/')
     def execution(id):
         execution = get_execution(id)
-        return render_template('kosmos/execution.html', execution=execution)
+        return render_template('cosmos/execution.html', execution=execution)
 
 
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
-        jm = JobManager(kosmos_app.get_submit_args)
+        jm = JobManager(cosmos_app.get_submit_args)
 
         f = attrgetter('drm')
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(submitted, key=f), f):
             drm_statuses.update(jm.drms[drm].drm_statuses(list(tasks)))
 
-        return render_template('kosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
+        return render_template('cosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
                                #x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
 
@@ -57,7 +57,7 @@ def gen_bprint(kosmos_app):
         s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
         s.delete(delete_files=True)
         flash('Deleted %s' % s)
-        return redirect(url_for('kosmos.execution', id=ex_id))
+        return redirect(url_for('cosmos.execution', id=ex_id))
 
     @bprint.route('/task/<int:id>/')
     def task(id):
@@ -65,7 +65,7 @@ def gen_bprint(kosmos_app):
         # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
         #                   task.profile_fields for field in fields]
         resource_usage = [ (field, getattr(task, field)) for field in task.profile_fields ]
-        return render_template('kosmos/task.html', task=task, resource_usage=resource_usage)
+        return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
 
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
@@ -77,7 +77,7 @@ def gen_bprint(kosmos_app):
         else:
             svg = Markup(stages_to_image(ex.stages))
 
-        return render_template('kosmos/taskgraph.html', execution=ex, type=type,
+        return render_template('cosmos/taskgraph.html', execution=ex, type=type,
                                svg=svg)
 
     # @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')

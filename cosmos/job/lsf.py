@@ -21,7 +21,7 @@ class DRM_LSF(DRM):
     name = 'lsf'
 
     def submit_job(self, task):
-        ns = ' ' + task.drmaa_native_specification if task.drmaa_native_specification else ''
+        ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         bsub = 'bsub -o {stdout} -e {stderr}{ns} '.format(stdout=task.output_stdout_path,
                                                           stderr=task.output_stderr_path,
                                                           ns=ns)
@@ -31,14 +31,14 @@ class DRM_LSF(DRM):
                               preexec_fn=preexec_function(),
                               shell=True)
 
-        task.drmaa_jobID = int(re.search('Job <(\d+)>', out).group(1))
+        task.drm_jobID = int(re.search('Job <(\d+)>', out).group(1))
 
     def filter_is_done(self, tasks):
         if len(tasks):
             bjobs = bjobs_all()
 
             def f(task):
-                jid = str(task.drmaa_jobID)
+                jid = str(task.drm_jobID)
                 if jid not in bjobs:
                     # prob in history
                     # print 'missing %s %s' % (task, task.drm_jobID)
@@ -59,16 +59,16 @@ class DRM_LSF(DRM):
             bjobs = bjobs_all()
 
             def f(task):
-                return bjobs.get(str(task.drmaa_jobID), dict()).get('STAT', '???')
+                return bjobs.get(str(task.drm_jobID), dict()).get('STAT', '???')
 
-            return {task.drmaa_jobID: f(task) for task in tasks}
+            return {task.drm_jobID: f(task) for task in tasks}
         else:
             return {}
 
 
     def kill(self, task):
         "Terminates a task"
-        os.system('bkill {0}'.format(task.drmaa_jobID))
+        os.system('bkill {0}'.format(task.drm_jobID))
 
     def kill_tasks(self, tasks):
         for t in tasks:
@@ -94,6 +94,6 @@ def bjobs_all():
 
 def preexec_function():
     # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Kosmos to cleanly
+    # signal handler SIG_IGN.  This allows Cosmos to cleanly
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()

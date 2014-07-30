@@ -36,7 +36,7 @@ class Tool(object):
     drm = None
     inputs = []
     outputs = []
-    # if adding another attribute, don't forget to update the collapse_tools() method
+    # if adding another attribute, don't forget to update the chain() method
 
 
     def __init__(self, tags):
@@ -66,25 +66,21 @@ class Tool(object):
     def _map_inputs(self, parents):
         """
         Default method to map inputs.  Can be overriden if a different behavior is desired
-        :returns: (list) a list of input taskfiles
+        :returns: [(taskfile, is_forward), ...]
         """
-        if '*' in self.inputs:
-            return {'*': [tf for p in parents for tf in p.all_outputs()]}
-
-        l = []
         for abstract_file in self.inputs:
             for p in parents:
-                for tf in _find(p.all_outputs, abstract_file, error_if_missing=False):
-                    l.append(tf)
-        return l
-
+                for tf in _find(p.output_files+p.forwarded_inputs, abstract_file, error_if_missing=False):
+                    yield tf, abstract_file.forward
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        input_files = self._map_inputs(parents)
-        input_dict = TaskFileDict(input_files, type='input')
+        inputs = list(self._map_inputs(parents))
         drm = 'local' if self.drm == 'local' else default_drm
-        task = Task(stage=stage, tags=self.tags, input_file_assoc=[InputFileAssociation(taskfile=i) for i in input_files], parents=parents, drm=drm, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents, drm=drm, **d)
+
+        input_taskfiles, _ = zip(*inputs) if inputs else ([],None)
+        input_dict = TaskFileDict(input_taskfiles, type='input')
 
         # Create output TaskFiles
         output_files = []
@@ -118,14 +114,15 @@ class Tool(object):
         out = self.cmd(**params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
 
-        out = re.sub('<TaskFile\[\d+?\] .+?:(.+?)>', lambda m: m.group(1), out)
+        out = re.sub('<TaskFile\[.+?\] .+?:(.+?)>', lambda m: m.group(1), out)
+        #return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
         return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
 
     def _prepend_cmd(self, task):
-        return 'set -e\n' \
+        return '#!/bin/bash\n' \
+               'set -e\n' \
                'OUT={ex_out}\n' \
-               'cd {cd}\n\n'.format(cd=task.output_dir.replace(task.execution.output_dir, '$OUT'),
-                                    ex_out=task.execution.output_dir)
+               'cd $OUT\n\n'.format(ex_out=task.execution.output_dir)
 
     def cmd(self, i, o, s, **kwargs):
         """
@@ -140,7 +137,7 @@ class Tool(object):
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
 
-    def generate_command(self, task, settings):
+    def _generate_command(self, task, settings):
         """
         Generates the command
         """
@@ -229,12 +226,12 @@ class TaskFileDict(dict):
 
 # ##
 # Merges multiple tools
-###
+# ##
 
 MergedCommand = recordtype('MergedCommand', ['results'])
 
 """
-two ways to merge
+two ways to chain
 1) merged output is only the last tool's outputs
 2) merged output is all tool's outputs (requires no overlapping output names, or latter tool gets precedence)
 """
@@ -244,61 +241,69 @@ class CollapsedTool(Tool):
     pass
 
 
-def collapse_tools(*tool_classes):
+def chain(*tool_classes):
     """
     Collapses multiple tools down into one, to reduce the number of jobs being submitted and general overhead by reducing the size of a taskgraph.
 
-    :param tool_classes: a iterable of Tools to collapse
+    :param tool_classes: a iterable of Tools to chain
     :param name: the name for the class.  Default is '__'.join(tool_classes)
     :return: A MergedCommand, which is a record with attributes results.  Results is a list of elements that are either (str, dict) or just a str.
     """
     global CollapsedTool
     tool_classes = tuple(tool_classes)
-    assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of subclasses of Tool'
+    assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
     assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
     name = '__'.join(t.name for t in tool_classes)
 
-    def generate_command(self, task, settings):
+
+    def _generate_command(self, task, settings):
         """
         Generates the command
         """
-        output_files = task.output_files
 
-        def instantiate_tools(tool_classes, input_init):
-            # instantiate all tools with their correct i/o
+        def instantiate_tools(tool_classes, task):
+            """
+            Instantiate all tools with their correct i/o
+            """
             all_outputs = task.output_files[:]
-            this_inputs = input_init
+            this_input_taskfiles = task.input_files
             for tool_class in tool_classes:
-                tool = tool_class(self.tags)
+                tool = tool_class(task.tags)
 
-                this_outputs = []
+                this_output_taskfiles = []
                 for abstract_output in tool.outputs:
                     tf = next(_find(all_outputs, abstract_output, True))
-                    this_outputs.append(tf)
+                    this_output_taskfiles.append(tf)
                     all_outputs.remove(tf)
 
-                yield tool, this_inputs, this_outputs
+                yield tool, this_input_taskfiles, this_output_taskfiles
                 for abstract_input in tool.inputs:
                     if abstract_input.forward:
-                        this_outputs += list(_find(this_inputs, abstract_input, True))
-                this_inputs = this_outputs
+                        this_output_taskfiles += list(_find(this_input_taskfiles, abstract_input, True))
+                this_input_taskfiles = this_output_taskfiles
 
         s = self._prepend_cmd(task)
-        for tool, inputs, outputs in instantiate_tools(self.merged_tool_classes, task.input_files):
-            cmd_result = tool._cmd(inputs, outputs, task, settings)
+        for tool, input_taskfiles, output_taskfiles in instantiate_tools(self.merged_tool_classes, task):
+            cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task, settings)
             s += '### ' + tool.name + ' ###\n\n'
             s += cmd_result
             s += '\n\n'
+
+        # only keep the last chained Tool's output files
+        remove = set(task.output_files) - set(output_taskfiles)
+        for tf in remove:
+            for ifa in tf._input_file_assocs:
+                ifa.delete()
 
         return s
 
 
     CollapsedTool = type(name, (CollapsedTool,),  # TODO: inherit from the merged tools, but without a metaclass conflict
                          dict(merged_tool_classes=tool_classes,
-                              generate_command=generate_command,
+                              _generate_command=_generate_command,
                               name=name,
                               inputs=tool_classes[0].inputs,
-                              outputs=list(it.chain(*(t.outputs for t in tool_classes))),
+                              outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
                               mem_req=max(t.mem_req for t in tool_classes),
                               time_req=max(t.time_req for t in tool_classes),
                               cpu_req=max(t.cpu_req for t in tool_classes),
@@ -310,12 +315,24 @@ def collapse_tools(*tool_classes):
 
 
 def _find(taskfiles, abstract_file, error_if_missing=False):
+    """
+    find `abstract_file` in `taskfiles`
+    :param taskfiles: a list of TaskFiles
+    :param abstract_file: an AbstractInputFile or AbstractOutputFile
+    :param error_if_missing: raise ValueError if a matching taskfile cannot be found
+    :return:
+    """
     name, format = abstract_file.name, abstract_file.format
     assert name or format
-    found = False
-    for tf in taskfiles:
-        if name in [tf.name, None] and format in [tf.format, None]:
+
+    if format == '*':
+        for tf in taskfiles:
             yield tf
-            found = True
-    if not found and error_if_missing:
-        raise ValueError, 'No taskfile found with name=%s, format=%s' % (name, format)
+    else:
+        found = False
+        for tf in taskfiles:
+            if name in [tf.name, None] and format in [tf.format, None]:
+                yield tf
+                found = True
+        if not found and error_if_missing:
+            raise ValueError, 'No taskfile found with name=%s, format=%s' % (name, format)

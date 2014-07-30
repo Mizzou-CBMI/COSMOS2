@@ -4,7 +4,7 @@ from setuptools import find_packages
 setup(
     # Metadata
     name="cosmos-wfm",
-    version="0.5",
+    version="0.5.1",
     description="Workflow Management System",
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
@@ -25,7 +25,8 @@ setup(
         "enum34"],
     # Packaging Instructions
     packages=find_packages(),
-    include_package_data=True
+    package_data={'': ['examples/*']}
+
 )
 
 

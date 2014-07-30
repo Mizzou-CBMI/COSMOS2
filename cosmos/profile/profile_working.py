@@ -25,7 +25,7 @@
 import psutil
 import time
 
-from kosmos.profile.read_man_proc import get_stat_and_status_fields
+from cosmos.profile.read_man_proc import get_stat_and_status_fields
 
 
 start_time = time.time()

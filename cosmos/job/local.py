@@ -18,11 +18,11 @@ class DRM_Local(DRM):
                   preexec_fn=preexec_function(),
                   shell=True
         )
-        task.drmaa_jobID = p.pid
+        task.drm_jobID = p.pid
 
     def _is_done(self, task):
         try:
-            p = psutil.Process(task.drmaa_jobID)
+            p = psutil.Process(task.drm_jobID)
             p.wait(timeout=0)
             return True
         except psutil.TimeoutExpired:
@@ -43,20 +43,20 @@ class DRM_Local(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         def f(task):
-            if task.drmaa_jobID is None:
+            if task.drm_jobID is None:
                 return '!'
             if task.status == TaskStatus.submitted:
                 return 'Running'
             else:
                 return ''
 
-        return {task.drmaa_jobID: f(task) for task in tasks}
+        return {task.drm_jobID: f(task) for task in tasks}
 
     def kill(self, task):
         "Terminates a task"
 
         try:
-            psutil.Process(task.drmaa_jobID).kill()
+            psutil.Process(task.drm_jobID).kill()
         except psutil.NoSuchProcess:
             pass
 
@@ -64,7 +64,7 @@ class DRM_Local(DRM):
 
 def preexec_function():
     # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Kosmos to cleanly
+    # signal handler SIG_IGN.  This allows Cosmos to cleanly
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
 

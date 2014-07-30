@@ -1,5 +1,6 @@
 examples/out/*
 *.db
+*.egg-info
 test/out
 .project
 .idea/

@@ -21,7 +21,7 @@ def add_execution_args(parser):
                         help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
 
 
-# def parse_and_start(kosmos_app, parser, root_output_dir=None):
+# def parse_and_start(cosmos_app, parser, root_output_dir=None):
 #     """
 #     Parses the args of :param:`parser`
 #
@@ -29,7 +29,7 @@ def add_execution_args(parser):
 #
 #     :returns: (Execution, dict kwargs)
 #     """
-#     from kosmos import Execution
+#     from cosmos import Execution
 #     parsed = parser.parse_args()
 #     kwargs = dict(parsed._get_kwargs())
 #
@@ -37,11 +37,11 @@ def add_execution_args(parser):
 #     d = {n: kwargs[n] for n in ['name', 'output_dir', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts','drm']}
 #     d['output_dir'] = os.path.join(root_output_dir, d['name'])
 #
-#     ex = Execution.start(kosmos_app=kosmos_app, **d)
+#     ex = Execution.start(cosmos_app=cosmos_app, **d)
 #     return ex, kwargs
 #
 #
-# def default_argparser(kosmos_app, root_output_dir):
+# def default_argparser(cosmos_app, root_output_dir):
 #     """
 #     Creates an argparser with all of the default options.  On a successful argparse,
 #     calls and returns the output of :func:`parse_and_start`
@@ -52,4 +52,4 @@ def add_execution_args(parser):
 #
 #     p = argparse.ArgumentParser()
 #     add_execution_args(p)
-#     return parse_and_start(kosmos_app, p, root_output_dir=root_output_dir)
+#     return parse_and_start(cosmos_app, p, root_output_dir=root_output_dir)

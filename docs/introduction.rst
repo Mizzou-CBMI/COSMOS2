@@ -3,18 +3,18 @@
 Introduction
 ============
 
-Kosmos is a workflow management system for Python.  It allows you to efficiently program complex workflows of command line tools that automatically take
-advantage of a compute cluster, and provides a runweb interface to monitor, debug, and analyze your jobs.  Kosmos is
+Cosmos is a workflow management system for Python.  It allows you to efficiently program complex workflows of command line tools that automatically take
+advantage of a compute cluster, and provides a runweb interface to monitor, debug, and analyze your jobs.  Cosmos is
 able to scale on a traditional cluster such as :term:`LSF` or :term:`SGE` with a shared filesystem.  It is especially
 powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and
 `StarCluster <http://star.mit.edu/cluster/docs/latest/>`_
 
-Kosmos is owned and copywrited by Harvard Medical School.
+Cosmos is owned and copywrited by Harvard Medical School.
 
 Features
 ________
 
-* Written in python which is easy to learn, powerful, and popular.  A programmer with limited experience can begin writing Kosmos workflows right away.
+* Written in python which is easy to learn, powerful, and popular.  A programmer with limited experience can begin writing Cosmos workflows right away.
 * Powerful syntax and system for the creation of complex workflows.
 * Keeps track of workflows, job information, and resource utilization and provenance in an SQL database.
 * The ability to visualize all jobs and job dependencies as a convenient image.

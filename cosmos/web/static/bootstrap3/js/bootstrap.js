@@ -493,8 +493,8 @@ if (typeof jQuery === "undefined") { throw new Error("Bootstrap requires jQuery"
 }(window.jQuery);
 
 /* ========================================================================
- * Bootstrap: collapse.js v3.0.0
- * http://getbootstrap.com/javascript/#collapse
+ * Bootstrap: chain.js v3.0.0
+ * http://getbootstrap.com/javascript/#chain
  * ========================================================================
  * Copyright 2013 Twitter, Inc.
  *
@@ -651,7 +651,7 @@ if (typeof jQuery === "undefined") { throw new Error("Bootstrap requires jQuery"
   // COLLAPSE DATA-API
   // =================
 
-  $(document).on('click.bs.collapse.data-api', '[data-toggle=collapse]', function (e) {
+  $(document).on('click.bs.collapse.data-api', '[data-toggle=chain]', function (e) {
     var $this   = $(this), href
     var target  = $this.attr('data-target')
         || e.preventDefault()
@@ -663,7 +663,7 @@ if (typeof jQuery === "undefined") { throw new Error("Bootstrap requires jQuery"
     var $parent = parent && $(parent)
 
     if (!data || !data.transitioning) {
-      if ($parent) $parent.find('[data-toggle=collapse][data-parent="' + parent + '"]').not($this).addClass('collapsed')
+      if ($parent) $parent.find('[data-toggle=chain][data-parent="' + parent + '"]').not($this).addClass('collapsed')
       $this[$target.hasClass('in') ? 'addClass' : 'removeClass']('collapsed')
     }
 
