@@ -41,7 +41,7 @@ class DRM_LSF(DRM):
                 jid = str(task.drmaa_jobID)
                 if jid not in bjobs:
                     # prob in history
-                    # print 'missing %s %s' % (task, task.drmaa_jobID)
+                    # print 'missing %s %s' % (task, task.drm_jobID)
                     return True
                 else:
                     return bjobs[jid]['STAT'] in ['DONE', 'EXIT', 'UNKWN', 'ZOMBI']
@@ -53,7 +53,7 @@ class DRM_LSF(DRM):
     def drm_statuses(self, tasks):
         """
         :param tasks: tasks that have been submitted to the job manager
-        :returns: (dict) task.drmaa_jobID -> drm_status
+        :returns: (dict) task.drm_jobID -> drm_status
         """
         if len(tasks):
             bjobs = bjobs_all()

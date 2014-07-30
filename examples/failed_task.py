@@ -13,7 +13,7 @@ if __name__ == '__main__':
     echo = r.add_source([tools.Echo(dict(word='hello')), tools.Echo(tags=dict(word='world'))])
 
     fail = r.add_stage(tools.Fail, inpt)
-    sleep = r.add_stage(tools.Sleep, [inpt], add_tags=dict(time=5))
+    sleep = r.add_stage(tools.Sleep, [inpt], tag=dict(time=5))
 
     cat = r.add_stage(tools.Cat, parents=[echo, fail], rel=rel.Many2many([], [('n', [1, 2])]))
 

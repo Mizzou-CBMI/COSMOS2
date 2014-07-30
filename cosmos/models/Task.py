@@ -32,7 +32,7 @@ class GetOutputError(Exception): pass
 
 
 task_failed_printout = """Failure Info:
-<COMMAND path={0.output_command_script_path} drmaa_jobID={0.drmaa_jobID}>
+<COMMAND path={0.output_command_script_path} drm_jobID={0.drm_jobID}>
 {0.command_script_text}
 </COMMAND>
 <STDOUT path={0.output_stdout_path}>
@@ -145,10 +145,10 @@ class Task(Base):
         return [ifa.taskfile for ifa in self.input_file_assoc]
 
     # drmaa related input fields
-    drmaa_native_specification = Column(String(255))
+    drm_native_specification = Column(String(255))
 
     #drmaa related and job output fields
-    drmaa_jobID = Column(Integer)
+    drm_jobID = Column(Integer)
 
     profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
                       'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads', 'max_num_threads',

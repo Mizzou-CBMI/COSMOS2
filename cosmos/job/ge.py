@@ -29,7 +29,7 @@ class DRM_GE(DRM):
             def f(task):
                 jid = str(task.drmaa_jobID)
                 if jid not in qjobs:
-                    # print 'missing %s %s' % (task, task.drmaa_jobID)
+                    # print 'missing %s %s' % (task, task.drm_jobID)
                     return True
                 else:
                     if any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
@@ -42,7 +42,7 @@ class DRM_GE(DRM):
     def drm_statuses(self, tasks):
         """
         :param tasks: tasks that have been submitted to the job manager
-        :returns: (dict) task.drmaa_jobID -> drm_status
+        :returns: (dict) task.drm_jobID -> drm_status
         """
         if len(tasks):
             qjobs = qstat_all()

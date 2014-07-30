@@ -40,7 +40,7 @@ class DRM_Local(DRM):
 
     def drm_statuses(self, tasks):
         """
-        :returns: (dict) task.drmaa_jobID -> drm_status
+        :returns: (dict) task.drm_jobID -> drm_status
         """
         def f(task):
             if task.drmaa_jobID is None:
