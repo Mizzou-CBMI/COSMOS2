@@ -480,17 +480,13 @@ def _process_finished_tasks(jobmanager):
 
 def terminate_on_ctrl_c(execution):
     # terminate on ctrl+c
-    try:
-        def ctrl_c(signal, frame):
-            if not execution.successful:
-                execution.log.info('Caught SIGINT (ctrl+c)')
-                execution.terminate(failed=False)
-                raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
+    def ctrl_c(signal, frame):
+        if not execution.successful:
+            execution.log.info('Caught SIGINT (ctrl+c)')
+            execution.terminate(failed=False)
+            raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
-        signal.signal(signal.SIGINT, ctrl_c)
-    except ValueError:  #signal only works in parse_args thread and django complains
-        pass
-
+    signal.signal(signal.SIGINT, ctrl_c)
 
 def _copy_graph(graph):
     import networkx as nx
