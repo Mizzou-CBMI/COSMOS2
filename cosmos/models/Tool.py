@@ -116,13 +116,13 @@ class Tool(object):
 
         out = re.sub('<TaskFile\[.+?\] .+?:(.+?)>', lambda m: m.group(1), out)
         #return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
-        return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
+        return strip_lines(out.replace(task.output_dir, '$OUT'))
 
     def _prepend_cmd(self, task):
         return '#!/bin/bash\n' \
                'set -e\n' \
-               'OUT={ex_out}\n' \
-               'cd $OUT\n\n'.format(ex_out=task.execution.output_dir)
+               'OUT={out}\n' \
+               'cd $OUT\n\n'.format(out=task.output_dir)
 
     def cmd(self, i, o, s, **kwargs):
         """

@@ -2,6 +2,7 @@ import os
 import json
 import itertools as it
 import shutil
+import codecs
 
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
@@ -101,7 +102,8 @@ def logplus(filename):
 def readfile(path):
     if not os.path.exists(path):
         return 'file does not exist'
-    with open(path, 'r') as fh:
+
+    with codecs.open(path, "r", "utf-8") as fh:
         return fh.read()
 
 

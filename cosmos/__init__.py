@@ -4,7 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 
 from .db import Base
-
+from .db import Base
 
 
 

@@ -26,8 +26,7 @@ def render_recipe(execution, recipe, default_drm):
         if not stage.resolved:
             if stage.is_source:
                 for source_tool in stage.recipe_stage.source_tools:
-                    existing_task = existing_tasks.get((stage, frozenset(source_tool.tags.items())),
-                                                       None)
+                    existing_task = existing_tasks.get((stage, frozenset(source_tool.tags.items())), None)
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
@@ -49,6 +48,13 @@ def render_recipe(execution, recipe, default_drm):
 
         tagz = [frozenset(t.tags.items()) for t in stage.tasks]
         assert len(tagz) == len(set(tagz)), 'Duplicate tags detected in %s: %s' % (stage, next(duplicates(tagz)))
+
+    # collapse stages
+    # for stages, name in recipe.collapses:
+    #     from . import Tool
+    #     recipe.add_stage(Tool, stages[0])
+
+
     return task_g, stage_g
 
 

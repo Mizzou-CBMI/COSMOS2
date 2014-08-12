@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import networkx as nx
 
 from .. import RelationshipType, StageStatus
@@ -8,6 +10,9 @@ def isgenerator(iterable):
     return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
 
 
+# Collapse = namedtuple('Collapse', 'stages', 'name')
+
+
 class Recipe(object):
     """
     A description of how to construct a taskgraph.  A taskgraph is a :term:`DAG` of tasks which describe job dependences.
@@ -16,6 +21,7 @@ class Recipe(object):
     def __init__(self):
         self.recipe_stage_G = nx.DiGraph()
         self.execution = None
+        self.collapses = []
 
     def add_source(self, tools, name=None):
         """
@@ -76,6 +82,11 @@ class Recipe(object):
             self.recipe_stage_G.add_edge(parent, recipe_stage)
 
         return recipe_stage
+
+    # def collapse_stages(self, stages, name):
+    #     # assert stages are collapsible
+    #     self.collapses.add(Collapse(stages, name))
+
 
     def as_image(self, save_to=None):
         """

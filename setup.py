@@ -1,7 +1,8 @@
 from distutils.core import setup
-from setuptools import find_packages
 import os
 import re
+
+from setuptools import find_packages
 
 
 def find_all(path, reg_expr, inverse=False, remove_prefix=False):
@@ -18,6 +19,7 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
                     out = out.replace(path, '')
                 yield out
 
+
 setup(
     # Metadata
     name="cosmos-wfm",
@@ -32,7 +34,7 @@ setup(
     install_requires=[
         "psutil",
         'recordtype',
-	    "flask",
+        "flask",
         'blinker',
         'Flask-Admin',
         'Flask-SQLAlchemy',
