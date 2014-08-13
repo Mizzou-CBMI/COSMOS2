@@ -4,7 +4,7 @@ import os
 from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
 from sqlalchemy.orm import relationship, backref
 
-from recordtype import recordtype
+from collections import namedtuple
 from ..db import Base
 
 
@@ -18,19 +18,18 @@ association_table = Table('input_files', Base.metadata,
                           Column('task', Integer, ForeignKey('task.id')),
                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
-AbstractInputFile = recordtype('AbstractInputFile', ['name', 'format','forward'])
-AbstractOutputFile = recordtype('AbstractOutputFile', ['name', 'format','basename'])
+AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward'])
+AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
 
 
-def output_taskfile(name=None, format=None, basename=None):
+def abstract_output_taskfile(name=None, format=None, basename=None):
     assert name and format, 'must specify name and format'
     return AbstractOutputFile(name=name, format=format, basename=basename)
 
 
-def input_taskfile(name=None, format=None, forward=False):
+def abstract_input_taskfile(name=None, format=None, forward=False):
     assert name or format, 'must specify either name or format'
     return AbstractInputFile(name=name, format=format, forward=forward)
-
 
 
 class InputFileAssociation(Base):
@@ -64,7 +63,7 @@ class TaskFile(Base):
 
     @property
     def tasks_input_for(self):
-        return [ ifa.task for ifa in self._input_file_assocs ]
+        return [ifa.task for ifa in self._input_file_assocs]
 
     @property
     def prefix(self):
@@ -104,7 +103,7 @@ class TaskFile(Base):
                     os.remove(self.path)
 
         self.session.delete(self)
-        #self.session.commit()
+        # self.session.commit()
 
 
 def in_directory(file, directory):
@@ -113,5 +112,5 @@ def in_directory(file, directory):
     file = os.path.realpath(file)
 
     # return true, if the common prefix of both is equal to directory
-    #e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
+    # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([file, directory]) == directory

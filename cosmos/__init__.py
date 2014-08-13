@@ -4,10 +4,6 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 
 from .db import Base
-from .db import Base
-
-
-
 
 
 
@@ -172,16 +168,15 @@ class RelationshipType(MyEnum):
 # Imports
 ########################################################################################################################
 
-from .models import rel
-from .models.Recipe import Recipe, stagegraph_to_agraph
-from .models.TaskFile import TaskFile, output_taskfile, input_taskfile
+from .recipe import rel
+from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile
 from .models.Task import Task
-from .models import rel
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .models.Tool import chain
+from .recipe.Recipe import Recipe
 # from .db import get_session
 
 

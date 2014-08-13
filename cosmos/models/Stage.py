@@ -53,7 +53,7 @@ class Stage(Base):
     )
     relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
-    _status = _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
+    _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
 
 
     @declared_attr

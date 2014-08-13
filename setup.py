@@ -33,7 +33,6 @@ setup(
     license="Non-commercial use only",
     install_requires=[
         "psutil",
-        'recordtype',
         "flask",
         'blinker',
         'Flask-Admin',

@@ -6,7 +6,6 @@ import itertools as it
 from .. import TaskFile, Task
 from ..models.TaskFile import InputFileAssociation
 from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
-from recordtype import recordtype
 
 
 opj = os.path.join
@@ -45,6 +44,8 @@ class Tool(object):
         """
         self.tags = tags
         self.__validate()
+        self.load_sources = []
+
 
     def __validate(self):
         assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), 'Tool.inputs must be instantiated using the `input_taskfile` function'
@@ -70,34 +71,27 @@ class Tool(object):
         """
         for abstract_file in self.inputs:
             for p in parents:
-                for tf in _find(p.output_files+p.forwarded_inputs, abstract_file, error_if_missing=False):
+                for tf in _find(p.output_files + p.forwarded_inputs, abstract_file, error_if_missing=False):
                     yield tf, abstract_file.forward
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
         inputs = list(self._map_inputs(parents))
         drm = 'local' if self.drm == 'local' else default_drm
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents, drm=drm, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents, drm=drm,
+                    **d)
 
-        input_taskfiles, _ = zip(*inputs) if inputs else ([],None)
+        input_taskfiles, _ = zip(*inputs) if inputs else ([], None)
         input_dict = TaskFileDict(input_taskfiles, type='input')
 
         # Create output TaskFiles
-        output_files = []
-        if isinstance(self, Input):
-            output_files.append(TaskFile(name=self.name, format=self.format, path=self.path, task_output_for=task, persist=True))
-        elif isinstance(self, Inputs):
-            for name, path, format in self.input_args:
-                output_files.append(TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True))
-        else:
-            for output in self.outputs:
-                name = str_format(output.name, dict(i=input_dict, **self.tags))
-                if output.basename is not None:
-                    basename = str_format(output.basename, dict(name=name, format=output.format, i=input_dict, **self.tags))
-                else:
-                    basename = output.basename
+        for name, format, path in self.load_sources:
+            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
 
-                output_files.append(TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename))
+        for output in self.outputs:
+            name = str_format(output.name, dict(i=input_dict, **self.tags))
+            basename = str_format(output.basename or '', dict(name=name, format=output.format, i=input_dict, **self.tags))
+            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
 
         task.tool = self
         return task
@@ -115,7 +109,7 @@ class Tool(object):
         assert isinstance(out, str), '%s.cmd did not return a str' % self
 
         out = re.sub('<TaskFile\[.+?\] .+?:(.+?)>', lambda m: m.group(1), out)
-        #return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
+        # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
         return strip_lines(out.replace(task.output_dir, '$OUT'))
 
     def _prepend_cmd(self, task):
@@ -144,6 +138,10 @@ class Tool(object):
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task, settings)
 
 
+from collections import namedtuple
+InputSource = namedtuple('InputSource', ['name', 'format', 'path'])
+
+
 class Input(Tool):
     """
     A NOOP Task who's output_files contain a *single* file that already exists on the filesystem.
@@ -168,11 +166,7 @@ class Input(Tool):
             tags = dict()
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
-
-        self.name = name
-        self.format = format
-        self.path = path
-        self.tags = tags
+        self.load_sources.append(InputSource(name, format, path))
 
 
 class Inputs(Tool):
@@ -181,7 +175,7 @@ class Inputs(Tool):
 
     Does not actually execute anything, but provides a way to load a set of input file.
 
-    >>> Inputs([('name1','/path/to/name.format', 'format'), ('name2','/path/to/name.format2.gz')], tags={'key':'val'})
+    >>> Inputs([('name1','txt','/path/to/name.txt'), ('name2','gz','/path/to/name.txt.gz')], tags={'key':'val'})
     """
     name = 'Load_Input_Files'
 
@@ -190,11 +184,10 @@ class Inputs(Tool):
         """
         if tags is None:
             tags = dict()
-            # path = os.path.abspath(path)
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
-        inputs = [(tpl[0], _abs(tpl[1]), tpl[2] if len(tpl) > 2 else tpl[0]) for tpl in inputs]
-        self.input_args = inputs
+        for tpl in inputs:
+            self.load_sources.append(InputSource(*tpl))
 
 
 def _abs(path):
@@ -228,7 +221,7 @@ class TaskFileDict(dict):
 # Merges multiple tools
 # ##
 
-MergedCommand = recordtype('MergedCommand', ['results'])
+MergedCommand = namedtuple('MergedCommand', ['results'])
 
 """
 two ways to chain

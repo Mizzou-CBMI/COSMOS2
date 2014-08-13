@@ -9,13 +9,14 @@ from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
+from ..recipe import taskgraph
+
 from ..db import Base
 
 
 opj = os.path.join
 import signal
 
-from .. import taskgraph
 from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
@@ -243,7 +244,6 @@ class Execution(Base):
 
         terminate_on_ctrl_c(self)
 
-        # session.commit()  # required to set IDs for the output_dir generation functions
 
         # Set output_dirs of new tasks
         for task in task_queue.nodes():
@@ -324,7 +324,7 @@ class Execution(Base):
 
     @property
     def taskfilesq(self):
-        from cosmos import TaskFile, Stage
+        from . import TaskFile, Stage
 
         return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
 

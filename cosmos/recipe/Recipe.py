@@ -95,12 +95,15 @@ class Recipe(object):
         :param save_to:
         :returns:
         """
-        g = stagegraph_to_agraph(self.recipe_stage_G)
-        g.layout(prog="dot")
-        return g.draw(path=save_to, format='svg')
+        return draw(self.recipe_stage_G, save_to=save_to)
 
 
-def stagegraph_to_agraph(stage_graph):
+def draw_stage_graph(stage_graph, save_to=None, url=True):
+    g = stagegraph_to_agraph(stage_graph, url=url)
+    g.layout(prog="dot")
+    return g.draw(path=save_to, format='svg')
+
+def stagegraph_to_agraph(stage_graph, url=True):
     """
     :param stage_graph: recipe_stage_G or stage_G
     """
@@ -123,7 +126,7 @@ def stagegraph_to_agraph(stage_graph):
 
     for stage in stage_graph.nodes():
         agraph.add_node(stage, color=status2color.get(getattr(stage, 'status', None), 'black'),
-                        URL=stage.url, label=stage.label)
+                        URL=stage.url if url else '', label=stage.label)
 
     for u, v in stage_graph.edges():
         if v.relationship_type == RelationshipType.many2one:
@@ -136,7 +139,7 @@ def stagegraph_to_agraph(stage_graph):
     return agraph
 
 
-def stages_to_image(stages, path=None):
+def stages_to_image(stages, path=None, url=True):
     """
     Creates an SVG image of Stages or RecipeStages and their dependencies.
     """
@@ -144,7 +147,7 @@ def stages_to_image(stages, path=None):
     g.add_nodes_from(stages)
     g.add_edges_from([(parent, stage) for stage in stages for parent in stage.parents])
 
-    g = stagegraph_to_agraph(g)
+    g = stagegraph_to_agraph(g, url=url)
     g.layout(prog="dot")
     return g.draw(path=path, format='svg')
 
@@ -174,7 +177,7 @@ class RecipeStage():
         elif rel == _rel.Many2one:
             rel = _rel.Many2one()
 
-        from .Tool import Tool
+        from .. import Tool
 
         assert issubclass(tool_class, Tool), '`tool` must be a subclass of `Tool`'
         assert isinstance(rel, _rel.Relationship), '`rel` must be of type `Relationship`'

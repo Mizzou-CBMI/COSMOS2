@@ -230,12 +230,12 @@ class Task(Base):
     def forwarded_inputs(self):
         return [ifa.taskfile for ifa in self._input_file_assocs if ifa.forward]
 
-    # @property
-    # def all_outputs(self):
-    #     """
-    #     :return: all output taskfiles, including any being forwarded
-    #     """
-    #     return self.output_files + self.forwarded_inputs
+    @property
+    def all_output_files(self):
+        """
+        :return: all output taskfiles, including any being forwarded
+        """
+        return self.output_files + self.forwarded_inputs
 
     @property
     def profile(self):

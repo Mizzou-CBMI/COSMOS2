@@ -1,12 +1,15 @@
-from flask import make_response, request, jsonify, Markup, render_template, Blueprint, redirect, url_for, flash
-import io
-from .. import Execution, Stage, Task, taskgraph as taskgraph_, TaskStatus
-from ..job.JobManager import JobManager
-from . import filters
-from ..models.Recipe import stages_to_image
-from sqlalchemy import desc
 import itertools as it
 from operator import attrgetter
+
+from flask import Markup, render_template, Blueprint, redirect, url_for, flash
+from sqlalchemy import desc
+
+from .. import Execution, Stage, Task, TaskStatus
+from ..recipe import taskgraph as taskgraph_
+from ..job.JobManager import JobManager
+from . import filters
+from ..recipe.Recipe import stages_to_image
+
 
 def gen_bprint(cosmos_app):
     session = cosmos_app.session

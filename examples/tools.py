@@ -1,4 +1,4 @@
-from cosmos import Tool, input_taskfile as itf, output_taskfile as otf
+from cosmos import Tool, abstract_input_taskfile as itf, abstract_output_taskfile as otf
 
 
 class Sleep(Tool):

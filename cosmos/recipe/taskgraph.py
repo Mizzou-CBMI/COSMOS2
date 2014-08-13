@@ -2,9 +2,9 @@ import functools
 
 import networkx as nx
 
-from .util.helpers import groupby, duplicates
-from .util.sqla import get_or_create
-from . import TaskStatus, Stage
+from ..util.helpers import groupby, duplicates
+from ..util.sqla import get_or_create
+from .. import TaskStatus, Stage
 
 
 def render_recipe(execution, recipe, default_drm):
@@ -14,7 +14,7 @@ def render_recipe(execution, recipe, default_drm):
     """
 
     task_g = nx.DiGraph()
-    existing_tasks = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
+    successful = {(t.stage, frozenset(t.tags.items())): t for t in execution.tasks}
     # This replicates the recipe_stage_G, a graph of RecipeStage objects, into a stage_G a graph of Stage objects
     f = functools.partial(_recipe_stage2stage, execution=execution)
     # want to add stages in the correct order
@@ -26,7 +26,7 @@ def render_recipe(execution, recipe, default_drm):
         if not stage.resolved:
             if stage.is_source:
                 for source_tool in stage.recipe_stage.source_tools:
-                    existing_task = existing_tasks.get((stage, frozenset(source_tool.tags.items())), None)
+                    existing_task = successful.get((stage, frozenset(source_tool.tags.items())), None)
                     if existing_task:
                         task_g.add_node(existing_task)
                     else:
@@ -35,7 +35,7 @@ def render_recipe(execution, recipe, default_drm):
 
             else:
                 for new_task_tags, parent_tasks in stage.rel.__class__.gen_task_tags(stage):
-                    existing_task = existing_tasks.get((stage, frozenset(new_task_tags.items())), None)
+                    existing_task = successful.get((stage, frozenset(new_task_tags.items())), None)
                     if existing_task:
                         new_task = existing_task
                     else:
@@ -58,7 +58,12 @@ def render_recipe(execution, recipe, default_drm):
     return task_g, stage_g
 
 
-def taskdag_to_agraph(taskdag):
+def draw_task_graph(task_graph):
+    a = taskgraph_to_agraph(task_graph, False)
+    a.layout('dot')
+    return a.draw(path=None, format='svg')
+
+def taskgraph_to_agraph(task_graph, url=True):
     """
     Converts a networkx graph into a pygraphviz Agraph
     """
@@ -66,13 +71,13 @@ def taskdag_to_agraph(taskdag):
 
     agraph = pgv.AGraph(strict=False, directed=True, fontname="Courier")
     agraph.node_attr['fontname'] = "Courier"
-    agraph.node_attr['fontcolor'] = '#000'
+    #agraph.node_attr['fontcolor'] = '#000000'
     agraph.node_attr['fontsize'] = 8
     agraph.graph_attr['fontsize'] = 8
     agraph.edge_attr['fontcolor'] = '#586e75'
 
-    agraph.add_edges_from(taskdag.edges())
-    for stage, tasks in groupby(taskdag.nodes(), lambda x: x.stage):
+    agraph.add_edges_from(task_graph.edges())
+    for stage, tasks in groupby(task_graph.nodes(), lambda x: x.stage):
         sg = agraph.add_subgraph(name="cluster_{0}".format(stage), label=str(stage), color='grey', style='dotted')
         for task in tasks:
             def truncate_val(kv):
@@ -88,12 +93,12 @@ def taskdag_to_agraph(taskdag):
                             TaskStatus.failed: 'darkred',
                             TaskStatus.killed: 'darkred'}
 
-            sg.add_node(task, label=label, URL=task.url, target="_blank", color=status2color[task.status])
+            sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank", color=status2color.get(task.status,'black'))
 
     return agraph
 
 
-def tasks_to_image(tasks, path=None):
+def tasks_to_image(tasks, path=None, url=True):
     """
     Converts a list of tasks into a SVG image of the taskgraph DAG
     """
@@ -101,7 +106,7 @@ def tasks_to_image(tasks, path=None):
     g.add_nodes_from(tasks)
     g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
 
-    g = taskdag_to_agraph(g)
+    g = taskgraph_to_agraph(g, url=url)
     g.layout(prog="dot")
     return g.draw(path=path, format='svg')
 
@@ -113,17 +118,15 @@ def _recipe_stage2stage(recipe_stage, execution):
     session = execution.session
     stage, created = get_or_create(session=session, model=Stage, name=recipe_stage.name,
                                    execution=execution)
-    session.commit()
 
-    if not created:
-        execution.log.info('Loaded %s' % stage)
-    else:
-        execution.log.info('Created %s' % stage)
+    # if not created:
+    #     execution.log.info('Loaded Stage %s' % stage.name)
+    # else:
+    #     execution.log.info('Created Stage %s' % stage.name)
 
     for k, v in recipe_stage.properties.items():
         if k != 'tasks':
             setattr(stage, k, v)
+
     stage.recipe_stage = recipe_stage
-    session.add(stage)
-    session.commit()
     return stage
