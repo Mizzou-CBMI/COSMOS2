@@ -12,6 +12,7 @@ import subprocess as sp
 
 python_path = sp.check_output(['which', 'python']).strip()
 
+
 class JobManager(object):
     def __init__(self, get_submit_args, default_queue=None):
         self.drms = dict(local=DRM_Local(self))  # always support local execution
@@ -38,7 +39,7 @@ class JobManager(object):
             assert task.drm is not None, 'task has no drm set'
             self.drms[task.drm].submit_job(task)
             task.status = TaskStatus.submitted
-            #task.session.commit()
+            # task.session.commit()
 
     def terminate(self):
         for task in self.running_tasks:
@@ -65,7 +66,9 @@ class JobManager(object):
     def _create_command_sh(self, task):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
-            f.write(task.command + "\n")
+            f.write('#!/bin/bash\n'
+                    'set -e\n\n'
+                    + task.command + "\n")
         os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 
     def get_command_str(self, task):

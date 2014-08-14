@@ -5,10 +5,9 @@ from flask import Markup, render_template, Blueprint, redirect, url_for, flash
 from sqlalchemy import desc
 
 from .. import Execution, Stage, Task, TaskStatus
-from ..recipe import taskgraph as taskgraph_
 from ..job.JobManager import JobManager
 from . import filters
-from ..recipe.Recipe import stages_to_image
+from ..graph.draw import stages_to_image, tasks_to_image
 
 
 def gen_bprint(cosmos_app):
@@ -76,7 +75,7 @@ def gen_bprint(cosmos_app):
         ex = get_execution(id)
 
         if type == 'task':
-            svg = Markup(taskgraph_.tasks_to_image(ex.tasks))
+            svg = Markup(tasks_to_image(ex.tasks))
         else:
             svg = Markup(stages_to_image(ex.stages))
 

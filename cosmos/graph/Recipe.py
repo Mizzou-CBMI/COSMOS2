@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import networkx as nx
 
-from .. import RelationshipType, StageStatus
+from .draw import draw_stage_graph
 from . import rel as _rel
 
 
@@ -10,7 +10,7 @@ def isgenerator(iterable):
     return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
 
 
-# Collapse = namedtuple('Collapse', 'stages', 'name')
+Collapsed_Stage = namedtuple('Collapsed_Stage', ['stages', 'name'])
 
 
 class Recipe(object):
@@ -71,6 +71,7 @@ class Recipe(object):
         from .. import Tool
 
         assert issubclass(tool_class, Tool), '`tool_class` must be a subclass of Tool'
+        assert len(parents), 'must have at least one parent for %s' % name
 
         recipe_stage = RecipeStage(name, tool_class, rel, tag)
 
@@ -83,9 +84,15 @@ class Recipe(object):
 
         return recipe_stage
 
-    # def collapse_stages(self, stages, name):
-    #     # assert stages are collapsible
-    #     self.collapses.add(Collapse(stages, name))
+    def collapse_stages(self, stages, name=None):
+        # assert stages are collapsible
+        assert isinstance(stages, list), '`stages` must be a list'
+        stages = filter(bool, stages)
+        if len(stages)>1:
+            if name is None:
+                '__'.join(s.name for s in stages)
+
+            self.collapses.append(Collapsed_Stage(stages, name))
 
 
     def as_image(self, save_to=None):
@@ -95,61 +102,7 @@ class Recipe(object):
         :param save_to:
         :returns:
         """
-        return draw(self.recipe_stage_G, save_to=save_to)
-
-
-def draw_stage_graph(stage_graph, save_to=None, url=True):
-    g = stagegraph_to_agraph(stage_graph, url=url)
-    g.layout(prog="dot")
-    return g.draw(path=save_to, format='svg')
-
-def stagegraph_to_agraph(stage_graph, url=True):
-    """
-    :param stage_graph: recipe_stage_G or stage_G
-    """
-
-    import pygraphviz as pgv
-
-    agraph = pgv.AGraph(strict=False, directed=True, fontname="Courier", fontsize=11)
-    agraph.node_attr['fontname'] = "Courier"
-    agraph.node_attr['fontsize'] = 8
-    agraph.edge_attr['fontcolor'] = '#586e75'
-
-    status2color = {StageStatus.no_attempt: 'black',
-                    StageStatus.running: 'navy',
-                    StageStatus.successful: 'darkgreen',
-                    StageStatus.failed: 'darkred'}
-    rel2abbrev = {RelationshipType.one2one: 'o2o',
-                  RelationshipType.one2many: 'o2m',
-                  RelationshipType.many2one: 'm2o',
-                  RelationshipType.many2many: 'm2m'}
-
-    for stage in stage_graph.nodes():
-        agraph.add_node(stage, color=status2color.get(getattr(stage, 'status', None), 'black'),
-                        URL=stage.url if url else '', label=stage.label)
-
-    for u, v in stage_graph.edges():
-        if v.relationship_type == RelationshipType.many2one:
-            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dotted', arrowhead='odiamond')
-        elif v.relationship_type == RelationshipType.one2many:
-            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dashed', arrowhead='crow')
-        else:
-            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), arrowhead='vee')
-
-    return agraph
-
-
-def stages_to_image(stages, path=None, url=True):
-    """
-    Creates an SVG image of Stages or RecipeStages and their dependencies.
-    """
-    g = nx.DiGraph()
-    g.add_nodes_from(stages)
-    g.add_edges_from([(parent, stage) for stage in stages for parent in stage.parents])
-
-    g = stagegraph_to_agraph(g, url=url)
-    g.layout(prog="dot")
-    return g.draw(path=path, format='svg')
+        return draw_stage_graph(self.recipe_stage_G, save_to=save_to)
 
 
 class RecipeStage():

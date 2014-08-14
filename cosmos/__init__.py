@@ -168,17 +168,16 @@ class RelationshipType(MyEnum):
 # Imports
 ########################################################################################################################
 
-from .recipe import rel
+from .graph import rel
 from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .models.Tool import chain
-from .recipe.Recipe import Recipe
+from .graph.Recipe import Recipe
 # from .db import get_session
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-           'Tool', 'chain']
+           'Tool']

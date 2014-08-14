@@ -44,6 +44,10 @@ class InputFileAssociation(Base):
         self.task._input_file_assocs.remove(self)
         self.taskfile._input_file_assocs.remove(self)
 
+    def __repr__(self):
+        return '<InputFileAssoiation (%s) (%s)>' % (self.task, self.taskfile)
+
+
 
 class TaskFile(Base):
     """
@@ -54,7 +58,7 @@ class TaskFile(Base):
 
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id'))
-    task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan"))
+    task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
@@ -81,7 +85,7 @@ class TaskFile(Base):
         super(TaskFile, self).__init__(*args, **kwargs)
         assert self.name is not None, 'TaskFile.name is required'
         assert self.format is not None, 'TaskFile.format is required'
-        if self.basename is None:
+        if self.basename in [None, '']:
             self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
 
     def __repr__(self):

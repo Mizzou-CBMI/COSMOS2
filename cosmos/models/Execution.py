@@ -9,8 +9,7 @@ from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
-from ..recipe import taskgraph
-
+from ..graph import taskgraph
 from ..db import Base
 
 
@@ -33,7 +32,7 @@ def _default_task_output_dir(task):
     """The default function for computing Task.output_dir"""
     tag_values = map(str, task.tags.values())
     for v in tag_values:
-        assert re.match("^[\w]$", v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
+        assert re.match("^[\w]+$", v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
                                       'Execution.run' % v
     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
 
@@ -127,13 +126,13 @@ class Execution(Base):
                 if not skip_confirm and not confirm('Execution with name %s does not exist, but `restart` is set to True.  Continue by starting a new Execution?' % name):
                     raise SystemExit('Quitting')
 
-        #resuming?
+        # resuming?
         ex = session.query(Execution).filter_by(name=name).first()
         #msg = 'Execution started, Cosmos v%s' % __version__
         if ex:
             #resuming.
             if not skip_confirm and not confirm(
-                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the recipe will be added and executed.  Are you sure?' % ex):
+                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the graph will be added and executed.  Are you sure?' % ex):
                 raise SystemExit('Quitting')
             ex.successful = False
             ex.finished_on = None
@@ -208,7 +207,7 @@ class Execution(Base):
             output_dir/stage_name/task_id.
         :param log_output_dir: a function that computes a tasks' log_output_dir.  By default task log output is
             stored in output_dir/log/stage_name/task_id.
-        :param settings: (dict) A dict which contains settings used when rendering a recipe to generate the commands.
+        :param settings: (dict) A dict which contains settings used when rendering a graph to generate the commands.
             keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
             stage as the `s` parameter.
         :param dry: (bool) if True, do not actually run any jobs.
@@ -224,7 +223,7 @@ class Execution(Base):
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args, default_queue=self.cosmos_app.default_queue)
 
-        self.log.info('Rendering recipe for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
+        self.log.info('Rendering graph for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
         self.status = ExecutionStatus.running
         self.successful = False
 
@@ -233,8 +232,53 @@ class Execution(Base):
 
         # Render task graph and to session
         task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
+
+        # Set output_dirs of new tasks
+        for task in nx.topological_sort(task_g):
+            if not task.successful:
+                task.output_dir = task_output_dir(task)
+                assert task.output_dir not in ['', None], "Computed an output file path of None or '' for %s" % task
+                for tf in task.output_files:
+                    if tf.path is None:
+                        tf.path = opj(task.output_dir, tf.basename)
+                        #recipe_stage2stageprint task, tf.path, 'basename:',tf.basename
+
+        # set commands of new tasks
+        for task in topological_sort(task_g):
+            if not task.successful and not task.NOOP:
+                task.command = task.tool._generate_command(task, settings)
+
+        # Assert no duplicate TaskFiles
+        import itertools as it
+
+        taskfiles = (tf for task in task_g.nodes() for tf in task.output_files)
+        f = lambda tf: tf.path
+        for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
+            group = list(group)
+            if len(group) > 1:
+                s = "\n".join((task, tf.task_output_for) for tf in group)
+                raise ValueError('Duplicate taskfiles paths detected.\n %s' % (s))
+
+
+        # Collapse
+        from ..graph.collapse import collapse
+
+        for stage_bubble, name in recipe.collapses:
+            collapse(task_g, stage_g, stage_bubble, name)
+
+        # renumber stages
+        for i,s in enumerate(topological_sort(stage_g)):
+            s.number = i+1
+
+        # Add final taskgraph to session
         session.add_all(stage_g.nodes())
         session.add_all(task_g.nodes())
+
+        #validate stage names
+        from ..util.helpers import duplicates
+        stages = stage_g.nodes()
+        assert len(set(stages)) == len(stages), 'duplicate stage name detected: %s' % (next(duplicates(stages)))
+
 
         # Create Task Queue
         task_queue = _copy_graph(task_g)
@@ -244,34 +288,11 @@ class Execution(Base):
 
         terminate_on_ctrl_c(self)
 
-
-        # Set output_dirs of new tasks
-        for task in task_queue.nodes():
-            task.output_dir = task_output_dir(task)
-            assert task.output_dir is not None, 'Computed an output file path of None for %s' % task
-            for tf in task.output_files:
-                if tf.path is None:
-                    tf.path = opj(task.output_dir, tf.basename)
-
-        # set commands of new tasks
-        for task in topological_sort(task_queue):
-            if not task.NOOP:
-                task.command = task.tool._generate_command(task, settings)
-
-        # Assert no duplicate TaskFiles
-        import itertools as it
-
-        taskfiles = self.taskfilesq.all()
-        f = lambda tf: tf.path
-        for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-            group = list(group)
-            if len(group) > 1:
-                s = "\n".join((task, tf.task_output_for) for tf in group)
-                raise ValueError('Duplicate taskfiles paths detected.\n %s' % (s))
-
         # commit so task.id is set for log dir
         self.log.info('Committing %s Tasks to the SQL database...' % len(task_queue.nodes()))
+        # import IPython; IPython.embed()
         session.commit()
+        # raise
 
         # set log dirs
         log_dirs = {t.log_dir: t for t in successful}
@@ -337,6 +358,11 @@ class Execution(Base):
         g.add_edges_from((s, c) for s in self.stages for c in s.children)
         return g
 
+    def draw_stage_graph(self):
+        from ..graph.draw import draw_stage_graph
+
+        return draw_stage_graph(self.stage_graph())
+
     def task_graph(self):
         """
         :return: (networkx.DiGraph) a DAG of the tasks
@@ -345,6 +371,12 @@ class Execution(Base):
         g.add_nodes_from(self.tasks)
         g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
         return g
+
+    def draw_task_graph(self):
+        from ..graph.draw import draw_task_graph
+
+        return draw_task_graph(self.task_graph())
+
 
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):
@@ -389,7 +421,7 @@ class Execution(Base):
 
         # def yield_outputs(self, name):
         # for task in self.tasks:
-        #         tf = task.get_output(name, error_if_missing=False)
+        # tf = task.get_output(name, error_if_missing=False)
         #         if tf is not None:
         #             yield tf
         #
@@ -487,6 +519,7 @@ def terminate_on_ctrl_c(execution):
             raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
 
     signal.signal(signal.SIGINT, ctrl_c)
+
 
 def _copy_graph(graph):
     import networkx as nx
