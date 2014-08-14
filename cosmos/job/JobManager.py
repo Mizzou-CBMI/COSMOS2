@@ -73,10 +73,7 @@ class JobManager(object):
 
     def get_command_str(self, task):
         "The command to be stored in the command.sh script"
-        p = "{python} {profile} -f {profile_out} {command_script_path}".format(
-            python=python_path,
-            profile=os.path.join(library_path, 'profile/profile.py'),
-            # db = task.profile_output_path+'.sqlite',
+        p = "psprofile -o {profile_out} {command_script_path}".format(
             profile_out=task.output_profile_path,
             command_script_path=task.output_command_script_path
         )

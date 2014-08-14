@@ -174,7 +174,7 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .graph.Recipe import Recipe
+from .graph.recipe import Recipe
 # from .db import get_session
 
 
