@@ -1,17 +1,20 @@
-from kosmos import Execution, KosmosApp, rel, Recipe, Input
+from cosmos import Execution, Cosmos, rel, Recipe
+import itertools as it
+
 import tools
-import subprocess as sp
+from cosmos.models.Tool import chain
 
 if __name__ == '__main__':
-    r = Recipe()
-    # inp = r.add_source([Input('blah', '/tmp', {'test': 'tag'})])
-    # fail = r.add_stage(tools.Fail, inp)
-    echo = r.add_source([tools.Echo(tags={'word': 'hello'}), tools.Echo(tags={'word': 'world'})])
-    cat = r.add_stage(tools.Cat, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
+    import ipdb
+    with ipdb.launch_ipdb_on_exception():
+        cosmos_app = Cosmos('sqlite.db', default_queue='dev-short', default_drm='local')
+        cosmos_app.initdb()
 
-    kosmos_app = KosmosApp('sqlite:///simple.db', default_drm='local')
-    kosmos_app.initdb()
+        recipe = Recipe()
 
-    sp.check_call(['mkdir','-p','out'])
-    ex = Execution.start(kosmos_app=kosmos_app, output_dir='out/test', name='test', restart=True, max_attempts=2)
-    ex.run(r)
+        echo = recipe.add_source([tools.Echo(tags={'word': 'hello'}), tools.Echo(tags={'word': 'world'})])
+        #cat = r.add_stage(tools.Cat, parents=[echo], rel=rel.One2many([('n', [1, 2])]))
+        cat = recipe.add_stage(chain(tools.Cat, tools.WordCount), echo, rel.One2many([('n', [1, 2])]))
+
+        ex = Execution.start(cosmos_app, 'Simple', 'out/simple2', max_attempts=2, restart=True, skip_confirm=True)
+        ex.run(recipe)

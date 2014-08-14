@@ -29,7 +29,7 @@ Glossary
         Directed Acyclic Graph.  A DAG is used byCosmos to describe a workflow's jobs and their dependencies on each other.
 
     Flask
-        A Python web framework Kosmos uses for its web-interface
+        A Python web framework Cosmos uses for its web-interface
 
     Sqlalchemy
-        A popular Python ORM that Kosmos uses
+        A popular Python ORM that Cosmos uses

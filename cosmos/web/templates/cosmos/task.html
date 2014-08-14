@@ -1,0 +1,75 @@
+{% extends "cosmos/layout.html" %}
+{% block title %}
+  {{ task }}
+{% endblock %}
+{% block content %}
+<ul class="breadcrumb">
+  <li><a href="{{ url_for('.index') }}">Home</a></li>
+  <li><a href="{{task.execution.url}}">{{task.execution}}</a></li>
+  <li><a href="{{ task.stage.url }}">{{task.stage}}</a></li>
+  <li class="active">{{task}}</li>
+</ul>
+
+    <dl class="dl-horizontal">
+        {% for k,v in task.attrs_as_dict().items() %}
+        <dt>{{k}}</dt>
+         <dd>{{ v }}</dd>
+        {% endfor %}
+        <dt>parents</dt>
+        <dd>{% for p in task.parents %}<a href="{{p.url}}">{{p}}</a> {% endfor %}</dd>
+
+
+        {% for tf in task.input_files %}
+        <dt>input file</dt>
+        <dd>{{tf}}</dd>
+        {% endfor %}
+        {% for tf in task.output_files %}
+        <dt>output file</dt>
+        <dd>{{tf}}</dd>
+        {% endfor %}
+    </dl>
+
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_command_script_path }}</span>
+        <h3 class="panel-title">Command</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ task.command_script_text }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-info">
+      <div class="panel-heading">
+          <span class="pull-right">{{ task.output_stdout_path }}</span>
+          <h3 class="panel-title">STDOUT</h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ task.stdout_text }}</pre>
+      </div>
+    </div>
+
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+      <span class="pull-right">{{ task.output_stderr_path }}</span>
+        <h3 class="panel-title">STDERR </h3>
+      </div>
+      <div class="panel-body">
+        <pre>{{ task.stderr_text }}</pre>
+
+      </div>
+    </div>
+
+    <h2>Resources</h2>
+    <table class="table table-striped table-condensed">
+        <tbody>
+        <tr><th>Name</th><th>Value</th>
+        </tbody>
+        {% for field, value in resource_usage %}
+        <tr>
+            <td>{{field}}</td><td>{{ field|format_resource_usage(value) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
