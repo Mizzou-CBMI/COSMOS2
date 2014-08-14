@@ -256,8 +256,7 @@ class Execution(Base):
         for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
             group = list(group)
             if len(group) > 1:
-                s = "\n".join((task, tf.task_output_for) for tf in group)
-                raise ValueError('Duplicate taskfiles paths detected.\n %s' % (s))
+                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (group[0].task_output_for, group[0],group[1].task_output_for,  group[1]))
 
 
         # Collapse

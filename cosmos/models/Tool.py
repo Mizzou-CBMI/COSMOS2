@@ -90,7 +90,10 @@ class Tool(object):
 
         for output in self.outputs:
             name = str_format(output.name, dict(i=input_dict, **self.tags))
-            basename = str_format(output.basename or '', dict(name=name, format=output.format, i=input_dict, **self.tags))
+            if output.basename is None:
+                basename = None
+            else:
+                basename = str_format(output.basename, dict(name=name, format=output.format, i=input_dict, **self.tags))
             TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
 
         task.tool = self

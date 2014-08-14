@@ -23,7 +23,7 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 setup(
     # Metadata
     name="cosmos-wfm",
-    version="0.5.4",
+    version="0.5.5",
     description="Workflow Management System",
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",

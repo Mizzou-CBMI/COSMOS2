@@ -85,8 +85,9 @@ class TaskFile(Base):
         super(TaskFile, self).__init__(*args, **kwargs)
         assert self.name is not None, 'TaskFile.name is required'
         assert self.format is not None, 'TaskFile.format is required'
-        if self.basename in [None, '']:
+        if self.basename is None:
             self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
+        assert self.basename != '', 'basename is an empty string for %s' % self
 
     def __repr__(self):
         return '<TaskFile[%s] %s.%s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
