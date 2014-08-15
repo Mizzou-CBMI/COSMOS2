@@ -39,7 +39,6 @@ class JobManager(object):
             assert task.drm is not None, 'task has no drm set'
             self.drms[task.drm].submit_job(task)
             task.status = TaskStatus.submitted
-            # task.session.commit()
 
     def terminate(self):
         for task in self.running_tasks:

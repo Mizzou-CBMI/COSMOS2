@@ -1,6 +1,8 @@
 import re
-
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, UniqueConstraint, Boolean, Table
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, Integer, String, DateTime
+from sqlalchemy.sql.expression import func
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, synonym, backref, validates
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
@@ -8,9 +10,7 @@ from flask import url_for
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
 from .. import StageStatus, signal_stage_status_change, RelationshipType
-#from networkx.algorithms import breadth_first_search
 import networkx as nx
-import itertools as it
 
 
 @signal_stage_status_change.connect
@@ -27,10 +27,6 @@ def task_status_changed(stage):
     stage.session.commit()
 
 
-stage_edge_table = Table('stage_edge', Base.metadata,
-                         Column('parent_id', Integer, ForeignKey('stage.id'), primary_key=True),
-                         Column('child_id', Integer, ForeignKey('stage.id'), primary_key=True))
-
 
 class Stage(Base):
     __tablename__ = 'stage'
@@ -41,19 +37,15 @@ class Stage(Base):
     name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    execution_id = Column(ForeignKey('execution.id'))
+    execution_id = Column(ForeignKey('execution.id'),nullable=False)
     execution = relationship("Execution", backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    parents = relationship("Stage",
-                           secondary=stage_edge_table,
-                           primaryjoin=id == stage_edge_table.c.parent_id,
-                           secondaryjoin=id == stage_edge_table.c.child_id,
-                           backref="children"
-    )
     relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
+    parents = association_proxy('incoming_edges', 'parent', creator=lambda n: StageEdge(parent=n))
+    children = association_proxy('outgoing_edges', 'child', creator=lambda n: StageEdge(child=n))
 
 
     @declared_attr
@@ -129,3 +121,22 @@ class Stage(Base):
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)
 
+
+
+class StageEdge(Base):
+    __tablename__ = 'stage_edge'
+    parent_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
+    parent = relationship("Stage", primaryjoin=parent_id == Stage.id, backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",single_parent=True))
+    child_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
+    child = relationship("Stage",primaryjoin=child_id == Stage.id,  backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",single_parent=True))
+
+    def __init__(self, parent=None, child=None):
+        self.parent = parent
+        self.child = child
+
+
+    def __str__(self):
+        return '<StageEdge: %s -> %s>' % (self.parent, self.child)
+
+    def __repr__(self):
+        return self.__str__()

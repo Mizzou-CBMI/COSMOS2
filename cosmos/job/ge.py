@@ -17,7 +17,7 @@ class DRM_GE(DRM):
 
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), qsub=qsub),
                               env=os.environ,
-                              preexec_fn=preexec_function(),
+                              preexec_fn=preexec_function,
                               shell=True)
 
         task.drm_jobID = int(re.search('job (\d+) ', out).group(1))
@@ -63,7 +63,7 @@ class DRM_GE(DRM):
         for group in grouper(tasks, 50):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(str, group))
-            sp.Popen(['qdel', pids])
+            sp.Popen(['qdel', pids], preexec_fn=os.preexec_function)
 
 
 def qstat_all():
@@ -72,7 +72,7 @@ def qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['qstat']).strip().split('\n')
+        lines = sp.check_output(['qstat'],preexec_fn=preexec_function).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     keys = re.split("\s+", lines[0])
@@ -88,3 +88,4 @@ def preexec_function():
     # signal handler SIG_IGN.  This allows Cosmos to cleanly
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
+    return os.setsid

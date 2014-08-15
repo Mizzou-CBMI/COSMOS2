@@ -5,6 +5,10 @@ import os
 
 from .db import Base
 
+#turn SQLAlchemy warnings into errors
+import warnings
+from sqlalchemy.exc import SAWarning
+warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 

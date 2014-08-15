@@ -2,31 +2,46 @@ from networkx.algorithms import depth_first_search
 
 from ..util.sqla import get_or_create
 from .. import Task, Stage
+import itertools as it
 
-
-def _replace(G, bubble, new_node, type_):
+def _replace(session, G, bubble, new_node):
     """
     replace bubble with new_node in graph G.  NodesA must be a simple path, ie ie a->b->c
     handles ORM and task_graph operations
     :param type_: 'task' or 'stage'
     """
-    # assert nodesA is a simple path? 
+    # assert nodesA is a simple path?
     assert len(bubble) > 0
+
     head = bubble[0]
     tail = bubble[-1]
-    for p in G.predecessors(head):
-        p.children.remove(head)
-        p.children.append(new_node)
-        G.add_edge(p, new_node)
-        # nx remove happens at end
-    for c in G.successors(tail):
-        c.parents.remove(tail)
-        c.parents.append(new_node)
-        G.add_edge(new_node, c)
-        # nx remove happens at end
+    for edge in list(head.incoming_edges):
+        G.add_edge(edge.parent, new_node)
+        if edge.parent in new_node.parents:
+            # edge might already exist if new_node was loaded from DB
+            edge.parent.outgoing_edges.remove(edge)
+        else:
+            edge.child = new_node
+
+    for edge in list(tail.outgoing_edges):
+        G.add_edge(new_node, edge.child)
+        if edge.child in new_node.children:
+            # edge might already exist if new_node was loaded from DB
+            edge.child.incoming_edges.remove(edge)
+        else:
+            edge.parent = new_node
+
     G.remove_nodes_from(bubble)
-    # for obj in bubble:
-    # session.expunge(obj)
+
+    #get bubble and its remaining edges out of session
+    # for node in bubble:
+    #     for edge in list(it.chain(node.incoming_edges, node.outgoing_edges)):
+    #         if edge in session:
+    #             session.expunge(edge)
+    #     if node in session:
+    #         session.expunge(node)
+    # session.add(new_node)
+
 
 
 def _create_merged_task(tasks, new_stage):
@@ -71,7 +86,7 @@ def _create_merged_task(tasks, new_stage):
     return replacement_task
 
 
-def collapse(task_g, stage_g, recipe_stage_bubble, name):
+def collapse(session, task_g, stage_g, recipe_stage_bubble, name):
     """
     :param G: a task_graph
     """
@@ -81,7 +96,6 @@ def collapse(task_g, stage_g, recipe_stage_bubble, name):
     # replace node bubbles with merged_node
     # replace stage_bubble with merged_stage
     execution = task_g.nodes()[0].execution
-    session = execution.session
 
     def create_stage(execution, name):
         stage, created = get_or_create(session=session, execution=execution, model=Stage, name=name)
@@ -101,14 +115,20 @@ def collapse(task_g, stage_g, recipe_stage_bubble, name):
     for head_task in stage_bubble[0].tasks:
         task_bubble = list(traverse_task_bubble(head_task, stage_bubble))
         merged_task = _create_merged_task(task_bubble, new_stage)
-        _replace(task_g, task_bubble, merged_task, 'task')
+        _replace(session, task_g, task_bubble, merged_task)
 
-    _replace(stage_g, stage_bubble, new_stage, 'stage')
+    _replace(session, stage_g, stage_bubble, new_stage)
 
-    # remove loose ends
+    #remove loose ends
     for stage in stage_bubble:
         stage.execution = None
+        assert stage not in session
         for task in stage.tasks:
+            # for tf in list(task.input_files):
+            #     tf.tasks_input_for.remove(task)
             for ifa in list(task._input_file_assocs):
-                ifa.task = None
                 ifa.taskfile = None
+                assert ifa not in session
+            #     if ifa in session:
+            #         raise
+            #         session.expunge(ifa)

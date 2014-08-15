@@ -1,10 +1,11 @@
 import shutil
 import os
-
-from sqlalchemy import Column, String, ForeignKey, Integer, UniqueConstraint, Table, Boolean
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, Integer, String
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
-
 from collections import namedtuple
+
 from ..db import Base
 
 
@@ -14,9 +15,9 @@ class TaskFileValidationError(Exception): pass
 class TaskFileError(Exception): pass
 
 
-association_table = Table('input_files', Base.metadata,
-                          Column('task', Integer, ForeignKey('task.id')),
-                          Column('taskfile', Integer, ForeignKey('taskfile.id')))
+# association_table = Table('input_files', Base.metadata,
+#                           Column('task', Integer, ForeignKey('task.id')),
+#                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
 AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward'])
 AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
@@ -34,18 +35,28 @@ def abstract_input_taskfile(name=None, format=None, forward=False):
 
 class InputFileAssociation(Base):
     __tablename__ = 'input_file_assoc'
-    task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
-    taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
     forward = Column(Boolean, default=False)
-    taskfile = relationship("TaskFile", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
+    task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
     task = relationship("Task", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
+    taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
+    taskfile = relationship("TaskFile", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
 
-    def delete(self):
-        self.task._input_file_assocs.remove(self)
-        self.taskfile._input_file_assocs.remove(self)
+    # def delete(self):
+    # self.task._input_file_assocs.remove(self)
+    #     self.taskfile._input_file_assocs.remove(self)
+
+    def __init__(self, taskfile=None, task=None, forward=False):
+        assert not (taskfile is None and task is None)
+        self.taskfile = taskfile
+        self.task = task
+        self.forward = forward
+
 
     def __repr__(self):
-        return '<InputFileAssoiation (%s) (%s)>' % (self.task, self.taskfile)
+        return '<InputFileAssociation (%s) (%s)>' % (self.task, self.taskfile)
+
+    def __str__(self):
+        return self.__repr__()
 
 
 
@@ -64,10 +75,11 @@ class TaskFile(Base):
     format = Column(String(255), nullable=False)
     basename = Column(String(255), nullable=False)
     persist = Column(Boolean, default=False)
+    tasks_input_for = association_proxy('_input_file_assocs', 'task', creator=lambda t: InputFileAssociation(task=t))
 
-    @property
-    def tasks_input_for(self):
-        return [ifa.task for ifa in self._input_file_assocs]
+    # @property
+    # def tasks_input_for(self):
+    #     return [ifa.task for ifa in self._input_file_assocs]
 
     @property
     def prefix(self):
