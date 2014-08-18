@@ -292,9 +292,8 @@ class Execution(Base):
         self.log.info('Committing %s Tasks to the SQL database...' % (len(task_g.nodes()) - len(successful)))
         session.commit()
 
-        self.log.info('Stages:')
         for stage in stage_g.nodes():
-            self.log.info('%s' % stage)
+            self.log.info('%s %s' % (stage, stage.status))
 
 
         # Create Task Queue

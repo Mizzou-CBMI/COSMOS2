@@ -299,10 +299,10 @@ class Task(Base):
 
 class TaskEdge(Base):
     __tablename__ = 'task_edge'
-    id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('task.id'))
+    #id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
     parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=parent_id == Task.id)
-    child_id = Column(Integer, ForeignKey('task.id'))
+    child_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
     child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=child_id == Task.id)
 
     def __init__(self, parent=None, child=None):

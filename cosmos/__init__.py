@@ -157,7 +157,7 @@ class ExecutionStatus(MyEnum):
     running = 'Execution is running',
     successful = 'Finished successfully',
     killed = 'Manually killed'
-    failed_but_running = 'Failed, but running'
+    failed_but_running = "Running, but a task failed"
     failed = 'Finished, but failed'
 
 
