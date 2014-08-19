@@ -3,11 +3,12 @@ import json
 import itertools as it
 import shutil
 import codecs
+import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Boolean, Integer, String, PickleType, DateTime, BigInteger
+from sqlalchemy.types import Boolean, Integer, String, PickleType, DateTime, BigInteger, Text
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask import url_for
 from networkx.algorithms import breadth_first_search
@@ -56,10 +57,10 @@ def task_status_changed(task):
         task.started_on = func.now()
 
     elif task.status == TaskStatus.submitted:
+        task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drm_jobID))
         task.submitted_on = func.now()
-        task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
@@ -78,7 +79,7 @@ def task_status_changed(task):
                 task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
-                task.stage.status = StageStatus.failed
+                task.stage.status = StageStatus.running_but_failed
                 # task.session.commit()
 
     elif task.status == TaskStatus.successful:
@@ -221,11 +222,17 @@ class Task(Base):
 
     @property
     def stderr_text(self):
-        return readfile(self.output_stderr_path).strip()
+        r = readfile(self.output_stderr_path).strip()
+        # if r == 'file does not exist':
+        #     if self.drm == 'lsf' and self.drm_jobID:
+        #         r = 'bpeek %s output:\n\n' % self.drm_jobID
+        #         r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+        return r
 
     @property
     def command_script_text(self):
-        return readfile(self.output_command_script_path).strip()
+        #return self.command
+        return readfile(self.output_command_script_path).strip() or self.command
 
     @property
     def forwarded_inputs(self):

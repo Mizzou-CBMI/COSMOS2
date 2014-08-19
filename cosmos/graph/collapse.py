@@ -51,9 +51,9 @@ def _create_merged_task(tasks, new_stage):
     def get_or_create_task(successful_tasks, tags, params):
         existing_task = successful_tasks.get(frozenset(tags.items()), None)
         if existing_task:
-            return existing_task
+            return existing_task, True
         else:
-            return Task(stage=new_stage, tags=tasks[-1].tags.copy(), **params)
+            return Task(stage=new_stage, tags=tasks[-1].tags.copy(), **params), False
 
 
     def get_merged_drm(tasks):
@@ -72,17 +72,19 @@ def _create_merged_task(tasks, new_stage):
         output_dir=tasks[-1].output_dir,
         drm=get_merged_drm(tasks))
 
-    replacement_task = get_or_create_task(successful_tasks, tasks[-1].tags, params)
-    for ifa in list(tasks[0]._input_file_assocs):
-        ifa.task = replacement_task
+    replacement_task, created = get_or_create_task(successful_tasks, tasks[-1].tags, params)
+    if created:
+        for ifa in list(tasks[0]._input_file_assocs):
+            ifa.task = replacement_task
 
-    # TODO something about input files that are forwarded all the way through
+        # TODO something about input files that are forwarded all the way through
 
-    replacement_task.command = '\n\n'.join('### %s ###\n\n%s' % (t.stage.name, t.command) for t in tasks)
+        replacement_task.command = '\n\n'.join('### %s ###\n\n%s' % (t.stage.name, t.command) for t in tasks)
 
-    # set output files
-    for otf in tasks[-1].output_files:
-        otf.task_output_for = replacement_task
+        # set output files
+        for otf in tasks[-1].output_files:
+            otf.task_output_for = replacement_task
+
     return replacement_task
 
 

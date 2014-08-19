@@ -146,7 +146,8 @@ class TaskStatus(MyEnum):
 
 class StageStatus(MyEnum):
     no_attempt = 'Has not been attempted',
-    running = 'Stage is running',
+    running = 'Running',
+    running_but_failed = 'Running, but a task failed'
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
     killed = 'Manually killed'
