@@ -5,8 +5,7 @@ import re
 from setuptools import find_packages
 
 
-setup_py_path = os.path.dirname(os.path.realpath(__file__))
-with open(os.path.join(setup_py_path, 'cosmos/VERSION'), 'r') as fh:
+with open(os.path.join(os.path.dirname(__file__), 'cosmos/VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
@@ -36,14 +35,13 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="Non-commercial use only",
     install_requires=[
-        "psutil",
+        "psprofile",
         "flask",
         'blinker',
         'Flask-Admin',
         'Flask-SQLAlchemy',
         'Flask-WTF',
         'networkx',
-        "ipython",
         "enum34"],
     packages=find_packages(),
     include_package_data=True,

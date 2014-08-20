@@ -1,14 +1,17 @@
 import os
 import re
 import shutil
-
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, orm, VARCHAR
+from sqlalchemy.schema import Column
+from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
+from sqlalchemy import orm
+from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import validates, synonym
 from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
+from ..util.helpers import duplicates
 from ..graph import taskgraph
 from ..db import Base
 
@@ -33,7 +36,7 @@ def _default_task_output_dir(task):
     tag_values = map(str, task.tags.values())
     for v in tag_values:
         assert re.match("^[\w]+$", v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
-                                      'Execution.run' % v
+                                       'Execution.run' % v
     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
 
 
@@ -128,9 +131,9 @@ class Execution(Base):
 
         # resuming?
         ex = session.query(Execution).filter_by(name=name).first()
-        #msg = 'Execution started, Cosmos v%s' % __version__
+        # msg = 'Execution started, Cosmos v%s' % __version__
         if ex:
-            #resuming.
+            # resuming.
             if not skip_confirm and not confirm(
                             'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the graph will be added and executed.  Are you sure?' % ex):
                 raise SystemExit('Quitting')
@@ -146,30 +149,33 @@ class Execution(Base):
 
             ex.log.info('Resuming %s' % ex)
             session.add(ex)
-            q = ex.tasksq.filter_by(successful=False)
-            n = q.count()
+            failed_tasks = [t for s in ex.stages for t in s.tasks if not t.successful]
+            n = len(failed_tasks)
             if n:
                 ex.log.info('Deleting %s failed task(s), delete_files=%s' % (n, False))
-                #stages_with_failed_tasks = set()
-                for t in q.all():
+                # stages_with_failed_tasks = set()
+                for t in failed_tasks:
                     session.delete(t)
                     #stages_with_failed_tasks.add(t.stage)
             stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
-            if stages:
-                ex.log.info('Deleting %s stage(s) without a successful task' % len(stages))
-                for stage in stages:
-                    session.delete(stage)
+            for stage in stages:
+                ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
+                session.delete(stage)
+                session.commit()
+
         else:
-            #start from scratch
+            # start from scratch
             assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
-            #ex.log.info(msg)
+            # ex.log.info(msg)
             session.add(ex)
 
         ex.max_cpus = max_cpus
         ex.max_attempts = max_attempts
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         session.commit()
+        session.expunge_all()
+        session.add(ex)
         mkdir(output_dir)
         ex.cosmos_app = cosmos_app
 
@@ -223,7 +229,7 @@ class Execution(Base):
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args, default_queue=self.cosmos_app.default_queue)
 
-        self.log.info('Rendering graph for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
+        self.log.info('Rendering taskgraph for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
         self.status = ExecutionStatus.running
         self.successful = False
 
@@ -241,7 +247,7 @@ class Execution(Base):
                 for tf in task.output_files:
                     if tf.path is None:
                         tf.path = opj(task.output_dir, tf.basename)
-                        #recipe_stage2stageprint task, tf.path, 'basename:',tf.basename
+                        # recipe_stage2stageprint task, tf.path, 'basename:',tf.basename
 
         # set commands of new tasks
         for task in topological_sort(task_g):
@@ -256,42 +262,47 @@ class Execution(Base):
         for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
             group = list(group)
             if len(group) > 1:
-                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (group[0].task_output_for, group[0],group[1].task_output_for,  group[1]))
+                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
 
 
         # Collapse
         from ..graph.collapse import collapse
 
         for stage_bubble, name in recipe.collapses:
-            collapse(task_g, stage_g, stage_bubble, name)
+            self.log.debug('Collapsing %s into `%s`' % ([s.name for s in stage_bubble], name))
+            collapse(session, task_g, stage_g, stage_bubble, name)
 
-        # renumber stages
-        for i,s in enumerate(topological_sort(stage_g)):
-            s.number = i+1
+        # taskg and stageg are now finalized
 
-        # Add final taskgraph to session
-        session.add_all(stage_g.nodes())
-        session.add_all(task_g.nodes())
-
-        #validate stage names
-        from ..util.helpers import duplicates
         stages = stage_g.nodes()
         assert len(set(stages)) == len(stages), 'duplicate stage name detected: %s' % (next(duplicates(stages)))
+
+        # renumber stages
+        for i, s in enumerate(topological_sort(stage_g)):
+            s.number = i + 1
+
+        # Add final taskgraph to session
+        session.expunge_all()
+        session.add(self)
+        session.add_all(stage_g.nodes())
+        session.add_all(task_g.nodes())
+        successful = filter(lambda t: t.successful, task_g.nodes())
+
+        # commit so task.id is set for log dir
+        self.log.info('Committing %s Tasks to the SQL database...' % (len(task_g.nodes()) - len(successful)))
+        session.commit()
+
+        for stage in stage_g.nodes():
+            self.log.info('%s %s' % (stage, stage.status))
 
 
         # Create Task Queue
         task_queue = _copy_graph(task_g)
-        successful = filter(lambda t: t.successful, task_g.nodes())
         self.log.info('Skipping %s successful tasks' % len(successful))
         task_queue.remove_nodes_from(successful)
 
-        terminate_on_ctrl_c(self)
 
-        # commit so task.id is set for log dir
-        self.log.info('Committing %s Tasks to the SQL database...' % len(task_queue.nodes()))
-        # import IPython; IPython.embed()
-        session.commit()
-        # raise
+        terminate_on_ctrl_c(self)
 
         # set log dirs
         log_dirs = {t.log_dir: t for t in successful}
@@ -332,9 +343,13 @@ class Execution(Base):
             self.status = ExecutionStatus.killed
 
 
-    @property
-    def tasksq(self):
-        return self.session.query(Task).filter(Task.stage_id.in_(s.id for s in self.stages))
+    # @property
+    # def tasksq(self):
+    # stage_ids = [s.id for s in self.stages]
+    # if len(stage_ids):
+    # return self.session.query(Task).filter(Task.stage_id.in_(stage_ids))
+    #     else:
+    #         return []
 
 
     @property
@@ -480,19 +495,17 @@ def _run(execution, session, task_queue):
 
 def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
-    ready_tasks = [task for task, degree in task_queue.in_degree().items()
-                   if degree == 0 and task.status == TaskStatus.no_attempt]
+    ready_tasks = [task for task, degree in task_queue.in_degree().items() if degree == 0 and task.status == TaskStatus.no_attempt]
     for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
         cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
         if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
             execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
             break
 
-        # # render taskfile paths
-        for f in ready_task.output_files:
-            if f.path is None:
-                f.path = os.path.join(ready_task.output_dir, f.basename)
-
+        # # # render taskfile paths
+        # for f in ready_task.output_files:
+        # if f.path is None:
+        #         f.path = os.path.join(ready_task.output_dir, f.basename)
         execution.jobmanager.submit(ready_task)
 
     # only commit submitted Tasks after submitting a batch

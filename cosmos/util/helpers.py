@@ -1,12 +1,10 @@
 import pprint
 import logging
-import itertools
+import itertools as it
 import subprocess as sp
 import signal
 import os
 import time
-
-
 
 
 def wait_for_file(execution, path, timeout=60, error=True):
@@ -23,14 +21,14 @@ def wait_for_file(execution, path, timeout=60, error=True):
     return True
 
 
-
-
 def has_duplicates(alist):
     return len(alist) != len(set(alist))
+
+
 #
 #
 # def dag_descendants(node):
-#     """
+# """
 #     :param node: A Task or Stage instance
 #     :yields: a list of descendent task or stages
 #
@@ -103,13 +101,14 @@ def mkdir(path):
 
 def groupby(iterable, fxn):
     """aggregates an iterable using a function"""
-    return itertools.groupby(sorted(iterable, key=fxn), fxn)
+    return it.groupby(sorted(iterable, key=fxn), fxn)
+
 
 def duplicates(iterable):
     """return a list of duplicates"""
-    for x, group in groupby(iterable, lambda x: x):
-        yield x
-
+    for x, group in it.groupby(sorted(iterable)):
+        if len(list(group)) > 1:
+            yield x
 
 def str_format(s, d):
     """

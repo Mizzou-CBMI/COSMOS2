@@ -1,5 +1,4 @@
 from collections import namedtuple
-
 import networkx as nx
 
 from .draw import draw_stage_graph
@@ -75,8 +74,7 @@ class Recipe(object):
 
         recipe_stage = RecipeStage(name, tool_class, rel, tag)
 
-        assert recipe_stage.name not in [n.name for n in self.recipe_stage_G.nodes()], \
-            'Duplicate recipe_stage names detected: %s' % recipe_stage.name
+        self._validate_not_duplicate_name(recipe_stage.name)
 
         self.recipe_stage_G.add_node(recipe_stage)
         for parent in parents:
@@ -87,13 +85,16 @@ class Recipe(object):
     def collapse_stages(self, stages, name=None):
         # assert stages are collapsible
         assert isinstance(stages, list), '`stages` must be a list'
+        self._validate_not_duplicate_name(name)
         stages = filter(bool, stages)
-        if len(stages)>1:
+        if len(stages) > 1:
             if name is None:
                 '__'.join(s.name for s in stages)
 
             self.collapses.append(Collapsed_Stage(stages, name))
 
+    def _validate_not_duplicate_name(self, name):
+        assert name not in [n.name for n in self.recipe_stage_G.nodes()],  'Duplicate recipe_stage names detected: %s' % name
 
     def as_image(self, save_to=None):
         """

@@ -5,6 +5,10 @@ import os
 
 from .db import Base
 
+#turn SQLAlchemy warnings into errors
+import warnings
+from sqlalchemy.exc import SAWarning
+warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
@@ -142,7 +146,8 @@ class TaskStatus(MyEnum):
 
 class StageStatus(MyEnum):
     no_attempt = 'Has not been attempted',
-    running = 'Stage is running',
+    running = 'Running',
+    running_but_failed = 'Running, but a task failed'
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
     killed = 'Manually killed'
@@ -153,7 +158,7 @@ class ExecutionStatus(MyEnum):
     running = 'Execution is running',
     successful = 'Finished successfully',
     killed = 'Manually killed'
-    failed_but_running = 'Failed, but running'
+    failed_but_running = "Running, but a task failed"
     failed = 'Finished, but failed'
 
 
@@ -174,7 +179,7 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .graph.Recipe import Recipe
+from .graph.recipe import Recipe
 # from .db import get_session
 
 

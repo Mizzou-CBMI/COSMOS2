@@ -3,11 +3,13 @@ import json
 import itertools as it
 import shutil
 import codecs
-
+import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
+from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy import Column, Boolean, Integer, String, PickleType, ForeignKey, DateTime, func, Table, BigInteger, \
-    Text
+from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.types import Boolean, Integer, String, PickleType, DateTime, BigInteger, Text
+from sqlalchemy.ext.associationproxy import association_proxy
 from flask import url_for
 from networkx.algorithms import breadth_first_search
 
@@ -15,7 +17,7 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
-
+from .TaskFile import InputFileAssociation
 
 opj = os.path.join
 
@@ -32,7 +34,7 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-task_failed_printout = """Failure Info:
+task_failed_printout = u"""Failure Info:
 <COMMAND path={0.output_command_script_path} drm_jobID={0.drm_jobID}>
 {0.command_script_text}
 </COMMAND>
@@ -55,10 +57,10 @@ def task_status_changed(task):
         task.started_on = func.now()
 
     elif task.status == TaskStatus.submitted:
+        task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drm_jobID))
         task.submitted_on = func.now()
-        task.stage.status = StageStatus.running
 
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
@@ -77,7 +79,7 @@ def task_status_changed(task):
                 task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = func.now()
-                task.stage.status = StageStatus.failed
+                task.stage.status = StageStatus.running_but_failed
                 # task.session.commit()
 
     elif task.status == TaskStatus.successful:
@@ -89,9 +91,10 @@ def task_status_changed(task):
             # task.session.commit()
 
 
-task_edge_table = Table('task_edge', Base.metadata,
-                        Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-                        Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
+# task_edge_table = Table('task_edge', Base.metadata,
+# Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
+#                         Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
+
 
 
 def logplus(filename):
@@ -134,11 +137,9 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-    parents = relationship("Task",
-                           secondary=task_edge_table,
-                           primaryjoin=id == task_edge_table.c.parent_id,
-                           secondaryjoin=id == task_edge_table.c.child_id,
-                           backref='children')
+    parents = association_proxy('incoming_edges', 'parent', creator=lambda n: TaskEdge(parent=n))
+    children = association_proxy('outgoing_edges', 'child', creator=lambda n: TaskEdge(child=n))
+    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
     #command = Column(Text)
 
     @property
@@ -149,7 +150,8 @@ class Task(Base):
     drm_jobID = Column(Integer)
 
     profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
-                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads', 'max_num_threads',
+                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
+                      'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
     exclude_from_dict = profile_fields + ['command', 'info']
 
@@ -220,11 +222,17 @@ class Task(Base):
 
     @property
     def stderr_text(self):
-        return readfile(self.output_stderr_path).strip()
+        r = readfile(self.output_stderr_path).strip()
+        # if r == 'file does not exist':
+        #     if self.drm == 'lsf' and self.drm_jobID:
+        #         r = 'bpeek %s output:\n\n' % self.drm_jobID
+        #         r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+        return r
 
     @property
     def command_script_text(self):
-        return readfile(self.output_command_script_path).strip()
+        #return self.command
+        return readfile(self.output_command_script_path).strip() or self.command
 
     @property
     def forwarded_inputs(self):
@@ -291,3 +299,26 @@ class Task(Base):
     def __repr__(self):
         s = self.stage.name if self.stage else ''
         return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class TaskEdge(Base):
+    __tablename__ = 'task_edge'
+    #id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
+    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=parent_id == Task.id)
+    child_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
+    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=child_id == Task.id)
+
+    def __init__(self, parent=None, child=None):
+        self.parent = parent
+        self.child = child
+
+
+    def __str__(self):
+        return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
+
+    def __repr__(self):
+        return self.__str__()

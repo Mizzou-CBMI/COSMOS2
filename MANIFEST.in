@@ -1,0 +1,3 @@
+include cosmos/VERSION
+recursive-include cosmos/web/templates *.*
+recursive-include cosmos/web/static *.*
