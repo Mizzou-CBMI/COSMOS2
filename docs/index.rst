@@ -6,7 +6,10 @@ Welcome
     :maxdepth: 4
 
     introduction
+    install
+    getting_started
     glossary
+
 
 
 Indices and tables

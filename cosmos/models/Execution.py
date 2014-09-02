@@ -19,7 +19,7 @@ from ..db import Base
 opj = os.path.join
 import signal
 
-from .. import TaskStatus, Task, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, StageStatus, Task, ExecutionStatus, signal_execution_status_change
 
 from ..util.helpers import get_logger, mkdir, confirm
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
@@ -243,11 +243,11 @@ class Execution(Base):
         for task in nx.topological_sort(task_g):
             if not task.successful:
                 task.output_dir = task_output_dir(task)
-                assert task.output_dir not in ['', None], "Computed an output file path of None or '' for %s" % task
+                assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
                 for tf in task.output_files:
                     if tf.path is None:
                         tf.path = opj(task.output_dir, tf.basename)
-                        # recipe_stage2stageprint task, tf.path, 'basename:',tf.basename
+                        # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
 
         # set commands of new tasks
         for task in topological_sort(task_g):
@@ -292,9 +292,10 @@ class Execution(Base):
         self.log.info('Committing %s Tasks to the SQL database...' % (len(task_g.nodes()) - len(successful)))
         session.commit()
 
-        for stage in stage_g.nodes():
-            self.log.info('%s %s' % (stage, stage.status))
+        # print stages
+        for s in topological_sort(stage_g):
 
+            self.log.info('%s %s' % (s, s.status))
 
         # Create Task Queue
         task_queue = _copy_graph(task_g)
@@ -492,6 +493,11 @@ def _run(execution, session, task_queue):
     else:
         raise AssertionError('Bad execution status %s' % execution.status)
 
+    # set stage status to failed
+    for s in execution.stages:
+        if s.status in [StageStatus.running, StageStatus.running_but_failed]:
+            s.status = StageStatus.failed
+
 
 def _run_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
@@ -504,8 +510,8 @@ def _run_ready_tasks(task_queue, execution):
 
         # # # render taskfile paths
         # for f in ready_task.output_files:
-        # if f.path is None:
-        #         f.path = os.path.join(ready_task.output_dir, f.basename)
+        # if f.root_path is None:
+        #         f.root_path = os.root_path.join(ready_task.output_dir, f.basename)
         execution.jobmanager.submit(ready_task)
 
     # only commit submitted Tasks after submitting a batch

@@ -16,9 +16,9 @@ import sys
 import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+# add these directories to sys.root_path here. If the directory is relative to the
+# documentation root, use os.root_path.abspath to make it absolute, like shown here.
+#sys.root_path.insert(0, os.root_path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
@@ -128,7 +128,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # of the sidebar.
 #html_logo = None
 
-# The name of an image file (within the static path) to use as favicon of the
+# The name of an image file (within the static root_path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 #html_favicon = None
