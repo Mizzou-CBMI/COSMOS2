@@ -1,6 +1,3 @@
-Getting Started
-===============
-
 .. _getting_started:
 
 Getting Started
@@ -63,9 +60,44 @@ see examples/main.py for a way to organize multiple workflows into a single acce
 .. code-block:: bash
 
     $ python main.py initdb
+    Initializing db...
+    
     $ python main.py -h
-    $ python main.py ex1 -h
+    usage: main.py [-h] <command> ...
 
+    optional arguments:
+      -h, --help  show this help message and exit
+
+    Commands:
+      <command>
+        resetdb   Resets the database. This is not reversible!
+        initdb    Initialize the database via sql CREATE statements
+        shell     Launch an IPython shell with useful variables already imported
+        runweb
+        ex1       Example1
+        ex2       Example2: A failed task
+        ex3       Example3: Twitter (note you must edit the file)
+
+    $ python main.py ex1 -h
+    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c MAX_CPUS]
+                   [-m MAX_ATTEMPTS] [-r] [-y]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -n NAME, --name NAME  A name for this execution
+      -o OUTPUT_DIR, --output_dir OUTPUT_DIR
+                            The directory to output files to. Path should not
+                            exist if this is a new execution.
+      -c MAX_CPUS, --max_cpus MAX_CPUS
+                            Maximum number (based on the sum of cpu_requirement)
+                            of cores to use at once. 0 means unlimited
+      -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
+                            Maximum number of times to try running a Task that
+                            must succeed before the execution fails
+      -r, --restart         Completely restart the execution. Note this will
+                            delete all record of the execution in the database
+      -y, --skip_confirm    Do not use confirmation prompts before restarting or
+                            deleting, and assume answer is always yes
 
 
 
