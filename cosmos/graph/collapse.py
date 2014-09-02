@@ -6,11 +6,11 @@ import itertools as it
 
 def _replace(session, G, bubble, new_node):
     """
-    replace bubble with new_node in graph G.  NodesA must be a simple path, ie ie a->b->c
+    replace bubble with new_node in graph G.  NodesA must be a simple root_path, ie ie a->b->c
     handles ORM and task_graph operations
     :param type_: 'task' or 'stage'
     """
-    # assert nodesA is a simple path?
+    # assert nodesA is a simple root_path?
     assert len(bubble) > 0
 
     head = bubble[0]
@@ -34,13 +34,13 @@ def _replace(session, G, bubble, new_node):
     G.remove_nodes_from(bubble)
 
     #get bubble and its remaining edges out of session
-    # for node in bubble:
-    #     for edge in list(it.chain(node.incoming_edges, node.outgoing_edges)):
-    #         if edge in session:
-    #             session.expunge(edge)
-    #     if node in session:
-    #         session.expunge(node)
-    # session.add(new_node)
+    for node in bubble:
+        for edge in list(it.chain(node.incoming_edges, node.outgoing_edges)):
+            if edge in session:
+                session.expunge(edge)
+        if node in session:
+            session.expunge(node)
+    session.add(new_node)
 
 
 
@@ -51,9 +51,9 @@ def _create_merged_task(tasks, new_stage):
     def get_or_create_task(successful_tasks, tags, params):
         existing_task = successful_tasks.get(frozenset(tags.items()), None)
         if existing_task:
-            return existing_task, True
+            return existing_task, False
         else:
-            return Task(stage=new_stage, tags=tasks[-1].tags.copy(), **params), False
+            return Task(stage=new_stage, tags=tasks[-1].tags.copy(), **params), True
 
 
     def get_merged_drm(tasks):
@@ -84,6 +84,7 @@ def _create_merged_task(tasks, new_stage):
         # set output files
         for otf in tasks[-1].output_files:
             otf.task_output_for = replacement_task
+
 
     return replacement_task
 
@@ -124,13 +125,16 @@ def collapse(session, task_g, stage_g, recipe_stage_bubble, name):
     #remove loose ends
     for stage in stage_bubble:
         stage.execution = None
-        assert stage not in session
         for task in stage.tasks:
             # for tf in list(task.input_files):
             #     tf.tasks_input_for.remove(task)
             for ifa in list(task._input_file_assocs):
                 ifa.taskfile = None
+                ifa.task = None
                 assert ifa not in session
+            for tf in list(task.output_files):
+                assert tf not in session
             #     if ifa in session:
             #         raise
             #         session.expunge(ifa)
+        assert stage not in session

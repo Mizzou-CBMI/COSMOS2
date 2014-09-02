@@ -35,13 +35,13 @@ class GetOutputError(Exception): pass
 
 
 task_failed_printout = u"""Failure Info:
-<COMMAND path={0.output_command_script_path} drm_jobID={0.drm_jobID}>
+<COMMAND root_path={0.output_command_script_path} drm_jobID={0.drm_jobID}>
 {0.command_script_text}
 </COMMAND>
-<STDOUT path={0.output_stdout_path}>
+<STDOUT root_path={0.output_stdout_path}>
 {0.stdout_text}
 </STDOUT>
-<STDERR path={0.output_stderr_path}>
+<STDERR root_path={0.output_stderr_path}>
 {0.stderr_text}
 </STDERR>
 Failed Task.output_dir: {0.output_dir}"""
@@ -183,7 +183,6 @@ class Task(Base):
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
 
-
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -223,10 +222,10 @@ class Task(Base):
     @property
     def stderr_text(self):
         r = readfile(self.output_stderr_path).strip()
-        # if r == 'file does not exist':
-        #     if self.drm == 'lsf' and self.drm_jobID:
-        #         r = 'bpeek %s output:\n\n' % self.drm_jobID
-        #         r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+        if r == 'file does not exist':
+            if self.drm == 'lsf' and self.drm_jobID:
+                r += '\n\nbpeek %s output:\n\n' % self.drm_jobID
+                r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
         return r
 
     @property
@@ -254,8 +253,7 @@ class Task(Base):
                 with open(self.output_profile_path, 'r') as fh:
                     self._cache_profile = json.load(fh)
             else:
-                self.log.warn('%s does not exist on the filesystem' % self.output_profile_path)
-                return {}
+                raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
         return self._cache_profile
 
     def update_from_profile_output(self):

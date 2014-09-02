@@ -146,7 +146,7 @@ def formatError(txt, dict):
 
 def get_logger(name, path):
     """
-    Gets a logger of name `name` that prints to stderr and to path
+    Gets a logger of name `name` that prints to stderr and to root_path
 
     :returns: (logger, True if the logger was initialized, else False)
     """

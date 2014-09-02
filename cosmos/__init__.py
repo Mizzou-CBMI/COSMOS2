@@ -5,9 +5,11 @@ import os
 
 from .db import Base
 
-#turn SQLAlchemy warnings into errors
+
+# turn SQLAlchemy warnings into errors
 import warnings
 from sqlalchemy.exc import SAWarning
+
 warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
@@ -61,9 +63,11 @@ class Cosmos(object):
             see :func:`default_get_submit_args` for details
         :param flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
         """
+        assert default_drm in ['local','lsf','ge'], 'unsupported drm: %s' % default_drm
+
         if '://' not in database_url:
             if database_url[0] != '/':
-                # database_url is a relative path
+                # database_url is a relative root_path
                 database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
             else:
                 database_url = 'sqlite:///%s' % database_url
@@ -80,8 +84,13 @@ class Cosmos(object):
         """
         Initialize the database via sql CREATE statements
         """
-        print >> sys.stderr, 'Initializing db...'
+        print >> sys.stderr, 'Initializing sql database for Cosmos v%s...' % __version__
         Base.metadata.create_all(bind=self.session.bind)
+        from .db import MetaData
+
+        meta = MetaData(initdb_library_version=__version__)
+        self.session.add(meta)
+        self.session.commit()
 
     def resetdb(self):
         """
@@ -105,6 +114,9 @@ class Cosmos(object):
         IPython.embed()
 
     def runweb(self, host, port):
+        """
+        Starts the web dashboard
+        """
         return self.flask_app.run(debug=True, host=host, port=port)
 
 
@@ -176,7 +188,7 @@ from .graph import rel
 from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Tool import Tool, Input, Inputs
+from .models.Tool import Tool, Input, Inputs, chain
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .graph.recipe import Recipe
@@ -184,4 +196,4 @@ from .graph.recipe import Recipe
 
 
 __all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-           'Tool']
+           'Tool', 'chain']

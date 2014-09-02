@@ -9,7 +9,7 @@ from flask import url_for
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
-from .. import StageStatus, signal_stage_status_change, RelationshipType
+from .. import StageStatus, signal_stage_status_change, RelationshipType, TaskStatus
 import networkx as nx
 
 
@@ -75,6 +75,10 @@ class Stage(Base):
         #return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
         return len(filter(lambda t: t.successful, self.tasks))
 
+    def num_failed_tasks(self):
+        #return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
+        return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
+
     @property
     def url(self):
         return url_for('cosmos.stage', execution_id=self.execution_id, stage_name=self.name)
@@ -102,6 +106,11 @@ class Stage(Base):
 
     def percent_successful(self):
         return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
+    def percent_failed(self):
+        return round(float(self.num_failed_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
+
+    def percent_running(self):
+        return round(float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (float(len(self.tasks)) or 1) * 100, 2)
 
     def descendants(self, include_self=False):
         """

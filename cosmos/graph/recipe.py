@@ -62,10 +62,10 @@ class Recipe(object):
         :param tags: (dict) extra tags to add to tools generated in this stage
         :returns: (RecipeStage) a RecipeStage which can then be used as a parent of another stage
         """
-        assert isinstance(parents, list) or isinstance(parents, RecipeStage), \
-            'parents must be a list of RecipeStages or a RecipeStage'
         if isinstance(parents, RecipeStage):
             parents = [parents]
+        assert isinstance(parents, list) and all(isinstance(p, RecipeStage) for p in parents), \
+            'parents must be a list of RecipeStages or a RecipeStage'
         parents = filter(lambda p: p is not None, parents)
         from .. import Tool
 

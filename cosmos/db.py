@@ -5,6 +5,8 @@ from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 from sqlite3 import Connection as SQLite3Connection
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, Integer
 
 
 def get_session(database_url=None, echo=False):
@@ -47,3 +49,8 @@ class Base(declarative_base()):
     @property
     def query(self):
         return self.session.query(self.__class__)
+
+class MetaData(Base):
+    __tablename__ = 'metadata'
+    id = Column(Integer, primary_key=True)
+    initdb_library_version = Column(String(255))
