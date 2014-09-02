@@ -107,6 +107,7 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
+        assert os.path.exists(os.getcwd()), 'The current working dir, %s, does not exist' % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         session = cosmos_app.session
         # assert name is not None, 'name cannot be None'
@@ -219,6 +220,7 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
 
         """
+        assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'

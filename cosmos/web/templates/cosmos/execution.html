@@ -67,7 +67,7 @@ o{% extends "cosmos/layout.html" %}
             {% for s in execution.stages %}
             <tr>
                 <td>{{s.number}}</td>
-                <td><b><a href="{{ s.url  }}">{{ s }}</a></b></td>
+                <td><b><a href="{{ s.url  }}">{{ s.name }}</a></b></td>
                 <td>{{s.successful|to_thumb}}</td>
                 <td>{{ s.status }}</td>
                 <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
