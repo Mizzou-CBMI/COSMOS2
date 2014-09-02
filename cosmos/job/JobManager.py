@@ -72,9 +72,10 @@ class JobManager(object):
 
     def get_command_str(self, task):
         "The command to be stored in the command.sh script"
-        p = "psprofile -w 10 -o {profile_out} {command_script_path}".format(
+        p = "psprofile{skip_profile} -w 10 -o {profile_out} {command_script_path}".format(
             profile_out=task.output_profile_path,
-            command_script_path=task.output_command_script_path
+            command_script_path=task.output_command_script_path,
+            skip_profile=' --skip_profile' if task.skip_profile else ''
         )
         return p
 

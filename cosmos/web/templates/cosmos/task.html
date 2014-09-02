@@ -68,7 +68,7 @@
         </tbody>
         {% for field, value in resource_usage %}
         <tr>
-            <td>{{field}}</td><td>{{ field|format_resource_usage(value) }}</td>
+            <td>{{field| replace('_kb','')}}</td><td>{{ field|format_resource_usage(value) }}</td>
         </tr>
         {% endfor %}
     </table>

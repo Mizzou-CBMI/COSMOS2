@@ -42,6 +42,7 @@ setup(
         'Flask-SQLAlchemy',
         'Flask-WTF',
         'networkx',
+        'configparser',
         "enum34"],
     packages=find_packages(),
     include_package_data=True,
