@@ -35,6 +35,7 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="Non-commercial use only",
     install_requires=[
+        'gtnp',
         "psprofile",
         "flask",
         'blinker',
