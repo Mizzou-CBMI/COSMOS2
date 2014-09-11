@@ -204,7 +204,7 @@ class Execution(Base):
             raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, settings={}, dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, settings={}, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
@@ -218,6 +218,8 @@ class Execution(Base):
             keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
             stage as the `s` parameter.
         :param dry: (bool) if True, do not actually run any jobs.
+        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to run more
+          tasks in this execution later.
 
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
@@ -333,6 +335,22 @@ class Execution(Base):
 
         if not dry:
             _run(self, session, task_queue)
+
+        # set status
+        if self.status == ExecutionStatus.failed_but_running:
+            self.status = ExecutionStatus.failed
+            return False
+        elif self.status == ExecutionStatus.running:
+            if set_successful:
+                self.status = ExecutionStatus.successful
+            return True
+        else:
+            raise AssertionError('Bad execution status %s' % self.status)
+
+        # set stage status to failed
+        for s in self.stages:
+            if s.status in [StageStatus.running, StageStatus.running_but_failed]:
+                s.status = StageStatus.failed
 
     def terminate(self, failed=True):
         self.log.warning('Terminating!')
@@ -485,20 +503,6 @@ def _run(execution, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-    # set status
-    if execution.status == ExecutionStatus.failed_but_running:
-        execution.status = ExecutionStatus.failed
-        return False
-    elif execution.status == ExecutionStatus.running:
-        execution.status = ExecutionStatus.successful
-        return True
-    else:
-        raise AssertionError('Bad execution status %s' % execution.status)
-
-    # set stage status to failed
-    for s in execution.stages:
-        if s.status in [StageStatus.running, StageStatus.running_but_failed]:
-            s.status = StageStatus.failed
 
 
 def _run_ready_tasks(task_queue, execution):

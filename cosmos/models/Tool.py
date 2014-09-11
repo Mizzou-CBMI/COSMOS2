@@ -103,8 +103,7 @@ class Tool(object):
 
     def _cmd(self, input_taskfiles, output_taskfiles, task, settings):
         """
-        Wrapper for self.cmd().  Passes any tags that match parameter keywords of self.cmd as parameters, and does some basic validation.  Also prepends the bash script
-        with some basic things, like 'set -e' and setting the cwd.
+        Wrapper for self.cmd().  Passes any tags that match parameter keywords of self.cmd as parameters, and does some basic validation.
         """
         argspec = getargspec(self.cmd)
         self.task = task
@@ -157,25 +156,33 @@ class Input(Tool):
 
     Does not actually execute anything, but provides a way to load an input file.  for
 
-    >>> Input('txt',roroot_pathath,tags={'key':'val'})
-    >>> Input(path=root_root_path,naroot_pathname',format='format',tags={'key':'val'})
+    >>> Input(path_to_file,tags={'key':'val'})
+    >>> Input(path=path_to_file, name='myfile',format='txt',tags={'key':'val'})
     """
 
     name = 'Load_Input_Files'
 
-    def __init__(self, name, format, path, tags=None, *args, **kwargs):
+    def __init__(self, path, name=None, format=None, tags=None, *args, **kwargs):
         """
         :param name: the name or keyword for the input file.  defaults to whatever format is set to.
         :param path: the path to the input file
-   root_path :param tags: tags for the task that will be generated
+        :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
         path = _abs(path)
         if tags is None:
             tags = dict()
+
+        basename = os.path.basename(path)
+        if name is None:
+            name = os.path.splitext(basename)[0]
+        if format is None:
+            format = os.path.splitext(basename)[-1][1:]  # remove the '.'
+
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.NOOP = True
         self.load_sources.append(InputSource(name, format, path))
+
 
 
 class Inputs(Tool):

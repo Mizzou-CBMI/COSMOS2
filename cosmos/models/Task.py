@@ -225,7 +225,10 @@ class Task(Base):
         if r == 'file does not exist':
             if self.drm == 'lsf' and self.drm_jobID:
                 r += '\n\nbpeek %s output:\n\n' % self.drm_jobID
-                r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+                try:
+                    r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+                except Exception as e:
+                    r += str(e)
         return r
 
     @property
@@ -260,11 +263,17 @@ class Task(Base):
         for k, v in self.profile.items():
             setattr(self, k, v)
 
-    def successors(self):
+    def all_predecessors(self):
         """
         :return: (list) all tasks that descend from this task in the task_graph
         """
-        return set(it.chain(*breadth_first_search.bfs_successors(self.ex.task_graph(), self).values()))
+        return set(breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self).values())
+
+    def all_successors(self):
+        """
+        :return: (list) all tasks that descend from this task in the task_graph
+        """
+        return set(breadth_first_search.bfs_successors(self.execution.task_graph(), self).values())
 
     @property
     def label(self):

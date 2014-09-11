@@ -1,7 +1,7 @@
 import itertools as it
 from operator import attrgetter
 
-from flask import Markup, render_template, Blueprint, redirect, url_for, flash
+from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort
 from sqlalchemy import desc
 
 from .. import Execution, Stage, Task, TaskStatus
@@ -42,6 +42,8 @@ def gen_bprint(cosmos_app):
     @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
+        if stage is None:
+            return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
         jm = JobManager(cosmos_app.get_submit_args)
 
@@ -64,6 +66,8 @@ def gen_bprint(cosmos_app):
     @bprint.route('/task/<int:id>/')
     def task(id):
         task = session.query(Task).get(id)
+        if task is None:
+            return abort(404)
         # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
         #                   task.profile_fields for field in fields]
         resource_usage = [ (field, getattr(task, field)) for field in task.profile_fields ]

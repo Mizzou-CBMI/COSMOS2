@@ -106,7 +106,7 @@ class Cosmos(object):
         """
         cosmos_app = self
         session = self.session
-        executions = self.session.query(Execution).all()
+        executions = self.session.query(Execution).order_by('id').all()
         ex = executions[-1] if len(executions) else None
 
         import IPython
