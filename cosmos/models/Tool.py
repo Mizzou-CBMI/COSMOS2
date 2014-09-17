@@ -7,6 +7,7 @@ from .. import TaskFile, Task
 from ..models.TaskFile import InputFileAssociation
 from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
 
+
 opj = os.path.join
 
 
@@ -142,6 +143,31 @@ class Tool(object):
         """
         Generates the command
         """
+        # check input file cardinalities.
+        # TODO: this could be done when TaskFiles are first generated to save some compute, but map_inputs would have to be altered to return inputs mapped to each
+        #       abstract input file
+        for aif in self.inputs:
+            real_count = len(list(_find(task.input_files, aif, error_if_missing=True)))
+            import operator
+
+            ops = {"<": operator.lt, "<=": operator.le,
+                   ">": operator.gt, ">=": operator.ge,
+                   "=": operator.eq, '==':operator.eq}
+
+            def error():
+                raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, aif.n, aif))
+
+            try:
+                required_count = int(aif.n)
+                if not required_count == real_count:
+                    error()
+            except ValueError:
+                for k in ops:
+                    if aif.n.startswith(k):
+                        required_count = int(aif.n.replace(k, ''))
+                        if not ops[k](required_count, real_count):
+                            error()
+
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task, settings)
 
 
@@ -184,7 +210,6 @@ class Input(Tool):
         self.load_sources.append(InputSource(name, format, path))
 
 
-
 class Inputs(Tool):
     """
     An Input File.A NOOP Task who's output_files contain a *multiple* files that already exists on the filesystem.
@@ -194,6 +219,7 @@ class Inputs(Tool):
     >>> Inputs([('name1','txt',root_path), ('name2','gz',roroot_pathath)], tags={'key':'val'})
     "root_path   name = 'Load_Input_Files'
     """
+
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
@@ -228,6 +254,9 @@ class TaskFileDict(dict):
         super(TaskFileDict, self).__init__(**kwargs)
 
         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
+
+    def __iter__(self):
+        pass
 
 
 # # ##
@@ -291,7 +320,7 @@ def chain(*tool_classes):
                 this_input_taskfiles = this_output_taskfiles
 
         # def chained_tools(tool_classes, task):
-        #     """
+        # """
         #     Instantiate all tools with their correct i/o
         #     """
         #     all_outputs = task.output_files[:]
@@ -329,7 +358,7 @@ def chain(*tool_classes):
                          dict(merged_tool_classes=tool_classes,
                               _generate_command=_generate_command,
                               name=name,
-                              #inputs=tool_classes[0].inputs,
+                              # inputs=tool_classes[0].inputs,
                               outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
                               #outputs=tool_classes[-1].outputs,
                               mem_req=max(t.mem_req for t in tool_classes),

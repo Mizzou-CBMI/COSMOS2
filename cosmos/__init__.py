@@ -113,11 +113,11 @@ class Cosmos(object):
 
         IPython.embed()
 
-    def runweb(self, host, port):
+    def runweb(self, host, port, debug=True):
         """
         Starts the web dashboard
         """
-        return self.flask_app.run(debug=True, host=host, port=port)
+        return self.flask_app.run(debug=debug, host=host, port=port)
 
 
 # #######################################################################################################################
@@ -179,6 +179,7 @@ class RelationshipType(MyEnum):
     one2many = 'one2many',
     many2one = 'many2one',
     many2many = 'many2many'
+
 
 ########################################################################################################################
 # Imports

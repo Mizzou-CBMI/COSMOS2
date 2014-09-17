@@ -48,6 +48,7 @@ def _execution_status_changed(ex):
 
     if ex.status == ExecutionStatus.successful:
         ex.successful = True
+        ex.finished_on = func.now()
 
     ex.session.commit()
 
@@ -162,7 +163,6 @@ class Execution(Base):
             for stage in stages:
                 ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
                 session.delete(stage)
-                session.commit()
 
         else:
             # start from scratch
@@ -251,6 +251,7 @@ class Execution(Base):
                 for tf in task.output_files:
                     if tf.path is None:
                         tf.path = opj(task.output_dir, tf.basename)
+                        assert tf.path is not None, 'computed an output_dir for %s of None' % task
                         # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
 
         # set commands of new tasks
@@ -309,6 +310,7 @@ class Execution(Base):
 
         terminate_on_ctrl_c(self)
 
+        self.log.info('Setting log output directories...')
         # set log dirs
         log_dirs = {t.log_dir: t for t in successful}
         for task in task_queue.nodes():
@@ -317,6 +319,7 @@ class Execution(Base):
             log_dirs[log_dir] = task
             task.log_dir = log_dir
 
+        self.log.info('Resetting stage attributes...')
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
             from .. import Stage, StageStatus
@@ -329,10 +332,12 @@ class Execution(Base):
 
         reset_stage_attrs()
 
+        self.log.info('Ensuring there are enough cores...')
         # make sure we've got enough cores
         for t in task_queue:
             assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
+        #Run this thing!
         if not dry:
             _run(self, session, task_queue)
 

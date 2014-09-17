@@ -62,7 +62,7 @@ class Stage(Base):
 
     @validates('name')
     def validate_name(self, key, name):
-        assert re.match('^[\w]+$', name), 'Invalid stage name.'
+        assert re.match('^[\w-]+$', name), 'Invalid stage name.'
         return name
 
     def __init__(self, *args, **kwargs):
