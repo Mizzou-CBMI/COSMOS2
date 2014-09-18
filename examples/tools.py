@@ -14,7 +14,7 @@ class Echo(Tool):
 
 
 class Cat(Tool):
-    inputs = [itf(format='txt')]
+    inputs = [itf(format='txt', n='>=1')]
     outputs = [otf('cat', 'txt', 'cat_out.txt', )]
 
     def cmd(self, i, o, s, **kwargs):

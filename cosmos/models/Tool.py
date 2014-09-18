@@ -2,6 +2,7 @@ from inspect import getargspec
 import os
 import re
 import itertools as it
+import operator
 
 from .. import TaskFile, Task
 from ..models.TaskFile import InputFileAssociation
@@ -9,6 +10,10 @@ from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
 
 
 opj = os.path.join
+
+OPS = {"<": operator.lt, "<=": operator.le,
+       ">": operator.gt, ">=": operator.ge,
+       "=": operator.eq, '==': operator.eq}
 
 
 class ToolValidationError(Exception): pass
@@ -65,15 +70,38 @@ class Tool(object):
             raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
 
 
+    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
+        for abstract_input_file in self.inputs:
+            real_count = len(mapped_input_taskfiles)
+
+            try:
+                required_count = int(abstract_input_file.n)
+                if not required_count == real_count:
+                    raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+            except ValueError:
+                for k in OPS:
+                    if abstract_input_file.n.startswith(k):
+                        required_count = int(abstract_input_file.n.replace(k, ''))
+                        if not OPS[k](required_count, real_count):
+                            raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+
     def _map_inputs(self, parents):
         """
         Default method to map inputs.  Can be overriden if a different behavior is desired
         :returns: [(taskfile, is_forward), ...]
         """
-        for abstract_file in self.inputs:
-            for p in parents:
-                for tf in _find(p.output_files + p.forwarded_inputs, abstract_file, error_if_missing=False):
-                    yield tf, abstract_file.forward
+        for i,abstract_input_file in enumerate(self.inputs):
+            mapped_input_taskfiles = self._map_input(abstract_input_file, parents)
+            self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
+            for tf in mapped_input_taskfiles:
+                tf.abstract_input_file_mapping = (i+1, abstract_input_file)
+                yield tf
+
+
+    def _map_input(self, abstract_input_file, parents):
+        for p in parents:
+            for tf in _find(p.output_files + p.forwarded_inputs, abstract_input_file, error_if_missing=False):
+                yield tf, abstract_input_file.forward
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
@@ -85,7 +113,7 @@ class Tool(object):
         task.skip_profile = self.skip_profile
 
         input_taskfiles, _ = zip(*inputs) if inputs else ([], None)
-        input_dict = TaskFileDict(input_taskfiles, type='input')
+        input_dict = TaskFileDict(input_taskfiles, type='input')  # used to format basenames
 
         # Create output TaskFiles
         for name, format, path in self.load_sources:
@@ -143,31 +171,6 @@ class Tool(object):
         """
         Generates the command
         """
-        # check input file cardinalities.
-        # TODO: this could be done when TaskFiles are first generated to save some compute, but map_inputs would have to be altered to return inputs mapped to each
-        #       abstract input file
-        for aif in self.inputs:
-            real_count = len(list(_find(task.input_files, aif, error_if_missing=True)))
-            import operator
-
-            ops = {"<": operator.lt, "<=": operator.le,
-                   ">": operator.gt, ">=": operator.ge,
-                   "=": operator.eq, '==':operator.eq}
-
-            def error():
-                raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, aif.n, aif))
-
-            try:
-                required_count = int(aif.n)
-                if not required_count == real_count:
-                    error()
-            except ValueError:
-                for k in ops:
-                    if aif.n.startswith(k):
-                        required_count = int(aif.n.replace(k, ''))
-                        if not ops[k](required_count, real_count):
-                            error()
-
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task, settings)
 
 
@@ -245,6 +248,7 @@ class TaskFileDict(dict):
 
     def __init__(self, taskfiles, type):
         assert type in ['input', 'output']
+        self.type = type
         self.taskfiles = taskfiles
         if type == 'input':
             kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
@@ -256,7 +260,17 @@ class TaskFileDict(dict):
         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
 
     def __iter__(self):
-        pass
+        if self.type == 'input':
+            f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
+            for aif, taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+                taskfiles = list(taskfiles)
+                if len(taskfiles) == 1:
+                    yield taskfiles[0]
+                else:
+                    yield taskfiles
+        else:
+            for tf in self.taskfiles:
+                yield tf
 
 
 # # ##
@@ -321,7 +335,7 @@ def chain(*tool_classes):
 
         # def chained_tools(tool_classes, task):
         # """
-        #     Instantiate all tools with their correct i/o
+        # Instantiate all tools with their correct i/o
         #     """
         #     all_outputs = task.output_files[:]
         #     this_input_taskfiles = task.input_files
@@ -360,7 +374,7 @@ def chain(*tool_classes):
                               name=name,
                               # inputs=tool_classes[0].inputs,
                               outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
-                              #outputs=tool_classes[-1].outputs,
+                              # outputs=tool_classes[-1].outputs,
                               mem_req=max(t.mem_req for t in tool_classes),
                               time_req=max(t.time_req for t in tool_classes),
                               cpu_req=max(t.cpu_req for t in tool_classes),
