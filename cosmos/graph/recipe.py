@@ -44,7 +44,7 @@ class Recipe(object):
         assert len(tags) == len(
             set(
                 tags)), 'Duplicate inputs tags detected for {0}, {1}.  Tags within a recipe_stage must be unique.'.format(
-            name, tags)
+            name, map(dict,tags))
 
         recipe_stage = RecipeStage(tool_class=type(tools[0]), source_tools=tools, rel=None, name=name, is_source=True)
         self.recipe_stage_G.add_node(recipe_stage)

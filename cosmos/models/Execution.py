@@ -48,6 +48,7 @@ def _execution_status_changed(ex):
 
     if ex.status == ExecutionStatus.successful:
         ex.successful = True
+        ex.finished_on = func.now()
 
     ex.session.commit()
 
@@ -94,7 +95,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
+    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1, output_dir_exists_error=True):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -107,6 +108,7 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
+        assert os.path.exists(os.getcwd()), 'The current working dir, %s, does not exist' % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         session = cosmos_app.session
         # assert name is not None, 'name cannot be None'
@@ -161,11 +163,11 @@ class Execution(Base):
             for stage in stages:
                 ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
                 session.delete(stage)
-                session.commit()
 
         else:
             # start from scratch
-            assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
+            if output_dir_exists_error:
+                assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             # ex.log.info(msg)
             session.add(ex)
@@ -203,7 +205,7 @@ class Execution(Base):
             raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, settings={}, dry=False):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
@@ -217,8 +219,11 @@ class Execution(Base):
             keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
             stage as the `s` parameter.
         :param dry: (bool) if True, do not actually run any jobs.
+        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to run more
+          tasks in this execution later.
 
         """
+        assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
         assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
@@ -247,12 +252,13 @@ class Execution(Base):
                 for tf in task.output_files:
                     if tf.path is None:
                         tf.path = opj(task.output_dir, tf.basename)
+                        assert tf.path is not None, 'computed an output_dir for %s of None' % task
                         # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
 
         # set commands of new tasks
         for task in topological_sort(task_g):
             if not task.successful and not task.NOOP:
-                task.command = task.tool._generate_command(task, settings)
+                task.command = task.tool._generate_command(task)
 
         # Assert no duplicate TaskFiles
         import itertools as it
@@ -305,6 +311,7 @@ class Execution(Base):
 
         terminate_on_ctrl_c(self)
 
+        self.log.info('Setting log output directories...')
         # set log dirs
         log_dirs = {t.log_dir: t for t in successful}
         for task in task_queue.nodes():
@@ -313,6 +320,7 @@ class Execution(Base):
             log_dirs[log_dir] = task
             task.log_dir = log_dir
 
+        self.log.info('Resetting stage attributes...')
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
             from .. import Stage, StageStatus
@@ -325,12 +333,30 @@ class Execution(Base):
 
         reset_stage_attrs()
 
+        self.log.info('Ensuring there are enough cores...')
         # make sure we've got enough cores
         for t in task_queue:
             assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
+        #Run this thing!
         if not dry:
             _run(self, session, task_queue)
+
+        # set status
+        if self.status == ExecutionStatus.failed_but_running:
+            self.status = ExecutionStatus.failed
+            return False
+        elif self.status == ExecutionStatus.running:
+            if set_successful:
+                self.status = ExecutionStatus.successful
+            return True
+        else:
+            raise AssertionError('Bad execution status %s' % self.status)
+
+        # set stage status to failed
+        for s in self.stages:
+            if s.status in [StageStatus.running, StageStatus.running_but_failed]:
+                s.status = StageStatus.failed
 
     def terminate(self, failed=True):
         self.log.warning('Terminating!')
@@ -483,20 +509,6 @@ def _run(execution, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-    # set status
-    if execution.status == ExecutionStatus.failed_but_running:
-        execution.status = ExecutionStatus.failed
-        return False
-    elif execution.status == ExecutionStatus.running:
-        execution.status = ExecutionStatus.successful
-        return True
-    else:
-        raise AssertionError('Bad execution status %s' % execution.status)
-
-    # set stage status to failed
-    for s in execution.stages:
-        if s.status in [StageStatus.running, StageStatus.running_but_failed]:
-            s.status = StageStatus.failed
 
 
 def _run_ready_tasks(task_queue, execution):

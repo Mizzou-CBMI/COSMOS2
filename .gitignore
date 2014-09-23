@@ -8,6 +8,7 @@ test/out
 build/
 dist/
 docs/_build
+docs/build
 alembic/
 *.pyc
 *.swp

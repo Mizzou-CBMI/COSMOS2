@@ -2,7 +2,7 @@ from cosmos import Execution, Cosmos, Recipe, Input, ExecutionStatus, signal_exe
 import tools
 
 
-def ex3_main(execution, settings):
+def ex3_main(execution):
     @signal_execution_status_change.connect
     def sig(ex):
         msg = "%s %s" % (ex, ex.status)
@@ -20,7 +20,7 @@ def ex3_main(execution, settings):
         message = client.messages.create(to="+1231231234", from_="+1231231234", body=message)
 
     r = Recipe()
-    inp = r.add_source([Input('blah', '/tmp', {'test': 'tag'})])
+    inp = r.add_source([Input({'test': 'tag'}, 'blah', '/tmp')])
     fail = r.add_stage(tools.Fail, inp)
 
     execution.run(r)
@@ -31,4 +31,4 @@ if __name__ == '__main__':
     cosmos_app = Cosmos('sqlite:///sqlite.db', default_drm='local')
     cosmos_app.initdb()
     ex = Execution.start(cosmos_app=cosmos_app, output_dir='out/email_on_failure', name='email_on_failure', restart=True, max_attempts=2)
-    ex3_main(ex, dict())
+    ex3_main(ex)

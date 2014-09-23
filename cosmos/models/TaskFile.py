@@ -19,18 +19,28 @@ class TaskFileError(Exception): pass
 #                           Column('task', Integer, ForeignKey('task.id')),
 #                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
-AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward'])
+AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward', 'n'])
 AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
 
+
+
+def abstract_input_taskfile(name=None, format=None, forward=False, n='many'):
+    """
+
+    :param name:
+    :param format:
+    :param forward:
+    :param n: (int|'many') cardinality.  if n=1, the input dict for this
+    :return:
+    """
+    assert name or format, 'must specify either name or format'
+    return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 def abstract_output_taskfile(name=None, format=None, basename=None):
     assert name and format, 'must specify name and format'
     return AbstractOutputFile(name=name, format=format, basename=basename)
 
 
-def abstract_input_taskfile(name=None, format=None, forward=False):
-    assert name or format, 'must specify either name or format'
-    return AbstractInputFile(name=name, format=format, forward=forward)
 
 
 class InputFileAssociation(Base):
