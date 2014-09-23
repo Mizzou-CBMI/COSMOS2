@@ -64,10 +64,10 @@ class Tool(object):
             raise ToolValidationError("Duplicate task.outputs detected in {0}".format(self))
 
         argspec = getargspec(self.cmd)
-        assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
+        # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
 
-        if not set(self.tags.keys()).isdisjoint({'i', 'o', 's'}):
-            raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
+        # if not set(self.tags.keys()).isdisjoint({'i', 'o'}):
+        #     raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
@@ -90,18 +90,18 @@ class Tool(object):
         Default method to map inputs.  Can be overriden if a different behavior is desired
         :returns: [(taskfile, is_forward), ...]
         """
-        for i,abstract_input_file in enumerate(self.inputs):
-            mapped_input_taskfiles = self._map_input(abstract_input_file, parents)
+        for i, abstract_input_file in enumerate(self.inputs):
+            mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
             for tf in mapped_input_taskfiles:
-                tf.abstract_input_file_mapping = (i+1, abstract_input_file)
-                yield tf
+                tf.abstract_input_file_mapping = (i + 1, abstract_input_file)
+                yield tf, abstract_input_file.forward
 
 
     def _map_input(self, abstract_input_file, parents):
         for p in parents:
             for tf in _find(p.output_files + p.forwarded_inputs, abstract_input_file, error_if_missing=False):
-                yield tf, abstract_input_file.forward
+                yield tf
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
@@ -124,26 +124,27 @@ class Tool(object):
             if output.basename is None:
                 basename = None
             else:
-                basename = str_format(output.basename, dict(name=name, format=output.format, i=input_dict, **self.tags))
+                d = self.tags.copy()
+                d.update(dict(name=name, format=output.format, i=input_dict))
+                basename = str_format(output.basename, dict(**d))
             TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
 
         task.tool = self
         return task
 
-    def _cmd(self, input_taskfiles, output_taskfiles, task, settings):
+    def _cmd(self, input_taskfiles, output_taskfiles, task):
         """
         Wrapper for self.cmd().  Passes any tags that match parameter keywords of self.cmd as parameters, and does some basic validation.
         """
         argspec = getargspec(self.cmd)
         self.task = task
-        params = dict(i=TaskFileDict(input_taskfiles, 'input'), o=TaskFileDict(output_taskfiles, 'output'), s=settings)
-        params.update({k: v for k, v in self.tags.items() if k in argspec.args})
+        params = {k: v for k, v in self.tags.items() if k in argspec.args}
         ndefaults = len(argspec.defaults) if argspec.defaults else 0
-        for arg in argspec.args[:len(argspec.args) - ndefaults]:
-            if arg != 'self' and arg not in params:
+        for arg in argspec.args[3:len(argspec.args) - ndefaults]:
+            if arg not in params:
                 raise AttributeError('%s requires the parameter: `%s`, are you missing a tag?' % (self, arg))
 
-        out = self.cmd(**params)
+        out = self.cmd(TaskFileDict(input_taskfiles, 'input'), TaskFileDict(output_taskfiles, 'output'), **params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
 
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
@@ -161,17 +162,16 @@ class Tool(object):
 
         :param i: (dict who's values are lists) Input TaskFiles.
         :param o: (dict) Output TaskFiles.
-        :param s: (dict) Settings.
         :param kwargs: (dict) Parameters.
         :returns: (str) the text to write into the shell script that gets executed
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
 
-    def _generate_command(self, task, settings):
+    def _generate_command(self, task):
         """
         Generates the command
         """
-        return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task, settings)
+        return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
 
 
 from collections import namedtuple
@@ -259,6 +259,8 @@ class TaskFileDict(dict):
 
         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
 
+
+
     def __iter__(self):
         if self.type == 'input':
             f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
@@ -271,6 +273,20 @@ class TaskFileDict(dict):
         else:
             for tf in self.taskfiles:
                 yield tf
+
+
+    def __getitem__(self, val):
+        #slow, but whatever.
+        return list(self.__iter__(self))[val]
+
+    def __repr__(self):
+        if len(self.taskfiles) == 1:
+            return self.taskfiles[0].__repr__()
+        else:
+            return '<TaskFileDict>'
+
+    def __str__(self):
+        return self.__repr__()
 
 
 # # ##
@@ -307,7 +323,7 @@ def chain(*tool_classes):
     name = '__'.join(t.name for t in tool_classes)
 
 
-    def _generate_command(self, task, settings):
+    def _generate_command(self, task):
         """
         Generates the command
         """
@@ -336,7 +352,7 @@ def chain(*tool_classes):
         # def chained_tools(tool_classes, task):
         # """
         # Instantiate all tools with their correct i/o
-        #     """
+        # """
         #     all_outputs = task.output_files[:]
         #     this_input_taskfiles = task.input_files
         #     import itertools as it
@@ -353,7 +369,7 @@ def chain(*tool_classes):
 
         cmd = self._prepend_cmd(task)
         for tool, input_taskfiles, output_taskfiles in chained_tools(self.merged_tool_classes, task):
-            cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task, settings)
+            cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task)
             cmd += '### ' + tool.name + ' ###\n\n'
             cmd += cmd_result
             cmd += '\n\n'

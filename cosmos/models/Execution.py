@@ -95,7 +95,7 @@ class Execution(Base):
         return name
 
     @classmethod
-    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1):
+    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1, output_dir_exists_error=True):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
@@ -166,7 +166,8 @@ class Execution(Base):
 
         else:
             # start from scratch
-            assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
+            if output_dir_exists_error:
+                assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             # ex.log.info(msg)
             session.add(ex)
@@ -204,7 +205,7 @@ class Execution(Base):
             raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, settings={}, dry=False, set_successful=True):
+    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
@@ -257,7 +258,7 @@ class Execution(Base):
         # set commands of new tasks
         for task in topological_sort(task_g):
             if not task.successful and not task.NOOP:
-                task.command = task.tool._generate_command(task, settings)
+                task.command = task.tool._generate_command(task)
 
         # Assert no duplicate TaskFiles
         import itertools as it

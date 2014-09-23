@@ -7,11 +7,12 @@ import ex2_fail
 import ex3_email
 
 root_path = os.path.dirname(os.path.realpath(__file__))
+config = ConfigParser()
+config.read(os.path.join(root_path, 'settings.conf'))
+settings = config['main']
 
 if __name__ == '__main__':
     cosmos_app = Cosmos('sqlite:///sqlite.db', default_drm='local')
-    config = ConfigParser()
-    config.read(os.path.join(root_path, 'settings.conf'))
 
     import argparse
 
@@ -64,5 +65,4 @@ if __name__ == '__main__':
 
         ex = Execution.start(cosmos_app=cosmos_app, **execution_params)
         kwargs['execution'] = ex
-        kwargs['settings'] = config['main']
     func(**kwargs)
