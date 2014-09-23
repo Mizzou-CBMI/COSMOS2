@@ -20,7 +20,7 @@ def ex3_main(execution):
         message = client.messages.create(to="+1231231234", from_="+1231231234", body=message)
 
     r = Recipe()
-    inp = r.add_source([Input({'test': 'tag'}, 'blah', '/tmp')])
+    inp = r.add_source([Input('/tmp', 'tmp', 'dir', {'a': 'tag'})])
     fail = r.add_stage(tools.Fail, inp)
 
     execution.run(r)
