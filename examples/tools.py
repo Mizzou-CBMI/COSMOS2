@@ -59,4 +59,4 @@ class MD5Sum(Tool):
 
     def cmd(self, (in_file,), _, out_md5):
         out_md5.basename = in_file.basename + '.md5'
-        return 'md5sum {in_file}'.format(**locals()) 
+        return 'md5sum {in_file}'.format(**locals())
