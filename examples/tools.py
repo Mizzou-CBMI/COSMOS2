@@ -49,7 +49,7 @@ class WordCount(Tool):
 
 
 class Fail(Tool):
-    def cmd(self, i, o):
+    def cmd(self, inputs, outputs):
         return '__fail__'
 
 
