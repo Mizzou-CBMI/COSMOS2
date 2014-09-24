@@ -3,6 +3,7 @@ import os
 import re
 import itertools as it
 import operator
+from collections import OrderedDict
 
 from .. import TaskFile, Task
 from ..models.TaskFile import InputFileAssociation
@@ -11,9 +12,12 @@ from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
 
 opj = os.path.join
 
-OPS = {"<": operator.lt, "<=": operator.le,
-       ">": operator.gt, ">=": operator.ge,
-       "=": operator.eq, '==': operator.eq}
+OPS = OrderedDict([("<=", operator.le),
+                   ("<", operator.lt),
+                   (">=", operator.ge),
+                   (">", operator.gt),
+                   ('==', operator.eq),
+                   ("=", operator.eq)])
 
 
 class ToolValidationError(Exception): pass
@@ -67,7 +71,7 @@ class Tool(object):
         # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
 
         # if not set(self.tags.keys()).isdisjoint({'i', 'o'}):
-        #     raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
+        # raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
@@ -84,6 +88,7 @@ class Tool(object):
                         required_count = int(abstract_input_file.n.replace(k, ''))
                         if not OPS[k](required_count, real_count):
                             raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+                        break
 
     def _map_inputs(self, parents):
         """
@@ -144,7 +149,23 @@ class Tool(object):
             if arg not in params:
                 raise AttributeError('%s requires the parameter: `%s`, are you missing a tag?' % (self, arg))
 
-        out = self.cmd(TaskFileDict(input_taskfiles, 'input'), TaskFileDict(output_taskfiles, 'output'), **params)
+        i = list(iter(TaskFileDict(input_taskfiles, 'input')))
+        o = list(iter(TaskFileDict(output_taskfiles, 'output')))
+
+        # if not isinstance(argspec[1], list):
+        #     # auto unpack
+        #     if len(input_taskfiles) == 0:
+        #         i = None
+        #     else:
+        #         i = i[0]
+        # if not isinstance(argspec[2], list):
+        #     # auto unpack
+        #     if len(output_taskfiles) == 0:
+        #         o = None
+        #     else:
+        #         o = o[0]
+
+        out = self.cmd(i, o, **params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
 
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
@@ -260,7 +281,6 @@ class TaskFileDict(dict):
         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
 
 
-
     def __iter__(self):
         if self.type == 'input':
             f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
@@ -276,8 +296,8 @@ class TaskFileDict(dict):
 
 
     def __getitem__(self, val):
-        #slow, but whatever.
-        return list(self.__iter__(self))[val]
+        # slow, but whatever.
+        return list(self.__iter__())[val]
 
     def __repr__(self):
         if len(self.taskfiles) == 1:
@@ -353,9 +373,9 @@ def chain(*tool_classes):
         # """
         # Instantiate all tools with their correct i/o
         # """
-        #     all_outputs = task.output_files[:]
-        #     this_input_taskfiles = task.input_files
-        #     import itertools as it
+        # all_outputs = task.output_files[:]
+        # this_input_taskfiles = task.input_files
+        # import itertools as it
         #     def map_(input_files, abstract_outputs):
         #         return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
         #
