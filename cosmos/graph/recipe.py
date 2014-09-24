@@ -50,7 +50,7 @@ class Recipe(object):
         self.recipe_stage_G.add_node(recipe_stage)
         return recipe_stage
 
-    def add_stage(self, tool_class, parents, rel=_rel.One2one, name=None, tag=None):
+    def add_stage(self, tool_class, parents, rel=_rel.One2one, tag=None, name=None):
         """
         Creates a Stage
 
