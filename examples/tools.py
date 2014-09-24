@@ -1,4 +1,4 @@
-from cosmos import Tool, abstract_input_taskfile as itf, abstract_output_taskfile as otf
+from cosmos import Tool, abstract_input_taskfile as inp, abstract_output_taskfile as out
 from main import settings as s
 
 class Sleep(Tool):
@@ -7,15 +7,15 @@ class Sleep(Tool):
 
 
 class Echo(Tool):
-    outputs = [otf('echo', 'txt')]
+    outputs = [out('echo', 'txt')]
 
     def cmd(self, _, outputs, word):
         return '{s[echo_path]} {word} > {outputs[0]}'.format(s=s, **locals())
 
 
 class Cat(Tool):
-    inputs = [itf(format='txt', n='>=1')]
-    outputs = [otf('cat', 'txt', 'cat_out.txt', )]
+    inputs = [inp(format='txt', n='>=1')]
+    outputs = [out('cat', 'txt', 'cat_out.txt', )]
 
     def cmd(self, inputs, outputs):
         input_txts = inputs[0]  # it's easier to just unpack in the method signature, see examples below.
@@ -27,8 +27,8 @@ class Cat(Tool):
 
 
 class Paste(Tool):
-    inputs = [itf(format='txt')]
-    outputs = [otf('paste', 'txt', 'paste.txt')]
+    inputs = [inp(format='txt')]
+    outputs = [out('paste', 'txt', 'paste.txt')]
 
     def cmd(self, (input_txts,), (out_txt,)):
         return 'paste {input} > {out_txt}'.format(
@@ -38,8 +38,8 @@ class Paste(Tool):
 
 
 class WordCount(Tool):
-    inputs = [itf(format='txt')]
-    outputs = [otf('wc', 'txt')]
+    inputs = [inp(format='txt')]
+    outputs = [out('wc', 'txt')]
 
     def cmd(self, (input_txts,), (out_txt,)):
         return 'wc {input} > {out_txt}'.format(
@@ -54,8 +54,8 @@ class Fail(Tool):
 
 
 class MD5Sum(Tool):
-    inputs = [itf(format='*', n=1)]
-    outputs = [otf(name='md5', format='md5')]
+    inputs = [inp(format='*', n=1)]
+    outputs = [out(name='md5', format='md5')]
 
     def cmd(self, (in_file,), _, out_md5):
         out_md5.basename = in_file.basename + '.md5'
