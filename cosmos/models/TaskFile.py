@@ -24,7 +24,7 @@ AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basena
 
 
 
-def abstract_input_taskfile(name=None, format=None, forward=False, n='many'):
+def abstract_input_taskfile(name=None, format=None, forward=False, n='>=1'):
     """
 
     :param name:
