@@ -210,17 +210,13 @@ class Execution(Base):
         Renders and executes the :param:`recipe`
 
         :param recipe: (Recipe) the Recipe to render and execute.
-        :param task_output_dir: a function that computes a tasks' output_dir.
-            It receives one parameter: the task instance.  By default task output is stored in
-            output_dir/stage_name/task_id.
-        :param log_output_dir: a function that computes a tasks' log_output_dir.  By default task log output is
-            stored in output_dir/log/stage_name/task_id.
-        :param settings: (dict) A dict which contains settings used when rendering a graph to generate the commands.
-            keys are stage names and the values are dictionaries that are passed to Tool.cmd() which represents that
-            stage as the `s` parameter.
+        :param task_output_dir: (function) a function that computes a task's output_dir. It receives one parameter: the task instance.  By default task output is stored in
+            output_dir/stage_name/'_'.join(task.tags.values()).  See _default_task_log_output_dir for more info.
+        :param log_output_dir: (function) a function that computes a task's log_output_dir.  It receives one parameter: the task instance.
+             By default task log output is stored in output_dir/log/stage_name/task_id.  See _default_task_log_output_dir for more info.
         :param dry: (bool) if True, do not actually run any jobs.
-        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to run more
-          tasks in this execution later.
+        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to add and
+            run more tasks in this execution later.
 
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
