@@ -10,6 +10,9 @@ from ..models.TaskFile import InputFileAssociation
 from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
 
 
+class ToolValidationError(Exception): pass
+
+
 opj = os.path.join
 
 OPS = OrderedDict([("<=", operator.le),
@@ -20,7 +23,12 @@ OPS = OrderedDict([("<=", operator.le),
                    ("=", operator.eq)])
 
 
-class ToolValidationError(Exception): pass
+def parse_aif_cardinality(n):
+    op, number = re.search('(.*)(\d+)', str(n)).groups()
+    if op == '':
+        op = '=='
+    number = int(number)
+    return op, number
 
 
 class _ToolMeta(type):
@@ -58,8 +66,8 @@ class Tool(object):
 
 
     def __validate(self):
-        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), 'Tool.inputs must be instantiated using the `input_taskfile` function'
-        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), 'Tool.outputs must be instantiated using the `output_taskfile` function'
+        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), 'Tool.inputs must be of type AbstractInputFile'
+        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), 'Tool.outputs must be of type AbstractOutputFile'
 
         if has_duplicates([(i.name, i.format) for i in self.inputs]):
             raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
@@ -77,18 +85,11 @@ class Tool(object):
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
         for abstract_input_file in self.inputs:
             real_count = len(mapped_input_taskfiles)
+            op, number = parse_aif_cardinality(abstract_input_file.n)
 
-            try:
-                required_count = int(abstract_input_file.n)
-                if not required_count == real_count:
-                    raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
-            except ValueError:
-                for k in OPS:
-                    if abstract_input_file.n.startswith(k):
-                        required_count = int(abstract_input_file.n.replace(k, ''))
-                        if not OPS[k](required_count, real_count):
-                            raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
-                        break
+            if not OPS[op](real_count, int(number)):
+                raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+
 
     def _map_inputs(self, parents):
         """
@@ -153,8 +154,8 @@ class Tool(object):
         o = list(iter(TaskFileDict(output_taskfiles, 'output')))
 
         # if not isinstance(argspec[1], list):
-        #     # auto unpack
-        #     if len(input_taskfiles) == 0:
+        # # auto unpack
+        # if len(input_taskfiles) == 0:
         #         i = None
         #     else:
         #         i = i[0]
@@ -176,15 +177,15 @@ class Tool(object):
         return 'OUT={out}\n' \
                'cd $OUT\n\n'.format(out=task.output_dir)
 
-    def cmd(self, i, o, s, **kwargs):
+    def cmd(self, inputs, outputs, **kwargs):
         """
         Constructs the preformatted command string.  The string will be .format()ed with the i,s,p dictionaries,
         and later, $OUT.outname  will be replaced with a TaskFile associated with the output name `outname`
 
-        :param i: (dict who's values are lists) Input TaskFiles.
-        :param o: (dict) Output TaskFiles.
-        :param kwargs: (dict) Parameters.
-        :returns: (str) the text to write into the shell script that gets executed
+        :param inputs: (list) Input TaskFiles, each element corresponds to an abstract_input_file in self.inputs
+        :param outputs: (list) Output TaskFiles, each element corresponds to an abstract_output_file in self.outputs
+        :param kwargs: (dict) Parameters passed via tags.
+        :returns: (str) The text to write into the shell script that gets executed
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
 
@@ -284,9 +285,10 @@ class TaskFileDict(dict):
     def __iter__(self):
         if self.type == 'input':
             f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
-            for aif, taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+            for (i, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
                 taskfiles = list(taskfiles)
-                if len(taskfiles) == 1:
+                op, number = parse_aif_cardinality(aif.n)
+                if op in ['=', '=='] and number == 1:
                     yield taskfiles[0]
                 else:
                     yield taskfiles
@@ -376,8 +378,8 @@ def chain(*tool_classes):
         # all_outputs = task.output_files[:]
         # this_input_taskfiles = task.input_files
         # import itertools as it
-        #     def map_(input_files, abstract_outputs):
-        #         return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
+        # def map_(input_files, abstract_outputs):
+        # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
         #
         #     for i, tool in enumerate(tool_classes):
         #         if i == 0:
