@@ -17,9 +17,11 @@ class Cat(Tool):
     inputs = [itf(format='txt', n='>=1')]
     outputs = [otf('cat', 'txt', 'cat_out.txt', )]
 
-    def cmd(self, inputs, (out_txt,)):
+    def cmd(self, inputs, outputs):
+        input_txts = inputs[0]  # it's easier to just unpack in the method signature, see examples below.
+        out_txt = outputs[0]  # it's easier to just unpack in the method signature, see examples below.
         return 'cat {input} > {out_txt}'.format(
-            input=' '.join(map(str, inputs)),
+            input=' '.join(map(str, (input_txts,))),
             **locals()
         )
 
@@ -28,9 +30,9 @@ class Paste(Tool):
     inputs = [itf(format='txt')]
     outputs = [otf('paste', 'txt', 'paste.txt')]
 
-    def cmd(self, inputs, (out_txt,)):
+    def cmd(self, (input_txts,), (out_txt,)):
         return 'paste {input} > {out_txt}'.format(
-            input=' '.join(map(str, inputs)),
+            input=' '.join(map(str, (input_txts,))),
             **locals()
         )
 
@@ -39,9 +41,9 @@ class WordCount(Tool):
     inputs = [itf(format='txt')]
     outputs = [otf('wc', 'txt')]
 
-    def cmd(self, inputs, (out_txt,)):
+    def cmd(self, (input_txts,), (out_txt,)):
         return 'wc {input} > {out_txt}'.format(
-            input=' '.join(map(str, inputs)),
+            input=' '.join(map(str, (input_txts,))),
             **locals()
         )
 
@@ -55,6 +57,6 @@ class MD5Sum(Tool):
     inputs = [itf(format='*', n=1)]
     outputs = [otf(name='md5', format='md5')]
 
-    def cmd(self, in_file, out_md5):
+    def cmd(self, (in_file,), _, out_md5):
         out_md5.basename = in_file.basename + '.md5'
         return 'md5sum {in_file}'.format(**locals())
