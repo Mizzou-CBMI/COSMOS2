@@ -23,7 +23,7 @@ AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward'
 AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
 
 
-def abstract_input_taskfile(name=None, format=None, forward=False, n=None):
+def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     """
     :param name: (str) The name of the TaskFile(s)
     :param format: (str) The format of the TaskFile(s)
@@ -31,7 +31,6 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=None):
     :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
     :return: (AbstractInputFile)
     """
-    assert n is not None, 'Please specify the cardinality.  In the future the default will likely be set to ==1'
     assert name or format, 'must specify either name or format'
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
