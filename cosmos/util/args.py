@@ -11,7 +11,7 @@ def add_execution_args(parser):
     #parser.add_argument('-o', '--output_dir', type=str, help="The directory to output files to.  Path should not exist if this is a new execution.")
     parser.add_argument('-c', '--max_cpus', type=int,
                         help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means unlimited", default=None)
-    parser.add_argument('-m', '--max_attempts', type=int,
+    parser.add_argument('-a', '--max_attempts', type=int,
                         help="Maximum number of times to try running a Task that must succeed before the execution fails", default=1)
     parser.add_argument('-r', '--restart', action='store_true',
                         help="Completely restart the execution.  Note this will delete all record of the execution in the database")

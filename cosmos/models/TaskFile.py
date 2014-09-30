@@ -16,31 +16,34 @@ class TaskFileError(Exception): pass
 
 
 # association_table = Table('input_files', Base.metadata,
-#                           Column('task', Integer, ForeignKey('task.id')),
+# Column('task', Integer, ForeignKey('task.id')),
 #                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
 AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward', 'n'])
 AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
 
 
-
-def abstract_input_taskfile(name=None, format=None, forward=False, n='>=1'):
+def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     """
-
-    :param name:
-    :param format:
-    :param forward:
-    :param n: (int|'many') cardinality.  if n=1, the input dict for this
-    :return:
+    :param name: (str) The name of the TaskFile(s)
+    :param format: (str) The format of the TaskFile(s)
+    :param forward: (bool) Forward this input as an output of this Tool
+    :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
+    :return: (AbstractInputFile)
     """
     assert name or format, 'must specify either name or format'
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
+
 def abstract_output_taskfile(name=None, format=None, basename=None):
+    """
+    :param name: (str) The name for the TaskFile
+    :param format: The format for the TaskFile
+    :param basename: (str) custom_name.custom_format
+    :return: (AbstractOutputFile)
+    """
     assert name and format, 'must specify name and format'
     return AbstractOutputFile(name=name, format=format, basename=basename)
-
-
 
 
 class InputFileAssociation(Base):
@@ -67,7 +70,6 @@ class InputFileAssociation(Base):
 
     def __str__(self):
         return self.__repr__()
-
 
 
 class TaskFile(Base):

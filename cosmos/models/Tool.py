@@ -83,12 +83,11 @@ class Tool(object):
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
-        for abstract_input_file in self.inputs:
-            real_count = len(mapped_input_taskfiles)
-            op, number = parse_aif_cardinality(abstract_input_file.n)
+        real_count = len(mapped_input_taskfiles)
+        op, number = parse_aif_cardinality(abstract_input_file.n)
 
-            if not OPS[op](real_count, int(number)):
-                raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+        if not OPS[op](real_count, int(number)):
+            raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
 
 
     def _map_inputs(self, parents):
@@ -96,11 +95,11 @@ class Tool(object):
         Default method to map inputs.  Can be overriden if a different behavior is desired
         :returns: [(taskfile, is_forward), ...]
         """
-        for i, abstract_input_file in enumerate(self.inputs):
+        for aif_index, abstract_input_file in enumerate(self.inputs):
             mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
             for tf in mapped_input_taskfiles:
-                tf.abstract_input_file_mapping = (i + 1, abstract_input_file)
+                tf.abstract_input_file_mapping = (aif_index, abstract_input_file) # `aif_index` is part of the mapping to retain the order when processing later
                 yield tf, abstract_input_file.forward
 
 
@@ -120,18 +119,19 @@ class Tool(object):
 
         input_taskfiles, _ = zip(*inputs) if inputs else ([], None)
         input_dict = TaskFileDict(input_taskfiles, type='input')  # used to format basenames
+        inputs = list(iter(input_dict))
 
         # Create output TaskFiles
         for name, format, path in self.load_sources:
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
 
         for output in self.outputs:
-            name = str_format(output.name, dict(i=input_dict, **self.tags))
+            name = str_format(output.name, dict(i=inputs, **self.tags))
             if output.basename is None:
                 basename = None
             else:
                 d = self.tags.copy()
-                d.update(dict(name=name, format=output.format, i=input_dict))
+                d.update(dict(name=name, format=output.format, i=inputs))
                 basename = str_format(output.basename, dict(**d))
             TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
 
@@ -285,7 +285,7 @@ class TaskFileDict(dict):
     def __iter__(self):
         if self.type == 'input':
             f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
-            for (i, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+            for (aif_index, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
                 taskfiles = list(taskfiles)
                 op, number = parse_aif_cardinality(aif.n)
                 if op in ['=', '=='] and number == 1:
