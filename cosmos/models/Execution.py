@@ -430,7 +430,7 @@ class Execution(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.execution', id=self.id)
+        return url_for('cosmos.execution', name=self.name)
 
 
     def __repr__(self):

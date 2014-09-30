@@ -33,9 +33,10 @@ def gen_bprint(cosmos_app):
         return render_template('cosmos/index.html', executions=executions)
 
 
-    @bprint.route('/execution/<int:id>/')
-    def execution(id):
-        execution = get_execution(id)
+    @bprint.route('/execution/<name>/')
+    #@bprint.route('/execution/<int:id>/')
+    def execution(name):
+        execution = session.query(Execution).filter_by(name=name).one()
         return render_template('cosmos/execution.html', execution=execution)
 
 
@@ -61,7 +62,7 @@ def gen_bprint(cosmos_app):
         s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
         s.delete(delete_files=True)
         flash('Deleted %s' % s)
-        return redirect(url_for('cosmos.execution', id=ex_id))
+        return redirect(s.execution.url)
 
     @bprint.route('/task/<int:id>/')
     def task(id):
