@@ -61,7 +61,7 @@ def gen_bprint(cosmos_app):
         s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
         s.delete(delete_files=True)
         flash('Deleted %s' % s)
-        return redirect(url_for('cosmos.execution', id=ex_id))
+        return redirect(s.execution.url)
 
     @bprint.route('/task/<int:id>/')
     def task(id):

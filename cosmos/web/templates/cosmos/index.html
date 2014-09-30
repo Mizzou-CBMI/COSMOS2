@@ -30,7 +30,7 @@
                 <tbody>
                 {% for e in executions %}
                     <tr>
-                        <td><a href="{{ url_for('cosmos.execution', id=e.id) }}">{{ e }}</a></td>
+                        <td><a href="{{ e.url }}">{{ e }}</a></td>
                         <td>{{e.successful|to_thumb}}</td>
                         <td>{{e.status}}</td>
                         <td>{{ e.created_on }}</td>
@@ -40,7 +40,7 @@
                         <td>
                             <div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-default">
-                                    <a href="{{ url_for('cosmos.execution_delete', id=e.id) }}"
+                                    <a href="{{ e.url }}"
                                        onclick="return confirm('This will delete all files associated with {{ e }}.  Are you sure?')">
                                         <span class="glyphicon glyphicon-remove"></span> delete
                                     </a></button>
