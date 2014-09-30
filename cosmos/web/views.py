@@ -33,9 +33,10 @@ def gen_bprint(cosmos_app):
         return render_template('cosmos/index.html', executions=executions)
 
 
-    @bprint.route('/execution/<int:id>/')
-    def execution(id):
-        execution = get_execution(id)
+    @bprint.route('/execution/<name>/')
+    #@bprint.route('/execution/<int:id>/')
+    def execution(name):
+        execution = session.query(Execution).filter_by(name=name).one()
         return render_template('cosmos/execution.html', execution=execution)
 
 

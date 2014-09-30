@@ -3,7 +3,7 @@
 {% block content %}
 <ul class="breadcrumb">
     <li><a href="{{ url_for('.index') }}">Home</a></li>
-    <li><a href="{{ url_for('.execution', id=execution.id ) }}">{{execution}}</a></li>
+    <li><a href="{{ execution.url }}">{{execution}}</a></li>
     <li class="active">taskgraph</li>
 </ul>
 <p>
