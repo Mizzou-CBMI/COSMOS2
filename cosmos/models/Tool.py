@@ -24,7 +24,7 @@ OPS = OrderedDict([("<=", operator.le),
 
 
 def parse_aif_cardinality(n):
-    op, number = re.search('(.*)(\d+)', str(n)).groups()
+    op, number = re.search('(.*?)(\d+)', str(n)).groups()
     if op == '':
         op = '=='
     number = int(number)
@@ -78,8 +78,9 @@ class Tool(object):
         argspec = getargspec(self.cmd)
         # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
 
-        # if not set(self.tags.keys()).isdisjoint({'i', 'o'}):
-        # raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
+        reserved = {'name','format','basename'}
+        if not set(self.tags.keys()).isdisjoint(reserved):
+            raise ToolValidationError("%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
@@ -110,7 +111,7 @@ class Tool(object):
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        d['drm'] = 'local' if self.drm == 'local' else default_drm
+        d['drm'] = 'local' if self.drm is not None else default_drm
 
         inputs = list(self._map_inputs(parents))
         task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents,
