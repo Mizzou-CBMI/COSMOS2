@@ -48,13 +48,18 @@ class Many2one(Relationship):
 
     @classmethod
     def validate_reduce_by(cls, reduce_by):
+        """
+
+        :param reduce_by: a list of strings or a function who's input is a  ist of parents, and who's output is (dict of tags, parents)
+        :return:
+        """
         assert isinstance(reduce_by, list) or is_func(reduce_by), '`reduce_by` must be a list or function'
         if isinstance(reduce_by, list):
             if any(k == '' for k in reduce_by):
                 raise TypeError('keyword cannot be an empty string')
 
     @classmethod
-    def gen_task_tags(klass, stage):
+    def gen_task_tags(cls, stage):
         for tags, parent_task_group in Many2one.reduce(stage, stage.rel.reduce_by):
             tags.update(stage.extra_tags)
             yield tags, parent_task_group

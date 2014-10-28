@@ -365,7 +365,6 @@ class Execution(Base):
         else:
             self.status = ExecutionStatus.killed
 
-
     # @property
     # def tasksq(self):
     # stage_ids = [s.id for s in self.stages]

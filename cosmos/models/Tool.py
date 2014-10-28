@@ -88,7 +88,7 @@ class Tool(object):
         op, number = parse_aif_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
-            raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (self, abstract_input_file, real_count))
 
 
     def _map_inputs(self, parents):
