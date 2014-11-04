@@ -1,3 +1,6 @@
+"""
+Deprecated
+"""
 from networkx.algorithms import depth_first_search
 
 from ..util.sqla import get_or_create

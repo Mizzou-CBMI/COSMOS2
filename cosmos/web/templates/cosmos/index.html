@@ -40,7 +40,7 @@
                         <td>
                             <div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-default">
-                                    <a href="{{ e.url }}"
+                                    <a href="{{ {{ url_for('cosmos.execution_delete', ex_id=s.execution_id) }} }}"
                                        onclick="return confirm('This will delete all files associated with {{ e }}.  Are you sure?')">
                                         <span class="glyphicon glyphicon-remove"></span> delete
                                     </a></button>

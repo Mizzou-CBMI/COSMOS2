@@ -66,8 +66,8 @@ class Tool(object):
 
 
     def __validate(self):
-        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), 'Tool.inputs must be of type AbstractInputFile'
-        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), 'Tool.outputs must be of type AbstractOutputFile'
+        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
+        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
 
         if has_duplicates([(i.name, i.format) for i in self.inputs]):
             raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
@@ -172,7 +172,7 @@ class Tool(object):
 
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
-        return strip_lines(out.replace(task.output_dir, '$OUT'))
+        return strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \
