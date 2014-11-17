@@ -16,6 +16,7 @@ settings = config['main']
 
 if __name__ == '__main__':
     cosmos_app = Cosmos('sqlite:///sqlite.db', default_drm='local')
+    print cosmos_app.flask_app.url_map
 
     import argparse
 
