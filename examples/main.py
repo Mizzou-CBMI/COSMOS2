@@ -1,3 +1,6 @@
+"""
+An example of how to setup a project of multiple workflows
+"""
 import os
 
 from cosmos import Execution, add_execution_args, Cosmos

@@ -57,7 +57,6 @@ class DRM_GE(DRM):
 
     def kill(self, task):
         "Terminates a task"
-        sp.Popen(['qdel', str(task.drm_jobID)])
 
     def kill_tasks(self, tasks):
         for group in grouper(tasks, 50):

@@ -35,7 +35,7 @@ class Recipe(object):
         elif hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
             tools = [tools]
 
-        assert isinstance(tools, list), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
+        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
         assert len(tools) > 0, '`tools` cannot be an empty list'
 
         if name is None:

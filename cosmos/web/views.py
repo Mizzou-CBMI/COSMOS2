@@ -33,13 +33,14 @@ def gen_bprint(cosmos_app):
         return render_template('cosmos/index.html', executions=executions)
 
 
-    @bprint.route('/execution/<int:id>/')
-    def execution(id):
-        execution = get_execution(id)
+    @bprint.route('/execution/<name>/')
+    #@bprint.route('/execution/<int:id>/')
+    def execution(name):
+        execution = session.query(Execution).filter_by(name=name).one()
         return render_template('cosmos/execution.html', execution=execution)
 
 
-    @bprint.route('/execution/<int:execution_id>/stage/<stage_name>/')
+    @bprint.route('/execution/<int:execution_id>/<stage_name>/')
     def stage(execution_id, stage_name):
         stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
         if stage is None:
@@ -61,18 +62,24 @@ def gen_bprint(cosmos_app):
         s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
         s.delete(delete_files=True)
         flash('Deleted %s' % s)
-        return redirect(url_for('cosmos.execution', id=ex_id))
+        return redirect(s.execution.url)
 
-    @bprint.route('/task/<int:id>/')
-    def task(id):
-        task = session.query(Task).get(id)
-        if task is None:
-            return abort(404)
+    # @bprint.route('/task/<int:id>/')
+    # def task(id):
+    #     task = session.query(Task).get(id)
+    #     if task is None:
+    #         return abort(404)
+    #     return redirect(url_for('cosmos.task_friendly', ex_name=task.execution.name, stage_name=task.stage.name, task_id=task.id))
+
+    @bprint.route('/execution/<ex_name>/<stage_name>/<task_id>')
+    def task(ex_name, stage_name, task_id):
         # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
         #                   task.profile_fields for field in fields]
+        task = session.query(Task).get(task_id)
+        if task is None:
+            return abort(404)
         resource_usage = [ (field, getattr(task, field)) for field in task.profile_fields ]
         return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
-
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):

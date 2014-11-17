@@ -6,7 +6,7 @@
 
 <ul class="breadcrumb">
   <li><a href="{{ url_for('.index') }}">Home</a></li>
-  <li><a href="{{ url_for('.execution', id=stage.execution.id ) }}">{{stage.execution}}</a></li>
+  <li><a href="{{ stage.execution.url }}">{{stage.execution}}</a></li>
   <li class="active">{{stage}}</li>
 </ul>
 

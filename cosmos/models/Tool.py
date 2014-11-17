@@ -24,7 +24,7 @@ OPS = OrderedDict([("<=", operator.le),
 
 
 def parse_aif_cardinality(n):
-    op, number = re.search('(.*)(\d+)', str(n)).groups()
+    op, number = re.search('(.*?)(\d+)', str(n)).groups()
     if op == '':
         op = '=='
     number = int(number)
@@ -66,8 +66,8 @@ class Tool(object):
 
 
     def __validate(self):
-        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), 'Tool.inputs must be of type AbstractInputFile'
-        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), 'Tool.outputs must be of type AbstractOutputFile'
+        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
+        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
 
         if has_duplicates([(i.name, i.format) for i in self.inputs]):
             raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
@@ -78,8 +78,9 @@ class Tool(object):
         argspec = getargspec(self.cmd)
         # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
 
-        # if not set(self.tags.keys()).isdisjoint({'i', 'o'}):
-        # raise ToolValidationError("'i', 'o', 's' are a reserved names, and cannot be used as a tag keyword")
+        reserved = {'name','format','basename'}
+        if not set(self.tags.keys()).isdisjoint(reserved):
+            raise ToolValidationError("%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
@@ -87,7 +88,7 @@ class Tool(object):
         op, number = parse_aif_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
-            raise ToolValidationError('%s does not have right number of inputs: `%s`, for %s' % (self, abstract_input_file.n, abstract_input_file))
+            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (self, abstract_input_file, real_count))
 
 
     def _map_inputs(self, parents):
@@ -110,7 +111,7 @@ class Tool(object):
 
     def _generate_task(self, stage, parents, default_drm):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
-        d['drm'] = 'local' if self.drm == 'local' else default_drm
+        d['drm'] = 'local' if self.drm is not None else default_drm
 
         inputs = list(self._map_inputs(parents))
         task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents,
@@ -171,7 +172,7 @@ class Tool(object):
 
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
-        return strip_lines(out.replace(task.output_dir, '$OUT'))
+        return strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \

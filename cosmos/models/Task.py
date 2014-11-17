@@ -301,7 +301,7 @@ class Task(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.task', id=self.id)
+        return url_for('cosmos.task', ex_name=self.execution.name, stage_name=self.stage.name, task_id=self.id)
 
     def __repr__(self):
         s = self.stage.name if self.stage else ''

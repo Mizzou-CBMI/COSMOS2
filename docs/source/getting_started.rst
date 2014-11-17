@@ -76,7 +76,7 @@ see examples/main.py for a way to organize multiple workflows into a single acce
         runweb
         ex1       Example1
         ex2       Example2: A failed task
-        ex3       Example3: Twitter (note you must edit the file)
+        ex3       Example3: Twilio SMS (note you must edit the file)
 
     $ python main.py ex1 -h
     usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c MAX_CPUS]

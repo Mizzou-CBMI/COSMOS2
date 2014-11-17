@@ -365,7 +365,6 @@ class Execution(Base):
         else:
             self.status = ExecutionStatus.killed
 
-
     # @property
     # def tasksq(self):
     # stage_ids = [s.id for s in self.stages]
@@ -430,7 +429,7 @@ class Execution(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.execution', id=self.id)
+        return url_for('cosmos.execution', name=self.name)
 
 
     def __repr__(self):
@@ -453,6 +452,18 @@ class Execution(Base):
                 # time.sleep(.1)  # takes a second for logs to flush?
         if delete_files and os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
+
+        ### Faster deleting can be done with explicit sql queries
+        # from .TaskFile import InputFileAssociation
+        # from .Task import TaskEdge
+        # from .. import Stage, TaskFile
+        # self.session.query(InputFileAssociation).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(TaskFile).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        #
+        # self.session.query(TaskEdge).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        #
         self.session.delete(self)
         self.session.commit()
 
