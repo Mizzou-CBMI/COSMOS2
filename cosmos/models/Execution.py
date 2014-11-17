@@ -452,6 +452,18 @@ class Execution(Base):
                 # time.sleep(.1)  # takes a second for logs to flush?
         if delete_files and os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
+
+        ### Faster deleting can be done with explicit sql queries
+        # from .TaskFile import InputFileAssociation
+        # from .Task import TaskEdge
+        # from .. import Stage, TaskFile
+        # self.session.query(InputFileAssociation).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(TaskFile).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        #
+        # self.session.query(TaskEdge).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        #
         self.session.delete(self)
         self.session.commit()
 

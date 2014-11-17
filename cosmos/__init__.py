@@ -2,6 +2,7 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 import os
+import math
 
 from .db import Base
 
@@ -44,7 +45,12 @@ def default_get_submit_args(drm, task, default_queue=None):
                                                                                                   jobname=jobname)
     elif 'ge' in drm:
         # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
-        return '-pe smp {cpu_req}{queue} -N "{jobname}"'.format(mem_req=mem_req,
+        if mem_req:
+            mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req)))
+        else:
+            mem_req_s = ''
+        mem_req_s = ''
+        return '-pe smp {cpu_req}{queue}{mem_req_s} -N "{jobname}"'.format(mem_req_s=mem_req_s,
                                                                 cpu_req=cpu_req,
                                                                 queue=' -q %s' % default_queue if default_queue else '',
                                                                 jobname=jobname)
