@@ -41,10 +41,13 @@ class JobManager(object):
             task.status = TaskStatus.submitted
 
     def terminate(self):
-        for task in self.running_tasks:
-            self.drms[task.drm].kill(task)
-            task.status = TaskStatus.killed
-            task.stage.status = StageStatus.killed
+        f = lambda t: t.drm
+        for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
+            tasks = list(tasks)
+            self.drms[drm].kill_tasks(tasks)
+            for task in tasks:
+                task.status = TaskStatus.killed
+                task.stage.status = StageStatus.killed
 
 
     def get_finished_tasks(self):

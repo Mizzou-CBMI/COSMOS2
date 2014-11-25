@@ -57,6 +57,7 @@ class DRM_GE(DRM):
 
     def kill(self, task):
         "Terminates a task"
+        raise NotImplementedError
 
     def kill_tasks(self, tasks):
         for group in grouper(tasks, 50):

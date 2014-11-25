@@ -78,7 +78,7 @@ class Tool(object):
         argspec = getargspec(self.cmd)
         # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
 
-        reserved = {'name','format','basename'}
+        reserved = {'name', 'format', 'basename'}
         if not set(self.tags.keys()).isdisjoint(reserved):
             raise ToolValidationError("%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
@@ -100,7 +100,7 @@ class Tool(object):
             mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
             for tf in mapped_input_taskfiles:
-                tf.abstract_input_file_mapping = (aif_index, abstract_input_file) # `aif_index` is part of the mapping to retain the order when processing later
+                tf.abstract_input_file_mapping = (aif_index, abstract_input_file)  # `aif_index` is part of the mapping to retain the order when processing later
                 yield tf, abstract_input_file.forward
 
 
@@ -157,7 +157,7 @@ class Tool(object):
         # if not isinstance(argspec[1], list):
         # # auto unpack
         # if len(input_taskfiles) == 0:
-        #         i = None
+        # i = None
         #     else:
         #         i = i[0]
         # if not isinstance(argspec[2], list):
@@ -213,6 +213,7 @@ class Input(Tool):
     """
 
     name = 'Load_Input_Files'
+    cpu_req = 0
 
     def __init__(self, path, name=None, format=None, tags=None, *args, **kwargs):
         """
@@ -245,6 +246,8 @@ class Inputs(Tool):
     >>> Inputs([('name1','txt',root_path), ('name2','gz',roroot_pathath)], tags={'key':'val'})
     "root_path   name = 'Load_Input_Files'
     """
+    name = 'Load_Input_Files'
+    cpu_req = 0
 
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
@@ -382,7 +385,7 @@ def chain(*tool_classes):
         # def map_(input_files, abstract_outputs):
         # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
         #
-        #     for i, tool in enumerate(tool_classes):
+        # for i, tool in enumerate(tool_classes):
         #         if i == 0:
         #             # is first
         #             yield tool, task.input_files, get_outs(task.input_files, tool.outputs)

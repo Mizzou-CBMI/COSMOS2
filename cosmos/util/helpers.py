@@ -14,7 +14,7 @@ def wait_for_file(execution, path, timeout=60, error=True):
         time.sleep(.1)
         if time.time() - start > timeout:
             if error:
-                execution.terminate(failed=True)
+                execution.terminate(due_to_failure=True)
                 raise IOError('giving up on %s existing' % path)
             else:
                 return False
