@@ -40,9 +40,10 @@ def gen_bprint(cosmos_app):
         return render_template('cosmos/execution.html', execution=execution)
 
 
-    @bprint.route('/execution/<int:execution_id>/<stage_name>/')
-    def stage(execution_id, stage_name):
-        stage = session.query(Stage).filter_by(execution_id=execution_id, name=stage_name).one()
+    @bprint.route('/execution/<execution_name>/<stage_name>/')
+    def stage(execution_name, stage_name):
+        ex = session.query(Execution).filter_by(name=execution_name).one()
+        stage = session.query(Stage).filter_by(execution_id=ex.id, name=stage_name).one()
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)

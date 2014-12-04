@@ -183,12 +183,12 @@ class StageStatus(MyEnum):
 
 
 class ExecutionStatus(MyEnum):
-    no_attempt = 'Has not been attempted',
-    running = 'Execution is running',
-    successful = 'Finished successfully',
-    killed = 'Manually killed'
+    no_attempt = 'No Attempt yet',
+    running = 'Running',
+    successful = 'Successfully Finished',
+    killed = 'Killed'
     failed_but_running = "Running, but a task failed"
-    failed = 'Finished, but failed'
+    failed = 'Failed, but finished'
 
 
 class RelationshipType(MyEnum):

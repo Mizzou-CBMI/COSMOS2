@@ -44,7 +44,8 @@ def _default_task_output_dir(task):
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
-        ex.log.info('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
+        logfunc = ex.log.warning if ex.status in [ExecutionStatus.failed, ExecutionStatus.killed] else ex.log.info
+        logfunc('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
         ex.finished_on = func.now()
 
     if ex.status == ExecutionStatus.successful:
@@ -562,10 +563,11 @@ def handle_exits(execution):
 
     @atexit.register
     def cleanup_check():
+        #execution.log.info('Python exiting, doing last minute clenaup')
         if execution.status not in [ExecutionStatus.failed, ExecutionStatus.killed, ExecutionStatus.no_attempt]:
-            execution.log.info('Initiating atexit termination')
+            execution.log.info('Caught atexit')
             execution.terminate(due_to_failure=False)
-            raise SystemExit('Execution terminated due to the python interpreter exiting')
+            #raise SystemExit('Execution terminated due to the python interpreter exiting')
 
 
 
