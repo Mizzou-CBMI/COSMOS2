@@ -563,10 +563,9 @@ def handle_exits(execution):
 
     @atexit.register
     def cleanup_check():
-        #execution.log.info('Python exiting, doing last minute clenaup')
-        if execution.status not in [ExecutionStatus.failed, ExecutionStatus.killed, ExecutionStatus.no_attempt]:
-            execution.log.info('Caught atexit')
-            execution.terminate(due_to_failure=False)
+        if execution.status == ExecutionStatus.running:
+            execution.log.error('Execution running atexit!')
+            execution.terminate(due_to_failure=True)
             #raise SystemExit('Execution terminated due to the python interpreter exiting')
 
 
