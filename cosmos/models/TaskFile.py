@@ -35,7 +35,7 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-def abstract_output_taskfile(name=None, format=None, basename=None):
+def abstract_output_taskfile(name, format, basename=None):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile

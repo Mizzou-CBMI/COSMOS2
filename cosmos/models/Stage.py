@@ -60,11 +60,6 @@ class Stage(Base):
 
         return synonym('_status', descriptor=property(get_status, set_status))
 
-    @validates('name')
-    def validate_name(self, key, name):
-        assert re.match('^[\w-]+$', name), 'Invalid stage name.'
-        return name
-
     def __init__(self, *args, **kwargs):
         super(Stage, self).__init__(*args, **kwargs)
 
@@ -81,7 +76,7 @@ class Stage(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.stage', execution_id=self.execution_id, stage_name=self.name)
+        return url_for('cosmos.stage', execution_name=self.execution.name, stage_name=self.name)
 
     @property
     def log(self):

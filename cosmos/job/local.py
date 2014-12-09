@@ -61,6 +61,11 @@ class DRM_Local(DRM):
             pass
 
 
+    def kill_tasks(self, tasks):
+        for t in tasks:
+            self.kill(t)
+
+
 
 def preexec_function():
     # Ignore the SIGINT signal by setting the handler to the standard

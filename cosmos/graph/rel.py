@@ -91,7 +91,7 @@ class Many2one(Relationship):
     def reduce(cls, stage, reduce_by):
         parent_tasks = list(it.chain(*(s.tasks for s in stage.parents)))
         if is_func(reduce_by):
-            for tags, parent_task_group in reduce_by(parent_tasks):
+            for tags, parent_task_group in reduce_by(parent_tasks=parent_tasks):
                 from .. import Task
 
                 assert isinstance(tags, dict), 'custom reduce_by function for %s did not yield a (dict, (list_of_parents)) tuple'
@@ -139,7 +139,7 @@ class One2many(Relationship):
         # if is_func(split_by):
         # assert parent_task is not None, 'need a parent_task if split_by is a function'
         if is_func(split_by):
-            for new_tags in split_by(parent_task):
+            for new_tags in split_by(parent_task=parent_task):
                 assert isinstance(new_tags, dict), 'split_by function did not return a dict'
                 yield new_tags
         else:

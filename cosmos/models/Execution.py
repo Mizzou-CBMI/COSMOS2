@@ -10,11 +10,12 @@ from sqlalchemy.orm import validates, synonym
 from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
+import atexit
 
 from ..util.helpers import duplicates
 from ..graph import taskgraph
 from ..db import Base
-
+import time
 
 opj = os.path.join
 import signal
@@ -43,7 +44,8 @@ def _default_task_output_dir(task):
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
-        ex.log.info('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
+        logfunc = ex.log.warning if ex.status in [ExecutionStatus.failed, ExecutionStatus.killed] else ex.log.info
+        logfunc('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
         ex.finished_on = func.now()
 
     if ex.status == ExecutionStatus.successful:
@@ -305,7 +307,8 @@ class Execution(Base):
         task_queue.remove_nodes_from(successful)
 
 
-        terminate_on_ctrl_c(self)
+        handle_exits(self)
+
 
         self.log.info('Setting log output directories...')
         # set log dirs
@@ -354,13 +357,14 @@ class Execution(Base):
             if s.status in [StageStatus.running, StageStatus.running_but_failed]:
                 s.status = StageStatus.failed
 
-    def terminate(self, failed=True):
+    def terminate(self, due_to_failure=True):
         self.log.warning('Terminating!')
         if self.jobmanager:
             self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
-        if failed:
+
+        if due_to_failure:
             self.status = ExecutionStatus.failed
         else:
             self.status = ExecutionStatus.killed
@@ -490,11 +494,11 @@ def _run(execution, session, task_queue):
     """
     execution.log.info('Executing TaskGraph')
 
-    tasks_are_ready = True
+    available_cores = True
     while len(task_queue) > 0:
-        if tasks_are_ready:
-            _run_ready_tasks(task_queue, execution)
-            tasks_are_ready = False
+        if available_cores:
+            _run_queued_and_ready_tasks(task_queue, execution)
+            available_cores = False
 
         for task in _process_finished_tasks(execution.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
@@ -511,14 +515,15 @@ def _run(execution, session, task_queue):
                 pass
             else:
                 raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
-            tasks_are_ready = True
+            available_cores = True
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
+        time.sleep(.3)
 
 
 
-def _run_ready_tasks(task_queue, execution):
+def _run_queued_and_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if degree == 0 and task.status == TaskStatus.no_attempt]
     for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
@@ -547,15 +552,22 @@ def _process_finished_tasks(jobmanager):
             yield task
 
 
-def terminate_on_ctrl_c(execution):
+def handle_exits(execution):
     # terminate on ctrl+c
     def ctrl_c(signal, frame):
         if not execution.successful:
             execution.log.info('Caught SIGINT (ctrl+c)')
-            execution.terminate(failed=False)
+            execution.terminate(due_to_failure=False)
             raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
-
     signal.signal(signal.SIGINT, ctrl_c)
+
+    @atexit.register
+    def cleanup_check():
+        if execution.status == ExecutionStatus.running:
+            execution.log.error('Execution running atexit!')
+            execution.terminate(due_to_failure=True)
+            #raise SystemExit('Execution terminated due to the python interpreter exiting')
+
 
 
 def _copy_graph(graph):

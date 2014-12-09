@@ -7,6 +7,7 @@ import math
 from .db import Base
 
 
+
 # turn SQLAlchemy warnings into errors
 import warnings
 from sqlalchemy.exc import SAWarning
@@ -51,9 +52,9 @@ def default_get_submit_args(drm, task, default_queue=None):
             mem_req_s = ''
         mem_req_s = ''
         return '-pe smp {cpu_req}{queue}{mem_req_s} -N "{jobname}"'.format(mem_req_s=mem_req_s,
-                                                                cpu_req=cpu_req,
-                                                                queue=' -q %s' % default_queue if default_queue else '',
-                                                                jobname=jobname)
+                                                                           cpu_req=cpu_req,
+                                                                           queue=' -q %s' % default_queue if default_queue else '',
+                                                                           jobname=jobname)
     elif drm == 'local':
         return None
     else:
@@ -69,7 +70,7 @@ class Cosmos(object):
             see :func:`default_get_submit_args` for details
         :param flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
         """
-        assert default_drm in ['local','lsf','ge'], 'unsupported drm: %s' % default_drm
+        assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
 
         if '://' not in database_url:
             if database_url[0] != '/':
@@ -79,12 +80,22 @@ class Cosmos(object):
                 database_url = 'sqlite:///%s' % database_url
 
         self.flask_app = flask_app if flask_app else Flask(__name__)
+
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
         self.default_queue = default_queue
         self.default_drm = default_drm
+
+        # setup flask views
+        from cosmos.web.views import gen_bprint
+        from cosmos.web.admin import add_cosmos_admin
+
+        self.cosmos_bprint = gen_bprint(self)
+        self.flask_app.register_blueprint(self.cosmos_bprint)
+        add_cosmos_admin(flask_app, self.session)
+
 
     def initdb(self):
         """
@@ -134,7 +145,7 @@ class ExecutionFailed(Exception): pass
 
 # #######################################################################################################################
 # Signals
-########################################################################################################################
+# #######################################################################################################################
 import blinker
 
 signal_task_status_change = blinker.Signal()
@@ -172,12 +183,12 @@ class StageStatus(MyEnum):
 
 
 class ExecutionStatus(MyEnum):
-    no_attempt = 'Has not been attempted',
-    running = 'Execution is running',
-    successful = 'Finished successfully',
-    killed = 'Manually killed'
+    no_attempt = 'No Attempt yet',
+    running = 'Running',
+    successful = 'Successfully Finished',
+    killed = 'Killed'
     failed_but_running = "Running, but a task failed"
-    failed = 'Finished, but failed'
+    failed = 'Failed, but finished'
 
 
 class RelationshipType(MyEnum):
