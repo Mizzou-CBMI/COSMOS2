@@ -8,6 +8,8 @@ Welcome
     introduction
     install
     getting_started
+    shell
+    faq
     glossary
 
 
