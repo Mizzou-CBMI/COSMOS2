@@ -91,7 +91,7 @@ class Stage(Base):
         """
         if delete_descendants:
             self.log.info('Deleting all descendants of %s' % self)
-            for stage in reversed(self.descendants()):
+            for stage in reversed(list(self.descendants())):
                 stage.delete(delete_files)
 
         self.log.info('Deleting %s. delete_files=%s' % (self, delete_files))
