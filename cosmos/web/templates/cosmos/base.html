@@ -82,13 +82,23 @@
 <script src="{{ url_for('cosmos.static', filename='jquery.dataTables.min.js') }}"></script>
 <script src="{{ url_for('cosmos.static', filename='datatables/assets/js/datatables.js') }}"></script>
 <script type="text/javascript">
+    function prependClass(sel, strClass) {
+        var $el = jQuery(sel);
+
+        /* prepend class */
+        var classes = $el.attr('class');
+        classes = strClass + ' ' + classes;
+        $el.attr('class', classes);
+    }
+
+
     $(document).ready(function () {
         $('.datatable').dataTable({
-            "sPaginationType": "bs_normal",
-            "bLengthChange": false,
-            "iDisplayLength": 50,
-            "aaSorting": []
-        });
+                                      "sPaginationType": "bs_normal",
+                                      "bLengthChange": false,
+                                      "iDisplayLength": 50,
+                                      "aaSorting": []
+                                  });
         $('.datatable').each(function () {
             var datatable = $(this);
             // SEARCH - Add the placeholder for Search and Turn this into in-line form control
@@ -101,6 +111,13 @@
             datatable.bind('page', function (e) {
                 window.console && console.log('pagination event:', e) //this event must be fired whenever you paginate
             });
+
+        });
+
+        $('table tbody tr').hover(function () {
+            prependClass(this, 'row_highlight');
+        }, function () {
+            $(this).removeClass('row_highlight');
         });
     });
 </script>
