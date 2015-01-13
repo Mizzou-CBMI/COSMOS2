@@ -120,7 +120,7 @@ class Tool(object):
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        for name, format, path in self.load_sources:
+        for path, name, format in self.load_sources:
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
 
         for output in self.outputs:
@@ -148,7 +148,8 @@ class Tool(object):
         ndefaults = len(argspec.defaults) if argspec.defaults else 0
         for arg in argspec.args[3:len(argspec.args) - ndefaults]:
             if arg not in params:
-                raise AttributeError('%s requires the parameter: `%s`, are you missing a tag?' % (self, arg))
+                raise AttributeError('%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                                     'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
         aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif))) for aif in self.inputs)
 
@@ -188,7 +189,15 @@ class Tool(object):
 
 from collections import namedtuple
 
-InputSource = namedtuple('InputSource', ['name', 'format', 'root_path'])
+class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
+    def __init__(self, path, name=None, format=None):
+        basename = os.path.basename(path)
+        if name is None:
+            name = os.path.splitext(basename)[0]
+        if format is None:
+            format = os.path.splitext(basename)[-1][1:]  # remove the '.'
+
+        super(InputSource, self).__init__(path, name, format)
 
 
 class Input(Tool):
@@ -211,19 +220,14 @@ class Input(Tool):
         :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
+        self.NOOP = True
+
         path = _abs(path)
         if tags is None:
             tags = dict()
 
-        basename = os.path.basename(path)
-        if name is None:
-            name = os.path.splitext(basename)[0]
-        if format is None:
-            format = os.path.splitext(basename)[-1][1:]  # remove the '.'
-
         super(Input, self).__init__(tags=tags, *args, **kwargs)
-        self.NOOP = True
-        self.load_sources.append(InputSource(name, format, path))
+        self.load_sources.append(InputSource(path, name, format))
 
 
 class Inputs(Tool):
@@ -241,12 +245,13 @@ class Inputs(Tool):
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
+        self.NOOP = True
         if tags is None:
             tags = dict()
+
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
-        self.NOOP = True
-        for tpl in inputs:
-            self.load_sources.append(InputSource(*tpl))
+        for path, name, fmt in inputs:
+            self.load_sources.append(InputSource(path, name, fmt))
 
 
 def _abs(path):

@@ -106,8 +106,11 @@ def readfile(path):
     if not os.path.exists(path):
         return 'file does not exist'
 
-    with codecs.open(path, "r", "utf-8") as fh:
-        return fh.read()
+    try:
+        with codecs.open(path, "r", "utf-8") as fh:
+            return fh.read()
+    except:
+        return 'error parsing as utf-8: %s' % path
 
 
 class Task(Base):

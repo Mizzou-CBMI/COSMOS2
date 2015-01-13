@@ -5,8 +5,10 @@ from sqlalchemy import func
 from .. import Task, Stage, Execution
 
 
-def add_filters(bprint):
-    @bprint.add_app_template_filter
+def add_filters(bprint_or_app, type_='bprint'):
+    add_filter = bprint_or_app.add_app_template_filter if type_ == 'bprint' else bprint_or_app.add_template_filter
+
+    @add_filter
     def to_thumb(b):
         if b:
             s = '<span class="glyphicon glyphicon-thumbs-up"></span> yes'
@@ -15,7 +17,7 @@ def add_filters(bprint):
         return Markup(s)
 
 
-    @bprint.add_app_template_filter
+    @add_filter
     def format_resource_usage(field_name, val):
         if val is None:
             return ''
@@ -29,7 +31,7 @@ def add_filters(bprint):
             return intWithCommas(val)
         return str(val)
 
-    @bprint.add_app_template_filter
+    @add_filter
     def stage_status2bootstrap(status):
         d = {
             StageStatus.no_attempt: 'info',
@@ -40,12 +42,12 @@ def add_filters(bprint):
         }
         return d.get(status)
 
-    @bprint.add_app_template_filter
+    @add_filter
     def or_datetime_now(x):
         return x or datetime.datetime.now()
 
 
-    @bprint.add_app_template_filter
+    @add_filter
     def stage_stat(stage, attribute, func_name):
         f = getattr(func, func_name)
         session = stage.session

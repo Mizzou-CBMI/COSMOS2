@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 import os
@@ -62,7 +62,8 @@ def default_get_submit_args(drm, task, default_queue=None):
 
 
 class Cosmos(object):
-    def __init__(self, database_url, get_submit_args=default_get_submit_args, default_drm='local', default_queue=None, flask_app=None):
+    def __init__(self, database_url, get_submit_args=default_get_submit_args,
+                 default_drm='local', default_queue=None, flask_app=None, url_prefix=None):
         """
 
         :param database_url: a sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or mysql://user:pass@localhost/insilico
@@ -93,7 +94,7 @@ class Cosmos(object):
         from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
-        self.flask_app.register_blueprint(self.cosmos_bprint)
+        self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
         add_cosmos_admin(flask_app, self.session)
 
 

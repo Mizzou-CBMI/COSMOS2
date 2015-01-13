@@ -110,7 +110,7 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
-        assert os.path.exists(os.getcwd()), 'The current working dir, %s, does not exist' % os.getcwd()
+        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         session = cosmos_app.session
         # assert name is not None, 'name cannot be None'
@@ -362,7 +362,7 @@ class Execution(Base):
         session.commit()
 
     def terminate(self, due_to_failure=True):
-        self.log.warning('Terminating!')
+        self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
             self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
