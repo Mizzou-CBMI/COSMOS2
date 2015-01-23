@@ -8,7 +8,9 @@ Welcome
     introduction
     install
     getting_started
+    workflows/index
     glossary
+    faq
 
 
 

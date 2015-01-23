@@ -1,14 +1,14 @@
 Installation
 =============
 
-Make sure you have graphviz installed, if you want to use visualizations of your workflows.
+If you want to use visualizations of your workflows, make sure you have graphviz and pygraphviz installed (recommended).
 
 .. code-block:: bash
 
     sudo apt-get graphviz graphviz-dev
 
 
-To install, clone the repository.  This procedure assumes you're using `<VirtualEnv http://virtualenv.readthedocs.org/en/latest/`_:
+To install, clone the repository.  This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.org/en/latest/>`_:
 
 .. code-block:: bash
 
@@ -16,7 +16,17 @@ To install, clone the repository.  This procedure assumes you're using `<Virtual
     mkvirtualenv ve
     source ve/bin/activate
     pip install pip distribute -U
-    git clone git@github.com:LPM-HMS/Cosmos3.git --depth=1
+    git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
     cd Cosmos
-    pip install . # alternatively, use pip install devlop
+    pip install .
+    # optionally: pip install pygraphviz
 
+Alternatively, use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_
+
+.. code-block::
+
+    mkvirtualenv myproject
+    git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
+    cd Cosmos
+    pip install .
+    # optionally: pip install pygraphviz
