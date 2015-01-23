@@ -95,7 +95,7 @@ class Cosmos(object):
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
-        add_cosmos_admin(flask_app, self.session)
+        #add_cosmos_admin(flask_app, self.session)
 
 
     def initdb(self):
