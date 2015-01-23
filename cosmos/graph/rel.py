@@ -23,6 +23,9 @@ class RelationshipError(Exception): pass
 
 
 class One2one(Relationship):
+    """
+
+    """
     type = RelationshipType.one2one
 
     @classmethod
@@ -112,12 +115,11 @@ class One2many(Relationship):
 
     @classmethod
     def validate_split_by(cls, split_by):
-        assert isinstance(split_by, list) or is_func(split_by), '`split_by` must be a list or function'
+        assert isinstance(split_by, dict) or is_func(split_by), '`split_by` must be a dict or function'
         if isinstance(split_by, list) and len(split_by) > 0:
             assert isinstance(split_by[0], tuple), '`split_by` must be a list of tuples'
-            assert isinstance(split_by[0][0], str), 'the first element of tuples in `split_by` must be a str'
-            assert isinstance(split_by[0][1],
-                              list), 'the second element of the tuples in the `split_by` list must also be a list'
+            t = split_by.values()[0]
+            assert isinstance(t, list) or isinstance(t, tuple), 'the values of `split_by` must be a list or a tuple'
 
     @classmethod
     def gen_task_tags(klass, stage):
@@ -129,7 +131,7 @@ class One2many(Relationship):
 
     @classmethod
     def default_split_by(cls, parent_task, split_by):
-        splits = [list(it.product([split[0]], split[1])) for split in split_by]
+        splits = [list(it.product([split[0]], split[1])) for split in split_by.items()]
         for new_tags in it.imap(dict, it.product(*splits)):
             yield new_tags
 

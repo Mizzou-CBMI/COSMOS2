@@ -10,7 +10,7 @@ powerful when combined with spot instances on `Amazon Web Services <aws.amazon.c
 `StarCluster <http://star.mit.edu/cluster/docs/latest/>`_
 
 Cosmos is owned by and copywrite Harvard Medical School.  The original manuscript was published in
-Bioinformatics `Here <http://bioinformatics.oxfordjournals.org/content/early/2014/07/24/bioinformatics.btu385>`.
+Bioinformatics `Here <http://bioinformatics.oxfordjournals.org/content/early/2014/07/24/bioinformatics.btu385>`_.
 
 Features
 ________
@@ -28,4 +28,4 @@ ______________________
 
 * Support for :term:`DRMS` such as SGE, LSF.  term:`DRMAA` coming soon.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the :term:`Sqlalchemy` ORM
-* Extremely well suited for cloud computing
+* Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.

@@ -121,13 +121,13 @@ Visit `<http://servername:8080>`_ to access it (or`<http://localhost:8080>`_ if 
 
     If the cosmos webserver is running, but you can't connect, it is likely because there is a firewall
     in front of the server.  You can get around it by using **ssh port forwarding**, for example"
-    `$ ssh -L 8080:servername:8080 user@server`.  And if that fails, the Cosmos web interface works very well
+    `$ ssh -L 8080:servername:8080 user@server`.  And if that fails, the Cosmos web interface works well
     using lynx.
 
 .. warning::
 
     The webserver is **NOT** secure.  If you need it secured, you'll have to set it up in a production
-    Django web server environment (for example, using **mod_wsgi** with **Apache2**).
+    Flask web server environment, see `<Deploying Flask http://flask.pocoo.org/docs/0.10/deploying/>`_.
 
 Terminating a Workflow
 ______________________
@@ -139,15 +139,16 @@ You can resume from the point in the workflow you left off later.
 Resuming a workflow
 ____________________
 
-A workflow can be resumed by re-running a script that originally.  The algorithm for resuming is as follows:
+A workflow can be resumed by re-running the script that originally started it.  Usually that means just re-running any
+failed tasks.  However, it is a bit more complicated if you modify the script, or manually delete successful jobs. The
+algorithm for resuming is as follows:
 
 1) Delete any failed tasks
-2) Add any tasks that do not exist in the database (Keyed be the task's stage name and tags)
+2) Add any new tasks (tasks with the same stage name and tags that were already completed successfully will **NOT** be re-run)
 3) Run the workflow
 
 .. warning::
     If a task in a stage with the same tags has already been executed successfully, it
     will not be re-executed or altered, *even if the actual command has changed because
     you modified the script*.  In the future Cosmos may emmit a warning when this occurs or automatically
-    re-run these tasks.  This can be
-    especially tricky when you try to change a successful task that has no tags.
+    re-run these tasks.  This can be especially tricky when you try to change a successful task that has no tags.

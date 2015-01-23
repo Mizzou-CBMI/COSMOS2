@@ -39,7 +39,7 @@ class _ToolMeta(type):
 
 class Tool(object):
     """
-    Essentially a factory that produces Tasks.  It's :meth:`cmd` must be overridden unless it is a NOOP task.
+    Essentially a factory that produces Tasks.  :meth:`cmd` must be overridden unless it is a NOOP task.
     """
     __metaclass__ = _ToolMeta
 
@@ -170,8 +170,7 @@ class Tool(object):
 
     def cmd(self, inputs, outputs, **kwargs):
         """
-        Constructs the preformatted command string.  The string will be .format()ed with the i,s,p dictionaries,
-        and later, $OUT.outname  will be replaced with a TaskFile associated with the output name `outname`
+        Constructs the command string.  Lines will be .strip()ed.
 
         :param inputs: (list) Input TaskFiles, each element corresponds to an abstract_input_file in self.inputs
         :param outputs: (list) Output TaskFiles, each element corresponds to an abstract_output_file in self.outputs

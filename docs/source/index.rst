@@ -8,10 +8,9 @@ Welcome
     introduction
     install
     getting_started
-    creating_recipes
-    shell
-    faq
+    workflows/index
     glossary
+    faq
 
 
 
