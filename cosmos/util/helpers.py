@@ -29,7 +29,7 @@ def has_duplicates(alist):
 #
 # def dag_descendants(node):
 # """
-#     :param node: A Task or Stage instance
+# :param node: A Task or Stage instance
 #     :yields: a list of descendent task or stages
 #
 #     This code is really simple because there are no cycles.
@@ -91,12 +91,18 @@ def confirm(prompt=None, default=False, timeout=0):
             if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout, 'yes' if default else 'no')
+            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout,
+                                                                                         'yes' if default else 'no')
             return default
 
 
+#created_already = set()
 def mkdir(path):
-    sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
+    global created_already
+    #sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
+    if not os.path.exists(path):
+        #created_already.add(path)
+        os.makedirs(path)
 
 
 def groupby(iterable, fxn):
@@ -109,6 +115,7 @@ def duplicates(iterable):
     for x, group in it.groupby(sorted(iterable)):
         if len(list(group)) > 1:
             yield x
+
 
 def str_format(s, d):
     """

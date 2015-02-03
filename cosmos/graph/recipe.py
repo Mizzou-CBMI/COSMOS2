@@ -50,7 +50,7 @@ class Recipe(object):
         self.recipe_stage_G.add_node(recipe_stage)
         return recipe_stage
 
-    def add_stage(self, tool_class, parents, rel=_rel.One2one, tag=None, name=None):
+    def add_stage(self, tool_class, parents, rel=_rel.One2one, tag=None, out='', name=None):
         """
         Creates a Stage
 
@@ -72,7 +72,7 @@ class Recipe(object):
         assert issubclass(tool_class, Tool), '`tool_class` must be a subclass of Tool'
         assert len(parents), 'must have at least one parent for %s' % name
 
-        recipe_stage = RecipeStage(name, tool_class, rel, tag)
+        recipe_stage = RecipeStage(name, tool_class, rel, tag, output_dir_pre_interpolation=out)
 
         self._validate_not_duplicate_name(recipe_stage.name)
 
@@ -113,7 +113,7 @@ class RecipeStage():
     ntasks = None
 
     def __init__(self, name, tool_class=None, rel=None, extra_tags=None, source_tools=None,
-                 is_source=False):
+                 is_source=False, output_dir_pre_interpolation=''):
         if name is None:
             if hasattr(tool_class, 'name'):
                 name = tool_class.name
@@ -144,7 +144,8 @@ class RecipeStage():
                                is_source=is_source,
                                resolved=False,
                                extra_tags=extra_tags,
-                               relationship_type=rel.type)
+                               relationship_type=rel.type,
+                               output_dir_pre_interpolation=output_dir_pre_interpolation)
         self.__dict__.update(self.properties)
 
     @property

@@ -5,7 +5,7 @@ import itertools as it
 import operator
 from collections import OrderedDict
 
-from .. import TaskFile, Task
+from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
 from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
 
@@ -47,22 +47,25 @@ class Tool(object):
     time_req = None
     cpu_req = None
     must_succeed = True
-    NOOP = False
+    #NOOP = False
     persist = False
     drm = None
     skip_profile = False
-    inputs = []
-    outputs = []
+    inputs = []  # class property!
+    outputs = [] # class property!
+    output_dir = None
+
     # if adding another attribute, don't forget to update the chain() method
 
 
-    def __init__(self, tags):
+    def __init__(self, tags, output_dir=None):
         """
         :param tags: (dict) A dictionary of tags.
         """
         self.tags = tags
         self.__validate()
         self.load_sources = []
+        self.output_dir = output_dir
 
 
     def __validate(self):
@@ -108,22 +111,24 @@ class Tool(object):
                 yield tf
 
     def _generate_task(self, stage, parents, default_drm):
-        d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
+
+        d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
         aif_2_input_taskfiles = OrderedDict(self._map_inputs(parents))
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for tf in tfs]
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir, **d)
         task.skip_profile = self.skip_profile
 
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
         for path, name, format in self.load_sources:
-            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
+            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
 
         for output in self.outputs:
+            assert self.output_dir is not None, 'output dir for %s is None, check out `out` parameter in Recipe.add_stage()' % self
             name = str_format(output.name, dict(i=inputs, **self.tags))
             if output.basename is None:
                 basename = None
@@ -131,7 +136,8 @@ class Tool(object):
                 d = self.tags.copy()
                 d.update(dict(name=name, format=output.format, i=inputs))
                 basename = str_format(output.basename, dict(**d))
-            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
+            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename,
+                     path=opj(task.output_dir, basename))
 
         task.tool = self
         return task
@@ -183,6 +189,9 @@ class Tool(object):
         """
         Generates the command
         """
+        cmd = self._cmd(task.input_files, task.output_files, task)
+        if cmd == NOOP:
+            return NOOP
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
 
 
@@ -219,7 +228,7 @@ class Input(Tool):
         :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
-        self.NOOP = True
+        #self.NOOP = True
 
         path = _abs(path)
         if tags is None:
@@ -227,6 +236,9 @@ class Input(Tool):
 
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.load_sources.append(InputSource(path, name, format))
+
+    def cmd(self, inputs, outputs):
+        return NOOP
 
 
 class Inputs(Tool):
@@ -244,13 +256,16 @@ class Inputs(Tool):
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
-        self.NOOP = True
+        #self.NOOP = True
         if tags is None:
             tags = dict()
 
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         for path, name, fmt in inputs:
             self.load_sources.append(InputSource(path, name, fmt))
+
+    def cmd(self, inputs, outputs):
+        return NOOP
 
 
 def _abs(path):
@@ -366,7 +381,7 @@ def chain(*tool_classes):
     global CollapsedTool
     tool_classes = tuple(tool_classes)
     assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
-    assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
+    #assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
     name = '__'.join(t.name for t in tool_classes)
 
 

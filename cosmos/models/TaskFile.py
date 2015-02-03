@@ -122,6 +122,7 @@ class TaskFile(Base):
         """
         self.log.debug('Deleting %s' % self)
 
+        #if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
         if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
             if not in_directory(self.path, self.execution.output_dir):
                 self.log.warn('Not deleting %s, outside of %s' % (self.path, self.execution.output_dir))

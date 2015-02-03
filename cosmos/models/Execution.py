@@ -207,7 +207,7 @@ class Execution(Base):
             raise AttributeError
 
 
-    def run(self, recipe, task_output_dir=_default_task_output_dir, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
+    def run(self, recipe, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
@@ -223,7 +223,6 @@ class Execution(Base):
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
-        assert hasattr(task_output_dir, '__call__'), 'task_output_dir must be a function'
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
@@ -243,20 +242,20 @@ class Execution(Base):
         task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
 
         # Set output_dirs of new tasks
-        for task in nx.topological_sort(task_g):
-            if not task.successful:
-                task.output_dir = task_output_dir(task)
-                assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
-                for tf in task.output_files:
-                    if tf.path is None:
-                        tf.path = opj(task.output_dir, tf.basename)
-                        assert tf.path is not None, 'computed an output_dir for %s of None' % task
-                        # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
+        # for task in nx.topological_sort(task_g):
+        #     if not task.successful:
+        #         task.output_dir = task_output_dir(task)
+        #         assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
+        #         for tf in task.output_files:
+        #             if tf.path is None:
+        #                 tf.path = opj(task.output_dir, tf.basename)
+        #                 assert tf.path is not None, 'computed an output_dir for %s of None' % task
+        #                 # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
 
         # set commands of new tasks
-        for task in topological_sort(task_g):
-            if not task.successful and not task.NOOP:
-                task.command = task.tool._generate_command(task)
+        # for task in topological_sort(task_g):
+        #     if not task.successful: # and not task.NOOP:
+        #         task.command = task.tool._generate_command(task)
 
         # Assert no duplicate TaskFiles
         import itertools as it

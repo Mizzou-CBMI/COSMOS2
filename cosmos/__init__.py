@@ -164,6 +164,7 @@ class MyEnum(enum.Enum):
     def __str__(self):
         return "%s" % (self._value_)
 
+NOOP = '<NO OPERATION>'
 
 class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
