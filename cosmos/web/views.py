@@ -32,6 +32,9 @@ def gen_bprint(cosmos_app):
         session.expire_all()
         return render_template('cosmos/index.html', executions=executions)
 
+    @bprint.route('/')
+    def home():
+        return index()
 
     @bprint.route('/execution/<name>/')
     #@bprint.route('/execution/<int:id>/')

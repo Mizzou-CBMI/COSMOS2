@@ -99,9 +99,7 @@ class Tool(object):
         for aif_index, abstract_input_file in enumerate(self.inputs):
             mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
-            for tf in mapped_input_taskfiles:
-                tf.abstract_input_file_mapping = (aif_index, abstract_input_file)  # `aif_index` is part of the mapping to retain the order when processing later
-                yield tf, abstract_input_file.forward
+            yield abstract_input_file, mapped_input_taskfiles
 
 
     def _map_input(self, abstract_input_file, parents):
@@ -113,17 +111,16 @@ class Tool(object):
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
-        inputs = list(self._map_inputs(parents))
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=[InputFileAssociation(taskfile=tf, forward=is_forward) for tf, is_forward in inputs], parents=parents,
-                    **d)
+        aif_2_input_taskfiles = OrderedDict(self._map_inputs(parents))
+
+        ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for tf in tfs]
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, **d)
         task.skip_profile = self.skip_profile
 
-        input_taskfiles, _ = zip(*inputs) if inputs else ([], None)
-        input_dict = TaskFileDict(input_taskfiles, type='input')  # used to format basenames
-        inputs = list(iter(input_dict))
+        inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        for name, format, path in self.load_sources:
+        for path, name, format in self.load_sources:
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
 
         for output in self.outputs:
@@ -142,6 +139,8 @@ class Tool(object):
     def _cmd(self, input_taskfiles, output_taskfiles, task):
         """
         Wrapper for self.cmd().  Passes any tags that match parameter keywords of self.cmd as parameters, and does some basic validation.
+
+        :param output_taskfiles: output TaskFiles in the same order as the AbstractOutputFiles listed in self.outputs
         """
         argspec = getargspec(self.cmd)
         self.task = task
@@ -149,25 +148,16 @@ class Tool(object):
         ndefaults = len(argspec.defaults) if argspec.defaults else 0
         for arg in argspec.args[3:len(argspec.args) - ndefaults]:
             if arg not in params:
-                raise AttributeError('%s requires the parameter: `%s`, are you missing a tag?' % (self, arg))
+                raise AttributeError('%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                                     'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
-        i = list(iter(TaskFileDict(input_taskfiles, 'input')))
-        o = list(iter(TaskFileDict(output_taskfiles, 'output')))
+        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif))) for aif in self.inputs)
 
-        # if not isinstance(argspec[1], list):
-        # # auto unpack
-        # if len(input_taskfiles) == 0:
-        # i = None
-        #     else:
-        #         i = i[0]
-        # if not isinstance(argspec[2], list):
-        #     # auto unpack
-        #     if len(output_taskfiles) == 0:
-        #         o = None
-        #     else:
-        #         o = o[0]
 
-        out = self.cmd(i, o, **params)
+        inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
+        outputs = output_taskfiles
+
+        out = self.cmd(inputs, outputs, **params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
 
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
@@ -198,7 +188,15 @@ class Tool(object):
 
 from collections import namedtuple
 
-InputSource = namedtuple('InputSource', ['name', 'format', 'root_path'])
+class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
+    def __init__(self, path, name=None, format=None):
+        basename = os.path.basename(path)
+        if name is None:
+            name = os.path.splitext(basename)[0]
+        if format is None:
+            format = os.path.splitext(basename)[-1][1:]  # remove the '.'
+
+        super(InputSource, self).__init__(path, name, format)
 
 
 class Input(Tool):
@@ -221,19 +219,14 @@ class Input(Tool):
         :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
+        self.NOOP = True
+
         path = _abs(path)
         if tags is None:
             tags = dict()
 
-        basename = os.path.basename(path)
-        if name is None:
-            name = os.path.splitext(basename)[0]
-        if format is None:
-            format = os.path.splitext(basename)[-1][1:]  # remove the '.'
-
         super(Input, self).__init__(tags=tags, *args, **kwargs)
-        self.NOOP = True
-        self.load_sources.append(InputSource(name, format, path))
+        self.load_sources.append(InputSource(path, name, format))
 
 
 class Inputs(Tool):
@@ -242,7 +235,7 @@ class Inputs(Tool):
 
     Does not actually execute anything, but provides a way to load a set of input file.
 
-    >>> Inputs([('name1','txt',root_path), ('name2','gz',roroot_pathath)], tags={'key':'val'})
+    >>> Inputs([('name1','txt','/path/to/input'), ('name2','gz','/path/to/input2')], tags={'key':'val'})
     "root_path   name = 'Load_Input_Files'
     """
     name = 'Load_Input_Files'
@@ -251,12 +244,13 @@ class Inputs(Tool):
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
+        self.NOOP = True
         if tags is None:
             tags = dict()
+
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
-        self.NOOP = True
-        for tpl in inputs:
-            self.load_sources.append(InputSource(*tpl))
+        for path, name, fmt in inputs:
+            self.load_sources.append(InputSource(path, name, fmt))
 
 
 def _abs(path):
@@ -265,53 +259,81 @@ def _abs(path):
     return path2
 
 
-class TaskFileDict(dict):
-    """
-    The `input_dict` and `output_dict` object passed to Tool.cmd()
-    """
-    format = None
-
-    def __init__(self, taskfiles, type):
-        assert type in ['input', 'output']
-        self.type = type
-        self.taskfiles = taskfiles
-        if type == 'input':
-            kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
+def unpack_taskfiles_with_cardinality_1(odict):
+    new = odict.copy()
+    for aif, taskfiles in odict.items():
+        op, number = parse_aif_cardinality(aif.n)
+        if op in ['=', '=='] and number == 1:
+            new[aif] = taskfiles[0]
         else:
-            kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
-
-        super(TaskFileDict, self).__init__(**kwargs)
-
-        self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
+            new[aif] = taskfiles
+    return new
 
 
-    def __iter__(self):
-        if self.type == 'input':
-            f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
-            for (aif_index, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
-                taskfiles = list(taskfiles)
-                op, number = parse_aif_cardinality(aif.n)
-                if op in ['=', '=='] and number == 1:
-                    yield taskfiles[0]
-                else:
-                    yield taskfiles
-        else:
-            for tf in self.taskfiles:
-                yield tf
 
 
-    def __getitem__(self, val):
-        # slow, but whatever.
-        return list(self.__iter__())[val]
+# def group_taskfiles_by_aif(taskfiles):
+#     f = lambda tf: tf.abstract_input_file_mapping
+#     for (aif_index, aif), taskfiles in it.groupby(sorted(taskfiles, key=f), f):
+#         print (aif_index, aif)
+#         taskfiles = list(taskfiles)
+#         print taskfiles
+#         op, number = parse_aif_cardinality(aif.n)
+#         print op, number
+#         if op in ['=', '=='] and number == 1:
+#             yield taskfiles[0]
+#         else:
+#             yield taskfiles
 
-    def __repr__(self):
-        if len(self.taskfiles) == 1:
-            return self.taskfiles[0].__repr__()
-        else:
-            return '<TaskFileDict>'
 
-    def __str__(self):
-        return self.__repr__()
+# class TaskFileDict(dict):
+#     """
+#     The `input_dict` and `output_dict` object passed to Tool.cmd()
+#     """
+#     format = None
+#
+#     def __init__(self, taskfiles, type):
+#         assert type in ['input', 'output']
+#         self.type = type
+#         self.taskfiles = taskfiles
+#         if type == 'input':
+#             kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
+#         else:
+#             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
+#
+#         super(TaskFileDict, self).__init__(**kwargs)
+#
+#         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
+#
+#
+#     def __iter__(self):
+#         if self.type == 'input':
+#             #f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
+#             f = lambda tf: tf['abstract_input_file_mapping']
+#             for (aif_index, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+#                 taskfiles = list(taskfiles)
+#                 op, number = parse_aif_cardinality(aif.n)
+#                 if op in ['=', '=='] and number == 1:
+#                     yield taskfiles[0]
+#                 else:
+#                     yield taskfiles
+#         else:
+#             for tf in self.taskfiles:
+#                 yield tf
+#
+#
+#     def __getitem__(self, val):
+#         # slow, but whatever.
+#         return list(self.__iter__())[val]
+#
+#     def __repr__(self):
+#         if len(self.taskfiles) == 1:
+#             return self.taskfiles[0].__repr__()
+#         else:
+#             return '<TaskFileDict>'
+#
+#     def __str__(self):
+#         return self.__repr__()
 
 
 # # ##

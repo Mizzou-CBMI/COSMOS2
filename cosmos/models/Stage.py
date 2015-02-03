@@ -82,8 +82,19 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self, delete_files=False):
-        self.log.info('Deleting %s' % self)
+    def delete(self, delete_files=False, delete_descendants=False):
+        """
+        Deletes this stage
+        :param delete_files: Delete all files (will be slow if there are a lot of files)
+        :param delete_descendants: Also delete all descendants of this stage
+        :return: None
+        """
+        if delete_descendants:
+            self.log.info('Deleting all descendants of %s' % self)
+            for stage in reversed(list(self.descendants())):
+                stage.delete(delete_files)
+
+        self.log.info('Deleting %s. delete_files=%s' % (self, delete_files))
         if delete_files:
             for t in self.tasks:
                 t.delete(delete_files=True)
@@ -114,7 +125,7 @@ class Stage(Base):
         #return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
         x = nx.descendants(self.execution.stage_graph(), self)
         if include_self:
-            return {self}.union(x)
+            return sorted({self}.union(x), key=lambda stage: stage.number)
         else:
             return x
 

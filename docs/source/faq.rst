@@ -3,9 +3,5 @@
 Cosmos FAQ
 ==========
 
-This is a list of Frequently Asked Questions about Cosmos.  Feel free to
-suggest new entries!
-
-Why is my job failing with `Execution Halted`
-   You probably didn't request enough resources.  If Drmaa returns WasAborted=True, then that's generally
-   the case.
+Why does it take so long to delete large Executions and Stages?
+    This is a limitation of SQLAlchemy and using Asosciation Tables and Many2Many relationships.  Unfortunately there's not much to do about this for the time being.

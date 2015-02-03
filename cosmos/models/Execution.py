@@ -110,7 +110,7 @@ class Execution(Base):
 
         :returns: an instance of Execution
         """
-        assert os.path.exists(os.getcwd()), 'The current working dir, %s, does not exist' % os.getcwd()
+        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         session = cosmos_app.session
         # assert name is not None, 'name cannot be None'
@@ -341,6 +341,8 @@ class Execution(Base):
         if not dry:
             _run(self, session, task_queue)
 
+        self.log.info('Execution complete')
+
         # set status
         if self.status == ExecutionStatus.failed_but_running:
             self.status = ExecutionStatus.failed
@@ -357,8 +359,10 @@ class Execution(Base):
             if s.status in [StageStatus.running, StageStatus.running_but_failed]:
                 s.status = StageStatus.failed
 
+        session.commit()
+
     def terminate(self, due_to_failure=True):
-        self.log.warning('Terminating!')
+        self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
             self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
@@ -552,7 +556,7 @@ def _process_finished_tasks(jobmanager):
             yield task
 
 
-def handle_exits(execution):
+def handle_exits(execution, do_atexit=True):
     # terminate on ctrl+c
     def ctrl_c(signal, frame):
         if not execution.successful:
@@ -561,12 +565,13 @@ def handle_exits(execution):
             raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
     signal.signal(signal.SIGINT, ctrl_c)
 
-    @atexit.register
-    def cleanup_check():
-        if execution.status == ExecutionStatus.running:
-            execution.log.error('Execution running atexit!')
-            execution.terminate(due_to_failure=True)
-            #raise SystemExit('Execution terminated due to the python interpreter exiting')
+    if atexit:
+        @atexit.register
+        def cleanup_check():
+            if execution.status == ExecutionStatus.running:
+                execution.log.error('Execution %s has a status of running atexit!' % execution)
+                execution.terminate(due_to_failure=True)
+                #raise SystemExit('Execution terminated due to the python interpreter exiting')
 
 
 
