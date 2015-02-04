@@ -22,6 +22,30 @@ class Recipe(object):
         self.execution = None
         self.collapses = []
 
+    def add(self, tools, name=None):
+        from .. import Tool
+
+        if isgenerator(tools):
+            tools = list(tools)
+        elif hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
+            tools = [tools]
+
+        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in
+                                               tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
+        assert len(tools) > 0, '`tools` cannot be an empty list'
+
+        if name is None:
+            name = tools[0].__class__.__name__
+        tags = [tuple(t.tags.items()) for t in tools]
+        assert len(tags) == len(set(tags)), 'Duplicate tags detected for {0}, {1}.  ' \
+                                            'Tags within a recipe_stage must be unique.'.format(name, map(dict, tags))
+
+        recipe_stage = RecipeStage(tool_class=type(tools[0]), source_tools=tools, rel=None, name=name)
+        self.recipe_stage_G.add_node(recipe_stage)
+        self._validate_not_duplicate_name(recipe_stage.name)
+        return recipe_stage
+
+
     def add_source(self, tools, name=None):
         """
         Create a stage that has no parents
@@ -35,7 +59,8 @@ class Recipe(object):
         elif hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
             tools = [tools]
 
-        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
+        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in
+                                               tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
         assert len(tools) > 0, '`tools` cannot be an empty list'
 
         if name is None:
@@ -44,9 +69,10 @@ class Recipe(object):
         assert len(tags) == len(
             set(
                 tags)), 'Duplicate inputs tags detected for {0}, {1}.  Tags within a recipe_stage must be unique.'.format(
-            name, map(dict,tags))
+            name, map(dict, tags))
 
         recipe_stage = RecipeStage(tool_class=type(tools[0]), source_tools=tools, rel=None, name=name, is_source=True)
+        self._validate_not_duplicate_name(recipe_stage.name)
         self.recipe_stage_G.add_node(recipe_stage)
         return recipe_stage
 
@@ -94,7 +120,8 @@ class Recipe(object):
             self.collapses.append(Collapsed_Stage(stages, name))
 
     def _validate_not_duplicate_name(self, name):
-        assert name not in [n.name for n in self.recipe_stage_G.nodes()],  'Duplicate recipe_stage names detected: %s' % name
+        assert name not in [n.name for n in
+                            self.recipe_stage_G.nodes()], 'Duplicate recipe_stage names detected: %s' % name
 
     def as_image(self, save_to=None):
         """
@@ -122,8 +149,8 @@ class RecipeStage():
 
         if source_tools is None:
             source_tools = []
-        if source_tools and tool_class and not is_source:
-            raise TypeError('cannot initialize with both a `tool` and `tools` unless `is_source`=True')
+        # if source_tools and tool_class and not is_source:
+        #     raise TypeError('cannot initialize with both a `tool` and `tools` unless `is_source`=True')
         if extra_tags is None:
             extra_tags = {}
         if rel == _rel.One2one or rel is None:

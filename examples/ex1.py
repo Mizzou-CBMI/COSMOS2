@@ -4,9 +4,11 @@ import tools
 def ex1_main(execution):
     recipe = Recipe()
 
-    echo = recipe.add_source([tools.Echo(tags={'word': 'hello'}), tools.Echo(tags={'word': 'world'})])
-    cat = recipe.add_stage(tools.Cat, echo, rel.One2many([('n', [1, 2])]))
-    wc = recipe.add_stage(tools.WordCount, cat)
+    echo = recipe.add([tools.Echo(tags=dict(word='hello')), tools.Echo(tags=dict(word='world'))])
+
+    # echo = recipe.add_source([tools.Echo(tags={'word': 'hello'}), tools.Echo(tags={'word': 'world'})])
+    # cat = recipe.add_stage(tools.Cat, echo, rel.One2many([('n', [1, 2])]))
+    # wc = recipe.add_stage(tools.WordCount, cat)
 
     execution.run(recipe)
 
