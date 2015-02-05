@@ -50,7 +50,7 @@ def get_or_create(session, model, **kwargs):
         return instance, False
     else:
         instance = model(**kwargs)
-        session.add(instance)
+        #session.add(instance)
         return instance, True
 
 from sqlalchemy.types import TypeDecorator, VARCHAR

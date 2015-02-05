@@ -85,7 +85,7 @@ class TaskFile(Base):
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
-    basename = Column(String(255), nullable=False)
+    #basename = Column(String(255), nullable=False)
     persist = Column(Boolean, default=False)
     tasks_input_for = association_proxy('_input_file_assocs', 'task', creator=lambda t: InputFileAssociation(task=t))
 
@@ -109,9 +109,9 @@ class TaskFile(Base):
         super(TaskFile, self).__init__(*args, **kwargs)
         assert self.name is not None, 'TaskFile.name is required'
         assert self.format is not None, 'TaskFile.format is required'
-        if self.basename is None:
-            self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
-        assert self.basename != '', 'basename is an empty string for %s' % self
+        # if self.basename is None:
+        #     self.basename = '%s.%s' % (self.name, self.format) if self.format != 'dir' else self.name
+        #assert self.basename != '', 'basename is an empty string for %s' % self
 
     def __repr__(self):
         return '<TaskFile[%s] %s.%s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')

@@ -4,6 +4,8 @@ import sys
 import os
 import math
 
+from .util.helpers import get_logger, mkdir, confirm, str_format
+from .util.args import get_last_cmd_executed
 from .db import Base
 
 
@@ -96,6 +98,95 @@ class Cosmos(object):
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
         #add_cosmos_admin(flask_app, self.session)
+
+    def start(self, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1, output_dir_exists_error=True):
+        """
+        Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
+
+        :param session: (sqlalchemy.session)
+        :param name: (str) a name for the workflow.
+        :param output_dir: (str) the directory to write files to
+        :param restart: (bool) if True and the execution exists, delete it first
+        :param skip_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
+        :param max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
+
+        :returns: an instance of Execution
+        """
+        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
+        output_dir = os.path.abspath(output_dir)
+        session = self.session
+        # assert name is not None, 'name cannot be None'
+        assert output_dir is not None, 'output_dir cannot be None'
+        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
+        prefix_dir = os.path.split(output_dir)[0]
+        assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
+
+        old_id = None
+        if restart:
+            ex = session.query(Execution).filter_by(name=name).first()
+            if ex:
+                old_id = ex.id
+                msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` and all sql records for this execution?' % (ex.output_dir, ex)
+                if not skip_confirm and not confirm(msg):
+                    raise SystemExit('Quitting')
+
+                ex.delete(delete_files=True)
+            else:
+                if not skip_confirm and not confirm('Execution with name %s does not exist, but `restart` is set to True.  Continue by starting a new Execution?' % name):
+                    raise SystemExit('Quitting')
+
+        # resuming?
+        ex = session.query(Execution).filter_by(name=name).first()
+        # msg = 'Execution started, Cosmos v%s' % __version__
+        if ex:
+            # resuming.
+            if not skip_confirm and not confirm(
+                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the graph will be added and executed.  Are you sure?' % ex):
+                raise SystemExit('Quitting')
+            ex.successful = False
+            ex.finished_on = None
+            if output_dir is None:
+                output_dir = ex.output_dir
+            else:
+                assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
+
+            if not os.path.exists(ex.output_dir):
+                raise IOError('output_directory %s does not exist, cannot resume %s' % (ex.output_dir, ex))
+
+            ex.log.info('Resuming %s' % ex)
+            session.add(ex)
+            failed_tasks = [t for s in ex.stages for t in s.tasks if not t.successful]
+            n = len(failed_tasks)
+            if n:
+                ex.log.info('Deleting %s failed task(s), delete_files=%s' % (n, False))
+                # stages_with_failed_tasks = set()
+                for t in failed_tasks:
+                    session.delete(t)
+                    #stages_with_failed_tasks.add(t.stage)
+            stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
+            for stage in stages:
+                ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
+                session.delete(stage)
+
+        else:
+            # start from scratch
+            if output_dir_exists_error:
+                assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
+            # ex.log.info(msg)
+            session.add(ex)
+
+        ex.max_cpus = max_cpus
+        ex.max_attempts = max_attempts
+        ex.info['last_cmd_executed'] = get_last_cmd_executed()
+        session.commit()
+        session.expunge_all()
+        session.add(ex)
+        mkdir(output_dir)
+
+        ex.cosmos_app = self
+
+        return ex
 
 
     def initdb(self):
@@ -208,7 +299,7 @@ from .graph import rel
 from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Tool import Tool, Input, Inputs, chain
+from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .graph.recipe import Recipe

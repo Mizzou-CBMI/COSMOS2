@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
-from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
+from ..util.helpers import str_format, groupby, has_duplicates, strip_lines, isgenerator
 
 
 class ToolValidationError(Exception): pass
@@ -58,14 +58,24 @@ class Tool(object):
     # if adding another attribute, don't forget to update the chain() method
 
 
-    def __init__(self, tags, output_dir=None):
+    def __init__(self, tags, parents=None, out=''):
         """
         :param tags: (dict) A dictionary of tags.
         """
+        if parents is None:
+            parents = []
+        elif isinstance(parents, Task):
+            parents = [parents]
+
+        parents = filter(lambda p: p is not None, parents)
+        #assert isgenerator(parents), 'parents must be iterable'
+        assert all(issubclass(p.__class__, Task) for p in parents), 'parents must be an iterable of Tasks or a Task'
+
         self.tags = tags
         self.__validate()
         self.load_sources = []
-        self.output_dir = output_dir
+        self.output_dir = out
+        self.task_parents = parents if parents else []
 
 
     def __validate(self):
@@ -111,33 +121,35 @@ class Tool(object):
                 yield tf
 
     def _generate_task(self, stage, parents, default_drm):
-
+        assert self.output_dir is not None
+        output_dir = str_format(self.output_dir, self.tags)
+        output_dir = os.path.join(stage.execution.output_dir, output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
         aif_2_input_taskfiles = OrderedDict(self._map_inputs(parents))
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for tf in tfs]
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=output_dir, **d)
         task.skip_profile = self.skip_profile
 
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        for path, name, format in self.load_sources:
-            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
+        # for path, name, format in self.load_sources:
+        #     TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
 
         for output in self.outputs:
-            assert self.output_dir is not None, 'output dir for %s is None, check out `out` parameter in Recipe.add_stage()' % self
             name = str_format(output.name, dict(i=inputs, **self.tags))
             if output.basename is None:
-                basename = None
+                #basename = None
+                basename = '%s.%s' % (name, output.format) if output.format != 'dir' else output.name
             else:
                 d = self.tags.copy()
                 d.update(dict(name=name, format=output.format, i=inputs))
                 basename = str_format(output.basename, dict(**d))
-            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename,
-                     path=opj(task.output_dir, basename))
+            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format,
+                     path=opj(output_dir, basename))
 
         task.tool = self
         return task
@@ -364,103 +376,103 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # """
 #
 #
-class CollapsedTool(Tool):
-    pass
-
-
+# class CollapsedTool(Tool):
+#     pass
 #
 #
-def chain(*tool_classes):
-    """
-    Collapses multiple tools down into one, to reduce the number of jobs being submitted and general overhead by reducing the size of a taskgraph.
-
-    :param tool_classes: a iterable of Tools to chain
-    :param name: the name for the class.  Default is '__'.join(tool_classes)
-    :return: (str) a command
-    """
-    global CollapsedTool
-    tool_classes = tuple(tool_classes)
-    assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
-    #assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
-    name = '__'.join(t.name for t in tool_classes)
-
-
-    def _generate_command(self, task):
-        """
-        Generates the command
-        """
-
-        def chained_tools(tool_classes, task):
-            """
-            Instantiate all tools with their correct i/o
-            """
-            all_outputs = task.output_files[:]
-            this_input_taskfiles = task.input_files
-            for tool_class in tool_classes:
-                tool = tool_class(task.tags)
-
-                this_output_taskfiles = []
-                for abstract_output in tool.outputs:
-                    tf = next(_find(all_outputs, abstract_output, True))
-                    this_output_taskfiles.append(tf)
-                    all_outputs.remove(tf)
-
-                yield tool, this_input_taskfiles, this_output_taskfiles
-                for abstract_input in tool.inputs:
-                    if abstract_input.forward:
-                        this_output_taskfiles += list(_find(this_input_taskfiles, abstract_input, True))
-                this_input_taskfiles = this_output_taskfiles
-
-        # def chained_tools(tool_classes, task):
-        # """
-        # Instantiate all tools with their correct i/o
-        # """
-        # all_outputs = task.output_files[:]
-        # this_input_taskfiles = task.input_files
-        # import itertools as it
-        # def map_(input_files, abstract_outputs):
-        # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
-        #
-        # for i, tool in enumerate(tool_classes):
-        #         if i == 0:
-        #             # is first
-        #             yield tool, task.input_files, get_outs(task.input_files, tool.outputs)
-        #         elif i == len(tool_classes) - 1:
-        #             # is last
-        #             yield tool, task.input_files, task.output_files
-
-        cmd = self._prepend_cmd(task)
-        for tool, input_taskfiles, output_taskfiles in chained_tools(self.merged_tool_classes, task):
-            cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task)
-            cmd += '### ' + tool.name + ' ###\n\n'
-            cmd += cmd_result
-            cmd += '\n\n'
-
-        # only keep the last chained Tool's output files
-        # remove = set(task.output_files) - set(output_taskfiles)
-        # for tf in remove:
-        # for ifa in tf._input_file_assocs:
-        #         ifa.delete()
-        #     tf.task_output_for = None
-
-        return cmd
-
-
-    CollapsedTool = type(name, (CollapsedTool,),  # TODO: inherit from the merged tools, but without a metaclass conflict
-                         dict(merged_tool_classes=tool_classes,
-                              _generate_command=_generate_command,
-                              name=name,
-                              # inputs=tool_classes[0].inputs,
-                              outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
-                              # outputs=tool_classes[-1].outputs,
-                              mem_req=max(t.mem_req for t in tool_classes),
-                              time_req=max(t.time_req for t in tool_classes),
-                              cpu_req=max(t.cpu_req for t in tool_classes),
-                              must_succeed=any(t.must_succeed for t in tool_classes),
-                              persist=any(t.persist for t in tool_classes)
-                         )
-    )
-    return CollapsedTool
+# #
+# #
+# def chain(*tool_classes):
+#     """
+#     Collapses multiple tools down into one, to reduce the number of jobs being submitted and general overhead by reducing the size of a taskgraph.
+#
+#     :param tool_classes: a iterable of Tools to chain
+#     :param name: the name for the class.  Default is '__'.join(tool_classes)
+#     :return: (str) a command
+#     """
+#     global CollapsedTool
+#     tool_classes = tuple(tool_classes)
+#     assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
+#     #assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
+#     name = '__'.join(t.name for t in tool_classes)
+#
+#
+#     def _generate_command(self, task):
+#         """
+#         Generates the command
+#         """
+#
+#         def chained_tools(tool_classes, task):
+#             """
+#             Instantiate all tools with their correct i/o
+#             """
+#             all_outputs = task.output_files[:]
+#             this_input_taskfiles = task.input_files
+#             for tool_class in tool_classes:
+#                 tool = tool_class(task.tags)
+#
+#                 this_output_taskfiles = []
+#                 for abstract_output in tool.outputs:
+#                     tf = next(_find(all_outputs, abstract_output, True))
+#                     this_output_taskfiles.append(tf)
+#                     all_outputs.remove(tf)
+#
+#                 yield tool, this_input_taskfiles, this_output_taskfiles
+#                 for abstract_input in tool.inputs:
+#                     if abstract_input.forward:
+#                         this_output_taskfiles += list(_find(this_input_taskfiles, abstract_input, True))
+#                 this_input_taskfiles = this_output_taskfiles
+#
+#         # def chained_tools(tool_classes, task):
+#         # """
+#         # Instantiate all tools with their correct i/o
+#         # """
+#         # all_outputs = task.output_files[:]
+#         # this_input_taskfiles = task.input_files
+#         # import itertools as it
+#         # def map_(input_files, abstract_outputs):
+#         # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
+#         #
+#         # for i, tool in enumerate(tool_classes):
+#         #         if i == 0:
+#         #             # is first
+#         #             yield tool, task.input_files, get_outs(task.input_files, tool.outputs)
+#         #         elif i == len(tool_classes) - 1:
+#         #             # is last
+#         #             yield tool, task.input_files, task.output_files
+#
+#         cmd = self._prepend_cmd(task)
+#         for tool, input_taskfiles, output_taskfiles in chained_tools(self.merged_tool_classes, task):
+#             cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task)
+#             cmd += '### ' + tool.name + ' ###\n\n'
+#             cmd += cmd_result
+#             cmd += '\n\n'
+#
+#         # only keep the last chained Tool's output files
+#         # remove = set(task.output_files) - set(output_taskfiles)
+#         # for tf in remove:
+#         # for ifa in tf._input_file_assocs:
+#         #         ifa.delete()
+#         #     tf.task_output_for = None
+#
+#         return cmd
+#
+#
+#     CollapsedTool = type(name, (CollapsedTool,),  # TODO: inherit from the merged tools, but without a metaclass conflict
+#                          dict(merged_tool_classes=tool_classes,
+#                               _generate_command=_generate_command,
+#                               name=name,
+#                               # inputs=tool_classes[0].inputs,
+#                               outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
+#                               # outputs=tool_classes[-1].outputs,
+#                               mem_req=max(t.mem_req for t in tool_classes),
+#                               time_req=max(t.time_req for t in tool_classes),
+#                               cpu_req=max(t.cpu_req for t in tool_classes),
+#                               must_succeed=any(t.must_succeed for t in tool_classes),
+#                               persist=any(t.persist for t in tool_classes)
+#                          )
+#     )
+#     return CollapsedTool
 
 
 def _find(taskfiles, abstract_file, error_if_missing=False):

@@ -92,52 +92,52 @@ def _create_merged_task(tasks, new_stage):
     return replacement_task
 
 
-def collapse(session, task_g, stage_g, recipe_stage_bubble, name):
-    """
-    :param G: a task_graph
-    """
-    # assume one2one
-    # for each task_bubble in stage_bubble
-    # create merged_node
-    # replace node bubbles with merged_node
-    # replace stage_bubble with merged_stage
-    execution = task_g.nodes()[0].execution
-
-    def create_stage(execution, name):
-        stage, created = get_or_create(session=session, execution=execution, model=Stage, name=name)
-        return stage
-
-    def traverse_task_bubble(head_task, stage_bubble):
-        # assumes a simple chain of nodes
-        for task in depth_first_search.dfs_preorder_nodes(task_g, head_task):
-            if task.stage in stage_bubble:
-                yield task
-            else:
-                break
-
-    stage_bubble = [rs.stage for rs in recipe_stage_bubble]
-
-    new_stage = create_stage(execution, name)
-    for head_task in stage_bubble[0].tasks:
-        task_bubble = list(traverse_task_bubble(head_task, stage_bubble))
-        merged_task = _create_merged_task(task_bubble, new_stage)
-        _replace(session, task_g, task_bubble, merged_task)
-
-    _replace(session, stage_g, stage_bubble, new_stage)
-
-    #remove loose ends
-    for stage in stage_bubble:
-        stage.execution = None
-        for task in stage.tasks:
-            # for tf in list(task.input_files):
-            #     tf.tasks_input_for.remove(task)
-            for ifa in list(task._input_file_assocs):
-                ifa.taskfile = None
-                ifa.task = None
-                assert ifa not in session
-            for tf in list(task.output_files):
-                assert tf not in session
-            #     if ifa in session:
-            #         raise
-            #         session.expunge(ifa)
-        assert stage not in session
+# def collapse(session, task_g, stage_g, recipe_stage_bubble, name):
+#     """
+#     :param G: a task_graph
+#     """
+#     # assume one2one
+#     # for each task_bubble in stage_bubble
+#     # create merged_node
+#     # replace node bubbles with merged_node
+#     # replace stage_bubble with merged_stage
+#     execution = task_g.nodes()[0].execution
+#
+#     def create_stage(execution, name):
+#         stage, created = get_or_create(session=session, execution=execution, model=Stage, name=name)
+#         return stage
+#
+#     def traverse_task_bubble(head_task, stage_bubble):
+#         # assumes a simple chain of nodes
+#         for task in depth_first_search.dfs_preorder_nodes(task_g, head_task):
+#             if task.stage in stage_bubble:
+#                 yield task
+#             else:
+#                 break
+#
+#     stage_bubble = [rs.stage for rs in recipe_stage_bubble]
+#
+#     new_stage = create_stage(execution, name)
+#     for head_task in stage_bubble[0].tasks:
+#         task_bubble = list(traverse_task_bubble(head_task, stage_bubble))
+#         merged_task = _create_merged_task(task_bubble, new_stage)
+#         _replace(session, task_g, task_bubble, merged_task)
+#
+#     _replace(session, stage_g, stage_bubble, new_stage)
+#
+#     #remove loose ends
+#     for stage in stage_bubble:
+#         stage.execution = None
+#         for task in stage.tasks:
+#             # for tf in list(task.input_files):
+#             #     tf.tasks_input_for.remove(task)
+#             for ifa in list(task._input_file_assocs):
+#                 ifa.taskfile = None
+#                 ifa.task = None
+#                 assert ifa not in session
+#             for tf in list(task.output_files):
+#                 assert tf not in session
+#             #     if ifa in session:
+#             #         raise
+#             #         session.expunge(ifa)
+#         assert stage not in session

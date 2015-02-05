@@ -9,7 +9,7 @@ def isgenerator(iterable):
     return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
 
 
-Collapsed_Stage = namedtuple('Collapsed_Stage', ['stages', 'name'])
+# Collapsed_Stage = namedtuple('Collapsed_Stage', ['stages', 'name'])
 
 
 class Recipe(object):
@@ -20,7 +20,7 @@ class Recipe(object):
     def __init__(self):
         self.recipe_stage_G = nx.DiGraph()
         self.execution = None
-        self.collapses = []
+        # self.collapses = []
 
     def add(self, tools, name=None):
         from .. import Tool
@@ -108,16 +108,16 @@ class Recipe(object):
 
         return recipe_stage
 
-    def collapse_stages(self, stages, name=None):
-        # assert stages are collapsible
-        assert isinstance(stages, list), '`stages` must be a list'
-        self._validate_not_duplicate_name(name)
-        stages = filter(bool, stages)
-        if len(stages) > 1:
-            if name is None:
-                '__'.join(s.name for s in stages)
-
-            self.collapses.append(Collapsed_Stage(stages, name))
+    # def collapse_stages(self, stages, name=None):
+    #     # assert stages are collapsible
+    #     assert isinstance(stages, list), '`stages` must be a list'
+    #     self._validate_not_duplicate_name(name)
+    #     stages = filter(bool, stages)
+    #     if len(stages) > 1:
+    #         if name is None:
+    #             '__'.join(s.name for s in stages)
+    #
+    #         self.collapses.append(Collapsed_Stage(stages, name))
 
     def _validate_not_duplicate_name(self, name):
         assert name not in [n.name for n in

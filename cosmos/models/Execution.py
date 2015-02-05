@@ -22,9 +22,8 @@ import signal
 
 from .. import TaskStatus, StageStatus, Task, ExecutionStatus, signal_execution_status_change
 
-from ..util.helpers import get_logger, mkdir, confirm
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
-from ..util.args import get_last_cmd_executed
+from ..util.helpers import get_logger
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, get_or_create
 
 
 def _default_task_log_output_dir(task):
@@ -40,6 +39,15 @@ def _default_task_output_dir(task):
                                        'Execution.run' % v
     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
 
+
+
+def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm):
+    existing_task = successful_tasks.get(frozenset(tags.items()), None)
+    if existing_task:
+        existing_task.tool = tool
+        return existing_task
+    else:
+        return tool._generate_task(stage=stage, parents=parents, default_drm=default_drm)
 
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
@@ -96,95 +104,6 @@ class Execution(Base):
         assert re.match(r"^[\.\w-]+$", name), 'Invalid execution name.'
         return name
 
-    @classmethod
-    def start(cls, cosmos_app, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1, output_dir_exists_error=True):
-        """
-        Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
-
-        :param session: (sqlalchemy.session)
-        :param name: (str) a name for the workflow.
-        :param output_dir: (str) the directory to write files to
-        :param restart: (bool) if True and the execution exists, delete it first
-        :param skip_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
-        :param max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
-
-        :returns: an instance of Execution
-        """
-        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
-        output_dir = os.path.abspath(output_dir)
-        session = cosmos_app.session
-        # assert name is not None, 'name cannot be None'
-        assert output_dir is not None, 'output_dir cannot be None'
-        output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
-        prefix_dir = os.path.split(output_dir)[0]
-        assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
-
-        old_id = None
-        if restart:
-            ex = session.query(Execution).filter_by(name=name).first()
-            if ex:
-                old_id = ex.id
-                msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` and all sql records for this execution?' % (ex.output_dir, ex)
-                if not skip_confirm and not confirm(msg):
-                    raise SystemExit('Quitting')
-
-                ex.delete(delete_files=True)
-            else:
-                if not skip_confirm and not confirm('Execution with name %s does not exist, but `restart` is set to True.  Continue by starting a new Execution?' % name):
-                    raise SystemExit('Quitting')
-
-        # resuming?
-        ex = session.query(Execution).filter_by(name=name).first()
-        # msg = 'Execution started, Cosmos v%s' % __version__
-        if ex:
-            # resuming.
-            if not skip_confirm and not confirm(
-                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the graph will be added and executed.  Are you sure?' % ex):
-                raise SystemExit('Quitting')
-            ex.successful = False
-            ex.finished_on = None
-            if output_dir is None:
-                output_dir = ex.output_dir
-            else:
-                assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
-
-            if not os.path.exists(ex.output_dir):
-                raise IOError('output_directory %s does not exist, cannot resume %s' % (ex.output_dir, ex))
-
-            ex.log.info('Resuming %s' % ex)
-            session.add(ex)
-            failed_tasks = [t for s in ex.stages for t in s.tasks if not t.successful]
-            n = len(failed_tasks)
-            if n:
-                ex.log.info('Deleting %s failed task(s), delete_files=%s' % (n, False))
-                # stages_with_failed_tasks = set()
-                for t in failed_tasks:
-                    session.delete(t)
-                    #stages_with_failed_tasks.add(t.stage)
-            stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
-            for stage in stages:
-                ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
-                session.delete(stage)
-
-        else:
-            # start from scratch
-            if output_dir_exists_error:
-                assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
-            # ex.log.info(msg)
-            session.add(ex)
-
-        ex.max_cpus = max_cpus
-        ex.max_attempts = max_attempts
-        ex.info['last_cmd_executed'] = get_last_cmd_executed()
-        session.commit()
-        session.expunge_all()
-        session.add(ex)
-        mkdir(output_dir)
-        ex.cosmos_app = cosmos_app
-
-        return ex
-
     @orm.reconstructor
     def constructor(self):
         self.__init__(manual_instantiation=False)
@@ -204,10 +123,34 @@ class Execution(Base):
             self.log = get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
             return self.log
         else:
-            raise AttributeError
+            raise AttributeError('%s is not an attribute of %s' % (item, self))
 
 
-    def run(self, recipe, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
+    def add_stage(self, tools, name=None):
+        from .. import Tool, Stage
+        if hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
+            tools = [tools]
+        tools = filter(bool, tools)
+        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in
+                                               tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
+        assert len(tools) > 0, '`tools` cannot be an empty list'
+
+        if name is None:
+            name = tools[0].__class__.__name__
+        all_tags = [tuple(tool.tags.items()) for tool in tools]
+        assert len(all_tags) == len(set(all_tags)), 'Duplicate tags detected for {0}, {1}.  ' \
+                                            'Tags within a stage must be unique.'.format(name, map(dict, all_tags))
+
+        stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
+        successful_tasks = {frozenset(t.tags.items()): t for t in
+                            stage.tasks}  # successful because failed jobs have been deleted.
+        for tool in tools:
+            task = get_or_create_task(tool, successful_tasks, tool.tags, stage, parents=tool.task_parents,
+                                      default_drm=self.cosmos_app.default_drm)
+            tool.task = task
+        return stage
+
+    def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
@@ -239,7 +182,9 @@ class Execution(Base):
             self.started_on = func.now()
 
         # Render task graph and to session
-        task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
+        #task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
+        task_g = self.task_graph()
+        stage_g = self.stage_graph()
 
         # Set output_dirs of new tasks
         # for task in nx.topological_sort(task_g):
@@ -269,26 +214,26 @@ class Execution(Base):
 
 
         # Collapse
-        from ..graph.collapse import collapse
-
-        for stage_bubble, name in recipe.collapses:
-            self.log.debug('Collapsing %s into `%s`' % ([s.name for s in stage_bubble], name))
-            collapse(session, task_g, stage_g, stage_bubble, name)
+        # from ..graph.collapse import collapse
+        #
+        # for stage_bubble, name in recipe.collapses:
+        #     self.log.debug('Collapsing %s into `%s`' % ([s.name for s in stage_bubble], name))
+        #     collapse(session, task_g, stage_g, stage_bubble, name)
 
         # taskg and stageg are now finalized
 
-        stages = stage_g.nodes()
-        assert len(set(stages)) == len(stages), 'duplicate stage name detected: %s' % (next(duplicates(stages)))
+        #stages = stage_g.nodes()
+        assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (next(duplicates(stages)))
 
         # renumber stages
         for i, s in enumerate(topological_sort(stage_g)):
             s.number = i + 1
 
         # Add final taskgraph to session
-        session.expunge_all()
+        #session.expunge_all()
         session.add(self)
-        session.add_all(stage_g.nodes())
-        session.add_all(task_g.nodes())
+        # session.add_all(stage_g.nodes())
+        # session.add_all(task_g.nodes())
         successful = filter(lambda t: t.successful, task_g.nodes())
 
         # commit so task.id is set for log dir
