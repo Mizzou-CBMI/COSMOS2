@@ -130,10 +130,11 @@ class Execution(Base):
         from .. import Tool, Stage
         if hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
             tools = [tools]
-        tools = filter(bool, tools)
+        tools = list(tools)
         assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in
                                                tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
         assert len(tools) > 0, '`tools` cannot be an empty list'
+        tools = filter(bool, tools)
 
         if name is None:
             name = tools[0].__class__.__name__

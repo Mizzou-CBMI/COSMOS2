@@ -62,18 +62,21 @@ class Tool(object):
         """
         :param tags: (dict) A dictionary of tags.
         """
+        assert isinstance(tags, dict), '`tags` must be a dict'
+        assert isinstance(out, str), '`out` must be a str'
         if parents is None:
             parents = []
-        elif isinstance(parents, Task):
+        if issubclass(parents.__class__, Task):
             parents = [parents]
 
-        parents = filter(lambda p: p is not None, parents)
-        #assert isgenerator(parents), 'parents must be iterable'
+        assert hasattr(parents, '__iter__'), 'Tried to set %s.parents to %s which is not iterable' % (self, parents)
         assert all(issubclass(p.__class__, Task) for p in parents), 'parents must be an iterable of Tasks or a Task'
+
+        parents = filter(lambda p: p is not None, parents)
 
         self.tags = tags
         self.__validate()
-        self.load_sources = []
+        self.load_sources = []  # for Inputs
         self.output_dir = out
         self.task_parents = parents if parents else []
 
@@ -122,7 +125,7 @@ class Tool(object):
 
     def _generate_task(self, stage, parents, default_drm):
         assert self.output_dir is not None
-        output_dir = str_format(self.output_dir, self.tags)
+        output_dir = str_format(self.output_dir, self.tags, '%s.output_dir' % self)
         output_dir = os.path.join(stage.execution.output_dir, output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
@@ -136,8 +139,8 @@ class Tool(object):
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        # for path, name, format in self.load_sources:
-        #     TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
+        for path, name, format in self.load_sources:
+            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
 
         for output in self.outputs:
             name = str_format(output.name, dict(i=inputs, **self.tags))
@@ -149,7 +152,7 @@ class Tool(object):
                 d.update(dict(name=name, format=output.format, i=inputs))
                 basename = str_format(output.basename, dict(**d))
             TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format,
-                     path=opj(output_dir, basename))
+                     path=opj(output_dir, basename), basename=basename)
 
         task.tool = self
         return task

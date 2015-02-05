@@ -30,7 +30,7 @@ def has_duplicates(alist):
 # def dag_descendants(node):
 # """
 # :param node: A Task or Stage instance
-#     :yields: a list of descendent task or stages
+# :yields: a list of descendent task or stages
 #
 #     This code is really simple because there are no cycles.
 #     """
@@ -121,14 +121,14 @@ def duplicates(iterable):
             yield x
 
 
-def str_format(s, d):
+def str_format(s, d, error_text=''):
     """
     Format()s string s with d.  If there is an error, print helpful message.
     """
     try:
         return s.format(**d)
     except Exception as e:
-        formatError(s, d)
+        formatError(s, d, error_text)
         raise
 
 
@@ -137,12 +137,13 @@ def strip_lines(txt):
     return '\n'.join(map(lambda s: s.strip(), txt.strip().split('\n')))
 
 
-def formatError(txt, dict):
+def formatError(txt, dict, error_text=''):
     """
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
     s = "{star}\n" \
         "format() error:\n" \
+        "{error_text}" \
         "txt:\n" \
         "{txt}\n" \
         "{dash}\n" \
@@ -151,7 +152,8 @@ def formatError(txt, dict):
         star='*' * 76,
         txt=txt,
         dash='-' * 76,
-        dic=pprint.pformat(dict, indent=4))
+        dic=pprint.pformat(dict, indent=4),
+        error_text=error_text + "\n")
     print s
 
 
