@@ -109,7 +109,7 @@ def isgenerator(iterable):
     return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
 
 
-def groupby(iterable, fxn):
+def groupby2(iterable, fxn):
     """aggregates an iterable using a function"""
     return it.groupby(sorted(iterable, key=fxn), fxn)
 

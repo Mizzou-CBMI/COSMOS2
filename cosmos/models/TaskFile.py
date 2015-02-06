@@ -35,14 +35,34 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-def abstract_output_taskfile(name, format, basename=None):
+def abstract_output_taskfile(name=None, format=None, basename=None):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile
     :param basename: (str) custom_name.custom_format
     :return: (AbstractOutputFile)
     """
-    assert name and format, 'must specify name and format'
+    assert (name and format) or basename, 'must specify (name and format) or basename'
+    if name is None:
+        name, ext = os.path.splitext(os.path.basename(basename))
+        name = name
+        format = ext[1:]
+
+    return AbstractOutputFile(name=name, format=format, basename=basename)
+
+def abstract_output_taskfile_v2(basename=None, name=None, format=None):
+    """
+    :param name: (str) The name for the TaskFile
+    :param format: The format for the TaskFile
+    :param basename: (str) custom_name.custom_format
+    :return: (AbstractOutputFile)
+    """
+    assert (name and format) or basename, 'must specify (name and format) or basename'
+    if name is None:
+        name, ext = os.path.splitext(os.path.basename(basename))
+        name = name
+        format = ext[1:]
+
     return AbstractOutputFile(name=name, format=format, basename=basename)
 
 

@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
-from ..util.helpers import str_format, groupby, has_duplicates, strip_lines, isgenerator
+from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
 
 
 class ToolValidationError(Exception): pass
@@ -47,12 +47,12 @@ class Tool(object):
     time_req = None
     cpu_req = None
     must_succeed = True
-    #NOOP = False
+    # NOOP = False
     persist = False
     drm = None
     skip_profile = False
     inputs = []  # class property!
-    outputs = [] # class property!
+    outputs = []  # class property!
     output_dir = None
 
     # if adding another attribute, don't forget to update the chain() method
@@ -82,8 +82,10 @@ class Tool(object):
 
 
     def __validate(self):
-        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
-        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
+        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in
+                   self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
+        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in
+                   self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
 
         if has_duplicates([(i.name, i.format) for i in self.inputs]):
             raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
@@ -96,7 +98,8 @@ class Tool(object):
 
         reserved = {'name', 'format', 'basename'}
         if not set(self.tags.keys()).isdisjoint(reserved):
-            raise ToolValidationError("%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
+            raise ToolValidationError(
+                "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
@@ -104,7 +107,8 @@ class Tool(object):
         op, number = parse_aif_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
-            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (self, abstract_input_file, real_count))
+            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (
+                self, abstract_input_file, real_count))
 
 
     def _map_inputs(self, parents):
@@ -132,7 +136,8 @@ class Tool(object):
 
         aif_2_input_taskfiles = OrderedDict(self._map_inputs(parents))
 
-        ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for tf in tfs]
+        ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
+                tf in tfs]
         task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=output_dir, **d)
         task.skip_profile = self.skip_profile
 
@@ -140,12 +145,13 @@ class Tool(object):
 
         # Create output TaskFiles
         for path, name, format in self.load_sources:
-            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True, basename=os.path.basename(path))
+            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True,
+                     basename=os.path.basename(path))
 
         for output in self.outputs:
             name = str_format(output.name, dict(i=inputs, **self.tags))
             if output.basename is None:
-                #basename = None
+                # basename = None
                 basename = '%s.%s' % (name, output.format) if output.format != 'dir' else output.name
             else:
                 d = self.tags.copy()
@@ -169,18 +175,16 @@ class Tool(object):
         ndefaults = len(argspec.defaults) if argspec.defaults else 0
         for arg in argspec.args[3:len(argspec.args) - ndefaults]:
             if arg not in params:
-                raise AttributeError('%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                                     'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
+                raise AttributeError(
+                    '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                    'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
         aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif))) for aif in self.inputs)
 
-
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
         outputs = output_taskfiles
-
         out = self.cmd(inputs, outputs, **params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
-
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
         return strip_lines(out)
@@ -212,6 +216,7 @@ class Tool(object):
 
 from collections import namedtuple
 
+
 class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
     def __init__(self, path, name=None, format=None):
         basename = os.path.basename(path)
@@ -221,6 +226,17 @@ class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
             format = os.path.splitext(basename)[-1][1:]  # remove the '.'
 
         super(InputSource, self).__init__(path, name, format)
+
+
+def set_default_name_format(path, name=None, format=None):
+    default_name, default_ext = os.path.splitext(os.path.basename(path))
+
+    if name is None:
+        name = default_name
+    if format is None:
+        format = default_ext[1:]
+
+    return name, format
 
 
 class Input(Tool):
@@ -243,11 +259,13 @@ class Input(Tool):
         :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
-        #self.NOOP = True
+        # self.NOOP = True
 
         path = _abs(path)
         if tags is None:
             tags = dict()
+
+        name, format = set_default_name_format(path, name, format)
 
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.load_sources.append(InputSource(path, name, format))
@@ -271,12 +289,13 @@ class Inputs(Tool):
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
-        #self.NOOP = True
+        # self.NOOP = True
         if tags is None:
             tags = dict()
 
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         for path, name, fmt in inputs:
+            name, fmt = set_default_name_format(path, name, fmt)
             self.load_sources.append(InputSource(path, name, fmt))
 
     def cmd(self, inputs, outputs):
@@ -300,11 +319,9 @@ def unpack_taskfiles_with_cardinality_1(odict):
     return new
 
 
-
-
 # def group_taskfiles_by_aif(taskfiles):
-#     f = lambda tf: tf.abstract_input_file_mapping
-#     for (aif_index, aif), taskfiles in it.groupby(sorted(taskfiles, key=f), f):
+# f = lambda tf: tf.abstract_input_file_mapping
+# for (aif_index, aif), taskfiles in it.groupby2(sorted(taskfiles, key=f), f):
 #         print (aif_index, aif)
 #         taskfiles = list(taskfiles)
 #         print taskfiles
@@ -327,20 +344,20 @@ def unpack_taskfiles_with_cardinality_1(odict):
 #         self.type = type
 #         self.taskfiles = taskfiles
 #         if type == 'input':
-#             kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
+#             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
 #         else:
 #             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
 #
 #         super(TaskFileDict, self).__init__(**kwargs)
 #
-#         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
+#         self.format = {fmt: list(output_files) for fmt, output_files in groupby2(self.taskfiles, lambda i: i.format)}
 #
 #
 #     def __iter__(self):
 #         if self.type == 'input':
 #             #f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
 #             f = lambda tf: tf['abstract_input_file_mapping']
-#             for (aif_index, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+#             for (aif_index, aif), taskfiles in it.groupby2(sorted(self.taskfiles, key=f), f):
 #                 taskfiles = list(taskfiles)
 #                 op, number = parse_aif_cardinality(aif.n)
 #                 if op in ['=', '=='] and number == 1:

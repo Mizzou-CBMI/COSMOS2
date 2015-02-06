@@ -145,10 +145,15 @@ class Execution(Base):
         stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
         successful_tasks = {frozenset(t.tags.items()): t for t in
                             stage.tasks}  # successful because failed jobs have been deleted.
+
+        parent_stages = set()
         for tool in tools:
+            for p in tool.task_parents:
+                parent_stages.add(p.stage)
             task = get_or_create_task(tool, successful_tasks, tool.tags, stage, parents=tool.task_parents,
                                       default_drm=self.cosmos_app.default_drm)
             tool.task = task
+        stage.parents = list(parent_stages)
         return stage
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
@@ -170,12 +175,12 @@ class Execution(Base):
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
+        self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
 
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args, default_queue=self.cosmos_app.default_queue)
 
-        self.log.info('Rendering taskgraph for %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
         self.status = ExecutionStatus.running
         self.successful = False
 
@@ -248,7 +253,7 @@ class Execution(Base):
 
         # Create Task Queue
         task_queue = _copy_graph(task_g)
-        self.log.info('Skipping %s successful tasks' % len(successful))
+        self.log.info('Skipping %s successful tasks...' % len(successful))
         task_queue.remove_nodes_from(successful)
 
 
@@ -264,7 +269,7 @@ class Execution(Base):
             log_dirs[log_dir] = task
             task.log_dir = log_dir
 
-        self.log.info('Resetting stage attributes...')
+        self.log.info('Checking stage attributes...')
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
             from .. import Stage, StageStatus
@@ -309,7 +314,7 @@ class Execution(Base):
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
-            self.log.info('Cleaning up and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            self.log.info('Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
 

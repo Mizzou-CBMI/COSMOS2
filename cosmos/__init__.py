@@ -18,9 +18,9 @@ warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
-# #######################################################################################################################
+#########################################################################################################################
 # Settings
-# #######################################################################################################################
+#########################################################################################################################
 
 library_path = os.path.dirname(os.path.realpath(__file__))
 with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
@@ -41,11 +41,12 @@ def default_get_submit_args(drm, task, default_queue=None):
     jobname = '%s_task(%s)' % (task.stage.name, task.id)
 
     if 'lsf' in drm:
-        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue} -J "{jobname}"'.format(mem=(mem_req or 0) / cpu_req,
-                                                                                                  cpu=cpu_req,
-                                                                                                  time=' -W 0:{0}'.format(time_req) if time_req else '',
-                                                                                                  queue=' -q %s' % default_queue if default_queue else '',
-                                                                                                  jobname=jobname)
+        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue} -J "{jobname}"'.format(
+            mem=(mem_req or 0) / cpu_req,
+            cpu=cpu_req,
+            time=' -W 0:{0}'.format(time_req) if time_req else '',
+            queue=' -q %s' % default_queue if default_queue else '',
+            jobname=jobname)
     elif 'ge' in drm:
         # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
         if mem_req:
@@ -62,6 +63,10 @@ def default_get_submit_args(drm, task, default_queue=None):
     else:
         raise Exception('DRM not supported')
 
+
+#########################################################################################################################
+# Cosmos Class
+#########################################################################################################################
 
 class Cosmos(object):
     def __init__(self, database_url, get_submit_args=default_get_submit_args,
@@ -97,22 +102,25 @@ class Cosmos(object):
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
-        #add_cosmos_admin(flask_app, self.session)
+        # add_cosmos_admin(flask_app, self.session)
 
-    def start(self, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1, output_dir_exists_error=True):
+    def start(self, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
+              check_output_dir=True):
         """
         Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
 
-        :param session: (sqlalchemy.session)
-        :param name: (str) a name for the workflow.
-        :param output_dir: (str) the directory to write files to
-        :param restart: (bool) if True and the execution exists, delete it first
-        :param skip_confirm: (bool) if True, do not prompt the shell for input before deleting executions or files
-        :param max_cpus: (int) the maximum number of CPUs to use at once.  Based on the sum of the running tasks' task.cpu_req
+        :param name: (str) A name for the workflow.  Must be unique.
+        :param output_dir: (str) The directory to write files to.
+        :param restart: (bool) If True and the execution exists, delete it first.
+        :param skip_confirm: (bool) If True, do not prompt the shell for input before deleting executions or files.
+        :param max_cpus: (int) The maximum number of CPUs to use at once.
+        :param max_attempts: (int) The maximum number of times to retry a failed job.
+        :param check_output_dir: (bool) Raise an error if this is a new workflow, and output_dir exists.
 
-        :returns: an instance of Execution
+        :returns: An Execution instance.
         """
-        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
+        assert os.path.exists(
+            os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         session = self.session
         # assert name is not None, 'name cannot be None'
@@ -126,13 +134,17 @@ class Cosmos(object):
             ex = session.query(Execution).filter_by(name=name).first()
             if ex:
                 old_id = ex.id
-                msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` and all sql records for this execution?' % (ex.output_dir, ex)
+                msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` ' \
+                      'and all sql records for this execution?' % (
+                          ex.output_dir, ex)
                 if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
                 ex.delete(delete_files=True)
             else:
-                if not skip_confirm and not confirm('Execution with name %s does not exist, but `restart` is set to True.  Continue by starting a new Execution?' % name):
+                if not skip_confirm and not confirm('Execution with name %s does not exist, '
+                                                    'but `restart` is set to True.  '
+                                                    'Continue by starting a new Execution?' % name):
                     raise SystemExit('Quitting')
 
         # resuming?
@@ -140,8 +152,9 @@ class Cosmos(object):
         # msg = 'Execution started, Cosmos v%s' % __version__
         if ex:
             # resuming.
-            if not skip_confirm and not confirm(
-                            'Resuming %s.  All non-successful jobs will be deleted, then any new tasks in the graph will be added and executed.  Are you sure?' % ex):
+            if not skip_confirm and not confirm('Resuming %s.  All non-successful jobs will be deleted, '
+                                                'then any new tasks in the graph will be added and executed.  '
+                                                'Are you sure?' % ex):
                 raise SystemExit('Quitting')
             ex.successful = False
             ex.finished_on = None
@@ -162,7 +175,7 @@ class Cosmos(object):
                 # stages_with_failed_tasks = set()
                 for t in failed_tasks:
                     session.delete(t)
-                    #stages_with_failed_tasks.add(t.stage)
+                    # stages_with_failed_tasks.add(t.stage)
             stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
             for stage in stages:
                 ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
@@ -170,7 +183,7 @@ class Cosmos(object):
 
         else:
             # start from scratch
-            if output_dir_exists_error:
+            if check_output_dir:
                 assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             # ex.log.info(msg)
@@ -229,15 +242,15 @@ class Cosmos(object):
         return self.flask_app.run(debug=debug, host=host, port=port)
 
 
-# #######################################################################################################################
+#########################################################################################################################
 # Misc
-# #######################################################################################################################
+#########################################################################################################################
 
 class ExecutionFailed(Exception): pass
 
-# #######################################################################################################################
+#########################################################################################################################
 # Signals
-# #######################################################################################################################
+#########################################################################################################################
 import blinker
 
 signal_task_status_change = blinker.Signal()
@@ -255,7 +268,9 @@ class MyEnum(enum.Enum):
     def __str__(self):
         return "%s" % (self._value_)
 
+
 NOOP = '<NO OPERATION>'
+
 
 class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
@@ -296,15 +311,15 @@ class RelationshipType(MyEnum):
 ########################################################################################################################
 
 from .graph import rel
-from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile
+from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile, abstract_output_taskfile_v2
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .graph.recipe import Recipe
+# from .graph.recipe import Recipe
 # from .db import get_session
 
 
-__all__ = ['rel', 'Recipe', 'TaskFile', 'Task', 'Inputs', 'rel', 'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-           'Tool', 'chain']
+# __all__ = [ 'Recipe', 'TaskFile', 'Task', 'Inputs',  'Stage', 'Execution', 'TaskStatus', 'StageStatus',
+# 'Tool', 'chain']

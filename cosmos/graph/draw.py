@@ -2,7 +2,7 @@
 # Task stuff
 #
 
-from ..util.helpers import groupby
+from ..util.helpers import groupby2
 from .. import TaskStatus
 import networkx as nx
 
@@ -26,7 +26,7 @@ def taskgraph_to_agraph(task_graph, url=True):
     agraph.edge_attr['fontcolor'] = '#586e75'
 
     agraph.add_edges_from(task_graph.edges())
-    for stage, tasks in groupby(task_graph.nodes(), lambda x: x.stage):
+    for stage, tasks in groupby2(task_graph.nodes(), lambda x: x.stage):
         sg = agraph.add_subgraph(name="cluster_{0}".format(stage), label=str(stage), color='grey', style='dotted')
         for task in tasks:
             def truncate_val(kv):
@@ -62,7 +62,7 @@ def tasks_to_image(tasks, path=None, url=True):
 #
 # Stage stuff
 #
-from .rel import RelationshipType
+from .. import RelationshipType
 from ..models.Stage import StageStatus
 
 def draw_stage_graph(stage_graph, save_to=None, url=True):

@@ -27,7 +27,6 @@ def task_status_changed(stage):
     stage.session.commit()
 
 
-
 class Stage(Base):
     __tablename__ = 'stage'
     __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc_execution_name'),)
@@ -37,8 +36,9 @@ class Stage(Base):
     name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    execution_id = Column(ForeignKey('execution.id'),nullable=False)
-    execution = relationship("Execution", backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
+    execution_id = Column(ForeignKey('execution.id'), nullable=False)
+    execution = relationship("Execution",
+                             backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     relationship_type = Column(Enum34_ColumnType(RelationshipType))
@@ -66,12 +66,19 @@ class Stage(Base):
         if not re.match('^[a-zA-Z0-9_\.-]+$', self.name):
             raise Exception('invalid stage name %s' % self.name)
 
+    def __iter__(self):
+        for t in self.tasks:
+            yield t
+
+    def __getitem__(self, key):
+        return self.tasks[key]
+
     def num_successful_tasks(self):
-        #return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
+        # return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
         return len(filter(lambda t: t.successful, self.tasks))
 
     def num_failed_tasks(self):
-        #return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
+        # return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
         return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
 
     @property
@@ -112,17 +119,19 @@ class Stage(Base):
 
     def percent_successful(self):
         return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
+
     def percent_failed(self):
         return round(float(self.num_failed_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
 
     def percent_running(self):
-        return round(float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (float(len(self.tasks)) or 1) * 100, 2)
+        return round(float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (
+        float(len(self.tasks)) or 1) * 100, 2)
 
     def descendants(self, include_self=False):
         """
         :return: (list) all stages that descend from this stage in the stage_graph
         """
-        #return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
+        # return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
         x = nx.descendants(self.execution.stage_graph(), self)
         if include_self:
             return sorted({self}.union(x), key=lambda stage: stage.number)
@@ -137,13 +146,16 @@ class Stage(Base):
         return '<Stage[%s] %s>' % (self.id or '', self.name)
 
 
-
 class StageEdge(Base):
     __tablename__ = 'stage_edge'
     parent_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
-    parent = relationship("Stage", primaryjoin=parent_id == Stage.id, backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",single_parent=True))
+    parent = relationship("Stage", primaryjoin=parent_id == Stage.id,
+                          backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",
+                                          single_parent=True))
     child_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
-    child = relationship("Stage",primaryjoin=child_id == Stage.id,  backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",single_parent=True))
+    child = relationship("Stage", primaryjoin=child_id == Stage.id,
+                         backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",
+                                         single_parent=True))
 
     def __init__(self, parent=None, child=None):
         self.parent = parent
