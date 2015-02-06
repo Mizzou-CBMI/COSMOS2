@@ -35,10 +35,10 @@ def _default_task_output_dir(task):
     """The default function for computing Task.output_dir"""
     tag_values = map(str, task.tags.values())
     for v in tag_values:
-        assert re.match("^[\w]+$", v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
-                                       'Execution.run' % v
+        assert re.match("^[\w]+$",
+                        v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
+                            'Execution.run' % v
     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
-
 
 
 def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm):
@@ -48,6 +48,7 @@ def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm
         return existing_task
     else:
         return tool._generate_task(stage=stage, parents=parents, default_drm=default_drm)
+
 
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
@@ -128,6 +129,7 @@ class Execution(Base):
 
     def add_stage(self, tools, name=None):
         from .. import Tool, Stage
+
         if hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
             tools = [tools]
         tools = list(tools)
@@ -140,7 +142,8 @@ class Execution(Base):
             name = tools[0].__class__.__name__
         all_tags = [tuple(tool.tags.items()) for tool in tools]
         assert len(all_tags) == len(set(all_tags)), 'Duplicate tags detected for {0}, {1}.  ' \
-                                            'Tags within a stage must be unique.'.format(name, map(dict, all_tags))
+                                                    'Tags within a stage must be unique.'.format(name,
+                                                                                                 map(dict, all_tags))
 
         stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
         successful_tasks = {frozenset(t.tags.items()): t for t in
@@ -175,11 +178,13 @@ class Execution(Base):
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
-        self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (self, self.cosmos_app.default_drm, self.output_dir))
+        self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
+        self, self.cosmos_app.default_drm, self.output_dir))
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args, default_queue=self.cosmos_app.default_queue)
+        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
+                                     default_queue=self.cosmos_app.default_queue)
 
         self.status = ExecutionStatus.running
         self.successful = False
@@ -188,7 +193,7 @@ class Execution(Base):
             self.started_on = func.now()
 
         # Render task graph and to session
-        #task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
+        # task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
         task_g = self.task_graph()
         stage_g = self.stage_graph()
 
@@ -216,7 +221,8 @@ class Execution(Base):
         for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
             group = list(group)
             if len(group) > 1:
-                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
+                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (
+                group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
 
 
         # Collapse
@@ -229,7 +235,8 @@ class Execution(Base):
         # taskg and stageg are now finalized
 
         #stages = stage_g.nodes()
-        assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (next(duplicates(stages)))
+        assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
+        next(duplicates(self.stages)))
 
         # renumber stages
         for i, s in enumerate(topological_sort(stage_g)):
@@ -248,7 +255,6 @@ class Execution(Base):
 
         # print stages
         for s in topological_sort(stage_g):
-
             self.log.info('%s %s' % (s, s.status))
 
         # Create Task Queue
@@ -256,9 +262,7 @@ class Execution(Base):
         self.log.info('Skipping %s successful tasks...' % len(successful))
         task_queue.remove_nodes_from(successful)
 
-
         handle_exits(self)
-
 
         self.log.info('Setting log output directories...')
         # set log dirs
@@ -270,12 +274,14 @@ class Execution(Base):
             task.log_dir = log_dir
 
         self.log.info('Checking stage attributes...')
+
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
             from .. import Stage, StageStatus
             # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
             # there shouldn't be that many stages to update.
-            for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id, Stage.status != StageStatus.no_attempt):
+            for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id,
+                                                            Stage.status != StageStatus.no_attempt):
                 s.successful = False
                 s.finished_on = None
                 s.status = StageStatus.running
@@ -285,7 +291,8 @@ class Execution(Base):
         self.log.info('Ensuring there are enough cores...')
         # make sure we've got enough cores
         for t in task_queue:
-            assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
+            assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
+            t, t.cpu_req, self.max_cpus)
 
         #Run this thing!
         if not dry:
@@ -314,7 +321,8 @@ class Execution(Base):
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
-            self.log.info('Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            self.log.info(
+                'Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
 
@@ -328,7 +336,7 @@ class Execution(Base):
     # stage_ids = [s.id for s in self.stages]
     # if len(stage_ids):
     # return self.session.query(Task).filter(Task.stage_id.in_(stage_ids))
-    #     else:
+    # else:
     #         return []
 
 
@@ -476,10 +484,10 @@ def _run(execution, session, task_queue):
         time.sleep(.3)
 
 
-
 def _run_queued_and_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
-    ready_tasks = [task for task, degree in task_queue.in_degree().items() if degree == 0 and task.status == TaskStatus.no_attempt]
+    ready_tasks = [task for task, degree in task_queue.in_degree().items() if
+                   degree == 0 and task.status == TaskStatus.no_attempt]
     for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
         cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
         if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
@@ -489,7 +497,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
         # # # render taskfile paths
         # for f in ready_task.output_files:
         # if f.root_path is None:
-        #         f.root_path = os.root_path.join(ready_task.output_dir, f.basename)
+        # f.root_path = os.root_path.join(ready_task.output_dir, f.basename)
         execution.jobmanager.submit(ready_task)
 
     # only commit submitted Tasks after submitting a batch
@@ -513,6 +521,7 @@ def handle_exits(execution, do_atexit=True):
             execution.log.info('Caught SIGINT (ctrl+c)')
             execution.terminate(due_to_failure=False)
             raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
+
     signal.signal(signal.SIGINT, ctrl_c)
 
     if atexit:
@@ -521,8 +530,7 @@ def handle_exits(execution, do_atexit=True):
             if execution.status == ExecutionStatus.running:
                 execution.log.error('Execution %s has a status of running atexit!' % execution)
                 execution.terminate(due_to_failure=True)
-                #raise SystemExit('Execution terminated due to the python interpreter exiting')
-
+                # raise SystemExit('Execution terminated due to the python interpreter exiting')
 
 
 def _copy_graph(graph):
