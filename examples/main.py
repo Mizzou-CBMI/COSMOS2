@@ -72,5 +72,4 @@ if __name__ == '__main__':
 
         ex = cosmos_app.start(**execution_params)
         kwargs['execution'] = ex
-        kwargs['cosmos'] = cosmos_app
     func(**kwargs)

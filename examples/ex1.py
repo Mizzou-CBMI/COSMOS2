@@ -3,7 +3,7 @@ from cosmos import Cosmos
 from tools import Echo, Cat, WordCount
 
 
-def ex1_main(cosmos, execution):
+def ex1_main(execution):
     # Create two jobs that echo "hello" and "world" respectively
     ech = execution.add([Echo(tags=dict(word='hello'), out='{word}'), Echo(tags=dict(word='world'))])
 
@@ -23,4 +23,4 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
-    ex1_main(cosmos, execution)
+    ex1_main(execution)
