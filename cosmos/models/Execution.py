@@ -13,7 +13,6 @@ from networkx.algorithms.dag import descendants, topological_sort
 import atexit
 
 from ..util.helpers import duplicates
-from ..graph import taskgraph
 from ..db import Base
 import time
 
@@ -31,14 +30,14 @@ def _default_task_log_output_dir(task):
     return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
 
 
-def _default_task_output_dir(task):
-    """The default function for computing Task.output_dir"""
-    tag_values = map(str, task.tags.values())
-    for v in tag_values:
-        assert re.match("^[\w]+$",
-                        v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
-                            'Execution.run' % v
-    return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
+# def _default_task_output_dir(task):
+# """The default function for computing Task.output_dir"""
+#     tag_values = map(str, task.tags.values())
+#     for v in tag_values:
+#         assert re.match("^[\w]+$",
+#                         v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
+#                             'Execution.run' % v
+#     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
 
 
 def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm):
@@ -127,14 +126,20 @@ class Execution(Base):
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
 
-    def add_stage(self, tools, name=None):
+    def add(self, tools, name=None):
+        """
+        Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
+        :param tools: (iterable) instances of Tool.
+        :param name: (str) Defaults to the class name of the first tool in tools.
+        :return: (list(Task,...)) New tasks that were created.
+        """
         from .. import Tool, Stage
 
         if hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
             tools = [tools]
         tools = list(tools)
-        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in
-                                               tools), '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
+        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in tools), \
+            '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
         assert len(tools) > 0, '`tools` cannot be an empty list'
         tools = filter(bool, tools)
 
@@ -150,24 +155,25 @@ class Execution(Base):
                             stage.tasks}  # successful because failed jobs have been deleted.
 
         parent_stages = set()
+        new_tasks = list()
         for tool in tools:
             for p in tool.task_parents:
                 parent_stages.add(p.stage)
             task = get_or_create_task(tool, successful_tasks, tool.tags, stage, parents=tool.task_parents,
                                       default_drm=self.cosmos_app.default_drm)
             tool.task = task
-        stage.parents = list(parent_stages)
-        return stage
+            new_tasks.append(task)
+        stage.parents += list(parent_stages)
+        return new_tasks
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
         """
         Renders and executes the :param:`recipe`
 
-        :param recipe: (Recipe) the Recipe to render and execute.
-        :param task_output_dir: (function) a function that computes a task's output_dir. It receives one parameter: the task instance.  By default task output is stored in
-            output_dir/stage_name/'_'.join(task.tags.values()).  See _default_task_log_output_dir for more info.
-        :param log_output_dir: (function) a function that computes a task's log_output_dir.  It receives one parameter: the task instance.
-             By default task log output is stored in output_dir/log/stage_name/task_id.  See _default_task_log_output_dir for more info.
+        :param log_output_dir: (function) a function that computes a task's log_output_dir.
+             It receives one parameter: the task instance.
+             By default task log output is stored in output_dir/log/stage_name/task_id.
+             See _default_task_log_output_dir for more info.
         :param dry: (bool) if True, do not actually run any jobs.
         :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to add and
             run more tasks in this execution later.
@@ -179,7 +185,7 @@ class Execution(Base):
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
-        self, self.cosmos_app.default_drm, self.output_dir))
+            self, self.cosmos_app.default_drm, self.output_dir))
 
         from ..job.JobManager import JobManager
 
@@ -199,7 +205,7 @@ class Execution(Base):
 
         # Set output_dirs of new tasks
         # for task in nx.topological_sort(task_g):
-        #     if not task.successful:
+        # if not task.successful:
         #         task.output_dir = task_output_dir(task)
         #         assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
         #         for tf in task.output_files:
@@ -221,8 +227,8 @@ class Execution(Base):
         for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
             group = list(group)
             if len(group) > 1:
-                raise ValueError('Duplicate taskfiles paths detected:\n %s.%s\n %s.%s' % (
-                group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
+                raise ValueError("Duplicate taskfiles paths detected:\n %s.%s\n %s.%s" % (
+                    group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
 
 
         # Collapse
@@ -236,7 +242,7 @@ class Execution(Base):
 
         #stages = stage_g.nodes()
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
-        next(duplicates(self.stages)))
+            next(duplicates(self.stages)))
 
         # renumber stages
         for i, s in enumerate(topological_sort(stage_g)):
@@ -292,9 +298,9 @@ class Execution(Base):
         # make sure we've got enough cores
         for t in task_queue:
             assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
-            t, t.cpu_req, self.max_cpus)
+                t, t.cpu_req, self.max_cpus)
 
-        #Run this thing!
+        #R un this thing!
         if not dry:
             _run(self, session, task_queue)
 
@@ -303,20 +309,20 @@ class Execution(Base):
         # set status
         if self.status == ExecutionStatus.failed_but_running:
             self.status = ExecutionStatus.failed
+            # set stage status to failed
+            for s in self.stages:
+                if s.status == StageStatus.running_but_failed:
+                    s.status = StageStatus.failed
+            session.commit()
             return False
         elif self.status == ExecutionStatus.running:
             if set_successful:
                 self.status = ExecutionStatus.successful
+            session.commit()
             return True
         else:
             raise AssertionError('Bad execution status %s' % self.status)
 
-        # set stage status to failed
-        for s in self.stages:
-            if s.status in [StageStatus.running, StageStatus.running_but_failed]:
-                s.status = StageStatus.failed
-
-        session.commit()
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -337,7 +343,7 @@ class Execution(Base):
     # if len(stage_ids):
     # return self.session.query(Task).filter(Task.stage_id.in_(stage_ids))
     # else:
-    #         return []
+    # return []
 
 
     @property
@@ -494,10 +500,6 @@ def _run_queued_and_ready_tasks(task_queue, execution):
             execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
             break
 
-        # # # render taskfile paths
-        # for f in ready_task.output_files:
-        # if f.root_path is None:
-        # f.root_path = os.root_path.join(ready_task.output_dir, f.basename)
         execution.jobmanager.submit(ready_task)
 
     # only commit submitted Tasks after submitting a batch

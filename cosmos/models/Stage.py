@@ -15,7 +15,7 @@ import networkx as nx
 
 @signal_stage_status_change.connect
 def task_status_changed(stage):
-    stage.log.info('%s %s' % (stage, stage.status))
+    stage.log.info('%s %s (%s tasks)' % (stage, stage.status, len(stage.tasks)))
     if stage.status == StageStatus.successful:
         stage.successful = True
 
@@ -73,13 +73,22 @@ class Stage(Base):
     def __getitem__(self, key):
         return self.tasks[key]
 
+    @property
+    def tasksq(self):
+        from .. import Task
+        return self.session.query(Task)
+
+    def num_tasks(self):
+        return self.tasksq.count()
+
     def num_successful_tasks(self):
-        # return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
-        return len(filter(lambda t: t.successful, self.tasks))
+        return self.tasksq.filter_by(stage=self, successful=True).count()
+        #return len(filter(lambda t: t.successful, self.tasks))
 
     def num_failed_tasks(self):
-        # return self.session.query(Task).filter(Task.stage == self and Task.successful==True).count()
-        return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
+        return self.tasksq.filter_by(stage=self, status=TaskStatus.failed).count()
+        #return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
+
 
     @property
     def url(self):

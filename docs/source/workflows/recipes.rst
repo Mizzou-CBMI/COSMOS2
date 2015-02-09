@@ -22,7 +22,7 @@ There are 4 types of Relationships
 
 One2one
 +++++++
-For each parent, one new tool will be generated.  Used by default in Recipe.add_stage().  Child tasks will inherit
+For each parent, one new tool will be generated.  Used by default in Recipe.add().  Child tasks will inherit
 the same tags as their parent.
 
 One2many
@@ -33,7 +33,7 @@ For each parent, two or more new tools will be generated using all possible comb
 
     from cosmos import rel
 
-    stageA = recipe.add_stage(tools.ToolA, parents=[load],
+    stageA = recipe.add(tools.ToolA, parents=[load],
                  rel=rel.One2Many(split_by=dict(shape=['square','circle']), color=['red','blue'])]
              )
 
@@ -51,7 +51,7 @@ Parent tasks are grouped by common tags.  If a parent is missing one of the tags
 
 .. code-block:: python
 
-    recipe.add_stage(tools.MyTool2, parents=[stageA], rel=rel.Many2one(reduce_by=['color'])
+    recipe.add(tools.MyTool2, parents=[stageA], rel=rel.Many2one(reduce_by=['color'])
 
 Would generate two tasks.  One task would have two parents that had a color of red, and the other would have two parents
 that had a color of blue.
@@ -62,7 +62,7 @@ Essentially is a Many2one immediately followed by a One2many, and its parameters
 
 .. code-block:: python
 
-    stageB = recipe.add_stage(tools.ToolB, parents=[stageB],
+    stageB = recipe.add(tools.ToolB, parents=[stageB],
                      rel=rel.Many2many(reduce_by=['color'], split_by=dict(size=['small', 'large']))
 
 Would group parents by size, then create two new tasks for each parent group with tags
