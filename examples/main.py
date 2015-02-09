@@ -5,9 +5,6 @@ import os
 
 from cosmos import Execution, add_execution_args, Cosmos
 from configparser import ConfigParser
-import ex1
-import ex2_fail
-import ex3_email
 
 root_path = os.path.dirname(os.path.realpath(__file__))
 config = ConfigParser()
@@ -15,6 +12,10 @@ config.read(os.path.join(root_path, 'settings.conf'))
 settings = config['main']
 
 if __name__ == '__main__':
+    import ex1
+    import ex2_fail
+    import ex3_email
+
     cosmos_app = Cosmos('sqlite:///sqlite.db', default_drm='local')
 
     import argparse
@@ -69,6 +70,7 @@ if __name__ == '__main__':
         if not execution_params['output_dir']:
             execution_params['output_dir'] = os.path.join(root_path, 'out', execution_params['name'])
 
-        ex = Execution.start(cosmos_app=cosmos_app, **execution_params)
+        ex = cosmos_app.start(**execution_params)
         kwargs['execution'] = ex
+        kwargs['cosmos'] = cosmos_app
     func(**kwargs)

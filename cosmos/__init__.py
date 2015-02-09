@@ -80,12 +80,12 @@ class Cosmos(object):
         """
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
 
-        if '://' not in database_url:
-            if database_url[0] != '/':
-                # database_url is a relative root_path
-                database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
-            else:
-                database_url = 'sqlite:///%s' % database_url
+        assert '://' in database_url, 'Invalid database_url: %s' % database_url
+        #     if database_url[0] != '/':
+        #         # database_url is a relative root_path
+        #         database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
+        #     else:
+        #         database_url = 'sqlite:///%s' % database_url
 
         self.flask_app = flask_app if flask_app else Flask(__name__)
 
