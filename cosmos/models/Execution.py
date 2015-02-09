@@ -154,7 +154,7 @@ class Execution(Base):
         successful_tasks = {frozenset(t.tags.items()): t for t in
                             stage.tasks}  # successful because failed jobs have been deleted.
 
-        parent_stages = set()
+        parent_stages = set(stage.parents)
         new_tasks = list()
         for tool in tools:
             for p in tool.task_parents:
@@ -163,7 +163,7 @@ class Execution(Base):
                                       default_drm=self.cosmos_app.default_drm)
             tool.task = task
             new_tasks.append(task)
-        stage.parents += list(parent_stages)
+        stage.parents = list(parent_stages)
         return new_tasks
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
