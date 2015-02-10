@@ -26,12 +26,16 @@
     <dd>{{execution.output_dir}}</dd>
     <dt>Visualize</dt>
     <dd>
-        <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}"><button type="button" class="btn btn-info btn-sm">
+        <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}">
+            <button type="button" class="btn btn-info btn-sm">
                 <span class="glyphicon glyphicon-eye-open"></span> StageGraph
-            </button></a>
-        <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}"><button type="button" class="btn btn-info btn-sm">
+            </button>
+        </a>
+        <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}">
+            <button type="button" class="btn btn-info btn-sm">
                 <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-            </button></a>
+            </button>
+        </a>
 
     </dd>
 </dl>
@@ -51,6 +55,8 @@
                 <th>stage</th>
                 <th>successful</th>
                 <th>status</th>
+
+
                 <th>tasks</th>
                 <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                 <th>failed</th>
@@ -60,6 +66,8 @@
                 <th>avg(mem_req)</th>
                 <th>avg(wall_time)</th>
                 <th>avg(cpu_time)</th>
+
+                
                 <th>action</th>
             </tr>
             </thead>
@@ -70,22 +78,24 @@
                 <td><b><a href="{{ s.url  }}">{{ s.name }}</a></b></td>
                 <td>{{s.successful|to_thumb}}</td>
                 <td>{{ s.status }}</td>
+
+
                 <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
                 <td>
                     {% with %}
-                        {% set successful = s.percent_successful() %}
-                        {% set running = s.percent_running() %}
-                        {% set failed = s.percent_failed() %}
+                    {% set successful = s.percent_successful() %}
+                    {% set running = s.percent_running() %}
+                    {% set failed = s.percent_failed() %}
                     <div class="progress progress-striped">
-                      <div class="progress-bar progress-bar-success progress-striped" style="width: {{successful}}%">
-                        <span class="sr-only">{{successful}}% Complete (success)</span>
-                      </div>
-                      <div class="progress-bar progress-bar-warning progress-bar-striped" style="width: {{running}}%">
-                        <span class="sr-only">{{running}}% Complete (running)</span>
-                      </div>
-                      <div class="progress-bar progress-bar-danger progress-striped" style="width: {{failed}}%">
-                        <span class="sr-only">{{failed}}% Complete (failed)</span>
-                      </div>
+                        <div class="progress-bar progress-bar-success progress-striped" style="width: {{successful}}%">
+                            <span class="sr-only">{{successful}}% Complete (success)</span>
+                        </div>
+                        <div class="progress-bar progress-bar-warning progress-bar-striped" style="width: {{running}}%">
+                            <span class="sr-only">{{running}}% Complete (running)</span>
+                        </div>
+                        <div class="progress-bar progress-bar-danger progress-striped" style="width: {{failed}}%">
+                            <span class="sr-only">{{failed}}% Complete (failed)</span>
+                        </div>
                     </div>
                     {%endwith%}
                 </td>
@@ -96,12 +106,14 @@
                 <td>{{s|stage_stat('mem_req', 'avg')}}</td>
                 <td>{{s|stage_stat('wall_time', 'avg')}}</td>
                 <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
+
                 <td>
                     <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"
                        onclick="return confirm('This will delete all files associated with {{s}}.  Are you sure?')">
                         <button type="button" class="btn btn-danger btn-xs">
                             <span class="glyphicon glyphicon-remove"></span> delete
-                        </button></a>
+                        </button>
+                    </a>
                 </td>
             </tr>
             {% endfor %}

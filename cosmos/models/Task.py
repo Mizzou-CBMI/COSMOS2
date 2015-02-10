@@ -128,7 +128,7 @@ class Task(Base):
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
     # tags = Column(MutableDict.as_mutable(JSONEncodedDict))
-    stage_id = Column(ForeignKey('stage.id'), nullable=False)
+    stage_id = Column(ForeignKey('stage.id'), nullable=False, index=True)
     stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
     log_dir = Column(String(255))
     output_dir = Column(String(255))

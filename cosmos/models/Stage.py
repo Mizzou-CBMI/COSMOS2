@@ -36,7 +36,7 @@ class Stage(Base):
     name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    execution_id = Column(ForeignKey('execution.id'), nullable=False)
+    execution_id = Column(ForeignKey('execution.id'), nullable=False, index=True)
     execution = relationship("Execution",
                              backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)

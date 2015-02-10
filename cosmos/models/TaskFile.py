@@ -17,10 +17,10 @@ class TaskFileError(Exception): pass
 
 # association_table = Table('input_files', Base.metadata,
 # Column('task', Integer, ForeignKey('task.id')),
-#                           Column('taskfile', Integer, ForeignKey('taskfile.id')))
+# Column('taskfile', Integer, ForeignKey('taskfile.id')))
 
 AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward', 'n'])
-AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename'])
+AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename', 'persist'])
 
 
 def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
@@ -34,6 +34,7 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     assert name or format, 'must specify either name or format'
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
+
 def abstract_input_taskfile_v2(name=None, format=None, forward=False, n=1):
     """
     :param name: (str) The name of the TaskFile(s)
@@ -46,7 +47,7 @@ def abstract_input_taskfile_v2(name=None, format=None, forward=False, n=1):
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-def abstract_output_taskfile(name=None, format=None, basename=None):
+def abstract_output_taskfile(name=None, format=None, basename=None, persist=False):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile
@@ -59,9 +60,10 @@ def abstract_output_taskfile(name=None, format=None, basename=None):
         name = name
         format = ext[1:]
 
-    return AbstractOutputFile(name=name, format=format, basename=basename)
+    return AbstractOutputFile(name=name, format=format, basename=basename, persist=persist)
 
-def abstract_output_taskfile_v2(basename=None, name=None, format=None):
+
+def abstract_output_taskfile_v2(basename=None, name=None, format=None, persist=False):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile
@@ -74,7 +76,7 @@ def abstract_output_taskfile_v2(basename=None, name=None, format=None):
         name = name
         format = ext[1:]
 
-    return AbstractOutputFile(name=name, format=format, basename=basename)
+    return AbstractOutputFile(name=name, format=format, basename=basename, persist=persist)
 
 
 class InputFileAssociation(Base):
@@ -83,7 +85,8 @@ class InputFileAssociation(Base):
     task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
     task = relationship("Task", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
     taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
-    taskfile = relationship("TaskFile", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
+    taskfile = relationship("TaskFile",
+                            backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
 
     # def delete(self):
     # self.task._input_file_assocs.remove(self)
@@ -111,8 +114,9 @@ class TaskFile(Base):
     __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc_tf_name_fmt'),)
 
     id = Column(Integer, primary_key=True)
-    task_output_for_id = Column(ForeignKey('task.id'))
-    task_output_for = relationship("Task", backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
+    task_output_for_id = Column(ForeignKey('task.id'), index=True)
+    task_output_for = relationship("Task",
+                                   backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
@@ -149,7 +153,8 @@ class TaskFile(Base):
         assert self.basename != '', 'basename is an empty string for %s' % self
 
     def __repr__(self):
-        return '<TaskFile[%s] %s.%s:%s>' % (self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
+        return '<TaskFile[%s] %s.%s:%s>' % (
+        self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
 
     def delete(self, delete_file=True):
         """

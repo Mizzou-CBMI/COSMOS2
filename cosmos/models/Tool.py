@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
+from ..util.iterstuff import only_one
 from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
 
 
@@ -94,7 +95,10 @@ class Tool(object):
             raise ToolValidationError("Duplicate task.outputs detected in {0}".format(self))
 
         argspec = getargspec(self.cmd)
-        # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
+        if isinstance(argspec.args[1], list):
+            assert len(argspec.args[1]) == len(self.inputs), '%s.cmd will not unpack its inputs correctly.' % self
+        if isinstance(argspec.args[2], list):
+            assert len(argspec.args[2]) == len(self.outputs), '%s.cmd will not unpack its outputs correctly' % self
 
         reserved = {'name', 'format', 'basename'}
         if not set(self.tags.keys()).isdisjoint(reserved):
@@ -150,15 +154,17 @@ class Tool(object):
 
         for output in self.outputs:
             name = str_format(output.name, dict(i=inputs, **self.tags))
+            # get basename
             if output.basename is None:
-                # basename = None
-                basename = '%s.%s' % (name, output.format) if output.format != 'dir' else output.name
-            else:
-                d = self.tags.copy()
-                d.update(dict(name=name, format=output.format, i=inputs))
-                basename = str_format(output.basename, dict(**d))
-            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format,
-                     path=opj(output_dir, basename), basename=basename)
+                if output.format == 'dir':
+                    basename == output.name
+                else:
+                    output = '%s.%s' % (name, output.format)
+
+            basename = str_format(output.basename, dict(name=name, format=output.format, i=inputs, **self.tags))
+            tf = TaskFile(task_output_for=task, persist=output.persist, name=name, format=output.format,
+                          path=opj(output_dir, basename), basename=basename)
+            tf.abstract_output_file = output  # for getting sort order when passing to cmd
 
         task.tool = self
         return task
@@ -172,17 +178,21 @@ class Tool(object):
         argspec = getargspec(self.cmd)
         self.task = task
         params = {k: v for k, v in self.tags.items() if k in argspec.args}
-        ndefaults = len(argspec.defaults) if argspec.defaults else 0
-        for arg in argspec.args[3:len(argspec.args) - ndefaults]:
-            if arg not in params:
-                raise AttributeError(
-                    '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                    'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
-        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif))) for aif in self.inputs)
+        def validate_params():
+            ndefaults = len(argspec.defaults) if argspec.defaults else 0
+            for arg in argspec.args[3:len(argspec.args) - ndefaults]:
+                if arg not in params:
+                    raise AttributeError(
+                        '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                        'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
+        validate_params()
+
+        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif, error_if_missing=True)))
+                                            for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
-        outputs = output_taskfiles
+        outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
         out = self.cmd(inputs, outputs, **params)
         assert isinstance(out, str), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
@@ -322,10 +332,10 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # def group_taskfiles_by_aif(taskfiles):
 # f = lambda tf: tf.abstract_input_file_mapping
 # for (aif_index, aif), taskfiles in it.groupby2(sorted(taskfiles, key=f), f):
-#         print (aif_index, aif)
-#         taskfiles = list(taskfiles)
-#         print taskfiles
-#         op, number = parse_aif_cardinality(aif.n)
+# print (aif_index, aif)
+# taskfiles = list(taskfiles)
+# print taskfiles
+# op, number = parse_aif_cardinality(aif.n)
 #         print op, number
 #         if op in ['=', '=='] and number == 1:
 #             yield taskfiles[0]

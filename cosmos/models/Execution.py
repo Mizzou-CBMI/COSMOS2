@@ -363,7 +363,7 @@ class Execution(Base):
         """
         g = nx.DiGraph()
         g.add_nodes_from(self.stages)
-        g.add_edges_from((s, c) for s in self.stages for c in s.children)
+        g.add_edges_from((s, c) for s in self.stages for c in s.children if c)
         return g
 
     def draw_stage_graph(self):
