@@ -2,16 +2,19 @@
 
 For more information and the full documentation please visit: http://cosmos.hms.harvard.edu
 
+-------
 Building Docs
-----
+-------
+ 
 .. code-block:: bash
-    	git clone git@github.com:LPM-HMS/Cosmos3.git
-    	cd Cosmos3
-    	virtualenv ve
-    	source ve/bin/activate
-    	pip install .
-    	cd docs
-    	pip install sphinx sphinx_rtd_theme
-    	make html
-    	open build/html/index.html
-
+ 
+    git clone git@github.com:LPM-HMS/Cosmos3.git
+	cd Cosmos3
+	virtualenv ve
+	source ve/bin/activate
+	pip install .
+	cd docs
+	pip install sphinx sphinx_rtd_theme
+	make html
+	open build/html/index.html
+ 
