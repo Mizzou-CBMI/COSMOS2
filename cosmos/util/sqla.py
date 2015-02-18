@@ -1,7 +1,7 @@
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 
-class Enum34_ColumnType(types.SchemaType, types.TypeDecorator):
+class Enum34_ColumnType(types.TypeDecorator):
     """
     Enum compatible with enum34 package
     """

@@ -104,6 +104,7 @@ def stagegraph_to_agraph(stage_graph, url=True):
                         URL=stage.url if url else '', label=stage.label)
 
     for u, v in stage_graph.edges():
+        v.relationship_type = None
         if v.relationship_type == RelationshipType.many2one:
             agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dotted', arrowhead='odiamond')
         elif v.relationship_type == RelationshipType.one2many:

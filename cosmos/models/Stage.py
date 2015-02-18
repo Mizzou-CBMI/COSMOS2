@@ -36,12 +36,12 @@ class Stage(Base):
     name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    execution_id = Column(ForeignKey('execution.id'), nullable=False, index=True)
+    execution_id = Column(ForeignKey('execution.id', ondelete="CASCADE"), nullable=False, index=True)
     execution = relationship("Execution",
                              backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    relationship_type = Column(Enum34_ColumnType(RelationshipType))
+    #relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
     parents = association_proxy('incoming_edges', 'parent', creator=lambda n: StageEdge(parent=n))
@@ -157,11 +157,11 @@ class Stage(Base):
 
 class StageEdge(Base):
     __tablename__ = 'stage_edge'
-    parent_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
+    parent_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
     parent = relationship("Stage", primaryjoin=parent_id == Stage.id,
                           backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",
                                           single_parent=True))
-    child_id = Column(Integer, ForeignKey('stage.id'), primary_key=True)
+    child_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
     child = relationship("Stage", primaryjoin=child_id == Stage.id,
                          backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",
                                          single_parent=True))

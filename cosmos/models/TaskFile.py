@@ -83,9 +83,9 @@ def abstract_output_taskfile_v2(basename=None, name=None, format=None, persist=F
 class InputFileAssociation(Base):
     __tablename__ = 'input_file_assoc'
     forward = Column(Boolean, default=False)
-    task_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
+    task_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
     task = relationship("Task", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
-    taskfile_id = Column(Integer, ForeignKey('taskfile.id'), primary_key=True)
+    taskfile_id = Column(Integer, ForeignKey('taskfile.id', ondelete="CASCADE"), primary_key=True)
     taskfile = relationship("TaskFile",
                             backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
 
@@ -115,7 +115,7 @@ class TaskFile(Base):
     __table_args__ = (UniqueConstraint('task_output_for_id', 'name', 'format', name='_uc_tf_name_fmt'),)
 
     id = Column(Integer, primary_key=True)
-    task_output_for_id = Column(ForeignKey('task.id'), index=True)
+    task_output_for_id = Column(ForeignKey('task.id', ondelete="CASCADE"), index=True)
     task_output_for = relationship("Task",
                                    backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
     order = Column(Integer, nullable=False)

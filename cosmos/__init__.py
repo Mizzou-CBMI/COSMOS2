@@ -306,6 +306,10 @@ class RelationshipType(MyEnum):
     many2many = 'many2many'
 
 
+# so alembic can reflect
+from sqlalchemy.dialects.postgresql.base import ischema_names
+ischema_names['RelationshipType'] = RelationshipType
+
 ########################################################################################################################
 # Imports
 ########################################################################################################################
