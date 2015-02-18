@@ -17,6 +17,8 @@
         {% endfor %}
         <dt>parents</dt>
         <dd>{% for p in task.parents %}<a href="{{p.url}}">{{p}}</a> {% endfor %}</dd>
+        <dt>children</dt>
+        <dd>{% for p in task.children %}<a href="{{p.url}}">{{p}}</a> {% endfor %}</dd>
 
 
         {% for tf in task.input_files %}

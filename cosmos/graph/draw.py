@@ -6,6 +6,7 @@ from ..util.helpers import groupby2
 from .. import TaskStatus
 import networkx as nx
 
+
 def draw_task_graph(task_graph):
     a = taskgraph_to_agraph(task_graph, False)
     a.layout('dot')
@@ -42,9 +43,16 @@ def taskgraph_to_agraph(task_graph, url=True):
                             TaskStatus.failed: 'darkred',
                             TaskStatus.killed: 'darkred'}
 
-            sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank", color=status2color.get(task.status, 'black'))
+            sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank",
+                        color=status2color.get(task.status, 'black'))
 
     return agraph
+
+
+def taskgraph_to_image(taskgraph, path=None, url=True):
+    taskgraph.layout(prog="dot")
+    agraph = taskgraph_to_agraph(g, url=url)
+    return agraph.draw(path=path, format='svg')
 
 
 def tasks_to_image(tasks, path=None, url=True):
@@ -54,10 +62,8 @@ def tasks_to_image(tasks, path=None, url=True):
     g = nx.DiGraph()
     g.add_nodes_from(tasks)
     g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
+    return taskgraph_to_image(g, path=path, url=url)
 
-    g = taskgraph_to_agraph(g, url=url)
-    g.layout(prog="dot")
-    return g.draw(path=path, format='svg')
 
 #
 # Stage stuff
@@ -65,10 +71,12 @@ def tasks_to_image(tasks, path=None, url=True):
 from .. import RelationshipType
 from ..models.Stage import StageStatus
 
+
 def draw_stage_graph(stage_graph, save_to=None, url=True):
     g = stagegraph_to_agraph(stage_graph, url=url)
     g.layout(prog="dot")
     return g.draw(path=save_to, format='svg')
+
 
 def stagegraph_to_agraph(stage_graph, url=True):
     """

@@ -11,10 +11,13 @@ from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 import atexit
+from ..util.iterstuff import only_one
 
-from ..util.helpers import duplicates
+from ..util.helpers import duplicates, groupby2
 from ..db import Base
 import time
+import itertools as it
+
 
 opj = os.path.join
 import signal
@@ -32,7 +35,7 @@ def _default_task_log_output_dir(task):
 
 # def _default_task_output_dir(task):
 # """The default function for computing Task.output_dir"""
-#     tag_values = map(str, task.tags.values())
+# tag_values = map(str, task.tags.values())
 #     for v in tag_values:
 #         assert re.match("^[\w]+$",
 #                         v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
@@ -125,7 +128,6 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-
     def add(self, tools, name=None):
         """
         Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
@@ -145,25 +147,37 @@ class Execution(Base):
 
         if name is None:
             name = tools[0].__class__.__name__
-        all_tags = [tuple(tool.tags.items()) for tool in tools]
-        assert len(all_tags) == len(set(all_tags)), 'Duplicate tags detected for {0}, {1}.  ' \
-                                                    'Tags within a stage must be unique.'.format(name,
-                                                                                                 map(dict, all_tags))
 
-        stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
-        successful_tasks = {frozenset(t.tags.items()): t for t in
-                            stage.tasks}  # successful because failed jobs have been deleted.
+        for tags, tool_group in groupby2(tools, lambda tool: tool.tags):
+            tool_group = list(tool_group)
+            if len(tool_group) > 1:
+                s = 'Duplicate tags detected: {tags}.  \n' \
+                    'In tasks: {tool_group}  \n' \
+                    'Tags within a stage must be unique.'.format(**locals())
 
-        parent_stages = set(stage.parents)
+                self.log.error(s)
+                raise ValueError('Duplicate tags detected')
+
+
+        #stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
+        try:
+            stage = only_one(s for s in self.stages if s.name == name)
+        except ValueError:
+            stage = Stage(execution=self, name=name)
+        self.session.add(stage)
+
+        # successful because failed jobs have been deleted.
+        successful_tasks = {frozenset(t.tags.items()): t for t in stage.tasks}
+
+        new_parent_stages = set()
         new_tasks = list()
         for tool in tools:
-            for p in tool.task_parents:
-                parent_stages.add(p.stage)
+            new_parent_stages = new_parent_stages.union(p.stage for p in tool.task_parents)
             task = get_or_create_task(tool, successful_tasks, tool.tags, stage, parents=tool.task_parents,
                                       default_drm=self.cosmos_app.default_drm)
             tool.task = task
             new_tasks.append(task)
-        stage.parents = list(parent_stages)
+        stage.parents += list(new_parent_stages.difference(stage.parents))
         return new_tasks
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
@@ -219,16 +233,31 @@ class Execution(Base):
         #     if not task.successful: # and not task.NOOP:
         #         task.command = task.tool._generate_command(task)
 
-        # Assert no duplicate TaskFiles
         import itertools as it
 
-        taskfiles = (tf for task in task_g.nodes() for tf in task.output_files)
-        f = lambda tf: tf.path
-        for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-            group = list(group)
-            if len(group) > 1:
-                raise ValueError("Duplicate taskfiles paths detected:\n %s.%s\n %s.%s" % (
-                    group[0].task_output_for, group[0], group[1].task_output_for, group[1]))
+        def assert_no_duplicate_taskfiles():
+            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files)
+            f = lambda tf: tf.path
+            for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
+                group = list(group)
+                if len(group) > 1:
+                    t1 = group[0].task_output_for
+                    tf1 = group[0]
+                    t2 = group[1].task_output_for
+                    tf2 = group[1]
+                    div = "-" * 72 + "\n"
+                    self.log.error("Duplicate taskfiles paths detected:\n "
+                                   "{div}"
+                                   "{t1}\n"
+                                   "* {tf1}\n"
+                                   "{div}"
+                                   "{t2}\n"
+                                   "* {tf2}\n"
+                                   "{div}".format(**locals()))
+
+                    raise ValueError('Duplicate taskfile paths')
+
+        assert_no_duplicate_taskfiles()
 
 
         # Collapse
@@ -416,7 +445,7 @@ class Execution(Base):
         :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
         if hasattr(self, 'log'):
-            self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
+            self.log.info('Deleting %s, output_dir=%s, delete_files=%s' % (self, self.output_dir, delete_files))
             for h in self.log.handlers:
                 h.flush()
                 h.close()

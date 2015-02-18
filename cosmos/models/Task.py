@@ -266,11 +266,14 @@ class Task(Base):
         for k, v in self.profile.items():
             setattr(self, k, v)
 
-    def all_predecessors(self):
+    def all_predecessors(self, as_dict=False):
         """
         :return: (list) all tasks that descend from this task in the task_graph
         """
-        return set(breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self).values())
+        d = breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self)
+        if as_dict:
+            return d
+        return set(d.values())
 
     def all_successors(self):
         """

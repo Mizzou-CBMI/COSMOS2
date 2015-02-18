@@ -12,6 +12,7 @@ from ..graph.draw import stages_to_image, tasks_to_image
 
 def gen_bprint(cosmos_app):
     session = cosmos_app.session
+
     def get_execution(id):
         return session.query(Execution).filter_by(id=id).one()
 
@@ -37,7 +38,7 @@ def gen_bprint(cosmos_app):
         return index()
 
     @bprint.route('/execution/<name>/')
-    #@bprint.route('/execution/<int:id>/')
+    # @bprint.route('/execution/<int:id>/')
     def execution(name):
         execution = session.query(Execution).filter_by(name=name).one()
         return render_template('cosmos/execution.html', execution=execution)
@@ -58,7 +59,7 @@ def gen_bprint(cosmos_app):
             drm_statuses.update(jm.drms[drm].drm_statuses(list(tasks)))
 
         return render_template('cosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
-                               #x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+        # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
 
     @bprint.route('/execution/<int:ex_id>/stage/<stage_name>/delete/')
@@ -71,8 +72,8 @@ def gen_bprint(cosmos_app):
 
     # @bprint.route('/task/<int:id>/')
     # def task(id):
-    #     task = session.query(Task).get(id)
-    #     if task is None:
+    # task = session.query(Task).get(id)
+    # if task is None:
     #         return abort(404)
     #     return redirect(url_for('cosmos.task_friendly', ex_name=task.execution.name, stage_name=task.stage.name, task_id=task.id))
 
@@ -83,7 +84,7 @@ def gen_bprint(cosmos_app):
         task = session.query(Task).get(task_id)
         if task is None:
             return abort(404)
-        resource_usage = [ (field, getattr(task, field)) for field in task.profile_fields ]
+        resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
         return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
@@ -111,14 +112,14 @@ def gen_bprint(cosmos_app):
 
 
 profile_help = dict(
-    #time
+    # time
     system_time='Amount of time that this process has been scheduled in kernel mode',
     user_time='Amount of time that this process has been scheduled in user mode.   This  includes  guest time,  guest_time  (time  spent  running a virtual CPU, see below), so that applications that are not aware of the guest time field do not lose that time from their calculations',
     cpu_time='system_time + user_time',
     wall_time='Elapsed real (wall clock) time used by the process.',
     percent_cpu='(cpu_time / wall_time) * 100',
 
-    #memory
+    # memory
     avg_rss_mem='Average resident set size (Kb)',
     max_rss_mem='Maximum resident set size (Kb)',
     single_proc_max_peak_rss='Maximum single process rss used (Kb)',

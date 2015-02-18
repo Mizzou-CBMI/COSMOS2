@@ -9,6 +9,7 @@ from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
 from ..util.iterstuff import only_one
 from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
+import types
 
 
 class ToolValidationError(Exception): pass
@@ -64,21 +65,25 @@ class Tool(object):
         :param tags: (dict) A dictionary of tags.
         """
         assert isinstance(tags, dict), '`tags` must be a dict'
-        assert isinstance(out, str), '`out` must be a str'
+        assert isinstance(out, basestring), '`out` must be a str'
+        if isinstance(parents, types.GeneratorType):
+            parents = list(parents)
         if parents is None:
             parents = []
         if issubclass(parents.__class__, Task):
             parents = [parents]
+        else:
+            parents = list(parents)
 
         assert hasattr(parents, '__iter__'), 'Tried to set %s.parents to %s which is not iterable' % (self, parents)
         assert all(issubclass(p.__class__, Task) for p in parents), 'parents must be an iterable of Tasks or a Task'
 
         parents = filter(lambda p: p is not None, parents)
 
-        self.tags = tags
+        self.tags = tags.copy()  # can't expect the User to remember to do this.
         self.__validate()
         self.load_sources = []  # for Inputs
-        self.output_dir = out
+        self.out = out
         self.task_parents = parents if parents else []
 
 
@@ -106,13 +111,14 @@ class Tool(object):
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
 
-    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
+    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
-            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (
-                self, abstract_input_file, real_count))
+            s = '{self} does not have right number of inputs: for {abstract_input_file}.  \n' \
+                '{real_count} inputs found in parents: {parents}'.format(**locals())
+            raise ToolValidationError(s)
 
 
     def _map_inputs(self, parents):
@@ -122,7 +128,7 @@ class Tool(object):
         """
         for aif_index, abstract_input_file in enumerate(self.inputs):
             mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
-            self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
+            self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles, parents)
             yield abstract_input_file, mapped_input_taskfiles
 
 
@@ -132,8 +138,8 @@ class Tool(object):
                 yield tf
 
     def _generate_task(self, stage, parents, default_drm):
-        assert self.output_dir is not None
-        output_dir = str_format(self.output_dir, self.tags, '%s.output_dir' % self)
+        assert self.out is not None
+        output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
         output_dir = os.path.join(stage.execution.output_dir, output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
@@ -152,18 +158,20 @@ class Tool(object):
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True,
                      basename=os.path.basename(path))
 
-        for output in self.outputs:
+        for i, output in enumerate(self.outputs):
             name = str_format(output.name, dict(i=inputs, **self.tags))
             # get basename
             if output.basename is None:
                 if output.format == 'dir':
-                    basename == output.name
+                    basename = output.name
                 else:
-                    output = '%s.%s' % (name, output.format)
+                    basename = '%s.%s' % (name, output.format)
+            else:
+                basename = output.basename
 
-            basename = str_format(output.basename, dict(name=name, format=output.format, i=inputs, **self.tags))
+            basename = str_format(basename, dict(name=name, format=output.format, i=inputs, **self.tags))
             tf = TaskFile(task_output_for=task, persist=output.persist, name=name, format=output.format,
-                          path=opj(output_dir, basename), basename=basename)
+                          path=opj(output_dir, basename), basename=basename, order=i)
             tf.abstract_output_file = output  # for getting sort order when passing to cmd
 
         task.tool = self
@@ -192,9 +200,10 @@ class Tool(object):
         aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif, error_if_missing=True)))
                                             for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
-        outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
+        #outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
+        outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         out = self.cmd(inputs, outputs, **params)
-        assert isinstance(out, str), '%s.cmd did not return a str' % self
+        assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
         return strip_lines(out)
@@ -222,6 +231,9 @@ class Tool(object):
         if cmd == NOOP:
             return NOOP
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
+
+    def __repr__(self):
+        return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
 
 
 from collections import namedtuple
@@ -336,8 +348,8 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # taskfiles = list(taskfiles)
 # print taskfiles
 # op, number = parse_aif_cardinality(aif.n)
-#         print op, number
-#         if op in ['=', '=='] and number == 1:
+# print op, number
+# if op in ['=', '=='] and number == 1:
 #             yield taskfiles[0]
 #         else:
 #             yield taskfiles

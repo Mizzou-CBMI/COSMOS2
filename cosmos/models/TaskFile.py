@@ -71,9 +71,10 @@ def abstract_output_taskfile_v2(basename=None, name=None, format=None, persist=F
     :return: (AbstractOutputFile)
     """
     assert (name and format) or basename, 'must specify (name and format) or basename'
+    name2, ext = os.path.splitext(os.path.basename(basename))
     if name is None:
-        name, ext = os.path.splitext(os.path.basename(basename))
-        name = name
+        name = name2
+    if format is None:
         format = ext[1:]
 
     return AbstractOutputFile(name=name, format=format, basename=basename, persist=persist)
@@ -117,6 +118,7 @@ class TaskFile(Base):
     task_output_for_id = Column(ForeignKey('task.id'), index=True)
     task_output_for = relationship("Task",
                                    backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
+    order = Column(Integer, nullable=False)
     path = Column(String(255))
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
