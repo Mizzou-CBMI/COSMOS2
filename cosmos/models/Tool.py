@@ -154,9 +154,9 @@ class Tool(object):
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        for path, name, format in self.load_sources:
+        for i, (path, name, format) in enumerate(self.load_sources):
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True,
-                     basename=os.path.basename(path))
+                     basename=os.path.basename(path), order=i)
 
         for i, output in enumerate(self.outputs):
             name = str_format(output.name, dict(i=inputs, **self.tags))

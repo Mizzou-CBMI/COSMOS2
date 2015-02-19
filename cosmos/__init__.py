@@ -81,7 +81,7 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
 
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
-        #     if database_url[0] != '/':
+        # if database_url[0] != '/':
         #         # database_url is a relative root_path
         #         database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
         #     else:
@@ -266,7 +266,7 @@ import enum
 
 class MyEnum(enum.Enum):
     def __str__(self):
-        return "%s" % (self._value_)
+        return "%s" % self._value_
 
 
 NOOP = '<NO OPERATION>'
@@ -305,10 +305,6 @@ class RelationshipType(MyEnum):
     many2one = 'many2one',
     many2many = 'many2many'
 
-
-# so alembic can reflect
-from sqlalchemy.dialects.postgresql.base import ischema_names
-ischema_names['RelationshipType'] = RelationshipType
 
 ########################################################################################################################
 # Imports

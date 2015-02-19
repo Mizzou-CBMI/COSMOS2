@@ -37,8 +37,6 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     execution_id = Column(ForeignKey('execution.id', ondelete="CASCADE"), nullable=False, index=True)
-    execution = relationship("Execution",
-                             backref=backref("stages", cascade="all, delete-orphan", order_by="Stage.number"))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     #relationship_type = Column(Enum34_ColumnType(RelationshipType))
@@ -46,6 +44,7 @@ class Stage(Base):
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
     parents = association_proxy('incoming_edges', 'parent', creator=lambda n: StageEdge(parent=n))
     children = association_proxy('outgoing_edges', 'child', creator=lambda n: StageEdge(child=n))
+    tasks = relationship("Task", backref="stage", cascade="all, delete-orphan", passive_deletes=True)
 
 
     @declared_attr

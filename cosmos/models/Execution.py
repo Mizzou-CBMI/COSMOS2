@@ -6,7 +6,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
 from sqlalchemy import orm
 from sqlalchemy.sql.expression import func
-from sqlalchemy.orm import validates, synonym
+from sqlalchemy.orm import validates, synonym, relationship, backref
 from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
@@ -85,6 +85,8 @@ class Execution(Base):
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
+    stages = relationship("Stage", cascade="all, delete-orphan", order_by="Stage.number", passive_deletes=True,
+                          backref='execution')
 
     exclude_from_dict = ['info']
 
@@ -178,6 +180,10 @@ class Execution(Base):
             tool.task = task
             new_tasks.append(task)
         stage.parents += list(new_parent_stages.difference(stage.parents))
+
+        #todo temporary
+        for t in new_tasks:
+            assert hasattr(t, 'tool')
         return new_tasks
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):

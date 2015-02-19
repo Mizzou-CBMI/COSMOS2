@@ -93,7 +93,7 @@ def task_status_changed(task):
 
 # task_edge_table = Table('task_edge', Base.metadata,
 # Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-#                         Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
+# Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
 
 
 
@@ -129,7 +129,6 @@ class Task(Base):
     tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
     # tags = Column(MutableDict.as_mutable(JSONEncodedDict))
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
-    stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
     log_dir = Column(String(255))
     output_dir = Column(String(255))
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
@@ -143,6 +142,8 @@ class Task(Base):
     parents = association_proxy('incoming_edges', 'parent', creator=lambda n: TaskEdge(parent=n))
     children = association_proxy('outgoing_edges', 'child', creator=lambda n: TaskEdge(child=n))
     input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
+    output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
+                                passive_deletes=True)
     #command = Column(Text)
 
     @property
@@ -152,8 +153,10 @@ class Task(Base):
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
 
-    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
-                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
+    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count',
+                      'io_write_count', 'io_read_kb', 'io_write_kb',
+                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb',
+                      'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
     exclude_from_dict = profile_fields + ['command', 'info']
@@ -321,9 +324,11 @@ class TaskEdge(Base):
     __tablename__ = 'task_edge'
     #id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=parent_id == Task.id)
+    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True),
+                          primaryjoin=parent_id == Task.id)
     child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=child_id == Task.id)
+    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True),
+                         primaryjoin=child_id == Task.id)
 
     def __init__(self, parent=None, child=None):
         self.parent = parent

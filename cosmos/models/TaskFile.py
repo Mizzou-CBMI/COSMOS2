@@ -116,8 +116,6 @@ class TaskFile(Base):
 
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id', ondelete="CASCADE"), index=True)
-    task_output_for = relationship("Task",
-                                   backref=backref('output_files', cascade="all, delete-orphan", single_parent=True))
     order = Column(Integer, nullable=False)
     path = Column(String(255))
     name = Column(String(255), nullable=False)

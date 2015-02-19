@@ -1,6 +1,7 @@
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 
+
 class Enum34_ColumnType(types.TypeDecorator):
     """
     Enum compatible with enum34 package
@@ -28,6 +29,7 @@ class Enum34_ColumnType(types.TypeDecorator):
     def copy(self):
         return Enum34_ColumnType(self.enum_class)
 
+
 class ListOfStrings(types.TypeDecorator):
     """
     Enum compatible with enum34 package
@@ -44,17 +46,20 @@ class ListOfStrings(types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return value.split(', ') if value else []
 
+
 def get_or_create(session, model, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance, False
     else:
         instance = model(**kwargs)
-        #session.add(instance)
+        # session.add(instance)
         return instance, True
+
 
 from sqlalchemy.types import TypeDecorator, VARCHAR
 import json
+
 
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."
@@ -74,8 +79,8 @@ class JSONEncodedDict(TypeDecorator):
                 return dict()
         return value
 
-class MutableDict(Mutable, dict):
 
+class MutableDict(Mutable, dict):
     @classmethod
     def coerce(cls, key, value):
         if not isinstance(value, MutableDict):
