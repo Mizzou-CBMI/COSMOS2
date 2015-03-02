@@ -171,7 +171,7 @@ class Cosmos(object):
             failed_tasks = [t for s in ex.stages for t in s.tasks if not t.successful]
             n = len(failed_tasks)
             if n:
-                ex.log.info('Deleting %s failed task(s), delete_files=%s' % (n, False))
+                ex.log.info('Deleting %s failed task(s) from SQL database, delete_files=%s' % (n, False))
                 # stages_with_failed_tasks = set()
                 for t in failed_tasks:
                     session.delete(t)
@@ -192,6 +192,7 @@ class Cosmos(object):
         ex.max_cpus = max_cpus
         ex.max_attempts = max_attempts
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
+        ex.info['cwd'] = os.getcwd()
         session.commit()
         session.expunge_all()
         session.add(ex)

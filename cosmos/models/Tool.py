@@ -156,7 +156,7 @@ class Tool(object):
         # Create output TaskFiles
         for i, (path, name, format) in enumerate(self.load_sources):
             TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True,
-                     basename=os.path.basename(path), order=i)
+                     basename=os.path.basename(path), order=i, duplicate_ok=True)
 
         for i, output in enumerate(self.outputs):
             name = str_format(output.name, dict(i=inputs, **self.tags))
@@ -200,7 +200,7 @@ class Tool(object):
         aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif, error_if_missing=True)))
                                             for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
-        #outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
+        # outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
         outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         out = self.cmd(inputs, outputs, **params)
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
@@ -350,7 +350,7 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # op, number = parse_aif_cardinality(aif.n)
 # print op, number
 # if op in ['=', '=='] and number == 1:
-#             yield taskfiles[0]
+# yield taskfiles[0]
 #         else:
 #             yield taskfiles
 

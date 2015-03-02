@@ -7,11 +7,11 @@ class Enum34_ColumnType(types.TypeDecorator):
     Enum compatible with enum34 package
     """
 
-    impl = types.Enum
+    impl = types.String
 
-    def __init__(self, enum_class):
+    def __init__(self, enum_class, *args, **kwargs):
         self.enum_class = enum_class
-        return types.TypeDecorator.__init__(self, *enum_class._member_names_, name=enum_class.__name__)
+        return types.TypeDecorator.__init__(self, *args, **kwargs)
 
     def _set_table(self, table, column):
         """

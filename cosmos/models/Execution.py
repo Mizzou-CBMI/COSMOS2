@@ -12,6 +12,7 @@ import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 import atexit
 from ..util.iterstuff import only_one
+import sys
 
 from ..util.helpers import duplicates, groupby2
 from ..db import Base
@@ -242,7 +243,7 @@ class Execution(Base):
         import itertools as it
 
         def assert_no_duplicate_taskfiles():
-            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files)
+            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
             f = lambda tf: tf.path
             for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
                 group = list(group)
@@ -457,6 +458,8 @@ class Execution(Base):
                 h.close()
                 self.log.removeHandler(h)
                 # time.sleep(.1)  # takes a second for logs to flush?
+
+        print >> sys.stderr, 'Deleting output_dir: %s...' % self.output_dir
         if delete_files and os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
 
@@ -471,8 +474,10 @@ class Execution(Base):
         # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
         # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
         #
+        print >> sys.stderr, 'Deleting from SQL...'
         self.session.delete(self)
         self.session.commit()
+        print >> sys.stderr, '%s Deleted' % self
 
         # def yield_outputs(self, name):
         # for task in self.tasks:

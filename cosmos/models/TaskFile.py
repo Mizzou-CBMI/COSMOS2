@@ -117,11 +117,12 @@ class TaskFile(Base):
     id = Column(Integer, primary_key=True)
     task_output_for_id = Column(ForeignKey('task.id', ondelete="CASCADE"), index=True)
     order = Column(Integer, nullable=False)
-    path = Column(String(255))
+    path = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
     format = Column(String(255), nullable=False)
     basename = Column(String(255), nullable=False)  # todo basename redundant with path?
     persist = Column(Boolean, default=False)
+    duplicate_ok = Column(Boolean, default=False)
     tasks_input_for = association_proxy('_input_file_assocs', 'task', creator=lambda t: InputFileAssociation(task=t))
 
     # @property
