@@ -84,14 +84,11 @@ class InputFileAssociation(Base):
     __tablename__ = 'input_file_assoc'
     forward = Column(Boolean, default=False)
     task_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    task = relationship("Task", backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
     taskfile_id = Column(Integer, ForeignKey('taskfile.id', ondelete="CASCADE"), primary_key=True)
-    taskfile = relationship("TaskFile",
-                            backref=backref("_input_file_assocs", cascade="all, delete-orphan", single_parent=True))
 
     # def delete(self):
     # self.task._input_file_assocs.remove(self)
-    #     self.taskfile._input_file_assocs.remove(self)
+    # self.taskfile._input_file_assocs.remove(self)
 
     def __init__(self, taskfile=None, task=None, forward=False):
         assert not (taskfile is None and task is None)
@@ -123,11 +120,13 @@ class TaskFile(Base):
     basename = Column(String(255), nullable=False)  # todo basename redundant with path?
     persist = Column(Boolean, default=False)
     duplicate_ok = Column(Boolean, default=False)
+    _input_file_assocs = relationship("InputFileAssociation", backref=backref("taskfile"), cascade="all, delete-orphan",
+                                      passive_deletes=True)
     tasks_input_for = association_proxy('_input_file_assocs', 'task', creator=lambda t: InputFileAssociation(task=t))
 
     # @property
     # def basename(self):
-    #     return os.path.basename(self.path)
+    # return os.path.basename(self.path)
 
     # @property
     # def tasks_input_for(self):
@@ -155,7 +154,7 @@ class TaskFile(Base):
 
     def __repr__(self):
         return '<TaskFile[%s] %s.%s:%s>' % (
-        self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
+            self.id or 'id_%s' % id(self), self.name, self.format, self.path or 'no_path_yet')
 
     def delete(self, delete_file=True):
         """

@@ -14,7 +14,8 @@ from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+#from sqlalchemy_utils.types.json import JSONType
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 from .TaskFile import InputFileAssociation
@@ -127,7 +128,8 @@ class Task(Base):
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
-    # tags = Column(MutableDict.as_mutable(JSONEncodedDict))
+    # tags2 = Column(MutableDict.as_mutable(JSONEncodedDict))
+    # tags3 = Column(MutableDict.as_mutable(JSONType))
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     output_dir = Column(String(255))
@@ -144,10 +146,13 @@ class Task(Base):
     input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
     output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
                                 passive_deletes=True)
-    #command = Column(Text)
+    _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
+                                      passive_deletes=True)
+    # command = Column(Text)
 
     @property
     def input_files(self):
+        #todo this should be an assoc proxy?
         return [ifa.taskfile for ifa in self._input_file_assocs]
 
     drm_native_specification = Column(String(255))
@@ -322,12 +327,14 @@ class Task(Base):
 
 class TaskEdge(Base):
     __tablename__ = 'task_edge'
-    #id = Column(Integer, primary_key=True)
+    # id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True),
+    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True,
+                                                  passive_deletes=True),
                           primaryjoin=parent_id == Task.id)
     child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True),
+    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True,
+                                                 passive_deletes=True),
                          primaryjoin=child_id == Task.id)
 
     def __init__(self, parent=None, child=None):

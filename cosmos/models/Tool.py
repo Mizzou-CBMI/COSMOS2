@@ -63,6 +63,8 @@ class Tool(object):
     def __init__(self, tags, parents=None, out=''):
         """
         :param tags: (dict) A dictionary of tags.
+        :param parents: (list of Tasks).  A list of parent tasks
+        :param out: an output directory, will be .format()ed with tags
         """
         assert isinstance(tags, dict), '`tags` must be a dict'
         assert isinstance(out, basestring), '`out` must be a str'

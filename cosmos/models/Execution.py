@@ -148,6 +148,10 @@ class Execution(Base):
         assert len(tools) > 0, '`tools` cannot be an empty list'
         tools = filter(bool, tools)
 
+        for t in tools:
+            for p in t.task_parents:
+                assert p.execution == self, "cannot add a tool who's parent tasks belong to a different execution"
+
         if name is None:
             name = tools[0].__class__.__name__
 

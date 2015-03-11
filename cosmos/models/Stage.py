@@ -159,11 +159,11 @@ class StageEdge(Base):
     parent_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
     parent = relationship("Stage", primaryjoin=parent_id == Stage.id,
                           backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",
-                                          single_parent=True))
+                                          single_parent=True, passive_deletes=True))
     child_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
     child = relationship("Stage", primaryjoin=child_id == Stage.id,
                          backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",
-                                         single_parent=True))
+                                         single_parent=True, passive_deletes=True))
 
     def __init__(self, parent=None, child=None):
         self.parent = parent

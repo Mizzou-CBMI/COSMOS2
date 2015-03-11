@@ -1,7 +1,7 @@
 import itertools as it
 from operator import attrgetter
 
-from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort
+from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request
 from sqlalchemy import desc
 
 from .. import Execution, Stage, Task, TaskStatus
@@ -77,7 +77,21 @@ def gen_bprint(cosmos_app):
     #         return abort(404)
     #     return redirect(url_for('cosmos.task_friendly', ex_name=task.execution.name, stage_name=task.stage.name, task_id=task.id))
 
-    @bprint.route('/execution/<ex_name>/<stage_name>/<task_id>')
+    # @bprint.route('/execution/<ex_name>/<stage_name>/task/')
+    # def task(ex_name, stage_name):
+    #     # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
+    #     #                   task.profile_fields for field in fields]
+    #     assert request.method == 'GET'
+    #     tags = request.args
+    #     ex = session.query(Execution).filter_by(name=ex_name).one()
+    #     stage = session.query(Stage).filter_by(execution=ex, name=stage_name).one()
+    #     task = session.query(Task).filter_by(stage=stage, tags=tags).one()
+    #     if task is None:
+    #         return abort(404)
+    #     resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
+    #     return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
+
+    @bprint.route('/execution/<ex_name>/<stage_name>/task/<task_id>')
     def task(ex_name, stage_name, task_id):
         # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
         #                   task.profile_fields for field in fields]
