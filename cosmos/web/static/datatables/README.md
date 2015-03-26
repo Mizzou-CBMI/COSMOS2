@@ -37,7 +37,7 @@ Note: These are extended pagination types without modifying the existing paginat
 License
 -------------------------------
 [Included as per request of an user in github]
-This is an extension of datatables and shares some code with the existing jquery datatables. License of datatables might apply to this plugin as well by way of inheritance.
+This is an extension of datatables and shares some code with the existing jquery datatables. License of datatables might one2one to this plugin as well by way of inheritance.
 
 As far as license for this plugin goes, here is the gist:
 

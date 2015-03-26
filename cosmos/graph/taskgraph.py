@@ -1,20 +1,27 @@
 import functools
+import os
 
 import networkx as nx
 
-from ..util.helpers import duplicates
+from ..util.helpers import duplicates, str_format
 from ..util.sqla import get_or_create
 from .. import Stage
 
-def get_or_create_task(successful_tasks, tags, stage, parents, default_drm, tool=None):
+def get_or_create_task(successful_tasks, tags, stage, parents, default_drm, output_dir_pre_interpolation, tool=None):
+    output_dir = str_format(output_dir_pre_interpolation, tags)
+    output_dir = os.path.join(stage.execution.output_dir, output_dir)
+
     existing_task = successful_tasks.get(frozenset(tags.items()), None)
     if existing_task:
         return existing_task
     else:
-        if tool is None:
-            tool = stage.tool_class(tags=tags)
+        if tool is not None:
+            tool.output_dir = output_dir
+        else:
+            tool = stage.tool_class(tags=tags, output_dir=output_dir)
 
         return tool._generate_task(stage=stage, parents=parents, default_drm=default_drm)
+
 
 def render_recipe(execution, recipe, default_drm):
     """
@@ -32,14 +39,17 @@ def render_recipe(execution, recipe, default_drm):
         stage.number = i + 1
         stage.parents = stage_g.predecessors(stage)
         if not stage.resolved:
-            successful_tasks = {frozenset(t.tags.items()): t for t in stage.tasks}  # successful because failed jobs have been deleted.
+            successful_tasks = {frozenset(t.tags.items()): t for t in
+                                stage.tasks}  # successful because failed jobs have been deleted.
             if stage.is_source:
                 for source_tool in stage.recipe_stage.source_tools:
-                    task = get_or_create_task(successful_tasks, source_tool.tags, stage, [], default_drm, tool=source_tool)
+                    task = get_or_create_task(successful_tasks, source_tool.tags, stage, [], default_drm,
+                                              stage.output_dir_pre_interpolation, tool=source_tool)
                     task_g.add_node(task)
             else:
                 for new_task_tags, parent_tasks in stage.rel.__class__.gen_task_tags(stage):
-                    task = get_or_create_task(successful_tasks, new_task_tags, stage, parent_tasks, default_drm)
+                    task = get_or_create_task(successful_tasks, new_task_tags, stage, parent_tasks, default_drm,
+                                              stage.output_dir_pre_interpolation)
                     task_g.add_edges_from([(p, task) for p in parent_tasks])
 
         stage.resolved = True
@@ -52,7 +62,6 @@ def render_recipe(execution, recipe, default_drm):
     return task_g, stage_g
 
 
-
 def recipe_stage2stage(recipe_stage, execution):
     """
     Creates a Stage object from a RecipeStage object
@@ -63,7 +72,7 @@ def recipe_stage2stage(recipe_stage, execution):
     # if not created:
     # execution.log.info('Loaded Stage %s' % stage.name)
     # else:
-    #     execution.log.info('Created Stage %s' % stage.name)
+    # execution.log.info('Created Stage %s' % stage.name)
 
     for k, v in recipe_stage.properties.items():
         if k != 'tasks':

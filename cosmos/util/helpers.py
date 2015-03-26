@@ -29,8 +29,8 @@ def has_duplicates(alist):
 #
 # def dag_descendants(node):
 # """
-#     :param node: A Task or Stage instance
-#     :yields: a list of descendent task or stages
+# :param node: A Task or Stage instance
+# :yields: a list of descendent task or stages
 #
 #     This code is really simple because there are no cycles.
 #     """
@@ -91,15 +91,25 @@ def confirm(prompt=None, default=False, timeout=0):
             if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout, 'yes' if default else 'no')
+            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout,
+                                                                                         'yes' if default else 'no')
             return default
 
 
+#created_already = set()
 def mkdir(path):
-    sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
+    global created_already
+    #sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
+    if not os.path.exists(path):
+        #created_already.add(path)
+        os.makedirs(path)
 
 
-def groupby(iterable, fxn):
+def isgenerator(iterable):
+    return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
+
+
+def groupby2(iterable, fxn):
     """aggregates an iterable using a function"""
     return it.groupby(sorted(iterable, key=fxn), fxn)
 
@@ -110,14 +120,15 @@ def duplicates(iterable):
         if len(list(group)) > 1:
             yield x
 
-def str_format(s, d):
+
+def str_format(s, d, error_text=''):
     """
     Format()s string s with d.  If there is an error, print helpful message.
     """
     try:
         return s.format(**d)
     except Exception as e:
-        formatError(s, d)
+        formatError(s, d, error_text)
         raise
 
 
@@ -126,12 +137,13 @@ def strip_lines(txt):
     return '\n'.join(map(lambda s: s.strip(), txt.strip().split('\n')))
 
 
-def formatError(txt, dict):
+def formatError(txt, dict, error_text=''):
     """
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
     s = "{star}\n" \
         "format() error:\n" \
+        "{error_text}" \
         "txt:\n" \
         "{txt}\n" \
         "{dash}\n" \
@@ -140,7 +152,8 @@ def formatError(txt, dict):
         star='*' * 76,
         txt=txt,
         dash='-' * 76,
-        dic=pprint.pformat(dict, indent=4))
+        dic=pprint.pformat(dict, indent=4),
+        error_text=error_text + "\n")
     print s
 
 

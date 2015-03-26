@@ -14,7 +14,8 @@ from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from sqlalchemy_utils.types.json import JSONType
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 from .TaskFile import InputFileAssociation
@@ -93,7 +94,7 @@ def task_status_changed(task):
 
 # task_edge_table = Table('task_edge', Base.metadata,
 # Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
-#                         Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
+# Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
 
 
 
@@ -126,10 +127,9 @@ class Task(Base):
     cpu_req = Column(Integer, default=1)
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
-    tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
-    # tags = Column(MutableDict.as_mutable(JSONEncodedDict))
-    stage_id = Column(ForeignKey('stage.id'), nullable=False)
-    stage = relationship("Stage", backref=backref("tasks", cascade="all, delete-orphan"))
+    tags = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    tags2 = Column(MutableDict.as_mutable(JSONType), nullable=False, server_default='{}')
+    stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     output_dir = Column(String(255))
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
@@ -143,17 +143,24 @@ class Task(Base):
     parents = association_proxy('incoming_edges', 'parent', creator=lambda n: TaskEdge(parent=n))
     children = association_proxy('outgoing_edges', 'child', creator=lambda n: TaskEdge(child=n))
     input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
-    #command = Column(Text)
+    output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
+                                passive_deletes=True)
+    _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
+                                      passive_deletes=True)
+    # command = Column(Text)
 
     @property
     def input_files(self):
+        #todo this should be an assoc proxy?
         return [ifa.taskfile for ifa in self._input_file_assocs]
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
 
-    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count', 'io_write_count', 'io_read_kb', 'io_write_kb',
-                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb', 'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
+    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count',
+                      'io_write_count', 'io_read_kb', 'io_write_kb',
+                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb',
+                      'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
     exclude_from_dict = profile_fields + ['command', 'info']
@@ -266,11 +273,14 @@ class Task(Base):
         for k, v in self.profile.items():
             setattr(self, k, v)
 
-    def all_predecessors(self):
+    def all_predecessors(self, as_dict=False):
         """
         :return: (list) all tasks that descend from this task in the task_graph
         """
-        return set(breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self).values())
+        d = breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self)
+        if as_dict:
+            return d
+        return set(d.values())
 
     def all_successors(self):
         """
@@ -316,11 +326,15 @@ class Task(Base):
 
 class TaskEdge(Base):
     __tablename__ = 'task_edge'
-    #id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
-    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=parent_id == Task.id)
-    child_id = Column(Integer, ForeignKey('task.id'), primary_key=True)
-    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True), primaryjoin=child_id == Task.id)
+    # id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
+    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True,
+                                                  passive_deletes=True),
+                          primaryjoin=parent_id == Task.id)
+    child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
+    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True,
+                                                 passive_deletes=True),
+                         primaryjoin=child_id == Task.id)
 
     def __init__(self, parent=None, child=None):
         self.parent = parent

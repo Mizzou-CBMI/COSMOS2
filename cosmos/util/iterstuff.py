@@ -2,6 +2,7 @@ import random
 import collections
 
 from operator import itemgetter
+import operator
 from itertools import (chain, combinations, count, cycle, groupby, ifilterfalse, imap,
                        islice, izip, izip_longest, repeat, starmap, tee)
 
@@ -191,9 +192,11 @@ def tee_lookahead(t, i):
         return value
     raise IndexError(i)
 
-# InVitae's itertools recipes
+# Custom itertools recipes
 
 _nothing = object()
+
+
 
 def first(iterable, default=_nothing):
     """Return the first item of an iterable, ``default`` if there is none."""
@@ -249,3 +252,9 @@ def chunked(iterable, n):
 def ilen(iterable):
     """Return the number of items in ``iterable``."""
     return sum(1 for _ in iterable)
+
+
+def split_on_condition(condition, seq):
+    """return two generators, elements in seq that pass condition and elements in seq that do not pass the condition"""
+    l1,l2 = tee((condition(item),item) for item in seq)
+    return (i for p, i in l1 if p), (i for p, i in l2 if not p)

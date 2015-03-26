@@ -5,9 +5,11 @@ import itertools as it
 import operator
 from collections import OrderedDict
 
-from .. import TaskFile, Task
+from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation
-from ..util.helpers import str_format, groupby, has_duplicates, strip_lines
+from ..util.iterstuff import only_one
+from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
+import types
 
 
 class ToolValidationError(Exception): pass
@@ -47,27 +49,51 @@ class Tool(object):
     time_req = None
     cpu_req = None
     must_succeed = True
-    NOOP = False
+    # NOOP = False
     persist = False
     drm = None
     skip_profile = False
-    inputs = []
-    outputs = []
+    inputs = []  # class property!
+    outputs = []  # class property!
+    output_dir = None
+
     # if adding another attribute, don't forget to update the chain() method
 
 
-    def __init__(self, tags):
+    def __init__(self, tags, parents=None, out=''):
         """
         :param tags: (dict) A dictionary of tags.
+        :param parents: (list of Tasks).  A list of parent tasks
+        :param out: an output directory, will be .format()ed with tags
         """
-        self.tags = tags
+        assert isinstance(tags, dict), '`tags` must be a dict'
+        assert isinstance(out, basestring), '`out` must be a str'
+        if isinstance(parents, types.GeneratorType):
+            parents = list(parents)
+        if parents is None:
+            parents = []
+        if issubclass(parents.__class__, Task):
+            parents = [parents]
+        else:
+            parents = list(parents)
+
+        assert hasattr(parents, '__iter__'), 'Tried to set %s.parents to %s which is not iterable' % (self, parents)
+        assert all(issubclass(p.__class__, Task) for p in parents), 'parents must be an iterable of Tasks or a Task'
+
+        parents = filter(lambda p: p is not None, parents)
+
+        self.tags = tags.copy()  # can't expect the User to remember to do this.
         self.__validate()
-        self.load_sources = []
+        self.load_sources = []  # for Inputs
+        self.out = out
+        self.task_parents = parents if parents else []
 
 
     def __validate(self):
-        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
-        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
+        assert all(i.__class__.__name__ == 'AbstractInputFile' for i in
+                   self.inputs), '%s Tool.inputs must be of type AbstractInputFile' % self
+        assert all(o.__class__.__name__ == 'AbstractOutputFile' for o in
+                   self.outputs), '%s Tool.outputs must be of type AbstractOutputFile' % self
 
         if has_duplicates([(i.name, i.format) for i in self.inputs]):
             raise ToolValidationError("Duplicate task.inputs detected in {0}".format(self))
@@ -76,19 +102,25 @@ class Tool(object):
             raise ToolValidationError("Duplicate task.outputs detected in {0}".format(self))
 
         argspec = getargspec(self.cmd)
-        # assert {'i', 'o', 's'}.issubset(argspec.args), 'Invalid %s.cmd signature' % self
+        if isinstance(argspec.args[1], list):
+            assert len(argspec.args[1]) == len(self.inputs), '%s.cmd will not unpack its inputs correctly.' % self
+        if isinstance(argspec.args[2], list):
+            assert len(argspec.args[2]) == len(self.outputs), '%s.cmd will not unpack its outputs correctly' % self
 
         reserved = {'name', 'format', 'basename'}
         if not set(self.tags.keys()).isdisjoint(reserved):
-            raise ToolValidationError("%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
+            raise ToolValidationError(
+                "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
 
-    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles):
+    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
-            raise ToolValidationError('%s does not have right number of inputs: for %s.  %s inputs found.' % (self, abstract_input_file, real_count))
+            s = '{self} does not have right number of inputs: for {abstract_input_file}.  \n' \
+                '{real_count} inputs found in parents: {parents}'.format(**locals())
+            raise ToolValidationError(s)
 
 
     def _map_inputs(self, parents):
@@ -98,7 +130,7 @@ class Tool(object):
         """
         for aif_index, abstract_input_file in enumerate(self.inputs):
             mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
-            self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles)
+            self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles, parents)
             yield abstract_input_file, mapped_input_taskfiles
 
 
@@ -108,30 +140,41 @@ class Tool(object):
                 yield tf
 
     def _generate_task(self, stage, parents, default_drm):
-        d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed', 'NOOP']}
+        assert self.out is not None
+        output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
+        output_dir = os.path.join(stage.execution.output_dir, output_dir)
+        d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
         aif_2_input_taskfiles = OrderedDict(self._map_inputs(parents))
 
-        ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for tf in tfs]
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, **d)
+        ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
+                tf in tfs]
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=output_dir, **d)
         task.skip_profile = self.skip_profile
 
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
         # Create output TaskFiles
-        for path, name, format in self.load_sources:
-            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True)
+        for i, (path, name, format) in enumerate(self.load_sources):
+            TaskFile(name=name, format=format, path=path, task_output_for=task, persist=True,
+                     basename=os.path.basename(path), order=i, duplicate_ok=True)
 
-        for output in self.outputs:
+        for i, output in enumerate(self.outputs):
             name = str_format(output.name, dict(i=inputs, **self.tags))
+            # get basename
             if output.basename is None:
-                basename = None
+                if output.format == 'dir':
+                    basename = output.name
+                else:
+                    basename = '%s.%s' % (name, output.format)
             else:
-                d = self.tags.copy()
-                d.update(dict(name=name, format=output.format, i=inputs))
-                basename = str_format(output.basename, dict(**d))
-            TaskFile(task_output_for=task, persist=self.persist, name=name, format=output.format, basename=basename)
+                basename = output.basename
+
+            basename = str_format(basename, dict(name=name, format=output.format, i=inputs, **self.tags))
+            tf = TaskFile(task_output_for=task, persist=output.persist, name=name, format=output.format,
+                          path=opj(output_dir, basename), basename=basename, order=i)
+            tf.abstract_output_file = output  # for getting sort order when passing to cmd
 
         task.tool = self
         return task
@@ -145,21 +188,24 @@ class Tool(object):
         argspec = getargspec(self.cmd)
         self.task = task
         params = {k: v for k, v in self.tags.items() if k in argspec.args}
-        ndefaults = len(argspec.defaults) if argspec.defaults else 0
-        for arg in argspec.args[3:len(argspec.args) - ndefaults]:
-            if arg not in params:
-                raise AttributeError('%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                                     'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
-        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif))) for aif in self.inputs)
+        def validate_params():
+            ndefaults = len(argspec.defaults) if argspec.defaults else 0
+            for arg in argspec.args[3:len(argspec.args) - ndefaults]:
+                if arg not in params:
+                    raise AttributeError(
+                        '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                        'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
+        validate_params()
 
+        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif, error_if_missing=True)))
+                                            for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
-        outputs = output_taskfiles
-
+        # outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
+        outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         out = self.cmd(inputs, outputs, **params)
-        assert isinstance(out, str), '%s.cmd did not return a str' % self
-
+        assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
         return strip_lines(out)
@@ -183,10 +229,17 @@ class Tool(object):
         """
         Generates the command
         """
+        cmd = self._cmd(task.input_files, task.output_files, task)
+        if cmd == NOOP:
+            return NOOP
         return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
+
+    def __repr__(self):
+        return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
 
 
 from collections import namedtuple
+
 
 class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
     def __init__(self, path, name=None, format=None):
@@ -197,6 +250,17 @@ class InputSource(namedtuple('InputSource', ['path', 'name', 'format'])):
             format = os.path.splitext(basename)[-1][1:]  # remove the '.'
 
         super(InputSource, self).__init__(path, name, format)
+
+
+def set_default_name_format(path, name=None, format=None):
+    default_name, default_ext = os.path.splitext(os.path.basename(path))
+
+    if name is None:
+        name = default_name
+    if format is None:
+        format = default_ext[1:]
+
+    return name, format
 
 
 class Input(Tool):
@@ -219,14 +283,19 @@ class Input(Tool):
         :param tags: tags for the task that will be generated
         :param format: the format of the input file.  Defaults to the value in `name`
         """
-        self.NOOP = True
+        # self.NOOP = True
 
         path = _abs(path)
         if tags is None:
             tags = dict()
 
+        name, format = set_default_name_format(path, name, format)
+
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.load_sources.append(InputSource(path, name, format))
+
+    def cmd(self, inputs, outputs):
+        return NOOP
 
 
 class Inputs(Tool):
@@ -244,13 +313,17 @@ class Inputs(Tool):
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
         """
-        self.NOOP = True
+        # self.NOOP = True
         if tags is None:
             tags = dict()
 
         super(Inputs, self).__init__(tags=tags, *args, **kwargs)
         for path, name, fmt in inputs:
+            name, fmt = set_default_name_format(path, name, fmt)
             self.load_sources.append(InputSource(path, name, fmt))
+
+    def cmd(self, inputs, outputs):
+        return NOOP
 
 
 def _abs(path):
@@ -270,18 +343,16 @@ def unpack_taskfiles_with_cardinality_1(odict):
     return new
 
 
-
-
 # def group_taskfiles_by_aif(taskfiles):
-#     f = lambda tf: tf.abstract_input_file_mapping
-#     for (aif_index, aif), taskfiles in it.groupby(sorted(taskfiles, key=f), f):
-#         print (aif_index, aif)
-#         taskfiles = list(taskfiles)
-#         print taskfiles
-#         op, number = parse_aif_cardinality(aif.n)
-#         print op, number
-#         if op in ['=', '=='] and number == 1:
-#             yield taskfiles[0]
+# f = lambda tf: tf.abstract_input_file_mapping
+# for (aif_index, aif), taskfiles in it.groupby2(sorted(taskfiles, key=f), f):
+# print (aif_index, aif)
+# taskfiles = list(taskfiles)
+# print taskfiles
+# op, number = parse_aif_cardinality(aif.n)
+# print op, number
+# if op in ['=', '=='] and number == 1:
+# yield taskfiles[0]
 #         else:
 #             yield taskfiles
 
@@ -297,20 +368,20 @@ def unpack_taskfiles_with_cardinality_1(odict):
 #         self.type = type
 #         self.taskfiles = taskfiles
 #         if type == 'input':
-#             kwargs = {name: list(input_files) for name, input_files in groupby(taskfiles, lambda i: i.name)}
+#             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
 #         else:
 #             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
 #
 #         super(TaskFileDict, self).__init__(**kwargs)
 #
-#         self.format = {fmt: list(output_files) for fmt, output_files in groupby(self.taskfiles, lambda i: i.format)}
+#         self.format = {fmt: list(output_files) for fmt, output_files in groupby2(self.taskfiles, lambda i: i.format)}
 #
 #
 #     def __iter__(self):
 #         if self.type == 'input':
 #             #f = lambda tf: getattr(tf, 'abstract_input_file_mapping', None)
 #             f = lambda tf: tf['abstract_input_file_mapping']
-#             for (aif_index, aif), taskfiles in it.groupby(sorted(self.taskfiles, key=f), f):
+#             for (aif_index, aif), taskfiles in it.groupby2(sorted(self.taskfiles, key=f), f):
 #                 taskfiles = list(taskfiles)
 #                 op, number = parse_aif_cardinality(aif.n)
 #                 if op in ['=', '=='] and number == 1:
@@ -349,103 +420,103 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # """
 #
 #
-class CollapsedTool(Tool):
-    pass
-
-
+# class CollapsedTool(Tool):
+#     pass
 #
 #
-def chain(*tool_classes):
-    """
-    Collapses multiple tools down into one, to reduce the number of jobs being submitted and general overhead by reducing the size of a taskgraph.
-
-    :param tool_classes: a iterable of Tools to chain
-    :param name: the name for the class.  Default is '__'.join(tool_classes)
-    :return: (str) a command
-    """
-    global CollapsedTool
-    tool_classes = tuple(tool_classes)
-    assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
-    assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
-    name = '__'.join(t.name for t in tool_classes)
-
-
-    def _generate_command(self, task):
-        """
-        Generates the command
-        """
-
-        def chained_tools(tool_classes, task):
-            """
-            Instantiate all tools with their correct i/o
-            """
-            all_outputs = task.output_files[:]
-            this_input_taskfiles = task.input_files
-            for tool_class in tool_classes:
-                tool = tool_class(task.tags)
-
-                this_output_taskfiles = []
-                for abstract_output in tool.outputs:
-                    tf = next(_find(all_outputs, abstract_output, True))
-                    this_output_taskfiles.append(tf)
-                    all_outputs.remove(tf)
-
-                yield tool, this_input_taskfiles, this_output_taskfiles
-                for abstract_input in tool.inputs:
-                    if abstract_input.forward:
-                        this_output_taskfiles += list(_find(this_input_taskfiles, abstract_input, True))
-                this_input_taskfiles = this_output_taskfiles
-
-        # def chained_tools(tool_classes, task):
-        # """
-        # Instantiate all tools with their correct i/o
-        # """
-        # all_outputs = task.output_files[:]
-        # this_input_taskfiles = task.input_files
-        # import itertools as it
-        # def map_(input_files, abstract_outputs):
-        # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
-        #
-        # for i, tool in enumerate(tool_classes):
-        #         if i == 0:
-        #             # is first
-        #             yield tool, task.input_files, get_outs(task.input_files, tool.outputs)
-        #         elif i == len(tool_classes) - 1:
-        #             # is last
-        #             yield tool, task.input_files, task.output_files
-
-        cmd = self._prepend_cmd(task)
-        for tool, input_taskfiles, output_taskfiles in chained_tools(self.merged_tool_classes, task):
-            cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task)
-            cmd += '### ' + tool.name + ' ###\n\n'
-            cmd += cmd_result
-            cmd += '\n\n'
-
-        # only keep the last chained Tool's output files
-        # remove = set(task.output_files) - set(output_taskfiles)
-        # for tf in remove:
-        # for ifa in tf._input_file_assocs:
-        #         ifa.delete()
-        #     tf.task_output_for = None
-
-        return cmd
-
-
-    CollapsedTool = type(name, (CollapsedTool,),  # TODO: inherit from the merged tools, but without a metaclass conflict
-                         dict(merged_tool_classes=tool_classes,
-                              _generate_command=_generate_command,
-                              name=name,
-                              # inputs=tool_classes[0].inputs,
-                              outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
-                              # outputs=tool_classes[-1].outputs,
-                              mem_req=max(t.mem_req for t in tool_classes),
-                              time_req=max(t.time_req for t in tool_classes),
-                              cpu_req=max(t.cpu_req for t in tool_classes),
-                              must_succeed=any(t.must_succeed for t in tool_classes),
-                              persist=any(t.persist for t in tool_classes)
-                         )
-    )
-    return CollapsedTool
+# #
+# #
+# def chain(*tool_classes):
+#     """
+#     Collapses multiple tools down into one, to reduce the number of jobs being submitted and general overhead by reducing the size of a taskgraph.
+#
+#     :param tool_classes: a iterable of Tools to chain
+#     :param name: the name for the class.  Default is '__'.join(tool_classes)
+#     :return: (str) a command
+#     """
+#     global CollapsedTool
+#     tool_classes = tuple(tool_classes)
+#     assert all(issubclass(tc, Tool) for tc in tool_classes), 'tool_classes must be an iterable of Tool subclasses'
+#     #assert not any(t.NOOP for t in tool_classes), 'merging NOOP tool_classes not supported'
+#     name = '__'.join(t.name for t in tool_classes)
+#
+#
+#     def _generate_command(self, task):
+#         """
+#         Generates the command
+#         """
+#
+#         def chained_tools(tool_classes, task):
+#             """
+#             Instantiate all tools with their correct i/o
+#             """
+#             all_outputs = task.output_files[:]
+#             this_input_taskfiles = task.input_files
+#             for tool_class in tool_classes:
+#                 tool = tool_class(task.tags)
+#
+#                 this_output_taskfiles = []
+#                 for abstract_output in tool.outputs:
+#                     tf = next(_find(all_outputs, abstract_output, True))
+#                     this_output_taskfiles.append(tf)
+#                     all_outputs.remove(tf)
+#
+#                 yield tool, this_input_taskfiles, this_output_taskfiles
+#                 for abstract_input in tool.inputs:
+#                     if abstract_input.forward:
+#                         this_output_taskfiles += list(_find(this_input_taskfiles, abstract_input, True))
+#                 this_input_taskfiles = this_output_taskfiles
+#
+#         # def chained_tools(tool_classes, task):
+#         # """
+#         # Instantiate all tools with their correct i/o
+#         # """
+#         # all_outputs = task.output_files[:]
+#         # this_input_taskfiles = task.input_files
+#         # import itertools as it
+#         # def map_(input_files, abstract_outputs):
+#         # return list(it.chain(*(_find(input_files, aof, True) for aof in abstract_outputs))
+#         #
+#         # for i, tool in enumerate(tool_classes):
+#         #         if i == 0:
+#         #             # is first
+#         #             yield tool, task.input_files, get_outs(task.input_files, tool.outputs)
+#         #         elif i == len(tool_classes) - 1:
+#         #             # is last
+#         #             yield tool, task.input_files, task.output_files
+#
+#         cmd = self._prepend_cmd(task)
+#         for tool, input_taskfiles, output_taskfiles in chained_tools(self.merged_tool_classes, task):
+#             cmd_result = tool._cmd(input_taskfiles, output_taskfiles, task)
+#             cmd += '### ' + tool.name + ' ###\n\n'
+#             cmd += cmd_result
+#             cmd += '\n\n'
+#
+#         # only keep the last chained Tool's output files
+#         # remove = set(task.output_files) - set(output_taskfiles)
+#         # for tf in remove:
+#         # for ifa in tf._input_file_assocs:
+#         #         ifa.delete()
+#         #     tf.task_output_for = None
+#
+#         return cmd
+#
+#
+#     CollapsedTool = type(name, (CollapsedTool,),  # TODO: inherit from the merged tools, but without a metaclass conflict
+#                          dict(merged_tool_classes=tool_classes,
+#                               _generate_command=_generate_command,
+#                               name=name,
+#                               # inputs=tool_classes[0].inputs,
+#                               outputs=list(it.chain(*(tc.outputs for tc in tool_classes))),
+#                               # outputs=tool_classes[-1].outputs,
+#                               mem_req=max(t.mem_req for t in tool_classes),
+#                               time_req=max(t.time_req for t in tool_classes),
+#                               cpu_req=max(t.cpu_req for t in tool_classes),
+#                               must_succeed=any(t.must_succeed for t in tool_classes),
+#                               persist=any(t.persist for t in tool_classes)
+#                          )
+#     )
+#     return CollapsedTool
 
 
 def _find(taskfiles, abstract_file, error_if_missing=False):

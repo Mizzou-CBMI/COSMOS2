@@ -2,9 +2,10 @@
 # Task stuff
 #
 
-from ..util.helpers import groupby
+from ..util.helpers import groupby2
 from .. import TaskStatus
 import networkx as nx
+
 
 def draw_task_graph(task_graph):
     a = taskgraph_to_agraph(task_graph, False)
@@ -26,7 +27,7 @@ def taskgraph_to_agraph(task_graph, url=True):
     agraph.edge_attr['fontcolor'] = '#586e75'
 
     agraph.add_edges_from(task_graph.edges())
-    for stage, tasks in groupby(task_graph.nodes(), lambda x: x.stage):
+    for stage, tasks in groupby2(task_graph.nodes(), lambda x: x.stage):
         sg = agraph.add_subgraph(name="cluster_{0}".format(stage), label=str(stage), color='grey', style='dotted')
         for task in tasks:
             def truncate_val(kv):
@@ -42,9 +43,16 @@ def taskgraph_to_agraph(task_graph, url=True):
                             TaskStatus.failed: 'darkred',
                             TaskStatus.killed: 'darkred'}
 
-            sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank", color=status2color.get(task.status, 'black'))
+            sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank",
+                        color=status2color.get(task.status, 'black'))
 
     return agraph
+
+
+def taskgraph_to_image(taskgraph, path=None, url=True):
+    taskgraph.layout(prog="dot")
+    agraph = taskgraph_to_agraph(g, url=url)
+    return agraph.draw(path=path, format='svg')
 
 
 def tasks_to_image(tasks, path=None, url=True):
@@ -54,21 +62,21 @@ def tasks_to_image(tasks, path=None, url=True):
     g = nx.DiGraph()
     g.add_nodes_from(tasks)
     g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
+    return taskgraph_to_image(g, path=path, url=url)
 
-    g = taskgraph_to_agraph(g, url=url)
-    g.layout(prog="dot")
-    return g.draw(path=path, format='svg')
 
 #
 # Stage stuff
 #
-from .rel import RelationshipType
+from .. import RelationshipType
 from ..models.Stage import StageStatus
+
 
 def draw_stage_graph(stage_graph, save_to=None, url=True):
     g = stagegraph_to_agraph(stage_graph, url=url)
     g.layout(prog="dot")
     return g.draw(path=save_to, format='svg')
+
 
 def stagegraph_to_agraph(stage_graph, url=True):
     """
@@ -96,6 +104,7 @@ def stagegraph_to_agraph(stage_graph, url=True):
                         URL=stage.url if url else '', label=stage.label)
 
     for u, v in stage_graph.edges():
+        v.relationship_type = None
         if v.relationship_type == RelationshipType.many2one:
             agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), style='dotted', arrowhead='odiamond')
         elif v.relationship_type == RelationshipType.one2many:

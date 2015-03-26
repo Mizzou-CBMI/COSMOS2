@@ -5,7 +5,7 @@ from ..util.helpers import mkdir
 from .local import DRM_Local
 from .lsf import DRM_LSF
 from .ge import DRM_GE
-from .. import TaskStatus, StageStatus, ExecutionStatus
+from .. import TaskStatus, StageStatus, ExecutionStatus, NOOP
 import itertools as it
 from operator import attrgetter
 import subprocess as sp
@@ -29,12 +29,15 @@ class JobManager(object):
         self.running_tasks.append(task)
         task.status = TaskStatus.waiting
 
-        if task.NOOP:
+        command = task.tool._generate_command(task)
+
+        if command == NOOP:
+            task.NOOP = True
             task.status = TaskStatus.submitted
         else:
             mkdir(task.output_dir)
             mkdir(task.log_dir)
-            self._create_command_sh(task)
+            self._create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task.drm, task, default_queue=self.default_queue)
             assert task.drm is not None, 'task has no drm set'
             self.drms[task.drm].submit_job(task)
@@ -69,14 +72,14 @@ class JobManager(object):
                     t.execution.status = ExecutionStatus.failed
                 yield t
 
-    def _create_command_sh(self, task):
+    def _create_command_sh(self, task, command):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
             f.write('#!/bin/bash\n'
                     'set -e\n'
                     'set -o pipefail\n'
                     '\n'
-                    + task.command + "\n")
+                    + command + "\n")
         os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 
     def get_command_str(self, task):
