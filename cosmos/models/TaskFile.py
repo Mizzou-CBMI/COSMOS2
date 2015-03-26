@@ -35,16 +35,16 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-def abstract_input_taskfile_v2(name=None, format=None, forward=False, n=1):
-    """
-    :param name: (str) The name of the TaskFile(s)
-    :param format: (str) The format of the TaskFile(s)
-    :param forward: (bool) Forward this input as an output of this Tool
-    :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
-    :return: (AbstractInputFile)
-    """
-    assert name or format, 'must specify either name or format'
-    return AbstractInputFile(name=name, format=format, forward=forward, n=n)
+# def abstract_input_taskfile_v2(name=None, format=None, forward=False, n=1):
+#     """
+#     :param name: (str) The name of the TaskFile(s)
+#     :param format: (str) The format of the TaskFile(s)
+#     :param forward: (bool) Forward this input as an output of this Tool
+#     :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
+#     :return: (AbstractInputFile)
+#     """
+#     assert name or format, 'must specify either name or format'
+#     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
 def abstract_output_taskfile(name=None, format=None, basename=None, persist=False):
