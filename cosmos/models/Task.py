@@ -15,7 +15,7 @@ from networkx.algorithms import breadth_first_search
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
-#from sqlalchemy_utils.types.json import JSONType
+from sqlalchemy_utils.types.json import JSONType
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 from .TaskFile import InputFileAssociation
@@ -127,9 +127,8 @@ class Task(Base):
     cpu_req = Column(Integer, default=1)
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
-    tags = Column(MutableDict.as_mutable(PickleType), nullable=False)
-    # tags2 = Column(MutableDict.as_mutable(JSONEncodedDict))
-    # tags3 = Column(MutableDict.as_mutable(JSONType))
+    tags = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    tags2 = Column(MutableDict.as_mutable(JSONType), nullable=False, server_default='{}')
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     output_dir = Column(String(255))

@@ -107,7 +107,8 @@ class Execution(Base):
 
     @validates('name')
     def validate_name(self, key, name):
-        assert re.match(r"^[\.\w-]+$", name), 'Invalid execution name.'
+        assert re.match(r"^[\w-]+$", name), 'Invalid execution name, characters are limited to letters, numbers, ' \
+                                            'hyphens and underscores'
         return name
 
     @orm.reconstructor

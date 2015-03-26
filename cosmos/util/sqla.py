@@ -1,6 +1,6 @@
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
-
+import six
 
 class Enum34_ColumnType(types.TypeDecorator):
     """
@@ -64,11 +64,11 @@ import json
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."
 
-    impl = types.Text
+    impl = types.UnicodeText
 
     def process_bind_param(self, value, dialect):
         if value is not None:
-            value = json.dumps(value)
+            value = value = six.text_type(json.dumps(value))
         return value
 
     def process_result_value(self, value, dialect):
