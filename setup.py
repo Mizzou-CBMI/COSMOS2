@@ -45,7 +45,8 @@ setup(
         'configparser',
         "enum34",
         "flask-failsafe",
-        "six"
+        "six",
+        "sqlalchemy_utils"
 	],
     packages=find_packages(),
     include_package_data=True,

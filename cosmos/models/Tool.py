@@ -141,8 +141,8 @@ class Tool(object):
 
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
-        output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
-        output_dir = os.path.join(stage.execution.output_dir, output_dir)
+        self.output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
+        self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
@@ -150,7 +150,7 @@ class Tool(object):
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=output_dir, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir, **d)
         task.skip_profile = self.skip_profile
 
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
@@ -173,7 +173,7 @@ class Tool(object):
 
             basename = str_format(basename, dict(name=name, format=output.format, i=inputs, **self.tags))
             tf = TaskFile(task_output_for=task, persist=output.persist, name=name, format=output.format,
-                          path=opj(output_dir, basename), basename=basename, order=i)
+                          path=opj(self.output_dir, basename), basename=basename, order=i)
             tf.abstract_output_file = output  # for getting sort order when passing to cmd
 
         task.tool = self
