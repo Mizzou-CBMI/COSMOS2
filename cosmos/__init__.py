@@ -1,13 +1,13 @@
-from flask import Flask, url_for
+from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 import os
 import math
+import itertools as it
 
 from .util.helpers import get_logger, mkdir, confirm, str_format
 from .util.args import get_last_cmd_executed
 from .db import Base
-
 
 
 # turn SQLAlchemy warnings into errors
@@ -27,7 +27,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
-def default_get_submit_args(drm, task, default_queue=None):
+def default_get_submit_args(drm, task, default_queue=None, default_job_priority=None, use_mem_req=False):
     """
     Default method for determining the arguments to pass to the drm specified by :param:`drm`
 
@@ -38,30 +38,23 @@ def default_get_submit_args(drm, task, default_queue=None):
     cpu_req = task.cpu_req
     mem_req = task.mem_req
     time_req = task.time_req
-    jobname = '%s_task(%s)' % (task.stage.name, task.id)
 
-    if 'lsf' in drm:
-        return '-R "rusage[mem={mem}] span[hosts=1]" -n {cpu}{time}{queue} -J "{jobname}"'.format(
-            mem=(mem_req or 0) / cpu_req,
-            cpu=cpu_req,
-            time=' -W 0:{0}'.format(time_req) if time_req else '',
-            queue=' -q %s' % default_queue if default_queue else '',
-            jobname=jobname)
-    elif 'ge' in drm:
-        # return '-l h_vmem={mem_req}M,num_proc={cpu_req}'.format(
-        if mem_req:
-            mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req)))
-        else:
-            mem_req_s = ''
-        mem_req_s = ''
-        return '-pe smp {cpu_req}{queue}{mem_req_s} -N "{jobname}"'.format(mem_req_s=mem_req_s,
-                                                                           cpu_req=cpu_req,
-                                                                           queue=' -q %s' % default_queue if default_queue else '',
-                                                                           jobname=jobname)
+    jobname = '%s_task(%s)' % (task.stage.name, task.id)
+    queue = ' -q %s' % default_queue if default_queue else ''
+    priority = ' -p %s' % default_job_priority if default_job_priority else ''
+
+    if drm == 'lsf':
+        rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
+        time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
+        return '-R "{rusage}span[hosts=1]" -n {task.cpu_req}{time}{queue} -J "{jobname}"'.format(**locals())
+
+    elif drm == 'ge':
+        mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req))) if mem_req and use_mem_req else ''
+        return '-pe smp {cpu_req}{queue}{mem_req_s}{priority} -N "{jobname}"'.format(**locals())
     elif drm == 'local':
         return None
     else:
-        raise Exception('DRM not supported')
+        raise Exception('DRM not supported: %s' % drm)
 
 
 #########################################################################################################################
@@ -72,20 +65,14 @@ class Cosmos(object):
     def __init__(self, database_url, get_submit_args=default_get_submit_args,
                  default_drm='local', default_queue=None, flask_app=None, url_prefix=None):
         """
-
-        :param database_url: a sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or mysql://user:pass@localhost/insilico
-        :param get_submit_args: a function that returns arguments to be passed to the job submitter, like resource requirements or the queue to submit to.
-            see :func:`default_get_submit_args` for details
-        :param flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
+        :param str database_url: A sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or
+            mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
+        :param func get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
+            requirements or the queue to submit to.  See :func:`default_get_submit_args` for details
+        :param Flask flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
         """
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
-
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
-        # if database_url[0] != '/':
-        #         # database_url is a relative root_path
-        #         database_url = 'sqlite:///%s/%s' % (os.getcwd(), database_url)
-        #     else:
-        #         database_url = 'sqlite:///%s' % database_url
 
         self.flask_app = flask_app if flask_app else Flask(__name__)
 
@@ -107,27 +94,26 @@ class Cosmos(object):
     def start(self, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
               check_output_dir=True):
         """
-        Start, resume, or restart an execution based on its name and the session.  If resuming, deletes failed tasks.
+        Start, resume, or restart an execution based on its name.  If resuming, deletes failed tasks.
 
-        :param name: (str) A name for the workflow.  Must be unique.
-        :param output_dir: (str) The directory to write files to.
-        :param restart: (bool) If True and the execution exists, delete it first.
-        :param skip_confirm: (bool) If True, do not prompt the shell for input before deleting executions or files.
-        :param max_cpus: (int) The maximum number of CPUs to use at once.
-        :param max_attempts: (int) The maximum number of times to retry a failed job.
-        :param check_output_dir: (bool) Raise an error if this is a new workflow, and output_dir exists.
+        :param str name: A name for the workflow.  Must be unique.
+        :param str output_dir: The directory to write files to.
+        :param bool restart: If True and the execution exists, delete it first.
+        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
+        :param int max_cpus: The maximum number of CPUs to use at once.
+        :param int max_attempts: The maximum number of times to retry a failed job.
+        :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir exists.
 
         :returns: An Execution instance.
         """
         assert os.path.exists(
             os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         output_dir = os.path.abspath(output_dir)
-        session = self.session
-        # assert name is not None, 'name cannot be None'
-        assert output_dir is not None, 'output_dir cannot be None'
         output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
+
+        session = self.session
 
         old_id = None
         if restart:
@@ -156,12 +142,10 @@ class Cosmos(object):
                                                 'then any new tasks in the graph will be added and executed.  '
                                                 'Are you sure?' % ex):
                 raise SystemExit('Quitting')
+            assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
+
             ex.successful = False
             ex.finished_on = None
-            if output_dir is None:
-                output_dir = ex.output_dir
-            else:
-                assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
 
             if not os.path.exists(ex.output_dir):
                 raise IOError('output_directory %s does not exist, cannot resume %s' % (ex.output_dir, ex))
@@ -172,12 +156,10 @@ class Cosmos(object):
             n = len(failed_tasks)
             if n:
                 ex.log.info('Deleting %s failed task(s) from SQL database, delete_files=%s' % (n, False))
-                # stages_with_failed_tasks = set()
                 for t in failed_tasks:
                     session.delete(t)
-                    # stages_with_failed_tasks.add(t.stage)
-            stages = filter(lambda s: len(s.tasks) == 0, ex.stages)
-            for stage in stages:
+
+            for stage in it.ifilter(lambda s: len(s.tasks) == 0, ex.stages):
                 ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
                 session.delete(stage)
 
@@ -186,7 +168,6 @@ class Cosmos(object):
             if check_output_dir:
                 assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
-            # ex.log.info(msg)
             session.add(ex)
 
         ex.max_cpus = max_cpus
@@ -217,7 +198,7 @@ class Cosmos(object):
 
     def resetdb(self):
         """
-        Resets the database.  This is not reversible!
+        Resets (deletes then initializes) the database.  This is not reversible!
         """
         print >> sys.stderr, 'Dropping tables in db...'
         Base.metadata.drop_all(bind=self.session.bind)
@@ -312,16 +293,10 @@ class RelationshipType(MyEnum):
 ########################################################################################################################
 
 from .graph import rel
-from .models.TaskFile import TaskFile, abstract_output_taskfile, abstract_input_taskfile, abstract_output_taskfile_v2
+from .models.TaskFile import TaskFile, abstract_output_taskfile_old, abstract_input_taskfile, abstract_output_taskfile
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .util.tool import one2one, make_dict, many2one
-# from .graph.recipe import Recipe
-# from .db import get_session
-
-
-# __all__ = [ 'Recipe', 'TaskFile', 'Task', 'Inputs',  'Stage', 'Execution', 'TaskStatus', 'StageStatus',
-# 'Tool', 'chain']

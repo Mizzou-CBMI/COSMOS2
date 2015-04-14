@@ -69,11 +69,11 @@ class DRM_LSF(DRM):
     def kill(self, task):
         "Terminates a task"
         raise NotImplementedError
-        #os.system('bkill {0}'.format(task.drm_jobID))
+        # os.system('bkill {0}'.format(task.drm_jobID))
 
     def kill_tasks(self, tasks):
         for t in tasks:
-            sp.check_call(['bkill',str(t.drm_jobID)])
+            sp.check_call(['bkill', str(t.drm_jobID)])
 
 
 def bjobs_all():

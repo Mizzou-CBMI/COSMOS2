@@ -47,7 +47,7 @@ def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
 #     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-def abstract_output_taskfile(name=None, format=None, basename=None, persist=False):
+def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=False):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile
@@ -63,7 +63,7 @@ def abstract_output_taskfile(name=None, format=None, basename=None, persist=Fals
     return AbstractOutputFile(name=name, format=format, basename=basename, persist=persist)
 
 
-def abstract_output_taskfile_v2(basename=None, name=None, format=None, persist=False):
+def abstract_output_taskfile(basename=None, name=None, format=None, persist=False):
     """
     :param name: (str) The name for the TaskFile
     :param format: The format for the TaskFile

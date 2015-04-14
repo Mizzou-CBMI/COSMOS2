@@ -16,7 +16,7 @@ class Echo(Tool):
 
 class Cat(Tool):
     inputs = [inp(format='txt', n='>=1')]
-    outputs = [out('cat', 'txt', 'cat_out.txt', )]
+    outputs = [out('cat.txt')]
 
     def cmd(self, inputs, outputs):
         out_txt = outputs[0]  # it's easier to just unpack in the method signature, see examples below.
@@ -29,7 +29,7 @@ class Cat(Tool):
 
 class Paste(Tool):
     inputs = [inp(format='txt')]
-    outputs = [out('paste', 'txt')]
+    outputs = [out('paste.txt')]
 
     def cmd(self, (input_txts, ), (out_txt, )):
         return 'paste {input} > {out_txt}'.format(
@@ -39,8 +39,8 @@ class Paste(Tool):
 
 
 class WordCount(Tool):
-    inputs = [inp(format='txt')]
-    outputs = [out('wc', 'txt')]
+    inputs = []
+    outputs = [out('wc.txt')]
 
     def cmd(self, (input_txts, ), (out_txt, )):
         return 'wc {input} > {out_txt}'.format(
@@ -56,7 +56,7 @@ class Fail(Tool):
 
 class MD5Sum(Tool):
     inputs = [inp(format='*', n=1)]
-    outputs = [out(name='md5', format='md5')]
+    outputs = [out('checksum.md5')]
 
     def cmd(self, (in_file, ), _, out_md5):
         out_md5.basename = in_file.basename + '.md5'

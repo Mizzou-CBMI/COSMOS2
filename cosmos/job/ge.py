@@ -72,7 +72,7 @@ def qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['qstat'],preexec_fn=preexec_function).strip().split('\n')
+        lines = sp.check_output(['qstat'], preexec_fn=preexec_function).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     keys = re.split("\s+", lines[0])

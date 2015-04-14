@@ -150,7 +150,8 @@ class Tool(object):
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
-        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir, **d)
+        task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir,
+                    **d)
         task.skip_profile = self.skip_profile
 
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
@@ -353,7 +354,7 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # print op, number
 # if op in ['=', '=='] and number == 1:
 # yield taskfiles[0]
-#         else:
+# else:
 #             yield taskfiles
 
 

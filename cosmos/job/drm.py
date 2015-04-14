@@ -1,7 +1,3 @@
-import subprocess as sp
-import re
-import os
-
 class DRM(object):
     "DRM base class"
     name = None
