@@ -1,4 +1,4 @@
-from cosmos import Tool, abstract_input_taskfile as inp, abstract_output_taskfile as out
+from cosmos import Tool, abstract_input_taskfile as aif, abstract_output_taskfile as aof
 from main import settings as s
 
 
@@ -8,19 +8,19 @@ class Sleep(Tool):
 
 
 class Echo(Tool):
-    def cmd(self, word, out_txt=out('echo.txt')):
+    def cmd(self, word, out_txt=aof('echo.txt')):
         return '{s[echo_path]} {word} > {out_txt}'.format(s=s, **locals())
 
 
 class Cat(Tool):
-    def cmd(self, inputs=inp(format='txt', n='>=1'), out_txt=out('cat.txt')):
+    def cmd(self, inputs=aif(format='txt', n='>=1'), out_txt=aof('cat.txt')):
         return 'cat {input_str} > {out_txt}'.format(
             input_str=' '.join(map(str, inputs)),
             **locals()
         )
 
 class Paste(Tool):
-    def cmd(self, input_txts=inp(format='txt', n='>=1'), out_txt=out('paste.txt')):
+    def cmd(self, input_txts=aif(format='txt', n='>=1'), out_txt=aof('paste.txt')):
         return 'paste {input} > {out_txt}'.format(
             input=' '.join(map(str, (input_txts,))),
             **locals()
@@ -28,7 +28,7 @@ class Paste(Tool):
 
 
 class WordCount(Tool):
-    def cmd(self, chars=False, input_txts=inp(format='txt', n='>=1'), out_txt=out('wc.txt')):
+    def cmd(self, chars=False, input_txts=aif(format='txt', n='>=1'), out_txt=aof('wc.txt')):
         c = ' -c' if chars else ''
         return 'wc{c} {input} > {out_txt}'.format(
             input=' '.join(map(str, input_txts)),
@@ -42,9 +42,6 @@ class Fail(Tool):
 
 
 class MD5Sum(Tool):
-    inputs = []
-    outputs = []
-
-    def cmd(self, in_file=inp(format='*', n=1), out_md5=out('checksum.md5')):
+    def cmd(self, in_file=aif(format='*', n=1), out_md5=aof('checksum.md5')):
         out_md5.basename = in_file.basename + '.md5'
         return 'md5sum {in_file}'.format(**locals()) 
