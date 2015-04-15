@@ -9,7 +9,9 @@ For more information and the full documentation please visit
 Install
 ==========
 
-pip install cosmos-wfm
+.. code-block:: python
+
+    pip install cosmos-wfm
 
 
 Introduction
