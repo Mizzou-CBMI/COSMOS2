@@ -15,5 +15,5 @@ Be sure to spend a lot of time with the examples, as this is often the easiest w
     :maxdepth: 4
 
     1_tools
-    2_dag 
+    2_dag
     examples
