@@ -48,7 +48,7 @@ _________
 Multi-platform Support
 +++++++++++++++++++++++
 
-* Support for DRMS such as SGE, LSF.  DRMAA coming soon.  Adding support for DRMs is very straightforward.
+* Support for DRMS such as SGE, LSF.  DRMAA coming soon.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
 * Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
 
