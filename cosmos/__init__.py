@@ -60,7 +60,7 @@ def default_get_submit_args(drm, task, default_queue=None, default_job_priority=
 #########################################################################################################################
 
 class Cosmos(object):
-    def __init__(self, database_url, get_submit_args=default_get_submit_args,
+    def __init__(self, database_url='sqlite:///:memory:', get_submit_args=default_get_submit_args,
                  default_drm='local', default_queue=None, flask_app=None, url_prefix=None):
         """
         :param str database_url: A sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or
@@ -89,18 +89,18 @@ class Cosmos(object):
         self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
         # add_cosmos_admin(flask_app, self.session)
 
-    def start(self, name, output_dir, restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
               check_output_dir=True):
         """
         Start, resume, or restart an execution based on its name.  If resuming, deletes failed tasks.
 
-        :param str name: A name for the workflow.  Must be unique.
-        :param str output_dir: The directory to write files to.
+        :param str name: A name for the workflow.  Must be unique for this Cosmos session.
+        :param str output_dir: The directory to write files to.  Defaults to the current working directory.
         :param bool restart: If True and the execution exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
         :param int max_cpus: The maximum number of CPUs to use at once.
         :param int max_attempts: The maximum number of times to retry a failed job.
-        :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir exists.
+        :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir already exists.
 
         :returns: An Execution instance.
         """
@@ -175,7 +175,6 @@ class Cosmos(object):
         session.commit()
         session.expunge_all()
         session.add(ex)
-        mkdir(output_dir)
 
         ex.cosmos_app = self
 
@@ -204,7 +203,7 @@ class Cosmos(object):
 
     def shell(self):
         """
-        Launch an IPython shell with useful variables already imported
+        Launch an IPython shell with useful variables already imported.
         """
         cosmos_app = self
         session = self.session
@@ -297,3 +296,4 @@ from .models.Tool import Tool, Tool_old, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .util.tool import one2one, make_dict, many2one
+from .graph.draw import draw_task_graph, draw_stage_graph

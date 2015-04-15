@@ -94,7 +94,7 @@ class Tool(object):
             self.input_arg_map = {}
             self.output_arg_map = {}
 
-            for kw, default in zip(argspec.args[-len(argspec.defaults):], argspec.defaults):
+            for kw, default in zip(argspec.args[-len(argspec.defaults or []):], argspec.defaults or []):
                 if isinstance(default, AbstractInputFile):
                     self.input_arg_map[kw] = default
                 elif isinstance(default, AbstractOutputFile):
@@ -116,11 +116,12 @@ class Tool(object):
         if has_duplicates([(i.name, i.format) for i in self.outputs]):
             raise ToolValidationError("Duplicate task.outputs detected in {0}".format(self))
 
-        argspec = getargspec(self.cmd)
-        if isinstance(argspec.args[1], list):
-            assert len(argspec.args[1]) == len(self.inputs), '%s.cmd will not unpack its inputs correctly.' % self
-        if isinstance(argspec.args[2], list):
-            assert len(argspec.args[2]) == len(self.outputs), '%s.cmd will not unpack its outputs correctly' % self
+        if self.api_version == 1:
+            argspec = getargspec(self.cmd)
+            if isinstance(argspec.args[1], list):
+                assert len(argspec.args[1]) == len(self.inputs), '%s.cmd will not unpack its inputs correctly.' % self
+            if isinstance(argspec.args[2], list):
+                assert len(argspec.args[2]) == len(self.outputs), '%s.cmd will not unpack its outputs correctly' % self
 
         reserved = {'name', 'format', 'basename'}
         if not set(self.tags.keys()).isdisjoint(reserved):
@@ -271,8 +272,9 @@ class Tool(object):
         """
         Constructs the command string.  Lines will be .strip()ed.
 
-        :param kwargs: (dict) Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
-        :returns: (str) The text to write into the shell script that gets executed
+        :param dict kwargs:  Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
+        :rtype: str
+        :returns: The text to write into the shell script that gets executed
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
 

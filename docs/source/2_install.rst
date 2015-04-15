@@ -5,7 +5,7 @@ If you want to use visualizations of your workflows, make sure you have graphviz
 
 .. code-block:: bash
 
-    sudo apt-get graphviz graphviz-dev
+    sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
 
 
 To install, clone the repository.  This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.org/en/latest/>`_:
@@ -20,19 +20,16 @@ To install, clone the repository.  This procedure assumes you're using `VirtualE
     cd Cosmos
     pip install .
 
-    # Optional, but recommended:
-    apt-get install graphviz  # or brew install graphviz for mac
+    # Optional, but highly recommended:
     pip install pygraphviz
+
 
 We also recommend you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_.
 
-.. code-block::
+.. code-block:: bash
 
     mkvirtualenv myproject
     git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
     cd Cosmos
     pip install .
-
-    # Optional, but recommended:
-    apt-get install graphviz  # or brew install graphviz for mac
     pip install pygraphviz

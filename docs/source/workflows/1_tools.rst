@@ -1,13 +1,13 @@
 .. _tools:
 
-.. py:module:: cosmos.models.Tool
+.. py:module:: cosmos.Tool
 
 Tools
 ===============
 
-A :class:`Tool` represents an executable (like echo, cat, or paste, or script) that is run from the command line.
+A :class:`~cosmos.Tool` represents an executable (like echo, cat, or paste, or script) that is run from the command line.
 A tool is a class that overrides :py:class:`~Tool`, and implements the method :py:meth:`~Tool.cmd`.  Each instance of
-:class:`Tool` corresponds to one :class:`Task` of the :term:`DAG`.
+:class:`~cosmos.Tool` corresponds to one :class:`Task` of the :term:`DAG`.
 
 .. code-block:: python
 
@@ -23,7 +23,7 @@ A tool is a class that overrides :py:class:`~Tool`, and implements the method :p
         time_req = 60 # mins
 
         # Or specify these options
-        drm = 'local' # run as a thread, rather than submitting to DRM
+        drm = 'local' # run as a subprocess on the local machine, rather than submitting to the DRM
         skip_profile = True # skip profiling this job
         must_succeed = False # run the children of this job even if it fails
 
@@ -36,20 +36,20 @@ A tool is a class that overrides :py:class:`~Tool`, and implements the method :p
 
 Abstract Input File
 --------------------
-An :meth:`abstract_input_file` specifies a type of input file(s) required by a Tool.  All parents will be searched for output_files
+An :func:`~cosmos.abstract_input_taskfile` specifies a type of input file(s) required by a Tool.  All parents will be searched for output_files
 that match both the name and/or format specified (at least the name or format must be specified).
 
 Cardinality
-***********
-The cardinality (The :param:`n` parameter, is enforced such that ``n`` number of input_files should match.  By default,
-    the cardinality of each
-abstract_input_file is 1, but this can be changed using the ``n`` parameter (for example, ``itf(format='txt', n='>=1')``).
-If you specify a cardinality where there may be more than 1, for example ``n='>=1'``, the parameter will be passed a list
-of input files regardless how many were matched.
+_______________
+The cardinality (The `n` parameter), is enforced such that ``n`` number of input_files should match.  By default,
+the cardinality of each
+abstract_input_file is ``==1``, but this can be changed using the ``n`` parameter: ``itf(format='txt', n='>=1')``).
+If you specify a cardinality where there may be more than 1, for example ``n='>=1'``, the ``cmd()`` parameter will be passed a list
+of input files than output files.
 
 Abstract Output File
 --------------------
-An abstract_output_file specifies an output file that a tool will generate.
+An :func:`~cosmos.abstract_output_taskfile` specifies an output file that a tool will generate.
 The order that you specify the abstract_output_files will be the order they arrive in the ``outputs`` parameter.
 Cardinality of output_files cannot be specified and is always 1.
 
@@ -70,9 +70,14 @@ API
 -----------
 
 Tool
-*****
-.. automodule:: cosmos.models.Tool
-    :members: Tool, Input
+_______
 
-.. automodule:: cosmos.models.TaskFile
-    :members: abstract_input_file, abstract_output_file
+
+.. automodule:: cosmos.models.Tool
+    :members: Tool
+
+Abstract I/O Files
++++++++++++++++++++++
+.. autofunction:: cosmos.abstract_input_taskfile
+
+.. autofunction:: cosmos.abstract_output_taskfile

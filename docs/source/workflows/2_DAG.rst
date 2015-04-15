@@ -42,33 +42,124 @@ This is the most common stage dependency.  For each task in StageA, you create a
 
 .. code-block:: python
 
-    stage_B = execution.add(Tool_One(input_task, tags=input_task.tags, parents=[input_task], out='tool_one_output/'))
-                            for input_task in load_tasks)
+    cosmos = Cosmos()
+    cosmos.initdb()
+    execution = cosmos.start('One2One', '/tmp', check_output_dir=False)
+    stageA_tasks = execution.add(ToolA(tags=dict(i=i))
+                                 for i in [1, 2])
+    stageB_tasks = execution.add(ToolB(tags=task.tags, parents=[task])
+                                 for task in stageA_tasks)
+    draw_task_graph(execution.task_graph(), 'one2one.svg')
+
+.. figure:: /_static/imgs/one2one.svg
+    :align: center
 
 
 One2many
 ++++++++
 For each parent task in StageA, two or more new children are generated in StageB
 
+.. code-block:: python
+
+    execution = cosmos.start('One2Many', '/tmp', check_output_dir=False)
+    stageA_tasks = execution.add(ToolA(tags=dict(i=i))
+                                 for i in [1, 2])
+    stageB_tasks = execution.add(ToolB(tags=dict(j=j, **task.tags), parents=[task])
+                                 for task in stageA_tasks
+                                 for j in [1, 2])
+    draw_task_graph(execution.task_graph(), 'one2many.svg')
+
+
+.. figure:: /_static/imgs/one2many.svg
+    :align: center
+
+
+
 Many2one
 +++++++++
 Two or more parents in StageA produce one task in StageB.
+
+.. code-block:: python
+
+    execution = cosmos.start('Many2One', '/tmp', check_output_dir=False)
+    stageA_tasks = execution.add(ToolA(tags=dict(i=i, j=j))
+                                 for i in [1, 2]
+                                 for j in [1, 2])
+    get_i = lambda task: task.tags['i']
+    stageB_tasks = execution.add(ToolB(tags=dict(i=i), parents=list(tasks))
+                                 for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
+    draw_task_graph(execution.task_graph(), 'many2one.svg')
+
+
+.. figure:: /_static/imgs/many2one.svg
+    :align: center
 
 Many2many
 +++++++++
 Two or more parents in StageA produce two or more parents in StageB.
 
-The above is **not** exhaustive.  For example, you could have a task who has 3 different parents, each belonging to a different stage.
-It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
-by a particular set of tags.  See :ref:`examples`.
+.. code-block:: python
+
+    execution = cosmos.start('many2many', '/tmp', check_output_dir=False)
+    stageA_tasks = execution.add(ToolA(tags=dict(i=i, j=j))
+                                 for i in [1, 2]
+                                 for j in [1, 2])
+    def B_generator(stageA_tasks):
+        # For the more complicated relationships, it's usually best to just define a generator
+        get_i = lambda task: task.tags['i']
+        for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i):
+            parents = list(tasks)
+            for k in ['x', 'y']:
+                yield ToolB(tags=dict(i=i, k=k), parents=parents)
+
+    stageB_tasks = execution.add(B_generator(stageA_tasks))
+    draw_task_graph(execution.task_graph(), 'many2many.svg')
+
+
+.. figure:: /_static/imgs/many2many.svg
+    :align: center
+
+Helpers
+++++++++++
+
+The above patterns are very common, so there are some handy generators available that take care of many cases.
+However, it is not
+recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
+patterns!
+
+* :meth:`cosmos.util.tool.one2one`
+* :meth:`cosmos.util.tool.many2one`
+* :meth:`cosmos.util.tool.one2many`
+* :meth:`cosmos.util.tool.many2many`
+
+
+Notes
++++++++
+
+    The above is **not** exhaustive.  For example, you could have a task who has 3 different parents, each belonging to a different stage.
+    It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
+    by a particular set of tags.
+
 
 
 API
 -----------
 
-.. automodule:: cosmos.Execution
-    :members: add
+Execution.add
+++++++++++++++
 
+.. automethod:: cosmos.Execution.add
+
+
+Inputs
+++++++++++
 
 .. automodule:: cosmos.models.Tool
     :members: Input, Inputs
+
+
+Helpers
++++++++++++
+
+.. automodule:: cosmos.util.tool
+    :members: one2one, many2one, one2many, many2many

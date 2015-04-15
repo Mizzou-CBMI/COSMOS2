@@ -25,33 +25,23 @@ AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basena
 
 def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     """
-    :param name: (str) The name of the TaskFile(s)
-    :param format: (str) The format of the TaskFile(s)
-    :param forward: (bool) Forward this input as an output of this Tool
-    :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
-    :return: (AbstractInputFile)
+    :param str name: The name of the TaskFile(s)
+    :param str format: The format of the TaskFile(s)
+    :param bool forward: Forward this input as an output of this Tool/
+    :param int|str n: Cardinality.  examples: 1, >=1, <5, ==3
+    :rtype: AbstractInputFile
     """
     assert name or format, 'must specify either name or format'
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
-# def abstract_input_taskfile_v2(name=None, format=None, forward=False, n=1):
-#     """
-#     :param name: (str) The name of the TaskFile(s)
-#     :param format: (str) The format of the TaskFile(s)
-#     :param forward: (bool) Forward this input as an output of this Tool
-#     :param n: (int|str) cardinality.  examples: 1, >=1, <5, ==3
-#     :return: (AbstractInputFile)
-#     """
-#     assert name or format, 'must specify either name or format'
-#     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
 
 
 def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=False):
     """
-    :param name: (str) The name for the TaskFile
-    :param format: The format for the TaskFile
-    :param basename: (str) custom_name.custom_format
+    :param name: (str) The name of the TaskFile.
+    :param format: The format of the TaskFile.
+    :param basename: (str) custom_name.custom_format  Defaults to name.format if not specified.
     :return: (AbstractOutputFile)
     """
     assert (name and format) or basename, 'must specify (name and format) or basename'
@@ -65,10 +55,10 @@ def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=
 
 def abstract_output_taskfile(basename=None, name=None, format=None, persist=False):
     """
-    :param name: (str) The name for the TaskFile
-    :param format: The format for the TaskFile
-    :param basename: (str) custom_name.custom_format
-    :return: (AbstractOutputFile)
+    :param str name: The name of the TaskFile.
+    :param str format: The format of the TaskFile.
+    :param str basename: custom_name.custom_format.  Defaults to name.format if not specified.
+    :rtype: AbstractOutputFile
     """
     assert (name and format) or basename, 'must specify (name and format) or basename'
     name2, ext = os.path.splitext(os.path.basename(basename))

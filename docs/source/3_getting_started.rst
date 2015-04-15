@@ -113,8 +113,7 @@ You can use the web interface to explore the history and debug all workflows.  T
 Visit `<http://servername:8080>`_ to access it (or`<http://localhost:8080>`_ if you're running cosmos locally.
 
 
-.. figure:: /imgs/web_interface.png
-   :width: 90%
+.. figure:: /_static/imgs/web_interface.png
    :align: center
 
 .. hint::
@@ -144,12 +143,15 @@ failed tasks.  However, it is a bit more complicated if you modify the script, o
 algorithm for resuming is as follows:
 
 1) Delete any failed Tasks
+
 * output_files are not cleaned up, it is expected they will be over-written
 
 2) Add any new Tasks
-* A Task is "new" if a Task with the same stage and set of tags does not exist.  Note that failed tasks were deleted.
+
+* A Task is "new" if a Task with the same stage and set of tags does not exist.
 
 3) Run the workflow
+
 * Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.
 
 .. warning::

@@ -2,10 +2,10 @@ Cosmos Shell
 =============
 
 The Cosmos shell is an interactive python session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
-your workflows.
+your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
 
 
-To launch the shell, create a script like this (Take a look at the :meth:`cosmos.Cosmos.shell` code, it is very simple):
+To launch the shell, create a script like this (Take a look at the :meth:`cosmos.Cosmos.shell` source code, it is very simple):
 
 .. code-block:: python
 
@@ -57,3 +57,8 @@ Manually Altering Attributes
     >>> ex.stages[0].name='My_New_Stage_Name'
     >>> for ex in executions[-6:]: ex.status = ExecutionStatus.successful
     >>> session.commit() # write all changes to database so that they persist.  Always do this after you're done modifying objects.
+
+API
+-----------
+
+.. automethod:: cosmos.Cosmos.shell

@@ -125,9 +125,11 @@ class Execution(Base):
     def add(self, tools, name=None):
         """
         Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
-        :param iterable(tool) tools: an iterable of tools.  Generators recommended.  Can also be a single instance of Tool.
-        :param str name: Defaults to the class name of the first tool in tools.
-        :return list(Task,...): New tasks that were created.
+
+        :param itrbl(tool) tools: For each tool in `tools`, new task will be added to the stage with stage `name`.
+        :param str name: Default is to the class name of the first tool in tools.
+        :rtype: list(Task)
+        :return: New tasks that were created.
         """
         from .. import Tool, Stage
 
@@ -202,6 +204,9 @@ class Execution(Base):
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
             self, self.cosmos_app.default_drm, self.output_dir))
+
+        from ..util.helpers import mkdir
+        mkdir(self.output_dir)
 
         from ..job.JobManager import JobManager
 
