@@ -19,7 +19,7 @@ Introduction
 
 Cosmos is a workflow management system for Python.  It allows you to efficiently program complex workflows of command line tools that automatically take
 advantage of a compute cluster, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
-able to scale on a traditional cluster such as :term:`LSF` or :term:`SGE` with a shared filesystem.  It is especially
+able to scale on a traditional cluster such as LSF or GridEngine with a shared filesystem.  It is especially
 powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and
 `StarCluster <http://star.mit.edu/cluster/>`_.
 
@@ -48,7 +48,7 @@ _________
 Multi-platform Support
 +++++++++++++++++++++++
 
-* Support for :term:`DRMS` such as SGE, LSF.  :term:`DRMAA` coming soon.  Adding support for DRMs is very straightforward.
-* Supports for MySQL, PosgreSQL, Oracle, SQLite by using the :term:`Sqlalchemy` ORM.
+* Support for DRMS such as SGE, LSF.  DRMAA coming soon.  Adding support for DRMs is very straightforward.
+* Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
 * Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
 
