@@ -3,8 +3,6 @@ In addition, it includes a user-interface for tracking the progress of jobs, abs
 Workflows can be created on traditional computing clusters as well as cloud-based services.
 It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and `Invitae <http://invitae.com>`_
 
-It is available for academic and research purpose under the terms described in `LICENSE.md <https://github.com/LPM-HMS/Cosmos2/blob/master/LICENSE.md>`_.
-
 For more information and the full documentation please visit http://cosmos.hms.harvard.edu.
 
 -------
