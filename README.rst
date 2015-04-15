@@ -4,21 +4,5 @@ Workflows can be created on traditional computing clusters as well as cloud-base
 It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu>`_ at Harvard Medical School,
 the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and `Invitae <http://invitae.com>`_.
 
-For more information and the full documentation please visit http://cosmos.hms.harvard.edu.
-
--------
-Building Docs
--------
- 
-.. code-block:: bash
- 
-    git clone git@github.com:LPM-HMS/Cosmos2.git
-	cd Cosmos3
-	virtualenv ve
-	source ve/bin/activate
-	pip install .
-	cd docs
-	pip install sphinx sphinx_rtd_theme
-	make html
-	open build/html/index.html
- 
+For more information and the full documentation please visit
+`http://cosmos-wfm.readthedocs.org < http://cosmos-wfm.readthedocs.org>`_

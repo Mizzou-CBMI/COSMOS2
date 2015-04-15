@@ -15,21 +15,16 @@ To install, clone the repository.  This procedure assumes you're using `VirtualE
     cd /dir/to/install/Cosmos/to
     mkvirtualenv ve
     source ve/bin/activate
-    pip install pip distribute -U
-    git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
-    cd Cosmos
-    pip install .
+    pip install cosmos-wfm
 
     # Optional, but highly recommended:
-    pip install pygraphviz
+    pip install pygraphviz # requires graphviz
 
 
-We also recommend you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_.
+We recommend using `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_.
 
 .. code-block:: bash
 
     mkvirtualenv myproject
-    git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
-    cd Cosmos
-    pip install .
-    pip install pygraphviz
+    pip install cosmos-wfm
+    pip install pygraphviz  # requires graphviz
