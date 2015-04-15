@@ -1,6 +1,9 @@
 Welcome
 ========
 
+COSMOS is currently BETA.  Although the code is considered stable,
+we are planning a major publication before the official release.
+
 .. toctree::
     :numbered:
     :maxdepth: 4
