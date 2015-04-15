@@ -23,7 +23,8 @@ you can click to jump straight to the debug information that pertains to that Ta
 .. figure:: /_static/imgs/ex1_stage_graph.svg
     :align: center
 
-Here's the Stage Graph that was created (often the :term:`DAG` is too complicated for a visualization to be useful):
+The Stage Graph is a high level overview.  Ooften the :term:`DAG` of Tasks
+is too large for a visualization to be useful:
 
 .. figure:: /_static/imgs/ex1_task_graph.svg
     :align: center

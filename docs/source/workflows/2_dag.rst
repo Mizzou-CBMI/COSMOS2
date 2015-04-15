@@ -133,6 +133,7 @@ patterns!
 * :meth:`cosmos.util.tool.many2many`
 
 
+
 Notes
 +++++++
 
