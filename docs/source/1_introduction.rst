@@ -17,7 +17,7 @@ Cosmos was originally created at Harvard Medical School and the `manuscript <htt
 `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_.
 Since then, it has been completely re-written and open-sourced by the originiating author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_, a bioinformatics lab, and
-`Invitae <http://invitae.com`_, a genetic sequencing diagnostics lab.
+`Invitae <http://invitae.com>`_, a genetic sequencing diagnostics lab.
 
 Features
 _________
@@ -33,5 +33,5 @@ Multi-platform Support
 +++++++++++++++++++++++
 
 * Support for :term:`DRMS` such as SGE, LSF.  :term:`DRMAA` coming soon.  Adding support for DRMs is very straightforward.
-* Supports for MySQL, PosgreSQL, Oracle, SQLite by using the :term:`Sqlalchemy` ORM
+* Supports for MySQL, PosgreSQL, Oracle, SQLite by using the :term:`Sqlalchemy` ORM.
 * Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
