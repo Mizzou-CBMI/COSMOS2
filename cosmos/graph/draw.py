@@ -7,10 +7,10 @@ from .. import TaskStatus
 import networkx as nx
 
 
-def draw_task_graph(task_graph):
+def draw_task_graph(task_graph, save_to=None, format='svg'):
     a = taskgraph_to_agraph(task_graph, False)
     a.layout('dot')
-    return a.draw(path=None, format='svg')
+    return a.draw(path=save_to, format=format)
 
 
 def taskgraph_to_agraph(task_graph, url=True):
@@ -49,9 +49,9 @@ def taskgraph_to_agraph(task_graph, url=True):
     return agraph
 
 
-def taskgraph_to_image(taskgraph, path=None, url=True):
+def taskgraph_to_image(taskgraph, path=None, url=False):
     taskgraph.layout(prog="dot")
-    agraph = taskgraph_to_agraph(g, url=url)
+    agraph = taskgraph_to_agraph(taskgraph, url=url)
     return agraph.draw(path=path, format='svg')
 
 
@@ -72,10 +72,10 @@ from .. import RelationshipType
 from ..models.Stage import StageStatus
 
 
-def draw_stage_graph(stage_graph, save_to=None, url=True):
+def draw_stage_graph(stage_graph, save_to=None, url=False, format='svg'):
     g = stagegraph_to_agraph(stage_graph, url=url)
     g.layout(prog="dot")
-    return g.draw(path=save_to, format='svg')
+    return g.draw(path=save_to, format=format)
 
 
 def stagegraph_to_agraph(stage_graph, url=True):

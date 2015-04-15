@@ -8,9 +8,6 @@ from .ge import DRM_GE
 from .. import TaskStatus, StageStatus, ExecutionStatus, NOOP
 import itertools as it
 from operator import attrgetter
-import subprocess as sp
-
-python_path = sp.check_output(['which', 'python']).strip()
 
 
 class JobManager(object):

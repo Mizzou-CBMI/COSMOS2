@@ -6,8 +6,10 @@ from .drm import DRM
 
 from .. import TaskStatus
 
+
 class DRM_Local(DRM):
     name = 'local'
+
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
 
@@ -17,7 +19,7 @@ class DRM_Local(DRM):
                   stderr=open(task.output_stdout_path, 'w'),
                   preexec_fn=preexec_function(),
                   shell=True
-        )
+                  )
         task.drm_jobID = p.pid
 
     def _is_done(self, task):
@@ -42,6 +44,7 @@ class DRM_Local(DRM):
         """
         :returns: (dict) task.drm_jobID -> drm_status
         """
+
         def f(task):
             if task.drm_jobID is None:
                 return '!'
@@ -64,7 +67,6 @@ class DRM_Local(DRM):
     def kill_tasks(self, tasks):
         for t in tasks:
             self.kill(t)
-
 
 
 def preexec_function():
