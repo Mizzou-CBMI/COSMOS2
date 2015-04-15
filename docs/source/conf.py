@@ -216,8 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'cosmos', u'Cosmos Documentation',
-     [u'InVitae Hackers'], 1)
+    ('index', 'cosmos', u'Cosmos Documentation',)
 ]
 
 # If true, show URL addresses after external links.
@@ -231,7 +230,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Cosmos', u'Cosmos Documentation',
-   u'InVitae Hackers', 'Cosmos', 'One line description of project.',
    'Miscellaneous'),
 ]
 
