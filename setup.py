@@ -33,7 +33,7 @@ setup(
     author_email="egafni@gmail.com",
     maintainer="Erik Gafni",
     maintainer_email="egafni@gmail.com",
-    license="Non-commercial use only",
+    license="GPLv3",
     install_requires=[
         'gntp',
         "psprofile",
