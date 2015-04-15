@@ -7,8 +7,7 @@ the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and `Inv
 For more information and the full documentation please visit
 `http://cosmos-wfm.readthedocs.org <http://cosmos-wfm.readthedocs.org>`_.
 
-COSMOS was officially published as a
-`manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_,
+COSMOS was published as an Application Note in the journal `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_,
 but has evolved a lot since it's original inception.  If you use COSMOS
 for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
 
