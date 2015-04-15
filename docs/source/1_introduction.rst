@@ -14,7 +14,8 @@ History
 ___________
 
 Cosmos was originally created at Harvard Medical School and the `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/07/24/bioinformatics.btu385>`_ was published in
-`Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_.
+`Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_.  Please cite this manuscript if found COSMOS useful
+for your research.
 Since then, it has been completely re-written and open-sourced by the originiating author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_, a bioinformatics lab, and
 `Invitae <http://invitae.com>`_, a genetic sequencing diagnostics lab.

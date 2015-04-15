@@ -39,7 +39,7 @@ setup(
         "psprofile",
         "flask",
         'blinker',
-        #'Flask-Admin',
+        # 'Flask-Admin',
         'Flask-SQLAlchemy',
         'networkx',
         'configparser',
@@ -47,7 +47,7 @@ setup(
         "flask-failsafe",
         "six",
         "sqlalchemy_utils"
-	],
+    ],
     packages=find_packages(),
     include_package_data=True,
     package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', True, True))}
