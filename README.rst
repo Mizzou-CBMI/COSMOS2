@@ -1,6 +1,17 @@
 COSMOS is currently BETA.  Although the code is considered stable,
 we are planning a major publication before the official release.
 
+
+
+For more information and the full documentation please visit
+`http://cosmos-wfm.readthedocs.org <http://cosmos-wfm.readthedocs.org>`_.
+
+Install
+==========
+
+pip install cosmos-wfm
+
+
 Introduction
 ============
 
