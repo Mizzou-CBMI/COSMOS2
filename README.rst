@@ -5,4 +5,4 @@ It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm
 the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and `Invitae <http://invitae.com>`_.
 
 For more information and the full documentation please visit
-`http://cosmos-wfm.readthedocs.org < http://cosmos-wfm.readthedocs.org>`_
+`http://cosmos-wfm.readthedocs.org <http://cosmos-wfm.readthedocs.org>`_.
