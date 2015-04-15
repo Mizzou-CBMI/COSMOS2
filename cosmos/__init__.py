@@ -9,7 +9,6 @@ from .util.helpers import get_logger, mkdir, confirm, str_format
 from .util.args import get_last_cmd_executed
 from .db import Base
 
-
 # turn SQLAlchemy warnings into errors
 import warnings
 from sqlalchemy.exc import SAWarning
@@ -34,7 +33,6 @@ def default_get_submit_args(drm, task, default_queue=None, default_job_priority=
     :returns: (str) arguments.  For example, returning "-n 3" if :param:`drm` == 'lsf' would caused all jobs
       to be submitted with bsub -n 3.  Returns None if no native_specification is required.
     """
-
     cpu_req = task.cpu_req
     mem_req = task.mem_req
     time_req = task.time_req
@@ -292,11 +290,10 @@ class RelationshipType(MyEnum):
 # Imports
 ########################################################################################################################
 
-from .graph import rel
 from .models.TaskFile import TaskFile, abstract_output_taskfile_old, abstract_input_taskfile, abstract_output_taskfile
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Tool import Tool, Input, Inputs
+from .models.Tool import Tool, Tool_old, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .util.tool import one2one, make_dict, many2one

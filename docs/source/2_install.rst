@@ -19,9 +19,12 @@ To install, clone the repository.  This procedure assumes you're using `VirtualE
     git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
     cd Cosmos
     pip install .
-    # optionally: pip install pygraphviz
 
-Alternatively, use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_
+    # Optional, but recommended:
+    apt-get install graphviz  # or brew install graphviz for mac
+    pip install pygraphviz
+
+We also recommend you use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_.
 
 .. code-block::
 
@@ -29,4 +32,7 @@ Alternatively, use `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org
     git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth=1
     cd Cosmos
     pip install .
-    # optionally: pip install pygraphviz
+
+    # Optional, but recommended:
+    apt-get install graphviz  # or brew install graphviz for mac
+    pip install pygraphviz

@@ -24,7 +24,9 @@ def one2one(tool_class, tasks, tag=None, out=None):
     :param tool_class: (Tool) a subclass of Tool to create new tasks with.
     :param tasks: ([Task, ...]) A child tool will be created for each element in this list.
     :param tag: (dict) Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
-    :param out: (str) The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'
+        Defaults to the tags of the parent
+    :param out: (str) The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
+        Defaults to the out of the parent task.
     :return: ([Tool, ...]) A list of tools that were added.
     """
     if tag is None:

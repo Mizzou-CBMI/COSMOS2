@@ -17,8 +17,19 @@ Here is the source code of the :file:`example_workflows/ex1.py` you ran in :ref:
 
 .. literalinclude:: ../../../examples/ex1.py
 
-Here's the job dependency graph that was created:
+Here's the :term:`DAG` that was created.  If you use the web-interface, there will the nodes are convenient links
+you can click to jump straight to the debug information that pertains to that Task or Stage.
 
-.. figure:: ../imgs/ex1.png
-    :width: 100%
+.. figure:: /_static/imgs/ex1_stage_graph.svg
     :align: center
+
+Here's the Stage Graph that was created (often the :term:`DAG` is too complicated for a visualization to be useful):
+
+.. figure:: /_static/imgs/ex1_task_graph.svg
+    :align: center
+
+
+Tool Definitions used by Examples
+------------------------------------
+
+.. literalinclude:: ../../../examples/tools.py

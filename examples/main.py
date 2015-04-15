@@ -13,10 +13,10 @@ settings = config['main']
 
 if __name__ == '__main__':
     import ex1
-    import ex2_fail
-    import ex3_email
+    import ex_fail
+    import ex_email
 
-    cosmos_app = Cosmos('sqlite:///sqlite.db', default_drm='local')
+    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
 
     import argparse
 
@@ -25,30 +25,30 @@ if __name__ == '__main__':
                         help='sends a growl notification on execution status changes')
     sps = parser.add_subparsers(title="Commands", metavar="<command>")
 
-    sp = sps.add_parser('resetdb', help=cosmos_app.resetdb.__doc__)
-    sp.set_defaults(func=cosmos_app.resetdb)
+    sp = sps.add_parser('resetdb', help=cosmos.resetdb.__doc__)
+    sp.set_defaults(func=cosmos.resetdb)
 
-    sp = sps.add_parser('initdb', help=cosmos_app.initdb.__doc__)
-    sp.set_defaults(func=cosmos_app.initdb)
+    sp = sps.add_parser('initdb', help=cosmos.initdb.__doc__)
+    sp.set_defaults(func=cosmos.initdb)
 
-    sp = sps.add_parser('shell', help=cosmos_app.shell.__doc__)
-    sp.set_defaults(func=cosmos_app.shell)
+    sp = sps.add_parser('shell', help=cosmos.shell.__doc__)
+    sp.set_defaults(func=cosmos.shell)
 
-    sp = sps.add_parser('runweb', help=cosmos_app.runweb.__doc__)
+    sp = sps.add_parser('runweb', help=cosmos.runweb.__doc__)
     sp.add_argument('-p', '--port', type=int, help='port to bind the server to')
     sp.add_argument('-H', '--host', default='localhost', help='host to bind the server to')
-    sp.set_defaults(func=cosmos_app.runweb)
+    sp.set_defaults(func=cosmos.runweb)
 
     sp = sps.add_parser('ex1', help='Example1')
-    sp.set_defaults(func=ex1.ex1_main)
+    sp.set_defaults(func=ex1.main)
     add_execution_args(sp)
 
     sp = sps.add_parser('ex2', help='Example2: A failed task')
-    sp.set_defaults(func=ex2_fail.ex2_main)
+    sp.set_defaults(func=ex_fail.main)
     add_execution_args(sp)
 
     sp = sps.add_parser('ex3', help='Example3: Twitter (note you must edit the file)')
-    sp.set_defaults(func=ex3_email.ex3_main)
+    sp.set_defaults(func=ex_email.main)
     add_execution_args(sp)
 
     args = parser.parse_args()
@@ -70,6 +70,6 @@ if __name__ == '__main__':
         if not execution_params['output_dir']:
             execution_params['output_dir'] = os.path.join(root_path, 'out', execution_params['name'])
 
-        ex = cosmos_app.start(**execution_params)
+        ex = cosmos.start(**execution_params)
         kwargs['execution'] = ex
     func(**kwargs)

@@ -6,7 +6,7 @@ import operator
 from collections import OrderedDict
 
 from .. import TaskFile, Task, NOOP
-from ..models.TaskFile import InputFileAssociation
+from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
 from ..util.iterstuff import only_one
 from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
 import types
@@ -56,6 +56,7 @@ class Tool(object):
     inputs = []  # class property!
     outputs = []  # class property!
     output_dir = None
+    api_version = 2
 
     # if adding another attribute, don't forget to update the chain() method
 
@@ -87,6 +88,20 @@ class Tool(object):
         self.load_sources = []  # for Inputs
         self.out = out
         self.task_parents = parents if parents else []
+
+        if self.api_version == 2:
+            argspec = getargspec(self.cmd)
+            self.input_arg_map = {}
+            self.output_arg_map = {}
+
+            for kw, default in zip(argspec.args[-len(argspec.defaults):], argspec.defaults):
+                if isinstance(default, AbstractInputFile):
+                    self.input_arg_map[kw] = default
+                elif isinstance(default, AbstractOutputFile):
+                    self.output_arg_map[kw] = default
+
+            self.inputs = self.input_arg_map.values()
+            self.outputs = self.output_arg_map.values()
 
 
     def __validate(self):
@@ -180,7 +195,7 @@ class Tool(object):
         task.tool = self
         return task
 
-    def _cmd(self, input_taskfiles, output_taskfiles, task):
+    def _cmd_v1(self, possible_input_taskfiles, output_taskfiles, task):
         """
         Wrapper for self.cmd().  Passes any tags that match parameter keywords of self.cmd as parameters, and does some basic validation.
 
@@ -200,28 +215,63 @@ class Tool(object):
 
         validate_params()
 
-        aif_2_input_taskfiles = OrderedDict((aif, list(_find(input_taskfiles, aif, error_if_missing=True)))
+        aif_2_input_taskfiles = OrderedDict((aif, list(_find(possible_input_taskfiles, aif, error_if_missing=True)))
                                             for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
-        # outputs = [only_one(_find(output_taskfiles, aof)) for aof in self.outputs]
         outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         out = self.cmd(inputs, outputs, **params)
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-        # return strip_lines(out.replace(task.execution.output_dir, '$OUT'))
+        return strip_lines(out)
+
+    def _cmd(self, possible_input_taskfiles, output_taskfiles, task):
+        if self.api_version == 1:
+            return self._cmd_v1(possible_input_taskfiles, output_taskfiles, task)
+
+        argspec = getargspec(self.cmd)
+        self.task = task
+        params = {k: v for k, v in self.tags.items() if k in argspec.args
+                  if k not in self.input_arg_map and k not in self.output_arg_map}
+
+        def validate_params():
+            ndefaults = len(argspec.defaults) if argspec.defaults else 0
+            for arg in argspec.args[3:len(argspec.args) - ndefaults]:
+                if arg not in params:
+                    raise AttributeError(
+                        '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                        'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
+
+        validate_params()
+
+        def get_input_map():
+            for input_name, aif in self.input_arg_map.iteritems():
+                input_taskfiles = list(_find(possible_input_taskfiles, aif, error_if_missing=True))
+                input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(aif, input_taskfiles)
+                yield input_name, input_taskfile_or_input_taskfiles
+
+        input_map = dict(get_input_map())
+        outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
+        output_map = dict(zip(self.output_arg_map.iterkeys(), outputs))
+
+        kwargs = dict()
+        kwargs.update(input_map)
+        kwargs.update(output_map)
+        kwargs.update(**params)
+
+        out = self.cmd(**kwargs)
+        assert isinstance(out, basestring), '%s.cmd did not return a str' % self
+        out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \
                'cd $OUT\n\n'.format(out=task.output_dir)
 
-    def cmd(self, inputs, outputs, **kwargs):
+    def cmd(self, **kwargs):
         """
         Constructs the command string.  Lines will be .strip()ed.
 
-        :param inputs: (list) Input TaskFiles, each element corresponds to an abstract_input_file in self.inputs
-        :param outputs: (list) Output TaskFiles, each element corresponds to an abstract_output_file in self.outputs
-        :param kwargs: (dict) Parameters passed via tags.
+        :param kwargs: (dict) Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
         :returns: (str) The text to write into the shell script that gets executed
         """
         raise NotImplementedError("{0}.cmd is not implemented.".format(self.__class__.__name__))
@@ -237,6 +287,13 @@ class Tool(object):
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
+
+
+class Tool_old(Tool):
+    """
+    Old input/output specification.  Deprecated and will be removed.
+    """
+    api_version = 1
 
 
 from collections import namedtuple
@@ -268,7 +325,6 @@ class Input(Tool):
     """
     A NOOP Task who's output_files contain a *single* file that already exists on the filesystem.
 
-    Does not actually execute anything, but provides a way to load an input file.  for
 
     >>> Input(path_to_file,tags={'key':'val'})
     >>> Input(path=path_to_file, name='myfile',format='txt',tags={'key':'val'})
@@ -279,12 +335,11 @@ class Input(Tool):
 
     def __init__(self, path, name=None, format=None, tags=None, *args, **kwargs):
         """
-        :param name: the name or keyword for the input file.  defaults to whatever format is set to.
-        :param path: the path to the input file
-        :param tags: tags for the task that will be generated
-        :param format: the format of the input file.  Defaults to the value in `name`
+        :param str path: the path to the input file
+        :param str name: the name or keyword for the input file.  defaults to whatever format is set to.
+        :param str format: the format of the input file.  Defaults to the value in `name`
+        :param dict tags: tags for the task that will be generated
         """
-        # self.NOOP = True
 
         path = _abs(path)
         if tags is None:
@@ -301,9 +356,7 @@ class Input(Tool):
 
 class Inputs(Tool):
     """
-    An Input File.A NOOP Task who's output_files contain a *multiple* files that already exists on the filesystem.
-
-    Does not actually execute anything, but provides a way to load a set of input file.
+    Same as :class:`Input`, but loads multiple input files.
 
     >>> Inputs([('name1','txt','/path/to/input'), ('name2','gz','/path/to/input2')], tags={'key':'val'})
     "root_path   name = 'Load_Input_Files'
@@ -313,6 +366,8 @@ class Inputs(Tool):
 
     def __init__(self, inputs, tags=None, *args, **kwargs):
         """
+        :param list inputs: a list of tuples that are (path, name, format)
+        :param dict tags:
         """
         # self.NOOP = True
         if tags is None:
@@ -344,6 +399,14 @@ def unpack_taskfiles_with_cardinality_1(odict):
     return new
 
 
+def unpack_if_cardinality_1(aif, taskfiles):
+    op, number = parse_aif_cardinality(aif.n)
+    if op in ['=', '=='] and number == 1:
+        return taskfiles[0]
+    else:
+        return taskfiles
+
+
 # def group_taskfiles_by_aif(taskfiles):
 # f = lambda tf: tf.abstract_input_file_mapping
 # for (aif_index, aif), taskfiles in it.groupby2(sorted(taskfiles, key=f), f):
@@ -355,16 +418,16 @@ def unpack_taskfiles_with_cardinality_1(odict):
 # if op in ['=', '=='] and number == 1:
 # yield taskfiles[0]
 # else:
-#             yield taskfiles
+# yield taskfiles
 
 
 # class TaskFileDict(dict):
-#     """
-#     The `input_dict` and `output_dict` object passed to Tool.cmd()
-#     """
-#     format = None
+# """
+# The `input_dict` and `output_dict` object passed to Tool.cmd()
+# """
+# format = None
 #
-#     def __init__(self, taskfiles, type):
+# def __init__(self, taskfiles, type):
 #         assert type in ['input', 'output']
 #         self.type = type
 #         self.taskfiles = taskfiles

@@ -5,10 +5,11 @@ Welcome
     :numbered:
     :maxdepth: 4
 
-    introduction
-    install
-    getting_started
+    1_introduction
+    2_install
+    3_getting_started
     workflows/index
+    shell
     glossary
     faq
 

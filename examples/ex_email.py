@@ -1,10 +1,10 @@
 from cosmos import Cosmos, signal_execution_status_change, ExecutionStatus
-from ex1 import ex1_main
+from ex1 import main
 
 ()
 
 
-def ex_email(execution):
+def main(execution):
     @signal_execution_status_change.connect
     def sig(ex):
         msg = "%s %s" % (ex, ex.status)
@@ -21,7 +21,7 @@ def ex_email(execution):
 
         message = client.messages.create(to="+1231231234", from_="+1231231234", body=message)
 
-    ex1_main(execution)
+    main(execution)
 
 
 if __name__ == '__main__':
@@ -29,4 +29,4 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
-    ex1_main(execution)
+    main(execution)

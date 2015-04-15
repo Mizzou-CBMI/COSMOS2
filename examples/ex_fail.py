@@ -6,7 +6,7 @@ from cosmos import Cosmos, Input
 import tools
 
 
-def ex2_main(execution):
+def main(execution):
     # These tasks have no dependencies
     inpts = execution.add([Input('/tmp', 'tmp_dir', 'dir', dict(test='tag'))])
     echos = execution.add([tools.Echo(dict(word='hello')), tools.Echo(tags=dict(word='world'))])
@@ -28,4 +28,4 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     ex = cosmos.start('Failed_Task', 'out/failed_task', max_attempts=2, restart=True, skip_confirm=True)
-    ex2_main(ex)
+    main(ex)

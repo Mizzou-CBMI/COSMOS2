@@ -3,35 +3,24 @@ from main import settings as s
 
 
 class Sleep(Tool):
-    def cmd(self, i, o, time=10):
-        return 'sleep {time}'
+    def cmd(self, time=10):
+        return 'sleep %s' % time
 
 
 class Echo(Tool):
-    outputs = [out('echo', 'txt')]
-
-    def cmd(self, _, outputs, word):
-        return '{s[echo_path]} {word} > {outputs[0]}'.format(s=s, **locals())
+    def cmd(self, word, out_txt=out('echo.txt')):
+        return '{s[echo_path]} {word} > {out_txt}'.format(s=s, **locals())
 
 
 class Cat(Tool):
-    inputs = [inp(format='txt', n='>=1')]
-    outputs = [out('cat.txt')]
-
-    def cmd(self, inputs, outputs):
-        out_txt = outputs[0]  # it's easier to just unpack in the method signature, see examples below.
-        in_txts = inputs[0]
-        return 'cat {input} > {out_txt}'.format(
-            input=' '.join(map(str, in_txts)),
+    def cmd(self, inputs=inp(format='txt', n='>=1'), out_txt=out('cat.txt')):
+        return 'cat {input_str} > {out_txt}'.format(
+            input_str=' '.join(map(str, inputs)),
             **locals()
         )
 
-
 class Paste(Tool):
-    inputs = [inp(format='txt')]
-    outputs = [out('paste.txt')]
-
-    def cmd(self, (input_txts, ), (out_txt, )):
+    def cmd(self, input_txts=inp(format='txt', n='>=1'), out_txt=out('paste.txt')):
         return 'paste {input} > {out_txt}'.format(
             input=' '.join(map(str, (input_txts,))),
             **locals()
@@ -39,25 +28,23 @@ class Paste(Tool):
 
 
 class WordCount(Tool):
-    inputs = []
-    outputs = [out('wc.txt')]
-
-    def cmd(self, (input_txts, ), (out_txt, )):
-        return 'wc {input} > {out_txt}'.format(
-            input=' '.join(map(str, (input_txts,))),
+    def cmd(self, chars=False, input_txts=inp(format='txt', n='>=1'), out_txt=out('wc.txt')):
+        c = ' -c' if chars else ''
+        return 'wc{c} {input} > {out_txt}'.format(
+            input=' '.join(map(str, input_txts)),
             **locals()
         )
 
 
 class Fail(Tool):
-    def cmd(self, inputs, outputs):
+    def cmd(self):
         return '__fail__'
 
 
 class MD5Sum(Tool):
-    inputs = [inp(format='*', n=1)]
-    outputs = [out('checksum.md5')]
+    inputs = []
+    outputs = []
 
-    def cmd(self, (in_file, ), _, out_md5):
+    def cmd(self, in_file=inp(format='*', n=1), out_md5=out('checksum.md5')):
         out_md5.basename = in_file.basename + '.md5'
         return 'md5sum {in_file}'.format(**locals()) 

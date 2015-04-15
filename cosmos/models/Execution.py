@@ -34,16 +34,6 @@ def _default_task_log_output_dir(task):
     return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
 
 
-# def _default_task_output_dir(task):
-# """The default function for computing Task.output_dir"""
-# tag_values = map(str, task.tags.values())
-#     for v in tag_values:
-#         assert re.match("^[\w]+$",
-#                         v), 'tag value `%s` does not make a good directory name.  Either change the tag, or define your own task_output_dir function when calling' \
-#                             'Execution.run' % v
-#     return opj(task.execution.output_dir, task.stage.name, '__'.join(tag_values))
-
-
 def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm):
     existing_task = successful_tasks.get(frozenset(tags.items()), None)
     if existing_task:
@@ -167,7 +157,7 @@ class Execution(Base):
                 raise ValueError('Duplicate tags detected')
 
 
-        #stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
+        # stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
         try:
             stage = only_one(s for s in self.stages if s.name == name)
         except ValueError:
@@ -232,7 +222,7 @@ class Execution(Base):
         # Set output_dirs of new tasks
         # for task in nx.topological_sort(task_g):
         # if not task.successful:
-        #         task.output_dir = task_output_dir(task)
+        # task.output_dir = task_output_dir(task)
         #         assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
         #         for tf in task.output_files:
         #             if tf.path is None:
@@ -407,11 +397,6 @@ class Execution(Base):
         g.add_edges_from((s, c) for s in self.stages for c in s.children if c)
         return g
 
-    def draw_stage_graph(self):
-        from ..graph.draw import draw_stage_graph
-
-        return draw_stage_graph(self.stage_graph())
-
     def task_graph(self):
         """
         :return: (networkx.DiGraph) a DAG of the tasks
@@ -420,11 +405,6 @@ class Execution(Base):
         g.add_nodes_from(self.tasks)
         g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
         return g
-
-    def draw_task_graph(self):
-        from ..graph.draw import draw_task_graph
-
-        return draw_task_graph(self.task_graph())
 
 
     def get_stage(self, name_or_id):
@@ -487,7 +467,7 @@ class Execution(Base):
         # def yield_outputs(self, name):
         # for task in self.tasks:
         # tf = task.get_output(name, error_if_missing=False)
-        #         if tf is not None:
+        # if tf is not None:
         #             yield tf
         #
         # def get_output(self, name):

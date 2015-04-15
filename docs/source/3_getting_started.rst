@@ -10,7 +10,7 @@ Execute an Example Workflow
 ___________________________
 
 The console will generate a lot of output as the workflow runs.  This workflow tests out various
-features of Cosmos.  The number beside each object inside brackets, `[#]`, is the ID of that object.
+features of Cosmos.  The number beside each object inside brackets, `[#]`, is the SQL ID of that object.
 
 .. code-block:: bash
 
@@ -143,12 +143,18 @@ A workflow can be resumed by re-running the script that originally started it.  
 failed tasks.  However, it is a bit more complicated if you modify the script, or manually delete successful jobs. The
 algorithm for resuming is as follows:
 
-1) Delete any failed tasks
-2) Add any new tasks (tasks with the same stage name and tags that were already completed successfully will **NOT** be re-run)
+1) Delete any failed Tasks
+* output_files are not cleaned up, it is expected they will be over-written
+
+2) Add any new Tasks
+* A Task is "new" if a Task with the same stage and set of tags does not exist.  Note that failed tasks were deleted.
+
 3) Run the workflow
+* Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.
 
 .. warning::
-    If a task in a stage with the same tags has already been executed successfully, it
+    If a task in a stage with the same tags and has already been executed successfully, it
     will not be re-executed or altered, *even if the actual command has changed because
-    you modified the script*.  In the future Cosmos may emmit a warning when this occurs or automatically
-    re-run these tasks.  This can be especially tricky when you try to change a successful task that has no tags.
+    you modified the script*.  If you look at the algorithm above, the successful task was never deleted in 1), so it
+    did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
+    This can be especially tricky when you try to change a successful task that has no tags.
