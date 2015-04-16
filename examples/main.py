@@ -23,6 +23,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--growl', action='store_true',
                         help='sends a growl notification on execution status changes')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='launch ipdb on exception')
     sps = parser.add_subparsers(title="Commands", metavar="<command>")
 
     sp = sps.add_parser('resetdb', help=cosmos.resetdb.__doc__)
@@ -55,6 +57,7 @@ if __name__ == '__main__':
     kwargs = dict(args._get_kwargs())
     func = kwargs.pop('func')
     growl = kwargs.pop('growl')
+    debug = kwargs.pop('debug')
     if growl:
         from cosmos.util import growl
         from cosmos import signal_execution_status_change, ExecutionStatus
@@ -72,4 +75,10 @@ if __name__ == '__main__':
 
         ex = cosmos.start(**execution_params)
         kwargs['execution'] = ex
-    func(**kwargs)
+
+    if debug:
+        import ipdb
+        with ipdb.launch_ipdb_on_exception():
+            func(**kwargs)
+    else:
+        func(**kwargs)

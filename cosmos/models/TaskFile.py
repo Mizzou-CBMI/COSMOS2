@@ -44,7 +44,7 @@ def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=
     :param basename: (str) custom_name.custom_format  Defaults to name.format if not specified.
     :return: (AbstractOutputFile)
     """
-    assert (name and format) or basename, 'must specify (name and format) or basename'
+    assert (name and format) or basename, 'must specify name, format or basename'
     if name is None:
         name, ext = os.path.splitext(os.path.basename(basename))
         name = name
@@ -60,7 +60,7 @@ def abstract_output_taskfile(basename=None, name=None, format=None, persist=Fals
     :param str basename: custom_name.custom_format.  Defaults to name.format if not specified.
     :rtype: AbstractOutputFile
     """
-    assert (name and format) or basename, 'must specify (name and format) or basename'
+    assert (name and format) or basename, 'must specify basename or both name and formatx'
     name2, ext = os.path.splitext(os.path.basename(basename))
     if name is None:
         name = name2
