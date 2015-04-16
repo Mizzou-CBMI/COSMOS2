@@ -205,9 +205,6 @@ class Execution(Base):
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
             self, self.cosmos_app.default_drm, self.output_dir))
 
-        from ..util.helpers import mkdir
-        mkdir(self.output_dir)
-
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,

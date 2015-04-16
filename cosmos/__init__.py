@@ -110,6 +110,8 @@ class Cosmos(object):
         output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
+        from .util.helpers import mkdir
+        mkdir(output_dir) # make it here so we can start logging to logfile
 
         session = self.session
 

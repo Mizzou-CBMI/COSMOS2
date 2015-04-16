@@ -24,8 +24,8 @@ def main(execution):
     summarize = execution.add(Cat(tags=dict(), parents=word_counts, out=''), name='Summarize')
 
     # These images can also be seen on the fly in the web-interface
-    draw_stage_graph(execution.stage_graph(), '%s/ex1_task_graph.svg' % execution.output_dir)
-    draw_task_graph(execution.task_graph(), '%s/ex1_stage_graph.svg' % execution.output_dir)
+    draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
+    draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
 
     execution.run()
 
