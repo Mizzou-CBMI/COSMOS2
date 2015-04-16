@@ -18,8 +18,8 @@ but has evolved a lot since it's original inception.  If you use COSMOS
 for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
 
 Since the original publication, it has been re-written and open-sourced by the originiating author, in a collaboration between
-`The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_, a bioinformatics lab, and
-`Invitae <http://invitae.com>`_, a genetic sequencing diagnostics lab.
+`The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
+`Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
 
 Features
 _________
