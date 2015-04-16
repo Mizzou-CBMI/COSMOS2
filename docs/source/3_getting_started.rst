@@ -108,7 +108,7 @@ You can use the web interface to explore the history and debug all workflows.  T
 
 .. code-block:: bash
 
-   python examples/runweb.py
+   python examples/main.py runweb --host 0.0.0.0 --port 8080
 
 Visit `<http://servername:8080>`_ to access it (or`<http://localhost:8080>`_ if you're running cosmos locally.
 
