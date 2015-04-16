@@ -49,9 +49,9 @@ This is the most common stage dependency.  For each task in StageA, you create a
                                  for i in [1, 2])
     stageB_tasks = execution.add(ToolB(tags=task.tags, parents=[task])
                                  for task in stageA_tasks)
-    draw_task_graph(execution.task_graph(), 'one2one.svg')
+    draw_task_graph(execution.task_graph(), 'one2one.png')
 
-.. figure:: /_static/imgs/one2one.svg
+.. figure:: /_static/imgs/one2one.png
     :align: center
 
 
@@ -67,10 +67,10 @@ For each parent task in StageA, two or more new children are generated in StageB
     stageB_tasks = execution.add(ToolB(tags=dict(j=j, **task.tags), parents=[task])
                                  for task in stageA_tasks
                                  for j in [1, 2])
-    draw_task_graph(execution.task_graph(), 'one2many.svg')
+    draw_task_graph(execution.task_graph(), 'one2many.png')
 
 
-.. figure:: /_static/imgs/one2many.svg
+.. figure:: /_static/imgs/one2many.png
     :align: center
 
 
@@ -88,10 +88,10 @@ Two or more parents in StageA produce one task in StageB.
     get_i = lambda task: task.tags['i']
     stageB_tasks = execution.add(ToolB(tags=dict(i=i), parents=list(tasks))
                                  for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
-    draw_task_graph(execution.task_graph(), 'many2one.svg')
+    draw_task_graph(execution.task_graph(), 'many2one.png')
 
 
-.. figure:: /_static/imgs/many2one.svg
+.. figure:: /_static/imgs/many2one.png
     :align: center
 
 Many2many
@@ -113,10 +113,10 @@ Two or more parents in StageA produce two or more parents in StageB.
                 yield ToolB(tags=dict(i=i, k=k), parents=parents)
 
     stageB_tasks = execution.add(B_generator(stageA_tasks))
-    draw_task_graph(execution.task_graph(), 'many2many.svg')
+    draw_task_graph(execution.task_graph(), 'many2many.png')
 
 
-.. figure:: /_static/imgs/many2many.svg
+.. figure:: /_static/imgs/many2many.png
     :align: center
 
 Helpers
