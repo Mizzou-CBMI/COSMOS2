@@ -352,7 +352,7 @@ class Input(Tool):
         super(Input, self).__init__(tags=tags, *args, **kwargs)
         self.load_sources.append(InputSource(path, name, format))
 
-    def cmd(self, inputs, outputs):
+    def cmd(self, *args, **kwargs):
         return NOOP
 
 
@@ -380,7 +380,7 @@ class Inputs(Tool):
             name, fmt = set_default_name_format(path, name, fmt)
             self.load_sources.append(InputSource(path, name, fmt))
 
-    def cmd(self, inputs, outputs):
+    def cmd(self, *args, **kwargs):
         return NOOP
 
 

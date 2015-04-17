@@ -35,8 +35,8 @@ Creating Tasks and Dependencies (Nodes and Edges)
 ---------------------------------------------------
 A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.
 
-One2one
-+++++++
+One2one (aka a map() operation)
++++++++++++++++++++++++++++++++
 This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.
 
 
@@ -76,7 +76,7 @@ For each parent task in StageA, two or more new children are generated in StageB
 
 
 Many2one
-+++++++++
+++++++++++++++++++++++++++
 Two or more parents in StageA produce one task in StageB.
 
 .. code-block:: python
