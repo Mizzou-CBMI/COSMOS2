@@ -333,28 +333,28 @@ class Execution(Base):
             assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
                 t, t.cpu_req, self.max_cpus)
 
-        #R un this thing!
+        # Run this thing!
         if not dry:
             _run(self, session, task_queue)
 
-        self.log.info('Execution complete')
+            # set status
+            if self.status == ExecutionStatus.failed_but_running:
+                self.status = ExecutionStatus.failed
+                # set stage status to failed
+                for s in self.stages:
+                    if s.status == StageStatus.running_but_failed:
+                        s.status = StageStatus.failed
+                session.commit()
+                return False
+            elif self.status == ExecutionStatus.running:
+                if set_successful:
+                    self.status = ExecutionStatus.successful
+                session.commit()
+                return True
+            else:
+                raise AssertionError('Bad execution status %s' % self.status)
 
-        # set status
-        if self.status == ExecutionStatus.failed_but_running:
-            self.status = ExecutionStatus.failed
-            # set stage status to failed
-            for s in self.stages:
-                if s.status == StageStatus.running_but_failed:
-                    s.status = StageStatus.failed
-            session.commit()
-            return False
-        elif self.status == ExecutionStatus.running:
-            if set_successful:
-                self.status = ExecutionStatus.successful
-            session.commit()
-            return True
-        else:
-            raise AssertionError('Bad execution status %s' % self.status)
+        self.log.info('Execution complete')
 
 
     def terminate(self, due_to_failure=True):
