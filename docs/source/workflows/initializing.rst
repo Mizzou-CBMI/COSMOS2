@@ -13,6 +13,9 @@ which contain the entire structure of a workflow.
     cosmos.initdb
     execution = cosmos.start('My_Workflow)
 
+You will likely have to install the python package required to use the driver you'd like.  See
+`SQLAlchemy Engines for <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  For example, if you are using
+``postgres+psycopg2:///``, make sure you ``pip install psycopg2``.
 
 
 API

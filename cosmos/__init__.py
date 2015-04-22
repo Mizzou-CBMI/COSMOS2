@@ -73,7 +73,7 @@ class Cosmos(object):
                  default_drm='local', default_queue=None,
                  flask_app=None):
         """
-        :param str database_url: A sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or
+        :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
         :param func get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
             requirements or the queue to submit to.  See :func:`cosmos.default_get_submit_args` for details
