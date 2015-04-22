@@ -35,7 +35,7 @@ class JobManager(object):
             mkdir(task.output_dir)
             mkdir(task.log_dir)
             self._create_command_sh(task, command)
-            task.drm_native_specification = self.get_submit_args(task.drm, task, default_queue=self.default_queue)
+            task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)
             assert task.drm is not None, 'task has no drm set'
             self.drms[task.drm].submit_job(task)
             task.status = TaskStatus.submitted

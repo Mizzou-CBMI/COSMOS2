@@ -14,6 +14,7 @@ Be sure to spend a lot of time with the examples, as this is often the easiest w
     :numbered:
     :maxdepth: 4
 
-    1_tools
-    2_dag
+    initializing
+    tools
+    dag
     examples

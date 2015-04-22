@@ -26,13 +26,20 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
-def default_get_submit_args(drm, task, default_queue=None, default_job_priority=None, use_mem_req=False):
+def default_get_submit_args(task, default_queue=None):
     """
-    Default method for determining the arguments to pass to the drm specified by :param:`drm`
+    Default method for determining the extra arguments to pass to the DRM.
+    For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
+    to be submitted with `bsub -n 3`.
 
-    :returns: (str) arguments.  For example, returning "-n 3" if :param:`drm` == 'lsf' would caused all jobs
-      to be submitted with bsub -n 3.  Returns None if no native_specification is required.
+    :param cosmos.Task task: The Task being submitted.
+    :param default_queue: The default queue.
+    :rtype: str
     """
+    drm = task.drm or default_queue
+    default_job_priority = None
+    use_mem_req = False
+
     cpu_req = task.cpu_req
     mem_req = task.mem_req
     time_req = task.time_req
@@ -60,14 +67,18 @@ def default_get_submit_args(drm, task, default_queue=None, default_job_priority=
 #########################################################################################################################
 
 class Cosmos(object):
-    def __init__(self, database_url='sqlite:///:memory:', get_submit_args=default_get_submit_args,
-                 default_drm='local', default_queue=None, flask_app=None, url_prefix=None):
+    def __init__(self,
+                 database_url='sqlite:///:memory:',
+                 get_submit_args=default_get_submit_args,
+                 default_drm='local', default_queue=None,
+                 flask_app=None):
         """
         :param str database_url: A sqlalchemy database url.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
         :param func get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
-            requirements or the queue to submit to.  See :func:`default_get_submit_args` for details
-        :param Flask flask_app: a Flask application instance for the web interface.  The default behavior is to create one.
+            requirements or the queue to submit to.  See :func:`cosmos.default_get_submit_args` for details
+        :param Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
+        :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
@@ -86,7 +97,7 @@ class Cosmos(object):
         from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
-        self.flask_app.register_blueprint(self.cosmos_bprint, url_prefix=url_prefix)
+        self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
 
     def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
@@ -185,7 +196,7 @@ class Cosmos(object):
 
     def initdb(self):
         """
-        Initialize the database via sql CREATE statements
+        Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.
         """
         print >> sys.stderr, 'Initializing sql database for Cosmos v%s...' % __version__
         Base.metadata.create_all(bind=self.session.bind)

@@ -149,7 +149,8 @@ API
 Execution.add
 ++++++++++++++
 
-.. automethod:: cosmos.Execution.add
+.. autoclass:: cosmos.Execution
+    :members: add, run
 
 
 Inputs

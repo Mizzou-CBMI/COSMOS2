@@ -25,10 +25,10 @@ AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basena
 
 def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
     """
-    :param str name: The name of the TaskFile(s)
-    :param str format: The format of the TaskFile(s)
-    :param bool forward: Forward this input as an output of this Tool/
-    :param int|str n: Cardinality.  examples: 1, >=1, <5, ==3
+    :param str name: The name of the TaskFile(s).
+    :param str format: The format of the TaskFile(s).
+    :param bool forward: Forward this input as an output of this Tool.
+    :param int|str n: Cardinality.  examples: 1, >=1, <5, ==3.
     :rtype: AbstractInputFile
     """
     assert name or format, 'must specify either name or format'
@@ -42,7 +42,7 @@ def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=
     :param name: (str) The name of the TaskFile.
     :param format: The format of the TaskFile.
     :param basename: (str) custom_name.custom_format  Defaults to name.format if not specified.
-    :return: (AbstractOutputFile)
+    :rtype: (AbstractOutputFile)
     """
     assert (name and format) or basename, 'must specify name, format or basename'
     if name is None:
