@@ -6,6 +6,13 @@ from ..util.helpers import groupby2
 from .. import TaskStatus
 import networkx as nx
 
+try:
+    import pygraphviz as _
+
+    pygraphviz_available = True
+except ImportError:
+    pygraphviz_available = False
+
 
 def draw_task_graph(task_graph, save_to=None, format='svg'):
     a = taskgraph_to_agraph(task_graph, False)

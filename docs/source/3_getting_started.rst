@@ -10,10 +10,11 @@ Execute an Example Workflow
 ___________________________
 
 The console will generate a lot of output as the workflow runs.  This workflow tests out various
-features of Cosmos.  The number beside each object inside brackets, `[#]`, is the SQL ID of that object.
+features of Cosmos.  The number beside each object inside brackets, `[#]`, is the SQL ID of that object.  Clone the
+git repository so that you have access to the examples code:
 
 .. code-block:: bash
-
+    $ git clone https://github.com/LPM-HMS/Cosmos2 Cosmos
     $ cd Cosmos/examples
     $ python ex1.py
 

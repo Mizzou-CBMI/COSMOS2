@@ -114,6 +114,24 @@ def readfile(path):
         return 'error parsing as utf-8: %s' % path
 
 
+class TaskEdge(Base):
+    __tablename__ = 'task_edge'
+    # id = Column(Integer, primary_key=True)
+    parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
+    child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
+
+    def __init__(self, parent=None, child=None):
+        self.parent = parent
+        self.child = child
+
+
+    def __str__(self):
+        return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
+
+    def __repr__(self):
+        return self.__str__()
+
+
 class Task(Base):
     __tablename__ = 'task'
     """
@@ -139,19 +157,31 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-    parents = association_proxy('incoming_edges', 'parent', creator=lambda n: TaskEdge(parent=n))
-    children = association_proxy('outgoing_edges', 'child', creator=lambda n: TaskEdge(child=n))
-    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
+
+    parents = relationship("Task",
+                           secondary=TaskEdge.__table__,
+                           primaryjoin=id == TaskEdge.parent_id,
+                           secondaryjoin=id == TaskEdge.child_id,
+                           backref="children",
+                           passive_deletes=True,
+                           cascade="save-update, merge, delete",
+                           )
+
     output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
                                 passive_deletes=True)
+
     _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
                                       passive_deletes=True)
+
+    input_files = association_proxy('_input_file_assocs', 'taskfile',
+                                    creator=lambda tf: InputFileAssociation(taskfile=tf))
     # command = Column(Text)
 
-    @property
-    def input_files(self):
-        #todo this should be an assoc proxy?
-        return [ifa.taskfile for ifa in self._input_file_assocs]
+    # input_files = association_proxy('_input_file_assoc', 'taskfile')
+    # @property
+    # def input_files(self):
+    # #todo this should be an assoc proxy?
+    #     return [ifa.taskfile for ifa in self._input_file_assocs]
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
@@ -321,27 +351,3 @@ class Task(Base):
 
     def __str__(self):
         return self.__repr__()
-
-
-class TaskEdge(Base):
-    __tablename__ = 'task_edge'
-    # id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    parent = relationship("Task", backref=backref("outgoing_edges", cascade="all, delete-orphan", single_parent=True,
-                                                  passive_deletes=True),
-                          primaryjoin=parent_id == Task.id)
-    child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    child = relationship("Task", backref=backref("incoming_edges", cascade="all, delete-orphan", single_parent=True,
-                                                 passive_deletes=True),
-                         primaryjoin=child_id == Task.id)
-
-    def __init__(self, parent=None, child=None):
-        self.parent = parent
-        self.child = child
-
-
-    def __str__(self):
-        return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
-
-    def __repr__(self):
-        return self.__str__()

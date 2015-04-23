@@ -122,7 +122,6 @@ class Cosmos(object):
         prefix_dir = os.path.split(output_dir)[0]
         assert os.path.exists(prefix_dir), '%s does not exists' % prefix_dir
         from .util.helpers import mkdir
-        mkdir(output_dir) # make it here so we can start logging to logfile
 
         session = self.session
 
@@ -178,6 +177,8 @@ class Cosmos(object):
             # start from scratch
             if check_output_dir:
                 assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
+
+            mkdir(output_dir)  # make it here so we can start logging to logfile
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             session.add(ex)
 

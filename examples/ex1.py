@@ -1,10 +1,11 @@
 import os
 from cosmos import Cosmos
 from tools import Echo, Cat, WordCount
-from cosmos.graph.draw import draw_stage_graph, draw_task_graph
+from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
 from cosmos.util.helpers import mkdir
-import itertools as it
 
+
+import itertools as it
 
 def main(execution):
     # Create two jobs that echo "hello" and "world" respectively
@@ -24,10 +25,14 @@ def main(execution):
     # all of the WordCounts
     summarize = execution.add(Cat(tags=dict(), parents=word_counts, out=''), name='Summarize')
 
-    # These images can also be seen on the fly in the web-interface
-    draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
-    draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
+    if pygraphviz_available:
+        # These images can also be seen on the fly in the web-interface
+        draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
+        draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
 
+    # print execution.tasks
+    # print execution.stage_graph().nodes()
+    # print execution.task_graph().nodes()
     execution.run()
 
 

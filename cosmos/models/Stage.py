@@ -27,6 +27,23 @@ def task_status_changed(stage):
     stage.session.commit()
 
 
+class StageEdge(Base):
+    __tablename__ = 'stage_edge'
+    parent_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
+    child_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
+
+    def __init__(self, parent=None, child=None):
+        self.parent = parent
+        self.child = child
+
+
+    def __str__(self):
+        return '<StageEdge: %s -> %s>' % (self.parent, self.child)
+
+    def __repr__(self):
+        return self.__str__()
+
+
 class Stage(Base):
     __tablename__ = 'stage'
     __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc_execution_name'),)
@@ -39,12 +56,20 @@ class Stage(Base):
     execution_id = Column(ForeignKey('execution.id', ondelete="CASCADE"), nullable=False, index=True)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    #relationship_type = Column(Enum34_ColumnType(RelationshipType))
+    # relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
-    parents = association_proxy('incoming_edges', 'parent', creator=lambda n: StageEdge(parent=n))
-    children = association_proxy('outgoing_edges', 'child', creator=lambda n: StageEdge(child=n))
-    tasks = relationship("Task", backref="stage", cascade="all, delete-orphan", passive_deletes=True)
+
+    parents = relationship("Stage",
+                           secondary=StageEdge.__table__,
+                           primaryjoin=id == StageEdge.parent_id,
+                           secondaryjoin=id == StageEdge.child_id,
+                           backref="children",
+                           passive_deletes=True,
+                           cascade="save-update, merge, delete",
+                           )
+
+    tasks = relationship("Task", backref="stage", cascade="all, delete, delete-orphan", passive_deletes=True)
 
 
     @declared_attr
@@ -75,6 +100,7 @@ class Stage(Base):
     @property
     def tasksq(self):
         from .. import Task
+
         return self.session.query(Task)
 
     def num_tasks(self):
@@ -133,7 +159,7 @@ class Stage(Base):
 
     def percent_running(self):
         return round(float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (
-        float(len(self.tasks)) or 1) * 100, 2)
+            float(len(self.tasks)) or 1) * 100, 2)
 
     def descendants(self, include_self=False):
         """
@@ -152,26 +178,3 @@ class Stage(Base):
 
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)
-
-
-class StageEdge(Base):
-    __tablename__ = 'stage_edge'
-    parent_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
-    parent = relationship("Stage", primaryjoin=parent_id == Stage.id,
-                          backref=backref("outgoing_edges", cascade="save-update, merge, delete, delete-orphan",
-                                          single_parent=True, passive_deletes=True))
-    child_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
-    child = relationship("Stage", primaryjoin=child_id == Stage.id,
-                         backref=backref("incoming_edges", cascade="save-update, merge, delete, delete-orphan",
-                                         single_parent=True, passive_deletes=True))
-
-    def __init__(self, parent=None, child=None):
-        self.parent = parent
-        self.child = child
-
-
-    def __str__(self):
-        return '<StageEdge: %s -> %s>' % (self.parent, self.child)
-
-    def __repr__(self):
-        return self.__str__()
