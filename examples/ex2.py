@@ -1,6 +1,7 @@
 import os
 from cosmos import Cosmos, one2one
 from tools import Echo, Cat, WordCount
+from cosmos.util.helpers import mkdir
 
 
 def main(execution):
@@ -30,6 +31,7 @@ def main(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
+    mkdir('out')
 
     execution = cosmos.start('Example2', 'out/ex2', max_attempts=2, restart=True, skip_confirm=True)
     main(execution)

@@ -94,7 +94,7 @@ class Cosmos(object):
 
         # setup flask views
         from cosmos.web.views import gen_bprint
-        from cosmos.web.admin import add_cosmos_admin
+        #from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)

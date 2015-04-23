@@ -1,8 +1,7 @@
 from cosmos import Cosmos, signal_execution_status_change, ExecutionStatus
 from ex1 import main
-
-()
-
+import os
+from cosmos.util.helpers import mkdir
 
 def main(execution):
     @signal_execution_status_change.connect
@@ -27,6 +26,7 @@ def main(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
+    mkdir('out')
 
     execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
     main(execution)

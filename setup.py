@@ -23,7 +23,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
                     out = out.replace(path, '')
                 yield out
 
-
 setup(
     name="cosmos-wfm",
     version=__version__,
@@ -39,7 +38,7 @@ setup(
         "psprofile",
         "flask",
         'blinker',
-        # 'Flask-Admin',
+        #'Flask-Admin',
         'Flask-SQLAlchemy',
         'networkx',
         'configparser',
@@ -48,7 +47,7 @@ setup(
         "six",
         "sqlalchemy_utils"
     ],
-    packages=find_packages(),
+    packages=['cosmos'],
     include_package_data=True,
     package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', True, True))}
 )

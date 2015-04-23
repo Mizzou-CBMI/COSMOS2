@@ -5,6 +5,7 @@ import os
 
 from cosmos import Execution, add_execution_args, Cosmos
 from configparser import ConfigParser
+from cosmos.util.helpers import mkdir
 
 root_path = os.path.dirname(os.path.realpath(__file__))
 config = ConfigParser()
@@ -71,6 +72,7 @@ if __name__ == '__main__':
         execution_params = {n: kwargs.pop(n, None) for n in
                             ['name', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts', 'output_dir']}
         if not execution_params['output_dir']:
+            mkdir(os.path.join(root_path, 'out'))
             execution_params['output_dir'] = os.path.join(root_path, 'out', execution_params['name'])
 
         ex = cosmos.start(**execution_params)

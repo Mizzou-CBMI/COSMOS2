@@ -4,6 +4,7 @@ If a Task fails, all of it's descendants will not be executed, however, the rest
 
 from cosmos import Cosmos, Input
 import tools
+from cosmos.util.helpers import mkdir
 
 
 def main(execution):
@@ -26,6 +27,7 @@ def main(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///sqlite.db')
     cosmos.initdb()
+    mkdir('out')
 
     ex = cosmos.start('Failed_Task', 'out/failed_task', max_attempts=2, restart=True, skip_confirm=True)
     main(ex)
