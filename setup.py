@@ -38,7 +38,7 @@ setup(
         "psprofile",
         "flask",
         'blinker',
-        "sqlalchemy<1.0",
+        "sqlalchemy",
         #'Flask-Admin',
         'Flask-SQLAlchemy',
         'networkx',
