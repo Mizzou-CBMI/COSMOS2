@@ -18,7 +18,7 @@ from ..util.helpers import duplicates, groupby2
 from ..db import Base
 import time
 import itertools as it
-
+import datetime
 
 opj = os.path.join
 import signal
@@ -48,11 +48,11 @@ def _execution_status_changed(ex):
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
         logfunc = ex.log.warning if ex.status in [ExecutionStatus.failed, ExecutionStatus.killed] else ex.log.info
         logfunc('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
-        ex.finished_on = func.now()
+        ex.finished_on = datetime.datetime.now()
 
     if ex.status == ExecutionStatus.successful:
         ex.successful = True
-        ex.finished_on = func.now()
+        ex.finished_on = datetime.datetime.now()
 
     ex.session.commit()
 
@@ -68,7 +68,7 @@ class Execution(Base):
     description = Column(String(255))
     successful = Column(Boolean, nullable=False, default=False)
     output_dir = Column(String(255), nullable=False)
-    created_on = Column(DateTime, default=func.now())
+    created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cpus = Column(Integer)
@@ -107,13 +107,14 @@ class Execution(Base):
 
     def __init__(self, manual_instantiation=True, *args, **kwargs):
         if manual_instantiation:
-            raise TypeError, 'Do not instantiate an Execution manually.  Use the Execution.start staticmethod.'
+            raise TypeError, 'Do not instantiate an Execution manually.  Use the Cosmos.start method.'
         super(Execution, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
         if self.info is None:
             # mutable dict column defaults to None
             self.info = dict()
         self.jobmanager = None
+        self.created_on = datetime.datetime.now()
 
     def __getattr__(self, item):
         if item == 'log':
@@ -214,10 +215,13 @@ class Execution(Base):
         self.successful = False
 
         if self.started_on is None:
-            self.started_on = func.now()
+            import datetime
+            self.started_on = datetime.datetime.now()
 
         # Render task graph and to session
-        # task_g, stage_g = taskgraph.render_recipe(self, recipe, default_drm=self.cosmos_app.default_drm)
+        # import ipdb
+        # with ipdb.launch_ipdb_on_exception():
+        #     print self.tasks
         task_g = self.task_graph()
         stage_g = self.stage_graph()
 

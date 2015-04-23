@@ -19,6 +19,7 @@ from sqlalchemy_utils.types.json import JSONType
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 from .TaskFile import InputFileAssociation
+import datetime
 
 opj = os.path.join
 
@@ -55,19 +56,19 @@ def task_status_changed(task):
             task.log.info('%s %s' % (task, task.status))
 
     if task.status == TaskStatus.waiting:
-        task.started_on = func.now()
+        task.started_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.submitted:
         task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drm_jobID))
-        task.submitted_on = func.now()
+        task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_failed_printout.format(task))
-            task.finished_on = func.now()
+            task.finished_on = datetime.datetime.now()
         else:
             task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.execution.max_attempts))
             if task.attempt < task.execution.max_attempts:
@@ -79,13 +80,13 @@ def task_status_changed(task):
 
                 task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
-                task.finished_on = func.now()
+                task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
                 # task.session.commit()
 
     elif task.status == TaskStatus.successful:
         task.successful = True
-        task.finished_on = func.now()
+        task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
 
@@ -157,7 +158,6 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
-
     parents = relationship("Task",
                            secondary=TaskEdge.__table__,
                            primaryjoin=id == TaskEdge.parent_id,
@@ -166,22 +166,17 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-
+    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
     output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
                                 passive_deletes=True)
-
     _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
                                       passive_deletes=True)
-
-    input_files = association_proxy('_input_file_assocs', 'taskfile',
-                                    creator=lambda tf: InputFileAssociation(taskfile=tf))
     # command = Column(Text)
 
-    # input_files = association_proxy('_input_file_assoc', 'taskfile')
-    # @property
-    # def input_files(self):
-    # #todo this should be an assoc proxy?
-    #     return [ifa.taskfile for ifa in self._input_file_assocs]
+    @property
+    def input_files(self):
+        # todo this should be an assoc proxy?
+        return [ifa.taskfile for ifa in self._input_file_assocs]
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
@@ -272,7 +267,7 @@ class Task(Base):
 
     @property
     def command_script_text(self):
-        #return self.command
+        # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
     @property
@@ -351,3 +346,4 @@ class Task(Base):
 
     def __str__(self):
         return self.__repr__()
+

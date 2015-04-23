@@ -1,8 +1,6 @@
 import re
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
-from sqlalchemy.sql.expression import func
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, synonym, backref, validates
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
@@ -11,6 +9,7 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType
 from .. import StageStatus, signal_stage_status_change, RelationshipType, TaskStatus
 import networkx as nx
+import datetime
 
 
 @signal_stage_status_change.connect
@@ -20,9 +19,9 @@ def task_status_changed(stage):
         stage.successful = True
 
     if stage.status == StageStatus.running:
-        stage.started_on = func.now()
+        stage.started_on = datetime.datetime.now()
     elif stage.status in [StageStatus.successful, StageStatus.failed, StageStatus.killed]:
-        stage.finished_on = func.now()
+        stage.finished_on = datetime.datetime.now()
 
     stage.session.commit()
 
@@ -59,7 +58,6 @@ class Stage(Base):
     # relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
-
     parents = relationship("Stage",
                            secondary=StageEdge.__table__,
                            primaryjoin=id == StageEdge.parent_id,
@@ -68,8 +66,7 @@ class Stage(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-
-    tasks = relationship("Task", backref="stage", cascade="all, delete, delete-orphan", passive_deletes=True)
+    tasks = relationship("Task", backref="stage", cascade="all, delete-orphan", passive_deletes=True)
 
 
     @declared_attr
@@ -108,11 +105,11 @@ class Stage(Base):
 
     def num_successful_tasks(self):
         return self.tasksq.filter_by(stage=self, successful=True).count()
-        #return len(filter(lambda t: t.successful, self.tasks))
+        # return len(filter(lambda t: t.successful, self.tasks))
 
     def num_failed_tasks(self):
         return self.tasksq.filter_by(stage=self, status=TaskStatus.failed).count()
-        #return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
+        # return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
 
 
     @property
@@ -178,3 +175,4 @@ class Stage(Base):
 
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)
+
