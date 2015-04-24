@@ -30,9 +30,6 @@ def main(execution):
         draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
         draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
 
-    # print execution.tasks
-    # print execution.stage_graph().nodes()
-    # print execution.task_graph().nodes()
     execution.run()
 
 
