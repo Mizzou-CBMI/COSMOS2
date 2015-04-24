@@ -22,7 +22,7 @@ def main(execution):
                                 for cat_task in cats)
 
     # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
-    # all of the WordCounts
+    # all of the WordCounts (a many2one relationship).
     summarize = execution.add(Cat(tags=dict(), parents=word_counts, out=''), name='Summarize')
 
     if pygraphviz_available:
