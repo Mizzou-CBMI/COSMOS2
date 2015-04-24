@@ -8,11 +8,11 @@ from cosmos.util.helpers import mkdir
 import itertools as it
 
 def main(execution):
-    # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph)
+    # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
     echos = execution.add([Echo(tags=dict(word='hello'), out='{word}'),
                            Echo(tags=dict(word='world!'))])
 
-    # Split each echo into two jobs (a one2many relationship)
+    # Split each echo into two jobs (a one2many relationship).
     cats = execution.add(Cat(tags=dict(n=n, **echo_task.tags), parents=[echo_task], out='{word}/{n}')
                          for echo_task in echos for n in [1, 2])
 
