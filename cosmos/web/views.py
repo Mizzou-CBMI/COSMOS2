@@ -7,7 +7,7 @@ from sqlalchemy import desc
 from .. import Execution, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
-from ..graph.draw import stages_to_image, tasks_to_image
+from ..graph.draw import draw_task_graph, draw_stage_graph
 
 
 def gen_bprint(cosmos_app):
@@ -103,12 +103,16 @@ def gen_bprint(cosmos_app):
 
     @bprint.route('/execution/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):
+        from ..graph.draw import pygraphviz_available
         ex = get_execution(id)
 
-        if type == 'task':
-            svg = Markup(tasks_to_image(ex.tasks))
+        if pygraphviz_available:
+            if type == 'task':
+                svg = Markup(draw_task_graph(ex.task_graph()))
+            else:
+                svg = Markup(draw_stage_graph(ex.stage_graph()))
         else:
-            svg = Markup(stages_to_image(ex.stages))
+            svg = 'Pygraphviz not installed, cannot visualize'
 
         return render_template('cosmos/taskgraph.html', execution=ex, type=type,
                                svg=svg)

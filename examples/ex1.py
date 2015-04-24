@@ -29,6 +29,8 @@ def main(execution):
         # These images can also be seen on the fly in the web-interface
         draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
         draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
+    else:
+        print 'Pygraphviz is not available :('
 
     execution.run()
 
