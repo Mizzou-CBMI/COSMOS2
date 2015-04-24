@@ -16,8 +16,8 @@ def main(execution):
     cats = execution.add(Cat(tags=dict(n=n, **echo_task.tags), parents=[echo_task], out='{word}/{n}')
                          for echo_task in echos for n in [1, 2])
 
-    # Count the words in the previous stage.  An example of a one2one relationship.
-    # This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.
+    # Count the words in the previous stage.  An example of a one2one relationship,
+    # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
     word_counts = execution.add(WordCount(dict(chars=True, **cat_task.tags), [cat_task], '{word}/{n}')
                                 for cat_task in cats)
 
