@@ -52,3 +52,7 @@ Multi-platform Support
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
 * Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
 
+Bug Reports
+____________
+
+Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>`_.
