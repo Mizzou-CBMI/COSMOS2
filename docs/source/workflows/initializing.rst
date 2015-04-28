@@ -10,7 +10,7 @@ which contain the entire structure of a workflow.
 
     from cosmos import Cosmos
     cosmos = Cosmos('sqlite:///my_cosmos_db.sqlite')
-    cosmos.initdb
+    cosmos.initdb()
     execution = cosmos.start('My_Workflow)
 
 You will likely have to install the python package required to use the driver you'd like. For example, if you are using
