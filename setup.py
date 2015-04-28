@@ -39,7 +39,7 @@ setup(
         "Flask",
         'blinker',
         "sqlalchemy",
-        #'Flask-Admin',
+        'Flask-Admin',
         'Flask-SQLAlchemy',
         'networkx',
         'configparser',
