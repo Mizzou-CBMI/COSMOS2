@@ -11,6 +11,7 @@ To launch the shell, create a script like this (Take a look at the :meth:`cosmos
 
     from cosmos import Cosmos
     cosmos_app = Cosmos('sqlite:///sqlite.db')
+    cosmos.initdb()
     cosmos_app.shell()
 
 
