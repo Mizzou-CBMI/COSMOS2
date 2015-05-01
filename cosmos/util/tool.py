@@ -56,7 +56,11 @@ def many2one(tool_class, parents, group_keys, tag=None, out=''):
     assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
 
     def f(task):
-        return {k: v for k, v in task.tags.items() if k in group_keys}
+        try:
+            return {k: task.tags[k] for k in group_keys}
+        except KeyError as k:
+            raise KeyError('keyword %s is not in the tags of %s' % (k, task))
+
 
     for tag_group, parent_group in it.groupby(sorted(parents, key=f), f):
         new_tags = dict(tag_group)
