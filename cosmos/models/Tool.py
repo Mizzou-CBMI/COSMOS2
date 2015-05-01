@@ -86,6 +86,7 @@ class Tool(object):
         self.tags = tags.copy()  # can't expect the User to remember to do this.
         self.__validate()
         self.load_sources = []  # for Inputs
+
         self.out = out
         self.task_parents = parents if parents else []
 
@@ -132,6 +133,11 @@ class Tool(object):
         if not set(self.tags.keys()).isdisjoint(reserved):
             raise ToolValidationError(
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
+
+        for v in self.tags.itervalues():
+            assert any(isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
+                                                                                  'Tag values should be a str, int, float or bool.'
+
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
