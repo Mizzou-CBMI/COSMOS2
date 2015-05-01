@@ -45,8 +45,9 @@ def many2one(tool_class, parents, group_keys, tag=None, out=''):
         their tags given by `group_keys`.
     :param itrbl(Task) parents: An group of parents to groupby
     :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
-    :param str out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
-        Defaults to the output_dir of the parent task.
+    :param str|callable out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
+        Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
+        a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
     :return:
     """
     if tag is None:
@@ -65,7 +66,7 @@ def many2one(tool_class, parents, group_keys, tag=None, out=''):
     for tag_group, parent_group in it.groupby(sorted(parents, key=f), f):
         new_tags = dict(tag_group)
         new_tags.update(tag)
-        yield tool_class(tags=new_tags, parents=parent_group, out=out)
+        yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
 
 def many2many():
