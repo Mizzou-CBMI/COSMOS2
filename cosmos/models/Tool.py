@@ -94,7 +94,12 @@ class Tool(object):
             self.input_arg_map = {}
             self.output_arg_map = {}
 
+            # iterate over argspec keywords and their defaults
             for kw, default in zip(argspec.args[-len(argspec.defaults or []):], argspec.defaults or []):
+                if isinstance(kw, list):
+                    # for when user specifies unpacking in a parameter name
+                    kw = frozenset(kw)
+
                 if isinstance(default, AbstractInputFile):
                     self.input_arg_map[kw] = default
                 elif isinstance(default, AbstractOutputFile):
@@ -231,8 +236,8 @@ class Tool(object):
 
         argspec = getargspec(self.cmd)
         self.task = task
-        params = {k: v for k, v in self.tags.items() if k in argspec.args
-                  if k not in self.input_arg_map and k not in self.output_arg_map}
+        params = {k: v for k, v in self.tags.items()
+                  if k in argspec.args}
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
@@ -251,6 +256,7 @@ class Tool(object):
                 yield input_name, input_taskfile_or_input_taskfiles
 
         input_map = dict(get_input_map())
+
         outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         output_map = dict(zip(self.output_arg_map.iterkeys(), outputs))
 

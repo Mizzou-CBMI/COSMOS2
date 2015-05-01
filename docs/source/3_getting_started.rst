@@ -105,7 +105,14 @@ see examples/main.py for a way to organize multiple workflows into a single acce
 Launch the Web Interface
 ________________________
 
-You can use the web interface to explore the history and debug all workflows.  To start it, run:
+You can use the web interface to explore the history and debug all workflows.  Features include:
+
+
+* Visualizing all jobs as a dependency graph (not useful if there are too many jobs)
+* Visualizing the stages as a dependency graph (high level overview)
+* Search for particular tasks based on their tags or other attributes
+* See resource usage statistics
+* For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.
 
 .. code-block:: bash
 
