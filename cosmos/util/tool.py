@@ -38,17 +38,9 @@ def one2one(tool_class, tasks, tag=None, out=None):
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
 
-def many2one(tool_class, parents, group_keys, tag=None, out=''):
+def _reduce(parents, groupby, tag):
     """
-    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.
-    :param list(str) group_keys: A list of keys to groupby.  Parents will be grouped if they have the same values in
-        their tags given by `group_keys`.
-    :param itrbl(Task) parents: An group of parents to groupby
-    :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
-    :param str|callable out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
-        Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
-        a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
-    :return:
+    helpers for many2one and many2many
     """
     if tag is None:
         tag = dict()
@@ -56,9 +48,10 @@ def many2one(tool_class, parents, group_keys, tag=None, out=''):
     parents = list(parents)
     assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
 
+
     def f(task):
         try:
-            return {k: task.tags[k] for k in group_keys}
+            return {k: task.tags[k] for k in groupby}
         except KeyError as k:
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
@@ -66,15 +59,33 @@ def many2one(tool_class, parents, group_keys, tag=None, out=''):
     for tag_group, parent_group in it.groupby(sorted(parents, key=f), f):
         new_tags = dict(tag_group)
         new_tags.update(tag)
+        yield new_tags, parent_group
+
+def many2one(tool_class, parents, groupby, tag=None, out=''):
+    """
+    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.
+    :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
+        their tags given by `groupby`.
+    :param itrbl(Task) parents: An group of parents to groupby
+    :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
+    :param str|callable out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
+        Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
+        a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
+    :yields: new Tools
+    """
+    for new_tags, parent_group in _reduce(parents, groupby, tag):
         yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
 
-def many2many():
+def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
     """
-    TODO
-    :return:
+    :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     """
-    raise NotImplementedError()
+    for new_tags, parent_group in _reduce(parents, groupby, tag):
+        for k, values in splitby:
+            for v in values:
+                new_tags[k] = v
+                yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
 
 def one2many():
