@@ -309,5 +309,5 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Tool_old, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .util.tool import one2one, make_dict, many2one
+from .util.tool import one2one, make_dict, many2one, many2many, one2many
 from .graph.draw import draw_task_graph, draw_stage_graph
