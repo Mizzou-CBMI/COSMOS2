@@ -82,7 +82,7 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     """
     for new_tags, parent_group in _reduce(parents, groupby, tag):
-        for k, values in splitby:
+        for k, values in splitby.items():
             for v in values:
                 new_tags[k] = v
                 yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
