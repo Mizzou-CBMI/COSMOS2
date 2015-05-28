@@ -213,6 +213,8 @@ class Tool(object):
 
         :param output_taskfiles: output TaskFiles in the same order as the AbstractOutputFiles listed in self.outputs
         """
+
+
         argspec = getargspec(self.cmd)
         self.task = task
         params = {k: v for k, v in self.tags.items() if k in argspec.args}
@@ -274,7 +276,7 @@ class Tool(object):
         out = self.cmd(**kwargs)
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-        return strip_lines(out)
+        return out# strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \
