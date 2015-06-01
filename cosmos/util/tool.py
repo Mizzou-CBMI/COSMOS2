@@ -38,13 +38,10 @@ def one2one(tool_class, tasks, tag=None, out=None):
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
 
-def _reduce(parents, groupby, tag):
+def _reduce(parents, groupby):
     """
     helpers for many2one and many2many
     """
-    if tag is None:
-        tag = dict()
-    assert isinstance(tag, dict), '`tag` must be a dict'
     parents = list(parents)
     assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
 
@@ -56,10 +53,8 @@ def _reduce(parents, groupby, tag):
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
 
-    for tag_group, parent_group in it.groupby(sorted(parents, key=f), f):
-        new_tags = dict(tag_group)
-        new_tags.update(tag)
-        yield new_tags, parent_group
+    for group_tags, parent_group in it.groupby(sorted(parents, key=f), f):
+        yield group_tags.copy(), parent_group
 
 def many2one(tool_class, parents, groupby, tag=None, out=''):
     """
@@ -73,7 +68,12 @@ def many2one(tool_class, parents, groupby, tag=None, out=''):
         a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
     :yields: new Tools
     """
-    for new_tags, parent_group in _reduce(parents, groupby, tag):
+    if tag is None:
+        tag = dict()
+    assert isinstance(tag, dict), '`tag` must be a dict'
+
+    for new_tags, parent_group in _reduce(parents, groupby):
+        new_tags.update(tag)
         yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
 
@@ -81,26 +81,32 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
     """
     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     """
-    for new_tags, parent_group in _reduce(parents, groupby, tag):
+    if tag is None:
+        tag = dict()
+    assert isinstance(tag, dict), '`tag` must be a dict'
+
+
+    for group_tags, parent_group in _reduce(parents, groupby):
         parent_group = list(parent_group)
-        for k, values in splitby.items():
-            for v in values:
-                new_tags[k] = v
-                yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
+        for new_tags in _split(splitby):
+            new_tags.update(group_tags)
+            new_tags.update(tag)
+            yield tool_class(tags=new_tags, parents=parent_group, out=out(group_tags) if hasattr(out, '__call__') else out)
+
+def _split(splitby):
+    for items in it.product(*[[(k,v) for v in l] for k,l in splitby.items()]):
+        yield dict(items)
 
 def one2many(tool_class, parents, splitby, tag=None, out=''):
     """
-    TODO
+    :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     :return:
     """
     if tag is None:
         tag = dict()
-
     assert isinstance(tag, dict), '`tag` must be a dict'
+
     for parent in parents:
-        new_tags = parent.tags.copy()
-        new_tags.update(tag)
-        for k, values in splitby.items():
-            for v in values:
-                new_tags[k] = v
-                yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)
+        for new_tags in _split(splitby):
+            new_tags.update(tag)
+            yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)

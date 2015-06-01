@@ -48,9 +48,7 @@ setup(
         "six",
         "SQLAlchemy-Utils"
     ],
-    packages=['cosmos'],
+    packages=find_packages(),
     include_package_data=True,
-    package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', True, True))}
+    package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 )
-
-
