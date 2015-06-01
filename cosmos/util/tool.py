@@ -88,10 +88,19 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
                 new_tags[k] = v
                 yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
-
-def one2many():
+def one2many(tool_class, parents, splitby, tag=None, out=''):
     """
     TODO
     :return:
     """
-    raise NotImplementedError()
+    if tag is None:
+        tag = dict()
+
+    assert isinstance(tag, dict), '`tag` must be a dict'
+    for parent in parents:
+        new_tags = parent.tags.copy()
+        new_tags.update(tag)
+        for k, values in splitby.items():
+            for v in values:
+                new_tags[k] = v
+                yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)
