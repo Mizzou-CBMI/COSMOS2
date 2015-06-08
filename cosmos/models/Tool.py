@@ -143,10 +143,16 @@ class Tool(object):
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
-
+        import pprint
         if not OPS[op](real_count, int(number)):
-            s = '{self} does not have right number of inputs: for {abstract_input_file}.  \n' \
-                '{real_count} inputs found in parents: {parents}'.format(**locals())
+            s = 'ERROR!!! {self} does not have right number of inputs: for {abstract_input_file}\n' \
+                '***Parents*** \n' \
+                '{prnts}\n' \
+                '***Inputs Available ({real_count})*** \n' \
+                '{mapped_input_taskfiles} '.format(mit=pprint.pformat(mapped_input_taskfiles,indent=4),
+                                                   prnts=pprint.pformat(parents, indent=4), **locals())
+            import sys
+            print >> sys.stderr, s
             raise ToolValidationError(s)
 
 

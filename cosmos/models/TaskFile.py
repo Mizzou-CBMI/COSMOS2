@@ -31,11 +31,9 @@ def abstract_input_taskfile(name='.*', format='.*', forward=False, n=1):
     :param int|str n: Cardinality.  examples: 1, >=1, <5, ==3.
     :rtype: AbstractInputFile
     """
-    #assert name or format, 'must specify either name or format'
+    # assert name or format, 'must specify either name or format'
 
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
-
-
 
 
 def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=False):
@@ -122,7 +120,7 @@ class TaskFile(Base):
 
     # @property
     # def tasks_input_for(self):
-    #     return [ifa.task for ifa in self._input_file_assocs]
+    # return [ifa.task for ifa in self._input_file_assocs]
 
     @property
     def prefix(self):
