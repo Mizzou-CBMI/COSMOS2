@@ -36,8 +36,27 @@ A tool is a class that overrides :py:class:`~Tool`, and implements the method :p
 
 Abstract Input File
 --------------------
-An :func:`~cosmos.abstract_input_taskfile` specifies a type of input file(s) required by a Tool.  All parents will be searched for output_files
-that match both the name and/or format specified (at least the name or format must be specified).
+An :func:`~cosmos.abstract_input_taskfile` specifies the input file(s) required by a Tool.  All parents will be searched for output_files
+that match both the name and/or format specified (at least the name or format must be specified).  The name and format
+are regular expressions.  So for example if you're expecting two .txt files but only know one name, you could do something
+like this:
+
+.. code-block:: python
+
+    text1 = aif(name='(?!expected_name)',format='txt') # this aif's name matches anything that is NOT "expected_name"
+    text2 = aif(name='expected_name', format='txt')
+
+You can also override the signature of Tools for extremely special cases:
+
+.. code-block:: python
+
+    class ToolB(Tool):
+        def cmd(self, aif=(format='txt|txt.gz')):
+            pass
+
+    class ToolB(ToolA):
+        def cmd(self, aif=('very_specific_name','txt|txt.gz')):
+            pass
 
 Cardinality
 _______________

@@ -39,6 +39,24 @@ class _ToolMeta(type):
         return super(_ToolMeta, cls).__init__(name, bases, dct)
 
 
+def error(message, dct):
+    import sys
+
+    print >> sys.stderr, '******ERROR*******'
+    print >> sys.stderr, '    %s' % message
+    for k, v in dct.items():
+        print >> sys.stderr, '***%s***' % k
+    if isinstance(v, list):
+        for v2 in v:
+            print >> sys.stderr, "    %s" % v2
+    elif isinstance(v, dict):
+        for k2,v2 in v.items():
+            print >> sys.stderr, "    %s=%s" % (k2,v2)
+    else:
+        print >> sys.stderr, "    %s" % v
+
+    raise ToolValidationError(message)
+
 class Tool(object):
     """
     Essentially a factory that produces Tasks.  :meth:`cmd` must be overridden unless it is a NOOP task.
@@ -144,16 +162,19 @@ class Tool(object):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
         import pprint
+
         if not OPS[op](real_count, int(number)):
-            s = 'ERROR!!! {self} does not have right number of inputs: for {abstract_input_file}\n' \
+            s = '******ERROR****** \n' \
+                '{self} does not have right number of inputs: for {abstract_input_file}\n' \
                 '***Parents*** \n' \
                 '{prnts}\n' \
                 '***Inputs Available ({real_count})*** \n' \
-                '{mapped_input_taskfiles} '.format(mit=pprint.pformat(mapped_input_taskfiles,indent=4),
-                                                   prnts=pprint.pformat(parents, indent=4), **locals())
+                '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
+                                prnts="\n".join(map(str, parents)), **locals())
             import sys
+
             print >> sys.stderr, s
-            raise ToolValidationError(s)
+            raise ToolValidationError('Missing Input Files')
 
 
     def _map_inputs(self, parents):
@@ -183,6 +204,15 @@ class Tool(object):
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
+
+        f = lambda ifa: ifa.taskfile
+        for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+            group_of_ifas = list(group_of_ifas)
+            if len(group_of_ifas) > 1:
+                error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+                    TaskFiles=tf
+                ))
+
         task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir,
                     **d)
         task.skip_profile = self.skip_profile
@@ -278,7 +308,15 @@ class Tool(object):
         kwargs.update(output_map)
         kwargs.update(**params)
 
-        out = self.cmd(**kwargs)
+        try:
+            out = self.cmd(**kwargs)
+        except TypeError as e:
+            error('Parameter TypeError running %s.cmd' % self, dict(
+                Params=kwargs,
+                Exception=e.msg,
+            ))
+
+
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return out  # strip_lines(out)
@@ -450,7 +488,7 @@ def unpack_if_cardinality_1(aif, taskfiles):
 #
 # def __init__(self, taskfiles, type):
 # assert type in ['input', 'output']
-#         self.type = type
+# self.type = type
 #         self.taskfiles = taskfiles
 #         if type == 'input':
 #             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
