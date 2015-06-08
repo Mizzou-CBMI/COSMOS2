@@ -46,7 +46,8 @@ setup(
         "enum34",
         "Flask-Failsafe",
         "six",
-        "SQLAlchemy-Utils"
+        "SQLAlchemy-Utils",
+        "pyparsing==1.5.7"
     ],
     packages=['cosmos'],
     include_package_data=True,

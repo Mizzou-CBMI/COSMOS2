@@ -135,9 +135,9 @@ class Tool(object):
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
         for v in self.tags.itervalues():
-            assert any(isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
-                                                                                  'Tag values should be a str, int, float or bool.'
-
+            assert any(
+                isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
+                                                                           'Tag values should be a str, int, float or bool.'
 
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
@@ -214,7 +214,6 @@ class Tool(object):
         :param output_taskfiles: output TaskFiles in the same order as the AbstractOutputFiles listed in self.outputs
         """
 
-
         argspec = getargspec(self.cmd)
         self.task = task
         params = {k: v for k, v in self.tags.items() if k in argspec.args}
@@ -276,7 +275,7 @@ class Tool(object):
         out = self.cmd(**kwargs)
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-        return out# strip_lines(out)
+        return out  # strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \
@@ -444,7 +443,7 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # format = None
 #
 # def __init__(self, taskfiles, type):
-#         assert type in ['input', 'output']
+# assert type in ['input', 'output']
 #         self.type = type
 #         self.taskfiles = taskfiles
 #         if type == 'input':
@@ -607,17 +606,12 @@ def _find(taskfiles, abstract_file, error_if_missing=False):
     :param error_if_missing: raise ValueError if a matching taskfile cannot be found
     :return:
     """
-    name, format = abstract_file.name, abstract_file.format
-    assert name or format
+    reg_name, reg_format = re.compile(abstract_file.name), re.compile(abstract_file.format)
 
-    if format == '*':
-        for tf in taskfiles:
+    found = False
+    for tf in taskfiles:
+        if re.match(reg_name, tf.name) and re.match(reg_format, tf.format):
             yield tf
-    else:
-        found = False
-        for tf in taskfiles:
-            if name in [tf.name, None] and format in [tf.format, None]:
-                yield tf
-                found = True
-        if not found and error_if_missing:
-            raise ValueError, 'No taskfile found with name=%s, format=%s' % (name, format)
+            found = True
+    if not found and error_if_missing:
+        raise ValueError, 'No taskfile found for %s' % abstract_file
