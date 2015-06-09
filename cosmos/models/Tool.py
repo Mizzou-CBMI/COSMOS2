@@ -314,7 +314,7 @@ class Tool(object):
         except TypeError as e:
             error('Parameter TypeError running %s.cmd' % self, dict(
                 Params=kwargs,
-                Exception=e.msg,
+                Exception=e.message,
             ))
 
 
