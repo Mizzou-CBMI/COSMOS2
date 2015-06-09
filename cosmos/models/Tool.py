@@ -205,6 +205,7 @@ class Tool(object):
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
 
+        # Validation
         f = lambda ifa: ifa.taskfile
         for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
             group_of_ifas = list(group_of_ifas)

@@ -107,6 +107,8 @@ def one2many(tool_class, parents, splitby, tag=None, out=''):
     assert isinstance(tag, dict), '`tag` must be a dict'
 
     for parent in parents:
-        for new_tags in _split(splitby):
+        new_tags = parent.tags.copy()
+        for split_tags in _split(splitby):
+            new_tags.update(split_tags)
             new_tags.update(tag)
             yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)
