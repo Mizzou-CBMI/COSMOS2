@@ -18,6 +18,7 @@ if __name__ == '__main__':
     import ex_email
 
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
+    cosmos.initdb()
 
     import argparse
 
@@ -43,15 +44,15 @@ if __name__ == '__main__':
     sp.set_defaults(func=cosmos.runweb)
 
     sp = sps.add_parser('ex1', help='Example1')
-    sp.set_defaults(func=ex1.main)
+    sp.set_defaults(func=ex1.run_ex1)
     add_execution_args(sp)
 
     sp = sps.add_parser('ex2', help='Example2: A failed task')
-    sp.set_defaults(func=ex_fail.main)
+    sp.set_defaults(func=ex_fail.run_ex2)
     add_execution_args(sp)
 
     sp = sps.add_parser('ex3', help='Example3: Twitter (note you must edit the file)')
-    sp.set_defaults(func=ex_email.main)
+    sp.set_defaults(func=ex_email.run_ex3)
     add_execution_args(sp)
 
     args = parser.parse_args()
@@ -68,7 +69,7 @@ if __name__ == '__main__':
             if execution.status != ExecutionStatus.running:
                 growl.send('%s %s' % (execution, execution.status))
 
-    if func.__name__.startswith('ex'):
+    if func.__module__.startswith('ex'):
         execution_params = {n: kwargs.pop(n, None) for n in
                             ['name', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts', 'output_dir']}
         if not execution_params['output_dir']:

@@ -26,7 +26,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
-def default_get_submit_args(task, default_queue=None):
+def default_get_submit_args(task, default_queue=None, grid_engine_parallel_environment='smp'):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
@@ -55,7 +55,7 @@ def default_get_submit_args(task, default_queue=None):
 
     elif drm == 'ge':
         mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req))) if mem_req and use_mem_req else ''
-        return '-pe smp {cpu_req}{queue}{mem_req_s}{priority} -N "{jobname}"'.format(**locals())
+        return '-pe {grid_engine_parallel_environment} {cpu_req}{queue}{mem_req_s}{priority} -N "{jobname}"'.format(**locals())
     elif drm == 'local':
         return None
     else:
@@ -309,5 +309,5 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Tool_old, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .util.tool import one2one, make_dict, many2one
+from .util.tool import one2one, make_dict, many2one, many2many, one2many
 from .graph.draw import draw_task_graph, draw_stage_graph

@@ -23,18 +23,17 @@ AbstractInputFile = namedtuple('AbstractInputFile', ['name', 'format', 'forward'
 AbstractOutputFile = namedtuple('AbstractOutputFile', ['name', 'format', 'basename', 'persist'])
 
 
-def abstract_input_taskfile(name=None, format=None, forward=False, n=1):
+def abstract_input_taskfile(name='.*', format='.*', forward=False, n=1):
     """
-    :param str name: The name of the TaskFile(s).
-    :param str format: The format of the TaskFile(s).
+    :param str name: A regular expression pattern to match the name of the TaskFile(s).
+    :param str format: A regular expression pattern to match the format of the TaskFile(s).
     :param bool forward: Forward this input as an output of this Tool.
     :param int|str n: Cardinality.  examples: 1, >=1, <5, ==3.
     :rtype: AbstractInputFile
     """
-    assert name or format, 'must specify either name or format'
+    # assert name or format, 'must specify either name or format'
+
     return AbstractInputFile(name=name, format=format, forward=forward, n=n)
-
-
 
 
 def abstract_output_taskfile_old(name=None, format=None, basename=None, persist=False):
@@ -60,12 +59,13 @@ def abstract_output_taskfile(basename=None, name=None, format=None, persist=Fals
     :param str basename: custom_name.custom_format.  Defaults to name.format if not specified.
     :rtype: AbstractOutputFile
     """
-    assert (name and format) or basename, 'must specify basename or both name and formatx'
-    name2, ext = os.path.splitext(os.path.basename(basename))
-    if name is None:
-        name = name2
-    if format is None:
-        format = ext[1:]
+    assert (name and format) or basename, 'must specify basename or both name and format'
+    if basename:
+        name2, ext = os.path.splitext(os.path.basename(basename))
+        if name is None:
+            name = name2
+        if format is None:
+            format = ext[1:]
 
     return AbstractOutputFile(name=name, format=format, basename=basename, persist=persist)
 
@@ -120,7 +120,7 @@ class TaskFile(Base):
 
     # @property
     # def tasks_input_for(self):
-    #     return [ifa.task for ifa in self._input_file_assocs]
+    # return [ifa.task for ifa in self._input_file_assocs]
 
     @property
     def prefix(self):

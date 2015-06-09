@@ -39,6 +39,24 @@ class _ToolMeta(type):
         return super(_ToolMeta, cls).__init__(name, bases, dct)
 
 
+def error(message, dct):
+    import sys
+
+    print >> sys.stderr, '******ERROR*******'
+    print >> sys.stderr, '    %s' % message
+    for k, v in dct.items():
+        print >> sys.stderr, '***%s***' % k
+    if isinstance(v, list):
+        for v2 in v:
+            print >> sys.stderr, "    %s" % v2
+    elif isinstance(v, dict):
+        for k2,v2 in v.items():
+            print >> sys.stderr, "    %s=%s" % (k2,v2)
+    else:
+        print >> sys.stderr, "    %s" % v
+
+    raise ToolValidationError(message)
+
 class Tool(object):
     """
     Essentially a factory that produces Tasks.  :meth:`cmd` must be overridden unless it is a NOOP task.
@@ -86,6 +104,7 @@ class Tool(object):
         self.tags = tags.copy()  # can't expect the User to remember to do this.
         self.__validate()
         self.load_sources = []  # for Inputs
+
         self.out = out
         self.task_parents = parents if parents else []
 
@@ -94,7 +113,12 @@ class Tool(object):
             self.input_arg_map = {}
             self.output_arg_map = {}
 
+            # iterate over argspec keywords and their defaults
             for kw, default in zip(argspec.args[-len(argspec.defaults or []):], argspec.defaults or []):
+                if isinstance(kw, list):
+                    # for when user specifies unpacking in a parameter name
+                    kw = frozenset(kw)
+
                 if isinstance(default, AbstractInputFile):
                     self.input_arg_map[kw] = default
                 elif isinstance(default, AbstractOutputFile):
@@ -128,15 +152,29 @@ class Tool(object):
             raise ToolValidationError(
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
+        for v in self.tags.itervalues():
+            assert any(
+                isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
+                                                                           'Tag values should be a str, int, float or bool.'
+
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
+        import pprint
 
         if not OPS[op](real_count, int(number)):
-            s = '{self} does not have right number of inputs: for {abstract_input_file}.  \n' \
-                '{real_count} inputs found in parents: {parents}'.format(**locals())
-            raise ToolValidationError(s)
+            s = '******ERROR****** \n' \
+                '{self} does not have right number of inputs: for {abstract_input_file}\n' \
+                '***Parents*** \n' \
+                '{prnts}\n' \
+                '***Inputs Available ({real_count})*** \n' \
+                '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
+                                prnts="\n".join(map(str, parents)), **locals())
+            import sys
+
+            print >> sys.stderr, s
+            raise ToolValidationError('Missing Input Files')
 
 
     def _map_inputs(self, parents):
@@ -166,6 +204,15 @@ class Tool(object):
 
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
+
+        f = lambda ifa: ifa.taskfile
+        for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+            group_of_ifas = list(group_of_ifas)
+            if len(group_of_ifas) > 1:
+                error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+                    TaskFiles=tf
+                ))
+
         task = Task(stage=stage, tags=self.tags, _input_file_assocs=ifas, parents=parents, output_dir=self.output_dir,
                     **d)
         task.skip_profile = self.skip_profile
@@ -202,6 +249,7 @@ class Tool(object):
 
         :param output_taskfiles: output TaskFiles in the same order as the AbstractOutputFiles listed in self.outputs
         """
+
         argspec = getargspec(self.cmd)
         self.task = task
         params = {k: v for k, v in self.tags.items() if k in argspec.args}
@@ -231,8 +279,8 @@ class Tool(object):
 
         argspec = getargspec(self.cmd)
         self.task = task
-        params = {k: v for k, v in self.tags.items() if k in argspec.args
-                  if k not in self.input_arg_map and k not in self.output_arg_map}
+        params = {k: v for k, v in self.tags.items()
+                  if k in argspec.args}
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
@@ -251,6 +299,7 @@ class Tool(object):
                 yield input_name, input_taskfile_or_input_taskfiles
 
         input_map = dict(get_input_map())
+
         outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
         output_map = dict(zip(self.output_arg_map.iterkeys(), outputs))
 
@@ -259,10 +308,18 @@ class Tool(object):
         kwargs.update(output_map)
         kwargs.update(**params)
 
-        out = self.cmd(**kwargs)
+        try:
+            out = self.cmd(**kwargs)
+        except TypeError as e:
+            error('Parameter TypeError running %s.cmd' % self, dict(
+                Params=kwargs,
+                Exception=e.msg,
+            ))
+
+
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-        return strip_lines(out)
+        return out  # strip_lines(out)
 
     def _prepend_cmd(self, task):
         return 'OUT={out}\n' \
@@ -430,8 +487,8 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # format = None
 #
 # def __init__(self, taskfiles, type):
-#         assert type in ['input', 'output']
-#         self.type = type
+# assert type in ['input', 'output']
+# self.type = type
 #         self.taskfiles = taskfiles
 #         if type == 'input':
 #             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
@@ -593,17 +650,12 @@ def _find(taskfiles, abstract_file, error_if_missing=False):
     :param error_if_missing: raise ValueError if a matching taskfile cannot be found
     :return:
     """
-    name, format = abstract_file.name, abstract_file.format
-    assert name or format
+    reg_name, reg_format = re.compile(abstract_file.name), re.compile(abstract_file.format)
 
-    if format == '*':
-        for tf in taskfiles:
+    found = False
+    for tf in taskfiles:
+        if re.match(reg_name, tf.name) and re.match(reg_format, tf.format):
             yield tf
-    else:
-        found = False
-        for tf in taskfiles:
-            if name in [tf.name, None] and format in [tf.format, None]:
-                yield tf
-                found = True
-        if not found and error_if_missing:
-            raise ValueError, 'No taskfile found with name=%s, format=%s' % (name, format)
+            found = True
+    if not found and error_if_missing:
+        raise ValueError, 'No taskfile found for %s' % abstract_file

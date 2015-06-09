@@ -38,43 +38,75 @@ def one2one(tool_class, tasks, tag=None, out=None):
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
 
-def many2one(tool_class, parents, group_keys, tag=None, out=''):
+def _reduce(parents, groupby):
+    """
+    helpers for many2one and many2many
+    """
+    parents = list(parents)
+    assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
+
+
+    def f(task):
+        try:
+            return {k: task.tags[k] for k in groupby}
+        except KeyError as k:
+            raise KeyError('keyword %s is not in the tags of %s' % (k, task))
+
+
+    for group_tags, parent_group in it.groupby(sorted(parents, key=f), f):
+        yield group_tags.copy(), parent_group
+
+def many2one(tool_class, parents, groupby, tag=None, out=''):
     """
     :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.
-    :param list(str) group_keys: A list of keys to groupby.  Parents will be grouped if they have the same values in
-        their tags given by `group_keys`.
+    :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
+        their tags given by `groupby`.
     :param itrbl(Task) parents: An group of parents to groupby
     :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
-    :param str out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
-        Defaults to the output_dir of the parent task.
+    :param str|callable out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
+        Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
+        a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
+    :yields: new Tools
+    """
+    if tag is None:
+        tag = dict()
+    assert isinstance(tag, dict), '`tag` must be a dict'
+
+    for new_tags, parent_group in _reduce(parents, groupby):
+        new_tags.update(tag)
+        yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
+
+
+def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
+    """
+    :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
+    """
+    if tag is None:
+        tag = dict()
+    assert isinstance(tag, dict), '`tag` must be a dict'
+
+
+    for group_tags, parent_group in _reduce(parents, groupby):
+        parent_group = list(parent_group)
+        for new_tags in _split(splitby):
+            new_tags.update(group_tags)
+            new_tags.update(tag)
+            yield tool_class(tags=new_tags, parents=parent_group, out=out(group_tags) if hasattr(out, '__call__') else out)
+
+def _split(splitby):
+    for items in it.product(*[[(k,v) for v in l] for k,l in splitby.items()]):
+        yield dict(items)
+
+def one2many(tool_class, parents, splitby, tag=None, out=''):
+    """
+    :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     :return:
     """
     if tag is None:
         tag = dict()
     assert isinstance(tag, dict), '`tag` must be a dict'
-    parents = list(parents)
-    assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
 
-    def f(task):
-        return {k: v for k, v in task.tags.items() if k in group_keys}
-
-    for tag_group, parent_group in it.groupby(sorted(parents, key=f), f):
-        new_tags = dict(tag_group)
-        new_tags.update(tag)
-        yield tool_class(tags=new_tags, parents=parent_group, out=out)
-
-
-def many2many():
-    """
-    TODO
-    :return:
-    """
-    raise NotImplementedError()
-
-
-def one2many():
-    """
-    TODO
-    :return:
-    """
-    raise NotImplementedError()
+    for parent in parents:
+        for new_tags in _split(splitby):
+            new_tags.update(tag)
+            yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)

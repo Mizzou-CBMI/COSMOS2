@@ -36,21 +36,20 @@ setup(
     install_requires=[
         'gntp',
         "psprofile",
-        "flask",
+        "Flask",
         'blinker',
         "sqlalchemy",
-        #'Flask-Admin',
+        'Flask-Admin',
         'Flask-SQLAlchemy',
         'networkx',
         'configparser',
         "enum34",
-        "flask-failsafe",
+        "Flask-Failsafe",
         "six",
-        "sqlalchemy_utils"
+        "SQLAlchemy-Utils",
+        "pyparsing==1.5.7"
     ],
-    packages=['cosmos'],
+    packages=find_packages(),
     include_package_data=True,
-    package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', True, True))}
+    package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 )
-
-
