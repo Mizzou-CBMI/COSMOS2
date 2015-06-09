@@ -4,7 +4,6 @@
 
 from ..util.helpers import groupby2
 from .. import TaskStatus
-import networkx as nx
 
 try:
     import pygraphviz as _
@@ -62,16 +61,6 @@ def taskgraph_to_image(taskgraph, path=None, url=False):
     return agraph.draw(path=path, format='svg')
 
 
-# def tasks_to_image(tasks, path=None, url=True):
-#     """
-#     Converts a list of tasks into a SVG image of the taskgraph DAG
-#     """
-#     g = nx.DiGraph()
-#     g.add_nodes_from(tasks)
-#     g.add_edges_from([(parent, task) for task in tasks for parent in task.parents])
-#     return taskgraph_to_image(g, path=path, url=url)
-
-
 #
 # Stage stuff
 #
@@ -120,16 +109,3 @@ def stagegraph_to_agraph(stage_graph, url=True):
             agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ''), arrowhead='vee')
 
     return agraph
-
-
-# def stages_to_image(stages, path=None, url=True):
-#     """
-#     Creates an SVG image of Stages or RecipeStages and their dependencies.
-#     """
-#     g = nx.DiGraph()
-#     g.add_nodes_from(stages)
-#     g.add_edges_from([(parent, stage) for stage in stages for parent in stage.parents])
-#
-#     g = stagegraph_to_agraph(g, url=url)
-#     g.layout(prog="dot")
-#     return g.draw(path=path, format='svg')
