@@ -168,7 +168,7 @@ class Tool(object):
                 '{self} does not have right number of inputs: for {abstract_input_file}\n' \
                 '***Parents*** \n' \
                 '{prnts}\n' \
-                '***Inputs Available ({real_count})*** \n' \
+                '***Inputs Matched ({real_count})*** \n' \
                 '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
                                 prnts="\n".join(map(str, parents)), **locals())
             import sys
