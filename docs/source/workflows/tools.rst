@@ -38,7 +38,7 @@ Abstract Input File
 --------------------
 An :func:`~cosmos.abstract_input_taskfile` specifies the input file(s) required by a Tool.  All parents will be searched for output_files
 that match both the name and/or format specified (at least the name or format must be specified).  The name and format
-are regular expressions.  So for example if you're expecting two .txt files but only know one name, you could do something
+are regular expressions.  For example if you're expecting two .txt files but only know one name, you could do something
 like this:
 
 .. code-block:: python
@@ -61,15 +61,13 @@ You can also override the signature of Tools for extremely special cases:
 Cardinality
 _______________
 The cardinality (The `n` parameter), is enforced such that ``n`` number of input_files should match.  By default,
-the cardinality of each
-abstract_input_file is ``==1``, but this can be changed using the ``n`` parameter: ``itf(format='txt', n='>=1')``).
+the cardinality of each abstract_input_file is ``==1``, but this can be changed using the ``n`` parameter: ``itf(format='txt', n='>=1')``).
 If you specify a cardinality where there may be more than 1, for example ``n='>=1'``, the ``cmd()`` parameter will be passed a list
 of input files than output files.
 
 Abstract Output File
 --------------------
 An :func:`~cosmos.abstract_output_taskfile` specifies an output file that a tool will generate.
-The order that you specify the abstract_output_files will be the order they arrive in the ``outputs`` parameter.
 Cardinality of output_files cannot be specified and is always 1.
 
 
@@ -79,10 +77,10 @@ Tags
 Every instance of a Tool (and it's relevant Task) has a dictionary of tags.  These tags are used for the following:
 
 * A unique identifier.  No tool/task can have the same set of tags within the *same stage*.
-* Parameters.  If a keyword in a tool's tags matches a parameter in it's ``cmd()``, it will be passed into the call to ``cmd()``.
-  For example when ``cmd()`` is called by the execution engine of the tool instantiated by ``WordCount(tags=dict(lines=True, other='val'))``, it will be called like so:
-  ``cmd(lines=True, ...)``.
-* A way to group similar tasks together when defining the :term:`DAG`
+* Parameters.  If a keyword in a tool's tags matches a parameter in it's ``cmd()`` method, it will be passed into the call to ``cmd()`` as a parameter.
+  For example when ``cmd()`` is called by Cossmos for the tool ``WordCount(tags=dict(lines=True, other='val'))``, it will be called like this:
+  ``cmd(lines=True, other='val',...)``.
+* A way to group similar tasks together when defining the :term:`DAG`.
 * A way to look up particular tasks in the Web Interface or using the API.
 
 API
