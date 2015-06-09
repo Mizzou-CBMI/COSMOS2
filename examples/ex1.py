@@ -7,7 +7,7 @@ from cosmos.util.helpers import mkdir
 
 import itertools as it
 
-def main(execution):
+def run_ex1(execution):
     # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
     echos = execution.add([Echo(tags=dict(word='hello'), out='{word}'),
                            Echo(tags=dict(word='world!'))])
@@ -41,4 +41,4 @@ if __name__ == '__main__':
     mkdir('out')
 
     execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
-    main(execution)
+    run_ex1(execution)
