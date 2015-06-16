@@ -183,7 +183,7 @@ class Tool(object):
         :returns: [(taskfile, is_forward), ...]
         """
         for aif_index, abstract_input_file in enumerate(self.inputs):
-            mapped_input_taskfiles = list(self._map_input(abstract_input_file, parents))
+            mapped_input_taskfiles = list(set(self._map_input(abstract_input_file, parents)))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles, parents)
             yield abstract_input_file, mapped_input_taskfiles
 
