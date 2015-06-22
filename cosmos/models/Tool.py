@@ -46,16 +46,17 @@ def error(message, dct):
     print >> sys.stderr, '    %s' % message
     for k, v in dct.items():
         print >> sys.stderr, '***%s***' % k
-    if isinstance(v, list):
-        for v2 in v:
-            print >> sys.stderr, "    %s" % v2
-    elif isinstance(v, dict):
-        for k2,v2 in v.items():
-            print >> sys.stderr, "    %s=%s" % (k2,v2)
-    else:
-        print >> sys.stderr, "    %s" % v
+        if isinstance(v, list):
+            for v2 in v:
+                print >> sys.stderr, "    %s" % v2
+        elif isinstance(v, dict):
+            for k2, v2 in v.items():
+                print >> sys.stderr, "    %s = %s" % (k2, v2)
+        else:
+            print >> sys.stderr, "    %s" % v
 
     raise ToolValidationError(message)
+
 
 class Tool(object):
     """
@@ -168,13 +169,13 @@ class Tool(object):
                 '{self} does not have right number of inputs: for {abstract_input_file}\n' \
                 '***Parents*** \n' \
                 '{prnts}\n' \
-                '***Inputs Available ({real_count})*** \n' \
+                '***Inputs Matched ({real_count})*** \n' \
                 '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
                                 prnts="\n".join(map(str, parents)), **locals())
             import sys
 
             print >> sys.stderr, s
-            raise ToolValidationError('Missing Input Files')
+            raise ToolValidationError('Input files are missing, or their cardinality do not match.')
 
 
     def _map_inputs(self, parents):
@@ -205,6 +206,7 @@ class Tool(object):
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
 
+        # Validation
         f = lambda ifa: ifa.taskfile
         for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
             group_of_ifas = list(group_of_ifas)
@@ -308,14 +310,7 @@ class Tool(object):
         kwargs.update(output_map)
         kwargs.update(**params)
 
-        try:
-            out = self.cmd(**kwargs)
-        except TypeError as e:
-            error('Parameter TypeError running %s.cmd' % self, dict(
-                Params=kwargs,
-                Exception=e.msg,
-            ))
-
+        out = self.cmd(**kwargs)
 
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
@@ -489,7 +484,7 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # def __init__(self, taskfiles, type):
 # assert type in ['input', 'output']
 # self.type = type
-#         self.taskfiles = taskfiles
+# self.taskfiles = taskfiles
 #         if type == 'input':
 #             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
 #         else:
