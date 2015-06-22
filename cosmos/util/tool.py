@@ -89,14 +89,14 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
 
     for group_tags, parent_group in reduce_(parents, groupby):
         parent_group = list(parent_group)
-        for new_tags in split(splitby):
+        for new_tags in combinations(splitby):
             new_tags.update(group_tags)
             new_tags.update(tag)
             yield tool_class(tags=new_tags, parents=parent_group,
                              out=out(group_tags) if hasattr(out, '__call__') else out)
 
 
-def split(splitby):
+def combinations(splitby):
     for items in it.product(*[[(k, v) for v in l] for k, l in splitby.items()]):
         yield dict(items)
 
@@ -112,7 +112,7 @@ def one2many(tool_class, parents, splitby, tag=None, out=''):
 
     for parent in parents:
         new_tags = parent.tags.copy()
-        for split_tags in split(splitby):
+        for split_tags in combinations(splitby):
             new_tags.update(split_tags)
             new_tags.update(tag)
             yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)
