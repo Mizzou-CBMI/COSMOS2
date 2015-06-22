@@ -83,7 +83,11 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
-        self.flask_app = flask_app if flask_app else Flask(__name__)
+        if flask_app:
+            self.flask_app = flask_app
+        else:
+            self.flask_app = Flask(__name__)
+            self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
