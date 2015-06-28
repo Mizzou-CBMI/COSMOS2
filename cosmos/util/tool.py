@@ -39,7 +39,7 @@ def one2one(tool_class, tasks, tag=None, out=None):
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
 
-def reduce_(parents, groupby):
+def reduce_(parents, by):
     """
     helpers for many2one and many2many
     """
@@ -49,7 +49,7 @@ def reduce_(parents, groupby):
 
     def f(task):
         try:
-            return {k: task.tags[k] for k in groupby}
+            return {k: task.tags[k] for k in by}
         except KeyError as k:
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
@@ -89,7 +89,12 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
 
     for group_tags, parent_group in reduce_(parents, groupby):
         parent_group = list(parent_group)
-        for new_tags in combinations(splitby):
+        if hasattr(splitby, '__call__'):
+            g = splitby(group_tags)
+        else:
+            g = combinations(splitby)
+
+        for new_tags in g:
             new_tags.update(group_tags)
             new_tags.update(tag)
             yield tool_class(tags=new_tags, parents=parent_group,

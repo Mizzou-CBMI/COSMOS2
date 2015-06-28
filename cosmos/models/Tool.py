@@ -316,9 +316,11 @@ class Tool(object):
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return out  # strip_lines(out)
 
-    def _prepend_cmd(self, task):
+    def wrap_cmd(self, cmd):
+        task = self.task
         return 'OUT={out}\n' \
-               'cd $OUT\n\n'.format(out=task.output_dir)
+                'mkdir -p $OUT' \
+               'cd $OUT\n\n'.format(out=task.output_dir) + cmd
 
     def cmd(self, **kwargs):
         """
@@ -337,7 +339,7 @@ class Tool(object):
         cmd = self._cmd(task.input_files, task.output_files, task)
         if cmd == NOOP:
             return NOOP
-        return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
+        return self.wrap_cmd(self._cmd(task.input_files, task.output_files, task))
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
