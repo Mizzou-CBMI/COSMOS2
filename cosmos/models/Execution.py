@@ -203,6 +203,7 @@ class Execution(Base):
 
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
+
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
         assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
