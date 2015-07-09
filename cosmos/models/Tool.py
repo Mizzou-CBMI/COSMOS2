@@ -266,7 +266,7 @@ class Tool(object):
 
         validate_params()
 
-        aif_2_input_taskfiles = OrderedDict((aif, list(_find(possible_input_taskfiles, aif, error_if_missing=True)))
+        aif_2_input_taskfiles = OrderedDict((aif, list(_find(possible_input_taskfiles, aif, error_if_missing=False)))
                                             for aif in self.inputs)
         inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
         outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
@@ -286,17 +286,17 @@ class Tool(object):
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
-            for arg in argspec.args[3:len(argspec.args) - ndefaults]:
+            for arg in argspec.args[1:-1*ndefaults]:
                 if arg not in params:
                     raise AttributeError(
                         '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                        'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
+                        'method signature, or pass a value for `%s` parameter using a tag' % (self, arg, arg))
 
         validate_params()
 
         def get_input_map():
             for input_name, aif in self.input_arg_map.iteritems():
-                input_taskfiles = list(_find(possible_input_taskfiles, aif, error_if_missing=True))
+                input_taskfiles = list(_find(possible_input_taskfiles, aif, error_if_missing=False))
                 input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(aif, input_taskfiles)
                 yield input_name, input_taskfile_or_input_taskfiles
 
