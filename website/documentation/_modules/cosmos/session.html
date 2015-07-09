@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.session &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../ezflow/index.html">5. Writing Workflows with EZFlow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../ezflow/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ezflow/workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ezflow/examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>cosmos.session</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for cosmos.session</h1><div class="highlight"><pre>
+<span class="c">#import sys</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.config</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="c">#######################</span>
+<span class="c"># DJANGO</span>
+<span class="c">#######################</span>
+
+<span class="c">#configure django settings</span>
+<span class="c">#from cosmos import django_settings</span>
+<span class="c">#from django.conf import settings as django_conf_settings, global_settings</span>
+
+<span class="c">#custom template context processor for web interface</span>
+<span class="c">#django_conf_settings.configure(</span>
+<span class="c">#    TEMPLATE_CONTEXT_PROCESSORS=global_settings.TEMPLATE_CONTEXT_PROCESSORS + (&#39;cosmos.utils.context_processor.contproc&#39;,),</span>
+<span class="c">#    **django_settings.__dict__)</span>
+
+<span class="c"># User can override this to specify the drmaa_native_specification method called at job submission</span>
+<div class="viewcode-block" id="default_drmaa_specification"><a class="viewcode-back" href="../../advanced.html#cosmos.session.default_drmaa_specification">[docs]</a><span class="k">def</span> <span class="nf">default_drmaa_specification</span><span class="p">(</span><span class="n">jobAttempt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Default method for the DRM specific resource usage flags passed in the jobtemplate&#39;s drmaa_native_specification.</span>
+<span class="sd">    Can be overridden by the user when starting a workflow.</span>
+
+<span class="sd">    :param jobAttempt: the jobAttempt being submitted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">jobAttempt</span><span class="o">.</span><span class="n">task</span>
+    <span class="n">drm</span>  <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;DRM&#39;</span><span class="p">]</span>
+
+    <span class="n">cpu_req</span>  <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">cpu_requirement</span>
+    <span class="n">mem_req</span>  <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">memory_requirement</span>
+    <span class="n">time_req</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">time_requirement</span>
+    <span class="n">queue</span>    <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">default_queue</span>
+    
+    <span class="k">if</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;LSF&#39;</span><span class="p">:</span> <span class="c"># for Orchestra Runs</span>
+        <span class="k">if</span> <span class="n">time_req</span> <span class="o">&lt;=</span> <span class="mi">12</span><span class="o">*</span><span class="mi">60</span><span class="p">:</span> <span class="n">queue</span> <span class="o">=</span> <span class="s">&#39;short&#39;</span>
+        <span class="k">else</span><span class="p">:</span>                 <span class="n">queue</span> <span class="o">=</span> <span class="s">&#39;long&#39;</span>
+                
+        <span class="k">return</span> <span class="s">&#39;-R &quot;rusage[mem={0}] span[hosts=1]&quot; -n {1} -W 0:{2} -q {3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">cpu_req</span><span class="p">,</span> <span class="n">time_req</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;GE&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;-l spock_mem={mem_req}M,num_proc={cpu_req}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="o">=</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">cpu_req</span><span class="o">=</span><span class="n">cpu_req</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;DRM not supported&#39;</span><span class="p">)</span>
+
+<span class="c">#: The method to produce a :py:class:`cosmos.Job.models.JobAttempt`&#39;s extra submission flags.</span>
+<span class="c">#: Can be overridden by user if special behavior is desired.</span></div>
+<span class="n">drmaa_spec</span> <span class="o">=</span> <span class="n">default_drmaa_specification</span>
+
+<span class="c">### print license info</span>
+<span class="n">warning</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">***********************************************************************************************************************</span>
+<span class="s">    COSMOS is copyright by Harvard Medical School, available for</span>
+<span class="s">    academic and research non-commercial purposes.  It is not part of</span>
+<span class="s">    the public domain.  Please see terms of license in the file LICENSE.md</span>
+<span class="s">***********************************************************************************************************************</span>
+<span class="s">&quot;&quot;&quot;</span>
+<span class="c">#printed_warning = False</span>
+<span class="c">#if not printed_warning:</span>
+<span class="c">#    print &gt;&gt; sys.stderr, warning</span>
+<span class="c">#    printed_warning=True</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>10.1. Workflow &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../index.html"/>
+        <link rel="up" title="10. API" href="index.html"/>
+        <link rel="next" title="10.2. JobManager" href="Job.html"/>
+        <link rel="prev" title="10. API" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../ezflow/index.html">5. Writing Workflows with EZFlow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../ezflow/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ezflow/workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ezflow/examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">10. API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">10. API</a> &raquo;</li>
+      
+    <li>10.1. Workflow</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/API/Workflow.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="workflow">
+<h1>10.1. Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="primary-workflow-objects">
+<h2>10.1.1. Primary Workflow Objects<a class="headerlink" href="#primary-workflow-objects" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cosmos.Workflow.models">
+<span id="api"></span><h2>10.1.2. API<a class="headerlink" href="#module-cosmos.Workflow.models" title="Permalink to this headline">¶</a></h2>
+<p>Workflow models</p>
+<dl class="class">
+<dt id="cosmos.Workflow.models.TaskFile">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">TaskFile</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task File</p>
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.TaskFile.task">
+<tt class="descname">task</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskFile.task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskFile.task" title="Permalink to this definition">¶</a></dt>
+<dd><p>The task this TaskFile is an output for</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.TaskFile.file_size">
+<tt class="descname">file_size</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskFile.file_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskFile.file_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the taskfile&#8217;s output_dir</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.TaskFile.delete_because_intermediate">
+<tt class="descname">delete_because_intermediate</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskFile.delete_because_intermediate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskFile.delete_because_intermediate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes this file and marks it as deleted because it is an intermediate file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.Workflow.models.Workflow">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">Workflow</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the master object.  It contains a list of <a class="reference internal" href="#cosmos.Workflow.models.Stage" title="cosmos.Workflow.models.Stage"><tt class="xref py py-class docutils literal"><span class="pre">Stage</span></tt></a> which represent a pool of jobs
+that have no dependencies on each other and can be executed at the same time.</p>
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.tasks">
+<tt class="descname">tasks</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tasks in this Workflow</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.task_edges">
+<tt class="descname">task_edges</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.task_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.task_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edges in this Workflow</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.task_tags">
+<tt class="descname">task_tags</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.task_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.task_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>TaskTags in this Workflow</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.task_files">
+<tt class="descname">task_files</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.task_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.task_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>TaskFiles in this Stage</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.wall_time">
+<tt class="descname">wall_time</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.wall_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.wall_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time between this workflow&#8217;s creation and finished datetimes.  Note, this is a timedelta instance, not seconds</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.stages">
+<tt class="descname">stages</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.stages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stages in this Workflow</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.file_size">
+<tt class="descname">file_size</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.file_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.file_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the output directory</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Workflow.log_txt">
+<tt class="descname">log_txt</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.log_txt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.log_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to the logfile</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="cosmos.Workflow.models.Workflow.start">
+<em class="property">static </em><tt class="descname">start</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts a workflow.  If a workflow with this name already exists, return the workflow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; (str) A unique name for this workflow. All spaces are converted to underscores. Required.</li>
+<li><strong>restart</strong> &#8211; (bool) Complete restart the workflow by deleting it and creating a new one. Optional.</li>
+<li><strong>dry_run</strong> &#8211; (bool) Don&#8217;t actually execute jobs. Optional.</li>
+<li><strong>root_output_dir</strong> &#8211; (bool) Replaces the directory used in settings as the workflow output directory. If None, will use default_root_output_dir in the config file. Optional.</li>
+<li><strong>default_queue</strong> &#8211; (str) Name of the default queue to submit jobs to. Optional.</li>
+<li><strong>delete_intermediates</strong> &#8211; (str) Deletes intermediate files to save scratch space.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.add_stage">
+<tt class="descname">add_stage</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.add_stage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.add_stage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a stage to this workflow.  If a stage with this name (in this Workflow) already exists,
+and it hasn&#8217;t been added in this session yet, return the existing one after removing its
+finished_on datetimestamp and resetting it&#8217;s order_in_workflow</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; (str) The name of the stage, must be unique within this Workflow. Required.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.terminate">
+<tt class="descname">terminate</tt><big>(</big><em>exit=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates this workflow and Exits
+:param exception: an exception to raise after terminating</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.get_all_tag_keys_used">
+<tt class="descname">get_all_tag_keys_used</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.get_all_tag_keys_used"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.get_all_tag_keys_used" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of all the keyword tags used on any task in this workflow</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.save_resource_usage_as_csv">
+<tt class="descname">save_resource_usage_as_csv</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.save_resource_usage_as_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.save_resource_usage_as_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save resource usage to filename</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.yield_stage_resource_usage">
+<tt class="descname">yield_stage_resource_usage</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.yield_stage_resource_usage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.yield_stage_resource_usage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">A dict of all resource usage, tags, and the name of the stage of every task</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.bulk_save_tasks">
+<tt class="descname">bulk_save_tasks</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.bulk_save_tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.bulk_save_tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a bulk insert of tasks.  Identical tasks should not be in the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tasks</strong> &#8211; (list) a list of tasks</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">this does not save task-&gt;taskfile relationships</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">stage</span><span class="o">.</span><span class="n">new_task</span><span class="p">(</span><span class="n">pcmd</span><span class="o">=</span><span class="s">&#39;cmd1&#39;</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,{</span><span class="s">&#39;i&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}),</span><span class="n">stage</span><span class="o">.</span><span class="n">new_task</span><span class="p">(</span><span class="n">pcmd</span><span class="o">=</span><span class="s">&#39;cmd2&#39;</span><span class="p">,</span><span class="n">save</span><span class="o">=</span><span class="bp">False</span><span class="p">,{</span><span class="s">&#39;i&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">})]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span><span class="o">.</span><span class="n">bulk_save_tasks</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.bulk_save_taskfiles">
+<tt class="descname">bulk_save_taskfiles</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.bulk_save_taskfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.bulk_save_taskfiles" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>taskfiles</strong> &#8211; (list) A list of taskfiles.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.bulk_save_task_edges">
+<tt class="descname">bulk_save_task_edges</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.bulk_save_task_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.bulk_save_task_edges" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> &#8211; [(parent, child),...] A list of tuples of parent -&gt; child relationships</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.bulk_delete_tasks">
+<tt class="descname">bulk_delete_tasks</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.bulk_delete_tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.bulk_delete_tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk deletes tasks and their related objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes this workflow.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.run">
+<tt class="descname">run</tt><big>(</big><em>terminate_on_fail=True</em>, <em>finish=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs a workflow using the DAG of jobs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>terminate_on_fail</strong> &#8211; (bool) If True, the workflow will self terminate of any of the tasks of this stage fail <cite>max_job_attempts</cite> times</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.finished">
+<tt class="descname">finished</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call at the end of every workflow.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.get_tasks_by">
+<tt class="descname">get_tasks_by</tt><big>(</big><em>stage=None</em>, <em>tags={}</em>, <em>op='and'</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.get_tasks_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.get_tasks_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of tasks that are tagged by the keys and vals in tags dictionary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>op</strong> &#8211; (str) either &#8216;and&#8217; or &#8216;or&#8217; as the logic to filter tags with</li>
+<li><strong>tags</strong> &#8211; (dict) tags to filter for</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(queryset) a queryset of the filtered tasks</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">task</span><span class="o">.</span><span class="n">get_tools_by</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s">&#39;or&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;grey&#39;</span><span class="p">,</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;orange&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">task</span><span class="o">.</span><span class="n">get_tools_by</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s">&#39;and&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;grey&#39;</span><span class="p">,</span><span class="s">&#39;shape&#39;</span><span class="p">:</span><span class="s">&#39;square&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Workflow.get_task_by">
+<tt class="descname">get_task_by</tt><big>(</big><em>tags={}</em>, <em>stage=None</em>, <em>op='and'</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Workflow.get_task_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Workflow.get_task_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of tasks that are tagged by the keys and vals in tags dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises Exception:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first">if more or less than one task is returned</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>op</strong> &#8211; (str) Choose either &#8216;and&#8217; or &#8216;or&#8217; as the logic to filter tags with</li>
+<li><strong>tags</strong> &#8211; (dict) A dictionary of tags you&#8217;d like to filter for</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(queryset) a queryset of the filtered tasks</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">task</span><span class="o">.</span><span class="n">get_task_by</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s">&#39;or&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;grey&#39;</span><span class="p">,</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;orange&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">task</span><span class="o">.</span><span class="n">get_task_by</span><span class="p">(</span><span class="n">op</span><span class="o">=</span><span class="s">&#39;and&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;grey&#39;</span><span class="p">,</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;orange&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.Workflow.models.Stage">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">Stage</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage" title="Permalink to this definition">¶</a></dt>
+<dd><p>A group of jobs that can be run independently.  See <a class="reference external" href="http://en.wikipedia.org/wiki/Embarrassingly_parallel">Embarassingly Parallel</a> .</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A Stage should not be directly instantiated, use <tt class="xref py py-func docutils literal"><span class="pre">Workflow.models.Workflow.add_stage()</span></tt> to create a new stage.</p>
+</div>
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.set_status">
+<tt class="descname">set_status</tt><big>(</big><em>new_status</em>, <em>save=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.set_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.set_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set Stage status</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.percent_done">
+<tt class="descname">percent_done</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.percent_done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.percent_done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Percent of tasks that have completed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_stats">
+<tt class="descname">get_stats</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_stats" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Param:</th><td class="field-body">a list of 3-tuples of format (title,field,statistic)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(dict) of stats about jobs</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_sjob_stat">
+<tt class="descname">get_sjob_stat</tt><big>(</big><em>field</em>, <em>statistic</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_sjob_stat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_sjob_stat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregates a task successful job&#8217;s field using a statistic.
+:param field: (str) name of a tasks&#8217;s field.  ex: wall_time or avg_rss_mem
+:param statistic: (str) choose from [&#8216;Avg&#8217;,&#8217;Sum&#8217;,&#8217;Max&#8217;,&#8217;Min&#8217;,&#8217;Count&#8217;]</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span><span class="o">.</span><span class="n">get_stat</span><span class="p">(</span><span class="s">&#39;wall_time&#39;</span><span class="p">,</span><span class="s">&#39;Avg&#39;</span><span class="p">)</span>
+<span class="go">120</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_task_stat">
+<tt class="descname">get_task_stat</tt><big>(</big><em>field</em>, <em>statistic</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_task_stat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_task_stat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregates a task&#8217;s field using a statistic
+:param field: (str) name of a tasks&#8217;s field.  ex: cpu_req, mem_req
+:param statistic: (str) choose from [&#8216;Avg&#8217;,&#8217;Sum&#8217;,&#8217;Max&#8217;,&#8217;Min&#8217;,&#8217;Count&#8217;]</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span><span class="o">.</span><span class="n">get_stat</span><span class="p">(</span><span class="s">&#39;cpu_requirement&#39;</span><span class="p">,</span><span class="s">&#39;Avg&#39;</span><span class="p">)</span>
+<span class="go">120</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.file_size">
+<tt class="descname">file_size</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.file_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.file_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the stage&#8217;s output_dir</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.wall_time">
+<tt class="descname">wall_time</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.wall_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.wall_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time between this stage&#8217;s creation and finished datetimes.  Note, this is a timedelta instance, not seconds</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.output_dir">
+<tt class="descname">output_dir</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Absolute path to this stage&#8217;s output_dir</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.tasks">
+<tt class="descname">tasks</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queryset of this stage&#8217;s tasks</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.task_edges">
+<tt class="descname">task_edges</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.task_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.task_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edges in this Stage</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.task_tags">
+<tt class="descname">task_tags</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.task_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.task_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>TaskTags in this Stage</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.task_files">
+<tt class="descname">task_files</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.task_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.task_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>TaskFiles in this Stage</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.num_tasks">
+<tt class="descname">num_tasks</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.num_tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.num_tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of tasks in this stage</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Stage.num_tasks_successful">
+<tt class="descname">num_tasks_successful</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.num_tasks_successful"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.num_tasks_successful" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of successful tasks in this stage</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_all_tag_keys_used">
+<tt class="descname">get_all_tag_keys_used</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_all_tag_keys_used"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_all_tag_keys_used" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of all the keyword tags used on any task in this stage</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.yield_task_resource_usage">
+<tt class="descname">yield_task_resource_usage</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.yield_task_resource_usage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.yield_task_resource_usage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">(list of tuples) tuples contain resource usage and tags of all tasks.  The first element is the name, the second is the value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.is_done">
+<tt class="descname">is_done</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.is_done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.is_done" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this stage is finished successfully or failed, else False</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_tasks_by">
+<tt class="descname">get_tasks_by</tt><big>(</big><em>tags={}</em>, <em>op='and'</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_tasks_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_tasks_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#cosmos.Workflow.models.Workflow.get_tasks_by" title="cosmos.Workflow.models.Workflow.get_tasks_by"><tt class="xref py py-func docutils literal"><span class="pre">Workflow.get_tasks_by()</span></tt></a> with stage=self</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a queryset of filtered tasks</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.get_task_by">
+<tt class="descname">get_task_by</tt><big>(</big><em>tags={}</em>, <em>op='and'</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_task_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_task_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <a class="reference internal" href="#cosmos.Workflow.models.Workflow.get_task_by" title="cosmos.Workflow.models.Workflow.get_task_by"><tt class="xref py py-func docutils literal"><span class="pre">Workflow.get_task_by()</span></tt></a> with stage=self</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a queryset of filtered tasks</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.group_tasks_by">
+<tt class="descname">group_tasks_by</tt><big>(</big><em>keys=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.group_tasks_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.group_tasks_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields tasks, grouped by tags in keys.  Groups will be every unique set of possible values of tags.
+For example, if you had tasks tagged by color, and shape, and you ran func:<cite>stage.group_tasks_by`([&#8216;color&#8217;,&#8217;shape&#8217;]),
+this function would yield the group of tasks that exist in the various combinations of `colors</cite> and <cite>shapes</cite>.
+So for example one of the yields might be (({&#8216;color&#8217;:&#8217;orange&#8217;n&#8217;shape&#8217;:&#8217;circle&#8217;}), [ orange_circular_tasks ])</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keys</strong> &#8211; The keys of the tags you want to group by.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body">(a dictionary of this group&#8217;s unique tags, tasks in this group).</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">a missing tag is considered as None and thus placed into a &#8216;None&#8217; group with other untagged tasks.  You should generally try to avoid this scenario and have all tasks tagged by the keywords you&#8217;re grouping by.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bulk deletes this stage and all files associated with it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Stage.url">
+<tt class="descname">url</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL of this stage</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.Workflow.models.TaskTag">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">TaskTag</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskTag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SQL row that duplicates the information of Task.tags that can be used for filtering, etc.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.Workflow.models.TaskEdge">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">TaskEdge</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#TaskEdge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.TaskEdge" title="Permalink to this definition">¶</a></dt>
+<dd><p>TaskEdge(id, parent_id, child_id)</p>
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.TaskEdge.child">
+<tt class="descname">child</tt><a class="headerlink" href="#cosmos.Workflow.models.TaskEdge.child" title="Permalink to this definition">¶</a></dt>
+<dd><p>The keys associated with the relationship.  ex, the group_by parameter of a many2one</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.Workflow.models.Task">
+<em class="property">class </em><tt class="descclassname">cosmos.Workflow.models.</tt><tt class="descname">Task</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>The object that represents the command line that gets executed.</p>
+<p>tags must be unique for all tasks in the same stage</p>
+<dl class="staticmethod">
+<dt id="cosmos.Workflow.models.Task.create">
+<em class="property">static </em><tt class="descname">create</tt><big>(</big><em>stage</em>, <em>pcmd</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.create" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a task.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.workflow">
+<tt class="descname">workflow</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>This task&#8217;s workflow</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.parents">
+<tt class="descname">parents</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.parents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>This task&#8217;s parents</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.log">
+<tt class="descname">log</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>This task&#8217;s workflow&#8217;s log</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.file_size">
+<tt class="descname">file_size</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.file_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.file_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task filesize</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.output_file_size">
+<tt class="descname">output_file_size</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.output_file_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.output_file_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task filesize</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.output_dir">
+<tt class="descname">output_dir</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task output dir</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.job_output_dir">
+<tt class="descname">job_output_dir</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.job_output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.job_output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Where the job output goes</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.jobAttempts">
+<tt class="descname">jobAttempts</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.jobAttempts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.jobAttempts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queryset of this task&#8217;s jobAttempts.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.Workflow.models.Task.wall_time">
+<tt class="descname">wall_time</tt><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.wall_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.wall_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task&#8217;s wall_time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.numAttempts">
+<tt class="descname">numAttempts</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.numAttempts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.numAttempts" title="Permalink to this definition">¶</a></dt>
+<dd><p>This task&#8217;s number of job attempts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.get_successful_jobAttempt">
+<tt class="descname">get_successful_jobAttempt</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.get_successful_jobAttempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.get_successful_jobAttempt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get this task&#8217;s successful job attempt.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">this task&#8217;s successful job attempt.  If there were no successful job attempts, returns None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.set_status">
+<tt class="descname">set_status</tt><big>(</big><em>new_status</em>, <em>save=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.set_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.set_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set Task&#8217;s status</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.tag">
+<tt class="descname">tag</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tag this task with key value pairs.  If the key already exists, its value will be overwritten.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">task</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s">&quot;blue&quot;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="s">&quot;circle&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.clear_job_output_dir">
+<tt class="descname">clear_job_output_dir</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.clear_job_output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.clear_job_output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all files in this task&#8217;s output directory</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.url">
+<tt class="descname">url</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>This task&#8217;s url.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.tags_as_query_string">
+<tt class="descname">tags_as_query_string</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.tags_as_query_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.tags_as_query_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string of tag keys and values as a url query string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Workflow.models.Task.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Task.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Task.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes this task and all files associated with it</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Job.html" class="btn btn-neutral float-right" title="10.2. JobManager"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="10. API"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

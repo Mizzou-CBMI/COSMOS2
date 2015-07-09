@@ -1,0 +1,420 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. Workflow Code Examples &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../index.html"/>
+        <link rel="up" title="5. Writing Workflows with EZFlow" href="index.html"/>
+        <link rel="next" title="6. Command Line Interface" href="../cli.html"/>
+        <link rel="prev" title="2. Designing Workflows" href="workflows.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. Writing Workflows with EZFlow</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">5. Writing Workflows with EZFlow</a> &raquo;</li>
+      
+    <li>3. Workflow Code Examples</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/ezflow/examples.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="workflow-code-examples">
+<span id="examples"></span><h1>3. Workflow Code Examples<a class="headerlink" href="#workflow-code-examples" title="Permalink to this headline">¶</a></h1>
+<p>The easiest way to learn is often by example.  When you&#8217;re learning to write your own workflows,
+make liberal use of the <a class="reference internal" href="workflows.html#cosmos.lib.ezflow.dag.DAG.create_dag_img" title="cosmos.lib.ezflow.dag.DAG.create_dag_img"><tt class="xref py py-meth docutils literal"><span class="pre">create_dag_img()</span></tt></a> and the <cite>visualize</cite> button
+in the web interface.</p>
+<div class="section" id="basic-workflows">
+<h2>3.1. Basic Workflows<a class="headerlink" href="#basic-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="hello-world">
+<h3>3.1.1. Hello World<a class="headerlink" href="#hello-world" title="Permalink to this headline">¶</a></h3>
+<p>Here is the source code of the <tt class="file docutils literal"><span class="pre">example_workflows/ex1.py</span></tt> you ran in <a class="reference internal" href="../getting_started.html#getting-started"><em>Getting Started</em></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.dag</span> <span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">add_</span><span class="p">,</span><span class="n">split_</span>
+<span class="kn">from</span> <span class="nn">tools</span> <span class="kn">import</span> <span class="n">ECHO</span><span class="p">,</span> <span class="n">CAT</span>
+
+<span class="c">####################</span>
+<span class="c"># Workflow</span>
+<span class="c">####################</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">()</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span>
+    <span class="n">add_</span><span class="p">([</span> <span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;hello&#39;</span><span class="p">}),</span> <span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;world&#39;</span><span class="p">})</span> <span class="p">]),</span>
+    <span class="n">split_</span><span class="p">([(</span><span class="s">&#39;i&#39;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])],</span><span class="n">CAT</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">create_dag_img</span><span class="p">(</span><span class="s">&#39;/tmp/ex.svg&#39;</span><span class="p">)</span>
+
+<span class="c">#################</span>
+<span class="c"># Run Workflow</span>
+<span class="c">#################</span>
+
+<span class="n">WF</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;Example 1&#39;</span><span class="p">,</span><span class="n">restart</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">add_to_workflow</span><span class="p">(</span><span class="n">WF</span><span class="p">)</span>
+<span class="n">WF</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Here&#8217;s the job dependency graph that was created:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/ex1.png"><img alt="../_images/ex1.png" src="../_images/ex1.png" style="width: 100%;" /></a>
+</div>
+</div>
+<div class="section" id="reload-a-workflow">
+<h3>3.1.2. Reload a Workflow<a class="headerlink" href="#reload-a-workflow" title="Permalink to this headline">¶</a></h3>
+<p>You can add more stages to the workflow, without re-running tasks that were already successful.
+An example is in <tt class="file docutils literal"><span class="pre">example_workflows/ex2.py</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.dag</span> <span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">split_</span><span class="p">,</span><span class="n">add_</span><span class="p">,</span><span class="n">map_</span><span class="p">,</span><span class="n">reduce_</span>
+<span class="kn">from</span> <span class="nn">tools</span> <span class="kn">import</span> <span class="n">ECHO</span><span class="p">,</span> <span class="n">CAT</span><span class="p">,</span> <span class="n">WC</span><span class="p">,</span> <span class="n">PASTE</span>
+
+<span class="c">####################</span>
+<span class="c"># Workflow</span>
+<span class="c">####################</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">()</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span>
+    <span class="n">add_</span><span class="p">([</span> <span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;hello&#39;</span><span class="p">}),</span> <span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;world&#39;</span><span class="p">})</span> <span class="p">]),</span>
+    <span class="n">split_</span><span class="p">([(</span><span class="s">&#39;i&#39;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])],</span> <span class="n">CAT</span><span class="p">),</span>
+    <span class="n">reduce_</span><span class="p">([],</span> <span class="n">PASTE</span><span class="p">),</span>
+    <span class="n">map_</span><span class="p">(</span><span class="n">WC</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">dag</span><span class="o">.</span><span class="n">create_dag_img</span><span class="p">(</span><span class="s">&#39;/tmp/ex.svg&#39;</span><span class="p">)</span>
+
+<span class="c">#################</span>
+<span class="c"># Run Workflow</span>
+<span class="c">#################</span>
+
+<span class="n">WF</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;Example 2&#39;</span><span class="p">,</span><span class="n">restart</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">delete_intermediates</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">add_to_workflow</span><span class="p">(</span><span class="n">WF</span><span class="p">)</span>
+<span class="n">WF</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run it with the command:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python ex1_b.py
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="advanced-workflows">
+<h2>3.2. Advanced Workflows<a class="headerlink" href="#advanced-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="branching-workflows">
+<h3>3.2.1. Branching Workflows<a class="headerlink" href="#branching-workflows" title="Permalink to this headline">¶</a></h3>
+<p><tt class="file docutils literal"><span class="pre">example_workflows/ex_branch.py</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This workflow demonstrates branching for when you need</span>
+<span class="sd">something more complicated than a linear step-by-step</span>
+<span class="sd">series of stages.</span>
+
+<span class="sd">cosmos.lib.ezflow.dag.DAG.branch() is the key to branching.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">Workflow</span>
+<span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.dag</span> <span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">import</span> <span class="nn">tools</span>
+
+<span class="c">####################</span>
+<span class="c"># Workflow</span>
+<span class="c">####################</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="p">(</span> <span class="n">DAG</span><span class="p">()</span>
+          <span class="o">.</span><span class="n">add</span><span class="p">([</span> <span class="n">tools</span><span class="o">.</span><span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;hello&#39;</span><span class="p">}),</span> <span class="n">tools</span><span class="o">.</span><span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span><span class="s">&#39;world&#39;</span><span class="p">})</span> <span class="p">])</span>
+          <span class="o">.</span><span class="n">split</span><span class="p">([(</span><span class="s">&#39;i&#39;</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])],</span><span class="n">tools</span><span class="o">.</span><span class="n">CAT</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">WC</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">branch</span><span class="p">(</span><span class="s">&#39;ECHO&#39;</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">WC</span><span class="p">,</span><span class="s">&#39;Extra Independent Word Count&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c"># Generate image</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">create_dag_img</span><span class="p">(</span><span class="s">&#39;/tmp/ex_branch.svg&#39;</span><span class="p">)</span>
+
+<span class="c">#################</span>
+<span class="c"># Run Workflow</span>
+<span class="c">#################</span>
+
+<span class="n">WF</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;Example Branch&#39;</span><span class="p">,</span><span class="n">restart</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">add_to_workflow</span><span class="p">(</span><span class="n">WF</span><span class="p">)</span>
+<span class="n">WF</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="command-line-interface-and-signals">
+<h3>3.2.2. Command Line Interface and Signals<a class="headerlink" href="#command-line-interface-and-signals" title="Permalink to this headline">¶</a></h3>
+<p><tt class="file docutils literal"><span class="pre">example_workflows/ex_signals.py</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This shows how to use signals to run arbitrary</span>
+<span class="sd">code when a stage fails.  One could easily</span>
+<span class="sd">modify this to send SMS texts instead of e-mails.</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">    Signals for status changes are not</span>
+<span class="sd">    triggered when they occur due to a</span>
+<span class="sd">    workflow starting or terminating.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c">####################</span>
+<span class="c"># CLI</span>
+<span class="c">####################</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.Workflow</span> <span class="kn">import</span> <span class="n">cli</span>
+
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&#39;Cosmos Workflow&#39;</span><span class="p">)</span>
+<span class="n">cli</span><span class="o">.</span><span class="n">add_workflow_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;-e&#39;</span><span class="p">,</span> <span class="s">&#39;--email&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">&#39;Email address to report messages to.&#39;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">WF</span><span class="p">,</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+<span class="n">email</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">]</span>
+
+<span class="c">####################</span>
+<span class="c"># Signals</span>
+<span class="c">####################</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.Workflow</span> <span class="kn">import</span> <span class="n">signals</span>
+<span class="kn">from</span> <span class="nn">django.dispatch</span> <span class="kn">import</span> <span class="n">receiver</span>
+<span class="kn">import</span> <span class="nn">smtplib</span>
+
+<span class="c"># Send an e-mail each time the workflow fails</span>
+<span class="c"># For more details on using signals,</span>
+<span class="c"># See the `Django Signals Documentation &lt;https://docs.djangoproject.com/en/dev/topics/signals/&gt;`_</span>
+<span class="c">#</span>
+<span class="c"># .. note:: I have not tested the actual e-mailing code, but the signal does work.</span>
+<span class="c">#</span>
+<span class="nd">@receiver</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">stage_status_change</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">email_on_fail</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">stage</span> <span class="o">=</span> <span class="n">sender</span>
+    <span class="n">WF</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Notifying {0} of stage failure.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s">&#39;failed&#39;</span><span class="p">:</span>
+        <span class="n">SUBJECT</span> <span class="o">=</span> <span class="s">&quot;{0} Failed!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+        <span class="n">TO</span> <span class="o">=</span> <span class="n">email</span>
+        <span class="n">FROM</span> <span class="o">=</span> <span class="s">&quot;me@me.com&quot;</span>
+        <span class="n">HOST</span> <span class="o">=</span> <span class="s">&quot;smtp.server&quot;</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="s">&#39;{0} has failed at stage {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">workflow</span><span class="p">,</span> <span class="n">stage</span><span class="p">)</span>
+        <span class="n">BODY</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="s">&quot;From: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">FROM</span><span class="p">,</span>
+            <span class="s">&quot;To: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">TO</span><span class="p">,</span>
+            <span class="s">&quot;Subject: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">SUBJECT</span><span class="p">,</span>
+            <span class="s">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">text</span>
+        <span class="p">)</span>
+        <span class="n">server</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="n">HOST</span><span class="p">)</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="n">FROM</span><span class="p">,</span> <span class="p">[</span><span class="n">TO</span><span class="p">],</span> <span class="n">BODY</span><span class="p">)</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+<span class="c">####################</span>
+<span class="c"># Workflow</span>
+<span class="c">####################</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.dag</span> <span class="kn">import</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">Map</span><span class="p">,</span> <span class="n">Split</span><span class="p">,</span> <span class="n">Add</span>
+<span class="kn">import</span> <span class="nn">tools</span>
+
+<span class="n">dag</span> <span class="o">=</span> <span class="p">(</span> <span class="n">DAG</span><span class="p">()</span><span class="o">.</span>
+        <span class="n">add_</span><span class="p">([</span><span class="n">tools</span><span class="o">.</span><span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span> <span class="s">&#39;hello&#39;</span><span class="p">}),</span> <span class="n">tools</span><span class="o">.</span><span class="n">ECHO</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;word&#39;</span><span class="p">:</span> <span class="s">&#39;world&#39;</span><span class="p">})])</span><span class="o">.</span>
+        <span class="n">map_</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">FAIL</span><span class="p">)</span> <span class="c"># Automatically fail</span>
+<span class="p">)</span>
+
+<span class="c">#################</span>
+<span class="c"># Run Workflow</span>
+<span class="c">#################</span>
+
+<span class="n">dag</span><span class="o">.</span><span class="n">add_to_workflow</span><span class="p">(</span><span class="n">WF</span><span class="p">)</span>
+<span class="n">WF</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../cli.html" class="btn btn-neutral float-right" title="6. Command Line Interface"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="workflows.html" class="btn btn-neutral" title="2. Designing Workflows"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2. Install &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="index.html"/>
+        <link rel="next" title="3. Configuration" href="config.html"/>
+        <link rel="prev" title="1. Introduction" href="introduction.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ezflow/index.html">5. Writing Workflows with EZFlow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ezflow/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ezflow/workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ezflow/examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>2. Install</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/install.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="install">
+<span id="id1"></span><h1>2. Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>2.1. Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The only other requirement is that <a class="reference internal" href="glossary.html#term-drmaa"><em class="xref std std-term">DRMAA</em></a> is installed on the system if you want Cosmos to submit
+jobs to a <a class="reference internal" href="glossary.html#term-drms"><em class="xref std std-term">DRMS</em></a> like LSF or Grid Engine.</li>
+<li>Cosmos requires python2.6 or python2.7 and is completely untested on python3.</li>
+<li>For <a class="reference internal" href="config.html#local"><em>Local Development and Testing</em></a>, it is highly recommended that you install <a class="reference external" href="http://www.ubuntu.com/">Ubuntu</a>
+inside <a class="reference external" href="https://www.virtualbox.org/">VirtualBox</a>.</li>
+<li>Many python libraries won&#8217;t be able to install unless their dependent software is already
+installed on the system.  For example, pygraphviz requires graphviz-dev and
+python-mysql require python-dev libmysqlclient-dev.  If pip install is failing, try running:</li>
+</ul>
+<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get update -y
+sudo apt-get install python-dev libmysqlclient-dev graphviz graphviz-dev
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-method">
+<h2>2.2. Install Method<a class="headerlink" href="#install-method" title="Permalink to this headline">¶</a></h2>
+<p>Install Cosmos in a virtual environment using
+<a class="reference external" href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a>.
+This will make sure all python libraries and files related to Cosmos are installed to a sandboxed location in
+<tt class="file docutils literal"><span class="pre">$HOME/.virtualenvs/cosmos</span></tt>.</p>
+<div class="highlight-bash"><div class="highlight"><pre>pip install virtualenvwrapper --user
+<span class="nb">source</span> <span class="nv">$HOME</span>/.local/bin/virtualenvwrapper.sh
+<span class="nb">echo</span> <span class="s2">&quot;\nsource $HOME/.local/bin/virtualenvwrapper.sh&quot;</span> &gt;&gt; ~/.bash_aliases
+<span class="nb">echo</span> <span class="s2">&quot;PATH=$HOME/.local/bin:$PATH&quot;</span> &gt;&gt; ~/.bash_aliases
+
+mkvirtualenv cosmos --no-site-packages
+<span class="nb">cd</span> /dir/to/install/Cosmos/to
+pip install distribute --upgrade
+git clone git@github.com:ComputationalBiomedicine/Cosmos.git --depth<span class="o">=</span>1
+<span class="nb">cd </span>Cosmos
+pip install .
+</pre></div>
+</div>
+<p>Cosmos will be installed to its own python virtual environment, which you can activate by executing the following
+<a class="reference external" href="http://www.doughellmann.com/projects/virtualenvwrapper/">virtualenvwrapper</a> command:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>workon cosmos
+</pre></div>
+</div>
+<p>Make sure you execute <strong class="command">workon cosmos</strong> anytime you want to interact with Cosmos, or run a script
+that uses Cosmos.  Deactivate the virtual environment by executing:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>deactivate
+</pre></div>
+</div>
+</div>
+<div class="section" id="experimental-features">
+<h2>2.3. Experimental Features<a class="headerlink" href="#experimental-features" title="Permalink to this headline">¶</a></h2>
+<p>Optionally, if you want the experimental graphing capabilities to automatically summarize
+computational resource usage, R and the R package ggplot2 are required.</p>
+<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get install r graphviz-dev <span class="c"># or whatever works on your OS</span>
+sudo R
+&gt; install.packages<span class="o">(</span><span class="s2">&quot;ggplot2&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config.html" class="btn btn-neutral float-right" title="3. Configuration"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="introduction.html" class="btn btn-neutral" title="1. Introduction"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
