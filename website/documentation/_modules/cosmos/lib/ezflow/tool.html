@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.lib.ezflow.tool &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ezflow/index.html">5. Writing Workflows with EZFlow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+    <li>cosmos.lib.ezflow.tool</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for cosmos.lib.ezflow.tool</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">helpers</span> <span class="kn">import</span> <span class="n">getcallargs</span><span class="p">,</span><span class="n">cosmos_format</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">TaskFile</span>
+<span class="kn">from</span> <span class="nn">cosmos.utils.helpers</span> <span class="kn">import</span> <span class="n">parse_cmd</span>
+<span class="kn">import</span> <span class="nn">itertools</span><span class="o">,</span> <span class="nn">copy</span>
+
+<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">def</span> <span class="nf">get_id</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">i</span>
+    <span class="n">i</span> <span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">i</span>
+
+<span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">class</span> <span class="nc">ExpectedError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">ToolError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">ToolValidationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span><span class="k">pass</span>
+<span class="k">class</span> <span class="nc">GetOutputError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="Tool"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool">[docs]</a><span class="k">class</span> <span class="nc">Tool</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A Tool is a class who&#39;s instances represent a command that gets executed. It also contains properties which</span>
+<span class="sd">define the resources that are required.</span>
+
+<span class="sd">:property stage_name: (str) The name of this Tool&#39;s stage. Defaults to the name of the class.</span>
+<span class="sd">:property dag: (DAG) The dag that is keeping track of this Tool</span>
+<span class="sd">:property id: (int) A unique identifier. Useful for debugging.</span>
+<span class="sd">:property input_files: (list) This Tool&#39;s input TaskFiles</span>
+<span class="sd">:property output_files: (list) This Tool&#39;s output TaskFiles. A tool&#39;s output taskfile names should be unique.</span>
+<span class="sd">:property tags: (dict) This Tool&#39;s tags.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+    <span class="c">#TODO props that cant be overridden should be private</span>
+
+    <span class="c">#: (list of strs) a list of input names.</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#: (list of strs or TaskFiles) a list of output names. Default is [].</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#: (int) Number of megabytes of memory to request. Default is 1024.</span>
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span>
+    <span class="c">#: (int) Number of cores to request. Default is 1.</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c">#: (int) Number of minutes to request. Default is 1.</span>
+    <span class="n">time_req</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#(mins)</span>
+    <span class="c">#: (bool) If True, these tasks do not contain commands that are executed. Used for INPUT. Default is False.</span>
+    <span class="n">NOOP</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c">#: (bool) If True, the input files of this tool will also be input files of children of this tool. Default is False.</span>
+    <span class="n">forward_input</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c">#: (bool) If True, if this tool&#39;s tasks&#39; job attempts fail, the task will still be considered successful. Default is False.</span>
+    <span class="n">succeed_on_failure</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c">#: (dict) A dictionary of default parameters. Default is {}.</span>
+    <span class="n">default_params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c">#: (bool) If True, output_files described as a str in outputs will be by default be created with persist=True.</span>
+    <span class="c">#: If delete_interemediates is on, they will not be deleted.</span>
+    <span class="n">persist</span><span class="o">=</span><span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{},</span><span class="n">dag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:param stage_name: (str) The name of the stage this tool belongs to. Required.</span>
+<span class="sd">:param tags: (dict) A dictionary of tags.</span>
+<span class="sd">:param dag: The dag this task belongs to.</span>
+<span class="sd">:param parents: A list of tool instances which this tool is dependent on</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="c">#if len(tags)==0: raise ToolValidationError(&#39;Empty tag dictionary. All tools should have at least one tag.&#39;)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;name&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;output_files&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;settings&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;parameters&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_name</span> <span class="o">=</span> <span class="n">stage_name</span> <span class="k">if</span> <span class="n">stage_name</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dag</span> <span class="o">=</span> <span class="n">dag</span>
+
+        <span class="c"># Because defining attributes in python creates a reference to a single instance across all class instance</span>
+        <span class="c"># any taskfile instances in self.outputs is used as a template for instantiating a new class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="n">TaskFile</span><span class="p">)</span> <span class="k">else</span> <span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">get_id</span><span class="p">()</span>
+
+        <span class="c"># Create empty output TaskFiles</span>
+        <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">TaskFile</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+                <span class="n">tf</span> <span class="o">=</span> <span class="n">TaskFile</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="n">output</span><span class="p">,</span><span class="n">persist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">persist</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">,</span> <span class="s">&quot;{0}.outputs must be a list strs or Taskfile instances.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c">#validate inputs are strs</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">,</span><span class="s">&quot;{0} has elements in self.inputs that are not of type str&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">(</span><span class="s">&#39;Duplicate names in tool.inputs detected in {0}. Perhaps try using [1.ext,2.ext,...]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+        <span class="n">output_names</span> <span class="o">=</span> <span class="p">[</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">output_names</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">(</span><span class="s">&#39;Duplicate names in tool.output_files detected in {0}. Perhaps try using [1.ext,2.ext,...] when defining outputs&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">successors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">child</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolError</span><span class="p">(</span><span class="s">&#39;{0} has more than one parent. The parents are: {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolError</span><span class="p">(</span><span class="s">&#39;{0} has no parents&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dag</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">predecessors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolError</span><span class="p">(</span><span class="s">&#39;{0} has more than one parent. The parents are: {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ToolError</span><span class="p">(</span><span class="s">&#39;{0} has no parents&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="Tool.get_output"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.get_output">[docs]</a>    <span class="k">def</span> <span class="nf">get_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">error_if_missing</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Returns the output TaskFiles who&#39;s name == name. This should always be one element.</span>
+<span class="sd">:param name: the name of the output file.</span>
+<span class="sd">:param error_if_missing: (bool) Raises a GetOutputError if the output cannot be found</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+        <span class="n">output_files</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="k">raise</span> <span class="n">GetOutputError</span><span class="p">(</span><span class="s">&#39;More than one output with name {0} in {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="bp">self</span><span class="p">),</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_input</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">output_files</span> <span class="o">+=</span> <span class="p">[</span> <span class="n">p</span><span class="o">.</span><span class="n">get_output</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="p">]</span>
+            <span class="k">except</span> <span class="n">GetOutputError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">error_if_missing</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GetOutputError</span><span class="p">(</span><span class="s">&#39;No output file in {0} with name {1}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">),</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    </div>
+    <span class="k">def</span> <span class="nf">get_output_file_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span><span class="p">))</span>
+        
+<div class="viewcode-block" id="Tool.add_output"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.add_output">[docs]</a>    <span class="k">def</span> <span class="nf">add_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">taskfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Adds an taskfile to self.output_files</span>
+<span class="sd">:param taskfile: an instance of a TaskFile</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">taskfile</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Tool.input_files"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.input_files">[docs]</a>    <span class="k">def</span> <span class="nf">input_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;A list of input TaskFiles&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span> <span class="n">tf</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">map_inputs</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="p">]))</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Tool.label"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.label">[docs]</a>    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Label used for the DAG image&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s">&quot;</span><span class="se">\\</span><span class="s">n {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">n&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&quot;{0}: {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="p">]))</span>
+        <span class="k">return</span> <span class="s">&quot;[{3}] {0}{1}</span><span class="se">\\</span><span class="s">n{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pcmd</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Tool.map_inputs"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.map_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">map_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Default method to map inputs. Can be overriden if a different behavior is desired</span>
+<span class="sd">:returns: (dict) A dictionary of taskfiles which are inputs to this tool. Keys are names of the taskfiles, values are a list of taskfiles.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="s">&#39;*&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s">&#39;*&#39;</span><span class="p">:[</span> <span class="n">o</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">output_files</span> <span class="p">]}</span>
+
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                    <span class="n">all_inputs</span> <span class="o">+=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,[</span> <span class="n">p</span><span class="o">.</span><span class="n">get_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">error_if_missing</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="p">])</span> <span class="c">#filter out Nones</span>
+
+            <span class="n">input_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">input_file</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_inputs</span><span class="p">):</span>
+                <span class="n">input_dict</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="p">,[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">,</span> <span class="s">&quot;Could not find input &#39;{0}&#39; in {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">input_dict</span>
+        
+        </div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pcmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_cmd</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">NOOP</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+    
+<div class="viewcode-block" id="Tool.process_cmd"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.process_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">process_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Calls map_inputs() and processes the output of cmd()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+        <span class="n">callargs</span> <span class="o">=</span> <span class="n">getcallargs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">map_inputs</span><span class="p">(),</span><span class="n">s</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">callargs</span><span class="p">[</span><span class="s">&#39;self&#39;</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="o">**</span><span class="n">callargs</span><span class="p">)</span>
+        
+        <span class="c">#if tuple is returned, second element is a dict to format with</span>
+        <span class="n">extra_format_dict</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">r</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">pcmd</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">r</span>
+
+        <span class="c">#replace $OUT with a string representation of a taskfile</span>
+        <span class="n">out_names</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&#39;\$OUT\.([\.\w]+)&#39;</span><span class="p">,</span><span class="n">pcmd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">out_name</span> <span class="ow">in</span> <span class="n">out_names</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pcmd</span> <span class="o">=</span> <span class="n">pcmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;$OUT.{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_name</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_output</span><span class="p">(</span><span class="n">out_name</span><span class="p">)))</span>
+            <span class="k">except</span> <span class="n">GetOutputError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">(</span><span class="s">&#39;Invalid key in $OUT.key ({0}), available output_file keys in {1} are {2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_name</span><span class="p">,</span><span class="bp">self</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">get_output_file_names</span><span class="p">()))</span>
+
+        <span class="c">#Validate all output_files have an $OUT</span>
+        <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">out_names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">,</span>\
+                    <span class="s">&#39;An output taskfile with name {1} is in {0}.output_files but not referenced with $OUT in the tool</span><span class="se">\&#39;</span><span class="s">s command: out_names= {2}&#39;</span><span class="o">.</span>\
+                        <span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tf</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">out_names</span><span class="p">)</span>
+                
+        <span class="c">#format() return string with callargs</span>
+        <span class="n">callargs</span><span class="p">[</span><span class="s">&#39;self&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">callargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">extra_format_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parse_cmd</span><span class="p">(</span><span class="n">cosmos_format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">post_cmd</span><span class="p">(</span><span class="n">pcmd</span><span class="p">,</span><span class="n">callargs</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="Tool.post_cmd"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.post_cmd">[docs]</a>    <span class="k">def</span> <span class="nf">post_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cmd_str</span><span class="p">,</span><span class="n">format_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides an opportunity to make any last minute changes to the cmd generated.</span>
+
+<span class="sd">:param cmd_str: (str) the string returned by cmd</span>
+<span class="sd">:param format_dict: (str) the dictionary that cmd was about to be .format()ed with</span>
+<span class="sd">:returns: (str,dict) the post_processed cmd_str and format_dict</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cmd_str</span><span class="p">,</span><span class="n">format_dict</span>
+
+</div>
+<div class="viewcode-block" id="Tool.cmd"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.Tool.cmd">[docs]</a>    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Constructs the preformatted command string. The string will be .format()ed with the i,s,p dictionaries,</span>
+<span class="sd">and later, $OUT.outname will be replaced with a TaskFile associated with the output name `outname`</span>
+
+<span class="sd">:param i: (dict) Input TaskFiles.</span>
+<span class="sd">:param s: (dict) Settings. The settings dictionary, set by using :py:meth:`contrib.ezflow.dag.configure`</span>
+<span class="sd">:param p: (dict) Parameters.</span>
+<span class="sd">:returns: (str|tuple(str,dict)) A preformatted command string, or a tuple of the former and a dict with extra values to use for</span>
+<span class="sd">formatting</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;{0}.cmd is not implemented.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;{0} {1}&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="INPUT"><a class="viewcode-back" href="../../../../ezflow/tools.html#cosmos.lib.ezflow.tool.INPUT">[docs]</a><span class="k">class</span> <span class="nc">INPUT</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">An Input File.</span>
+
+<span class="sd">Does not actually execute anything, but provides a way to load an input file.</span>
+
+<span class="sd">&gt;&gt;&gt; INPUT(&#39;/path/to/file.ext&#39;,tags={&#39;key&#39;:&#39;val&#39;})</span>
+<span class="sd">&gt;&gt;&gt; INPUT(path=&#39;/path/to/file.ext.gz&#39;,name=&#39;ext&#39;,fmt=&#39;ext.gz&#39;,tags={&#39;key&#39;:&#39;val&#39;})</span>
+<span class="sd">&quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Load Input Files&quot;</span>
+    <span class="n">NOOP</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">fmt</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:param path: the path to the input file</span>
+<span class="sd">:param name: the name or keyword for the input file</span>
+<span class="sd">:param fmt: the format of the input file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">INPUT</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="n">TaskFile</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span><span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span><span class="n">persist</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;[{0}] {1} {2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

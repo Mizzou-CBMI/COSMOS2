@@ -32,7 +32,6 @@ class JobManager(object):
             task.NOOP = True
             task.status = TaskStatus.submitted
         else:
-            mkdir(task.output_dir)
             mkdir(task.log_dir)
             self._create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)

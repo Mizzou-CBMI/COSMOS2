@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1. Defining Tools &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../index.html"/>
+        <link rel="up" title="5. Writing Workflows with EZFlow" href="index.html"/>
+        <link rel="next" title="2. Designing Workflows" href="workflows.html"/>
+        <link rel="prev" title="5. Writing Workflows with EZFlow" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. Writing Workflows with EZFlow</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">5. Writing Workflows with EZFlow</a> &raquo;</li>
+      
+    <li>1. Defining Tools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/ezflow/tools.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="defining-tools">
+<span id="tools"></span><h1>1. Defining Tools<a class="headerlink" href="#defining-tools" title="Permalink to this headline">¶</a></h1>
+<p>A tool represents an executable (like echo, cat, or paste, or script) that is run from the command line.
+A tool is a class that overrides <tt class="xref py py-class docutils literal"><span class="pre">Tool</span></tt>, and defines <tt class="xref py py-meth docutils literal"><span class="pre">cmd()</span></tt>,
+(unless the tool doesn&#8217;t actually perform an operation, ie
+<tt class="xref py py-attr docutils literal"><span class="pre">tool.Tool.NOOP</span></tt> == True).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.tool</span> <span class="kn">import</span> <span class="n">Tool</span>
+
+<span class="k">class</span> <span class="nc">WordCount</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Word Count&quot;</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;txt&#39;</span><span class="p">]</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;txt&#39;</span><span class="p">]</span>
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">r&quot;&quot;&quot;</span>
+<span class="s">            wc {i[txt][0]} &gt; $OUT.txt</span>
+<span class="s">            &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>This tool will read a txt file, count the number of words, and write it to another text file.</p>
+<p>See the <tt class="xref py py-class docutils literal"><span class="pre">Tool</span> <span class="pre">API</span></tt> for more class attributes that can be overridden to obtain
+various behaviors.</p>
+<div class="section" id="defining-input-files">
+<h2>1.1. Defining Input Files<a class="headerlink" href="#defining-input-files" title="Permalink to this headline">¶</a></h2>
+<p>An Input file is an instantiation of <tt class="xref py py-class docutils literal"><span class="pre">tool.INPUT</span></tt>, which is just a Tool with
+<tt class="xref py py-attr docutils literal"><span class="pre">tool.INPUT.NOOP</span></tt> set to True, and a way to initialize it with a single output file from an existing
+path on the filesystem.</p>
+<p>An INPUT has one outputfile, which is an instance of <tt class="xref py py-class docutils literal"><span class="pre">Workflow.models.TaskFile</span></tt>.  It has 3 important
+attributes:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">name</span></tt>: This is the name of the file, and is used as the key for obtaining it.  No Tool can</dt>
+<dd><p class="first last">have multiple TaskFiles with the same name.  Defaults to <tt class="docutils literal"><span class="pre">fmt</span></tt>.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">fmt</span></tt>: The format of the file.  Defaults to the extension of <tt class="docutils literal"><span class="pre">path</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">path</span></tt>: The path to the file. Required.</p>
+</li>
+</ul>
+<p>Here&#8217;s an example of how to create an instance of an <tt class="xref py py-class docutils literal"><span class="pre">tool.INPUT</span></tt> File:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.lib.ezflow</span> <span class="kn">import</span> <span class="n">INPUT</span>
+
+<span class="n">input_file</span> <span class="o">=</span> <span class="n">INPUT</span><span class="p">(</span><span class="s">&#39;/path/to/file.txt&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;i&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">input_file</span></tt> will now be a tool instance with an output file called &#8216;txt&#8217; that points to <tt class="file docutils literal"><span class="pre">/path/to/file.txt</span></tt>.</p>
+<p>A more fine grained approach to defining input files:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.lib.ezflow</span> <span class="kn">import</span> <span class="n">INPUT</span>
+<span class="n">INPUT</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;favorite_txt&#39;</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="s">&#39;/path/to/favorite_txt.txt.gz&#39;</span><span class="p">,</span><span class="n">fmt</span><span class="o">=</span><span class="s">&#39;txt.gz&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;color&#39;</span><span class="p">:</span><span class="s">&#39;red&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>1.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cosmos.lib.ezflow.tool">
+<span id="tool"></span><h3>1.2.1. Tool<a class="headerlink" href="#module-cosmos.lib.ezflow.tool" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="cosmos.lib.ezflow.tool.Tool">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.tool.</tt><tt class="descname">Tool</tt><big>(</big><em>stage_name=None</em>, <em>tags={}</em>, <em>dag=None</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Tool is a class who&#8217;s instances represent a command that gets executed. It also contains properties which
+define the resources that are required.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Property stage_name:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">(str) The name of this Tool&#8217;s stage. Defaults to the name of the class.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Property dag:</th><td class="field-body">(DAG) The dag that is keeping track of this Tool</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Property id:</th><td class="field-body">(int) A unique identifier. Useful for debugging.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Property input_files:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">(list) This Tool&#8217;s input TaskFiles</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Property output_files:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">(list) This Tool&#8217;s output TaskFiles. A tool&#8217;s output taskfile names should be unique.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Property tags:</th><td class="field-body">(dict) This Tool&#8217;s tags.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.inputs">
+<tt class="descname">inputs</tt><em class="property"> = []</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>(list of strs) a list of input names.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.mem_req">
+<tt class="descname">mem_req</tt><em class="property"> = 1024</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.mem_req" title="Permalink to this definition">¶</a></dt>
+<dd><p>(int) Number of megabytes of memory to request. Default is 1024.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.cpu_req">
+<tt class="descname">cpu_req</tt><em class="property"> = 1</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.cpu_req" title="Permalink to this definition">¶</a></dt>
+<dd><p>(int) Number of cores to request. Default is 1.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.time_req">
+<tt class="descname">time_req</tt><em class="property"> = None</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.time_req" title="Permalink to this definition">¶</a></dt>
+<dd><p>(int) Number of minutes to request. Default is 1.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.NOOP">
+<tt class="descname">NOOP</tt><em class="property"> = False</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.NOOP" title="Permalink to this definition">¶</a></dt>
+<dd><p>(bool) If True, these tasks do not contain commands that are executed. Used for INPUT. Default is False.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.forward_input">
+<tt class="descname">forward_input</tt><em class="property"> = False</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.forward_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>(bool) If True, the input files of this tool will also be input files of children of this tool. Default is False.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.succeed_on_failure">
+<tt class="descname">succeed_on_failure</tt><em class="property"> = False</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.succeed_on_failure" title="Permalink to this definition">¶</a></dt>
+<dd><p>(bool) If True, if this tool&#8217;s tasks&#8217; job attempts fail, the task will still be considered successful. Default is False.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.default_params">
+<tt class="descname">default_params</tt><em class="property"> = {}</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.default_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>(dict) A dictionary of default parameters. Default is {}.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.persist">
+<tt class="descname">persist</tt><em class="property"> = False</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.persist" title="Permalink to this definition">¶</a></dt>
+<dd><p>(bool) If True, output_files described as a str in outputs will be by default be created with persist=True.
+If delete_interemediates is on, they will not be deleted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.outputs">
+<tt class="descname">outputs</tt><em class="property"> = []</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>(list of strs or TaskFiles) a list of output names. Default is [].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.get_output">
+<tt class="descname">get_output</tt><big>(</big><em>name</em>, <em>error_if_missing=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.get_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.get_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the output TaskFiles who&#8217;s name == name. This should always be one element.
+:param name: the name of the output file.
+:param error_if_missing: (bool) Raises a GetOutputError if the output cannot be found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.add_output">
+<tt class="descname">add_output</tt><big>(</big><em>taskfile</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.add_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.add_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an taskfile to self.output_files
+:param taskfile: an instance of a TaskFile</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.input_files">
+<tt class="descname">input_files</tt><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.input_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.input_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of input TaskFiles</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cosmos.lib.ezflow.tool.Tool.label">
+<tt class="descname">label</tt><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Label used for the DAG image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.map_inputs">
+<tt class="descname">map_inputs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.map_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.map_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default method to map inputs. Can be overriden if a different behavior is desired
+:returns: (dict) A dictionary of taskfiles which are inputs to this tool. Keys are names of the taskfiles, values are a list of taskfiles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.process_cmd">
+<tt class="descname">process_cmd</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.process_cmd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.process_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls map_inputs() and processes the output of cmd()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.post_cmd">
+<tt class="descname">post_cmd</tt><big>(</big><em>cmd_str</em>, <em>format_dict</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.post_cmd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.post_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides an opportunity to make any last minute changes to the cmd generated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cmd_str</strong> &#8211; (str) the string returned by cmd</li>
+<li><strong>format_dict</strong> &#8211; (str) the dictionary that cmd was about to be .format()ed with</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(str,dict) the post_processed cmd_str and format_dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.tool.Tool.cmd">
+<tt class="descname">cmd</tt><big>(</big><em>i</em>, <em>s</em>, <em>p</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#Tool.cmd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs the preformatted command string. The string will be .format()ed with the i,s,p dictionaries,
+and later, $OUT.outname will be replaced with a TaskFile associated with the output name <cite>outname</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> &#8211; (dict) Input TaskFiles.</li>
+<li><strong>s</strong> &#8211; (dict) Settings. The settings dictionary, set by using <tt class="xref py py-meth docutils literal"><span class="pre">contrib.ezflow.dag.configure()</span></tt></li>
+<li><strong>p</strong> &#8211; (dict) Parameters.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(str|tuple(str,dict)) A preformatted command string, or a tuple of the former and a dict with extra values to use for</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>formatting</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.tool.INPUT">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.tool.</tt><tt class="descname">INPUT</tt><big>(</big><em>path</em>, <em>name=None</em>, <em>fmt=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/tool.html#INPUT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.tool.INPUT" title="Permalink to this definition">¶</a></dt>
+<dd><p>An Input File.</p>
+<p>Does not actually execute anything, but provides a way to load an input file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">INPUT</span><span class="p">(</span><span class="s">&#39;/path/to/file.ext&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;key&#39;</span><span class="p">:</span><span class="s">&#39;val&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">INPUT</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s">&#39;/path/to/file.ext.gz&#39;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;ext&#39;</span><span class="p">,</span><span class="n">fmt</span><span class="o">=</span><span class="s">&#39;ext.gz&#39;</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;key&#39;</span><span class="p">:</span><span class="s">&#39;val&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="workflows.html" class="btn btn-neutral float-right" title="2. Designing Workflows"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="5. Writing Workflows with EZFlow"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

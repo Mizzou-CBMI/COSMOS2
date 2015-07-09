@@ -1,0 +1,893 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2. Designing Workflows &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../index.html"/>
+        <link rel="up" title="5. Writing Workflows with EZFlow" href="index.html"/>
+        <link rel="next" title="3. Workflow Code Examples" href="examples.html"/>
+        <link rel="prev" title="1. Defining Tools" href="tools.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. Writing Workflows with EZFlow</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">5. Writing Workflows with EZFlow</a> &raquo;</li>
+      
+    <li>2. Designing Workflows</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/ezflow/workflows.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="designing-workflows">
+<span id="writing-workflows"></span><h1>2. Designing Workflows<a class="headerlink" href="#designing-workflows" title="Permalink to this headline">¶</a></h1>
+<p>All jobs and and job dependencies are represented by the <tt class="xref py py-class docutils literal"><span class="pre">DAG</span></tt> class.</p>
+<p>There are various <strong>FlowFxns</strong> you can use to generate a DAG.  The construction of a <tt class="xref py py-class docutils literal"><span class="pre">DAG</span></tt> always starts with
+a call to <tt class="xref py py-meth docutils literal"><span class="pre">add_()</span></tt>, which adds a list of tools with no dependencies.  The new tools that were add_()ed become
+the <tt class="xref py py-class docutils literal"><span class="pre">DAG</span></tt>&#8216;s <cite>active_tools</cite>, which are the list of tools that all other <strong>FlowFxns</strong> operate on.  Generally
+speaking, the <cite>active_tools</cite> are the last tools that were added to the DAG by a <strong>FlowFxns</strong>, however, there are a few
+tricks have more control over what is stored in <cite>active_tools</cite>.</p>
+<p>Although you can chain the <strong>FlowFxns</strong> together like this: <tt class="docutils literal"><span class="pre">DAG().add_([tool1,tool2]).map_(MyTool)</span></tt>, you are offered
+much more flexibility to modularize workflow logic by using the object representations of the <strong>FlowFxns</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.lib.ezflow.dag</span> <span class="kn">import</span> <span class="n">sequence_</span><span class="p">,</span> <span class="n">apply_</span><span class="p">,</span> <span class="n">map_</span><span class="p">,</span> <span class="n">dag_</span>
+<span class="n">dag</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">()</span>
+
+<span class="n">subworkflow1</span> <span class="o">=</span> <span class="n">map_</span><span class="p">(</span><span class="n">ToolA</span><span class="p">)</span><span class="o">.</span><span class="n">split_</span><span class="p">([(</span><span class="s">&#39;color&#39;</span><span class="p">,[</span><span class="s">&#39;red&#39;</span><span class="p">,</span><span class="s">&#39;blue&#39;</span><span class="p">])],</span><span class="n">ToolB</span><span class="p">)</span>
+<span class="n">subworkflow2</span> <span class="o">=</span> <span class="n">map_</span><span class="p">(</span><span class="n">Tool1</span><span class="p">)</span><span class="o">.</span><span class="n">map_</span><span class="p">(</span><span class="n">Tool2</span><span class="p">)</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span><span class="n">subworkflow1</span><span class="p">)</span>
+<span class="n">dag</span><span class="o">.</span><span class="n">_sequence</span><span class="p">(</span><span class="n">subworkflow2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition hint">
+<p class="first admonition-title">Hint</p>
+<p class="last">You can always visualize the <tt class="docutils literal"><span class="pre">DAG</span></tt> that you&#8217;ve built using <tt class="xref py py-meth docutils literal"><span class="pre">dag.DAG.create_dag_img()</span></tt>.
+(see <a class="reference internal" href="examples.html#examples"><em>Workflow Code Examples</em></a> for details)</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">There are a lot of useful examples.  Some of the more advanced examples even demonstrate
+useful advanced features that are not described here yet.
+<a class="reference internal" href="examples.html#examples"><em>Workflow Code Examples</em></a></p>
+</div>
+<div class="section" id="theflowfxn-operators">
+<h2>2.1. TheFlowFxn Operators<a class="headerlink" href="#theflowfxn-operators" title="Permalink to this headline">¶</a></h2>
+<p>Below are the FlowFxn operators.  It is recommended that you take a look at the <a class="reference internal" href="examples.html#examples"><em>Workflow Code Examples</em></a> to get an understanding
+of how they work.</p>
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.add_">
+<tt class="descclassname">DAG.</tt><tt class="descname">add_</tt><big>(</big><em>tools</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.add_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.add_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Always the first flowfxn used to describe a DAG. Simply adds a list of tool instances to the dag,
+without adding any dependencies.</p>
+<p>This operator is different than the others in that its input is a list of
+instantiated instances of Tools, rather than a Tool class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tools</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">DAG</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">([</span><span class="n">tool1</span><span class="p">,</span><span class="n">tool2</span><span class="p">,</span><span class="n">tool3</span><span class="p">,</span><span class="n">tool4</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.map_">
+<tt class="descclassname">DAG.</tt><tt class="descname">map_</tt><big>(</big><em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.map_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.map_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates one2one relationships of the dag&#8217;s current active_tools with a new tool of
+type <cite>tool_class</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool_class</strong> &#8211; (subclass of Tool)</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">map_</span><span class="p">(</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.reduce_">
+<tt class="descclassname">DAG.</tt><tt class="descname">reduce_</tt><big>(</big><em>keywords</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.reduce_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.reduce_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new tools with a many2one relationship to the dag&#8217;s current active_tools.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keywords</strong> &#8211; (list of str) Tags to reduce to. All keywords not listed will</td>
+</tr>
+</tbody>
+</table>
+<p>not be passed on to the tasks generated. Tools not tagged with a value in keywords will be a parent
+of all new tools generated.
+:param tool_class: (list) Tool instances.
+:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.
+:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn
+:return: (DAG) self</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="s">&#39;shape&#39;</span><span class="p">,</span><span class="s">&#39;color&#39;</span><span class="p">],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the above example, a new stage will be created using <cite>Tool_Class</cite>. The active_nodes will be placed
+into groups of the possible combinations of <cite>shape</cite> and <cite>color</cite>, and a child tools will be tagged
+with the same <cite>shape</cite> and <cite>color</cite> of their parents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.split_">
+<tt class="descclassname">DAG.</tt><tt class="descname">split_</tt><big>(</big><em>split_by</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.split_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.split_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates one2many relationships for each tool in the dag&#8217;s active_tools, with every possible combination
+of keywords in split_by. New tools will be of class <cite>tool_class</cite> and tagged with one of the possible keyword
+combinations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>split_by</strong> &#8211; (list of (str,list)) Tags to split by.</li>
+<li><strong>tool_class</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">split_</span><span class="p">([(</span><span class="s">&#39;shape&#39;</span><span class="p">,[</span><span class="s">&#39;square&#39;</span><span class="p">,</span><span class="s">&#39;circle&#39;</span><span class="p">]),(</span><span class="s">&#39;color&#39;</span><span class="p">,[</span><span class="s">&#39;red&#39;</span><span class="p">,</span><span class="s">&#39;blue&#39;</span><span class="p">])],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above will create 4 new tools dependent on each tool in active_tools. The new tools will be tagged
+with the tags of their parents plus these:</p>
+<div class="highlight-python"><div class="highlight"><pre>
+</pre></div>
+</div>
+<p>{&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;color&#8217;:&#8217;red&#8217;}, {&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;color&#8217;:blue&#8217;},
+{&#8216;shape&#8217;:&#8217;circle&#8217;,&#8217;color&#8217;:&#8217;red&#8217;}, {&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;circle&#8217;:blue&#8217;}</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.reduce_split_">
+<tt class="descclassname">DAG.</tt><tt class="descname">reduce_split_</tt><big>(</big><em>keywords</em>, <em>split_by</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.reduce_split_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.reduce_split_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new tools by first reducing then splitting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>keywords</strong> &#8211; (list of str) Tags to reduce to. All keywords not listed will not be passed on to the tasks generated.</li>
+<li><strong>split_by</strong> &#8211; (list of (str,list)) Tags to split by. Creates every possible product of the tags.</li>
+<li><strong>tool_class</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">reduce_split_</span><span class="p">([</span><span class="s">&#39;color&#39;</span><span class="p">,</span><span class="s">&#39;shape&#39;</span><span class="p">],[(</span><span class="s">&#39;size&#39;</span><span class="p">,[</span><span class="s">&#39;small&#39;</span><span class="p">,</span><span class="s">&#39;large&#39;</span><span class="p">])],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example will reduce the active_tools by <cite>color</cite> and <cite>shape</cite>, and then split into two tools with tags
+<tt class="docutils literal"><span class="pre">{'size':'large'}</span></tt> and <tt class="docutils literal"><span class="pre">{'size':'small'}</span></tt>, plus the <tt class="docutils literal"><span class="pre">color</span></tt> and <tt class="docutils literal"><span class="pre">shape</span></tt>
+of their parents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.sequence_">
+<tt class="descclassname">DAG.</tt><tt class="descname">sequence_</tt><big>(</big><em>*flowlist</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.sequence_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.sequence_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies each flowfxn in *flowlist sequentially to each other. Very similar to python&#8217;s builtin <tt class="xref py py-meth docutils literal"><span class="pre">reduce()</span></tt>
+function (not to be confused with <tt class="xref py py-meth docutils literal"><span class="pre">DAG.reduce_()</span></tt>), initialized with the current active_nodes.</p>
+<p>For example, at a high level sequence_(B,C,D) translates to D(C(B(active_tools))).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>*flowlist</strong> &#8211; A sequence of flowfxns</li>
+<li><strong>combine</strong> &#8211; Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) this dag</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span><span class="n">map_</span><span class="p">(</span><span class="n">ToolX</span><span class="p">),</span> <span class="n">seq_</span><span class="p">([</span> <span class="n">reduce_</span><span class="p">([</span><span class="s">&#39;a&#39;</span><span class="p">],</span><span class="n">ToolA</span><span class="p">),</span> <span class="n">map_</span><span class="p">(,</span><span class="n">ToolB</span><span class="p">]),</span> <span class="n">split_</span><span class="p">([</span><span class="s">&#39;b&#39;</span><span class="p">,[</span><span class="s">&#39;2&#39;</span><span class="p">]],</span><span class="n">ToolC</span><span class="p">])</span> <span class="p">]))</span>
+</pre></div>
+</div>
+<p>In the above example, ToolA will be applied to Toolx, ToolB to ToolA, and ToolC applied to ToolB. ToolC
+will be set as dag.active_tools</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.apply_">
+<tt class="descclassname">DAG.</tt><tt class="descname">apply_</tt><big>(</big><em>*flowlist</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.apply_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.apply_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies each flowfxn in *flowlist to current dag.active_tools.</p>
+<p>For example, at a high level, apply_(B,C,D) translates to B(active_tools),C(active_tools),D(active_tools).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>*flowlist</strong> &#8211; A sequence of flowfxns</li>
+<li><strong>combine</strong> &#8211; Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) this dag</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span><span class="n">map_</span><span class="p">(</span><span class="n">ToolX</span><span class="p">),</span> <span class="n">sequence_</span><span class="p">([</span> <span class="n">reduce_</span><span class="p">([</span><span class="s">&#39;a&#39;</span><span class="p">],</span><span class="n">ToolA</span><span class="p">),</span> <span class="n">map_</span><span class="p">(,</span><span class="n">ToolB</span><span class="p">]),</span> <span class="n">split_</span><span class="p">([</span><span class="s">&#39;b&#39;</span><span class="p">,[</span><span class="s">&#39;2&#39;</span><span class="p">]],</span><span class="n">ToolC</span><span class="p">])</span> <span class="p">]))</span>
+</pre></div>
+</div>
+<p>In the above example, ToolA, ToolB and ToolC will all be applied to the instances generated by ToolX.
+The next flowfxn will only apply to the tools generated by ToolC.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.branch_">
+<tt class="descclassname">DAG.</tt><tt class="descname">branch_</tt><big>(</big><em>stage_names=</em>, <span class="optional">[</span><span class="optional">]</span><em>tags={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.branch_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.branch_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates active_tools to be the tools in the stages with name stage_name.
+The next infix operation will thus be applied to <cite>stage_name</cite>.
+This way the infix operations an be applied to multiple stages if the workflow isn&#8217;t &#8220;linear&#8221;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stage_names</strong> &#8211; (str) Only returns tasks belonging to stages in stage_names</li>
+<li><strong>tags</strong> &#8211; (dict) The criteria used to decide which tasks to return.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(list) A list of tasks</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="api">
+<h2>2.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cosmos.lib.ezflow.dag">
+<span id="dag"></span><h3>2.2.1. DAG<a class="headerlink" href="#module-cosmos.lib.ezflow.dag" title="Permalink to this headline">¶</a></h3>
+<dl class="exception">
+<dt id="cosmos.lib.ezflow.dag.DAGError">
+<em class="property">exception </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">DAGError</tt><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAGError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAGError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="cosmos.lib.ezflow.dag.StageNameCollision">
+<em class="property">exception </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">StageNameCollision</tt><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#StageNameCollision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.StageNameCollision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="cosmos.lib.ezflow.dag.FlowFxnValidationError">
+<em class="property">exception </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">FlowFxnValidationError</tt><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#FlowFxnValidationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.FlowFxnValidationError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cosmos.lib.ezflow.dag.flowfxn">
+<tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">flowfxn</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#flowfxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.flowfxn" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li>The decorated function should return a generator, so evaluate it</li>
+<li>Set the dag.active_tools to the decorated function&#8217;s return value, if the function was not <cite>sequence_</cite>, which handles</li>
+</ul>
+<p>this automatically
+* Return the dag</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.DAG">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">DAG</tt><big>(</big><em>cpu_req_override=False</em>, <em>ignore_stage_name_collisions=False</em>, <em>mem_req_factor=1</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Representation of a workflow as a <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a> of jobs.</p>
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.get_tools_by">
+<tt class="descname">get_tools_by</tt><big>(</big><em>stage_names=</em>, <span class="optional">[</span><span class="optional">]</span><em>tags={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.get_tools_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.get_tools_by" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stage_names</strong> &#8211; (str) Only returns tasks belonging to stages in stage_names</li>
+<li><strong>tags</strong> &#8211; (dict) The criteria used to decide which tasks to return.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(list) A list of tasks</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.add_edge">
+<tt class="descname">add_edge</tt><big>(</big><em>parent</em>, <em>child</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.add_edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.add_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a dependency
+:param parent: (Tool) a parent
+:param child: (Tool) a child
+:return: (DAG) self</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.branch_from_tools">
+<tt class="descname">branch_from_tools</tt><big>(</big><em>tools</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.branch_from_tools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.branch_from_tools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Branches from a list of tools
+:param tools: (list) a list of tools
+:return: (DAG) self</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">branch_</tt><big>(</big><em>stage_names=</em>, <span class="optional">[</span><span class="optional">]</span><em>tags={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.branch_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Updates active_tools to be the tools in the stages with name stage_name.
+The next infix operation will thus be applied to <cite>stage_name</cite>.
+This way the infix operations an be applied to multiple stages if the workflow isn&#8217;t &#8220;linear&#8221;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stage_names</strong> &#8211; (str) Only returns tasks belonging to stages in stage_names</li>
+<li><strong>tags</strong> &#8211; (dict) The criteria used to decide which tasks to return.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(list) A list of tasks</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.create_dag_img">
+<tt class="descname">create_dag_img</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.create_dag_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.create_dag_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a> as an image.
+gat
+:param path: the path to write to</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.configure">
+<tt class="descname">configure</tt><big>(</big><em>settings={}</em>, <em>parameters={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.configure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.configure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the parameters an settings of every tool in the dag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parameters</strong> &#8211; (dict) {&#8216;stage_name&#8217;: { &#8216;name&#8217;:&#8217;value&#8217;, ... }, {&#8216;stage_name2&#8217;: { &#8216;key&#8217;:&#8217;value&#8217;, ... } }</li>
+<li><strong>settings</strong> &#8211; (dict) { &#8216;key&#8217;:&#8217;val&#8217;} }</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.add_to_workflow">
+<tt class="descname">add_to_workflow</tt><big>(</big><em>workflow</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.add_to_workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.add_to_workflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add this dag to a workflow. Only adds tools to stages that are new, that is, another tag in the same
+stage with the same tags does not already exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workflow</strong> &#8211; the workflow to add</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG.add_run">
+<tt class="descname">add_run</tt><big>(</big><em>workflow</em>, <em>finish=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.add_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG.add_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shortcut to add to workflow and then run the workflow
+:param workflow: the workflow this dag will be added to
+:param finish: pass to workflow.run()</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">add_</tt><big>(</big><em>tools</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.add_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Always the first flowfxn used to describe a DAG. Simply adds a list of tool instances to the dag,
+without adding any dependencies.</p>
+<p>This operator is different than the others in that its input is a list of
+instantiated instances of Tools, rather than a Tool class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tools</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">DAG</span><span class="p">()</span><span class="o">.</span><span class="n">add_</span><span class="p">([</span><span class="n">tool1</span><span class="p">,</span><span class="n">tool2</span><span class="p">,</span><span class="n">tool3</span><span class="p">,</span><span class="n">tool4</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">map_</tt><big>(</big><em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.map_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Creates one2one relationships of the dag&#8217;s current active_tools with a new tool of
+type <cite>tool_class</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tool_class</strong> &#8211; (subclass of Tool)</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">map_</span><span class="p">(</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">split_</tt><big>(</big><em>split_by</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.split_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Creates one2many relationships for each tool in the dag&#8217;s active_tools, with every possible combination
+of keywords in split_by. New tools will be of class <cite>tool_class</cite> and tagged with one of the possible keyword
+combinations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>split_by</strong> &#8211; (list of (str,list)) Tags to split by.</li>
+<li><strong>tool_class</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">split_</span><span class="p">([(</span><span class="s">&#39;shape&#39;</span><span class="p">,[</span><span class="s">&#39;square&#39;</span><span class="p">,</span><span class="s">&#39;circle&#39;</span><span class="p">]),(</span><span class="s">&#39;color&#39;</span><span class="p">,[</span><span class="s">&#39;red&#39;</span><span class="p">,</span><span class="s">&#39;blue&#39;</span><span class="p">])],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above will create 4 new tools dependent on each tool in active_tools. The new tools will be tagged
+with the tags of their parents plus these:</p>
+<div class="highlight-python"><div class="highlight"><pre>
+</pre></div>
+</div>
+<p>{&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;color&#8217;:&#8217;red&#8217;}, {&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;color&#8217;:blue&#8217;},
+{&#8216;shape&#8217;:&#8217;circle&#8217;,&#8217;color&#8217;:&#8217;red&#8217;}, {&#8216;shape&#8217;:&#8217;square&#8217;,&#8217;circle&#8217;:blue&#8217;}</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">reduce_</tt><big>(</big><em>keywords</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.reduce_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create new tools with a many2one relationship to the dag&#8217;s current active_tools.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keywords</strong> &#8211; (list of str) Tags to reduce to. All keywords not listed will</td>
+</tr>
+</tbody>
+</table>
+<p>not be passed on to the tasks generated. Tools not tagged with a value in keywords will be a parent
+of all new tools generated.
+:param tool_class: (list) Tool instances.
+:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.
+:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn
+:return: (DAG) self</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="s">&#39;shape&#39;</span><span class="p">,</span><span class="s">&#39;color&#39;</span><span class="p">],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the above example, a new stage will be created using <cite>Tool_Class</cite>. The active_nodes will be placed
+into groups of the possible combinations of <cite>shape</cite> and <cite>color</cite>, and a child tools will be tagged
+with the same <cite>shape</cite> and <cite>color</cite> of their parents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">reduce_split_</tt><big>(</big><em>keywords</em>, <em>split_by</em>, <em>tool_class</em>, <em>stage_name=None</em>, <em>tag={}</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.reduce_split_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Create new tools by first reducing then splitting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>keywords</strong> &#8211; (list of str) Tags to reduce to. All keywords not listed will not be passed on to the tasks generated.</li>
+<li><strong>split_by</strong> &#8211; (list of (str,list)) Tags to split by. Creates every possible product of the tags.</li>
+<li><strong>tool_class</strong> &#8211; (list) Tool instances.</li>
+<li><strong>stage_name</strong> &#8211; (str) The name of the stage to add to. Defaults to the name of the tool class.</li>
+<li><strong>tag</strong> &#8211; (dict) A dictionary of tags to add to the tools produced by this flowfxn</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) self</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">reduce_split_</span><span class="p">([</span><span class="s">&#39;color&#39;</span><span class="p">,</span><span class="s">&#39;shape&#39;</span><span class="p">],[(</span><span class="s">&#39;size&#39;</span><span class="p">,[</span><span class="s">&#39;small&#39;</span><span class="p">,</span><span class="s">&#39;large&#39;</span><span class="p">])],</span><span class="n">Tool_Class</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example will reduce the active_tools by <cite>color</cite> and <cite>shape</cite>, and then split into two tools with tags
+<tt class="docutils literal"><span class="pre">{'size':'large'}</span></tt> and <tt class="docutils literal"><span class="pre">{'size':'small'}</span></tt>, plus the <tt class="docutils literal"><span class="pre">color</span></tt> and <tt class="docutils literal"><span class="pre">shape</span></tt>
+of their parents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">apply_</tt><big>(</big><em>*flowlist</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.apply_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Applies each flowfxn in *flowlist to current dag.active_tools.</p>
+<p>For example, at a high level, apply_(B,C,D) translates to B(active_tools),C(active_tools),D(active_tools).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>*flowlist</strong> &#8211; A sequence of flowfxns</li>
+<li><strong>combine</strong> &#8211; Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) this dag</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span><span class="n">map_</span><span class="p">(</span><span class="n">ToolX</span><span class="p">),</span> <span class="n">sequence_</span><span class="p">([</span> <span class="n">reduce_</span><span class="p">([</span><span class="s">&#39;a&#39;</span><span class="p">],</span><span class="n">ToolA</span><span class="p">),</span> <span class="n">map_</span><span class="p">(,</span><span class="n">ToolB</span><span class="p">]),</span> <span class="n">split_</span><span class="p">([</span><span class="s">&#39;b&#39;</span><span class="p">,[</span><span class="s">&#39;2&#39;</span><span class="p">]],</span><span class="n">ToolC</span><span class="p">])</span> <span class="p">]))</span>
+</pre></div>
+</div>
+<p>In the above example, ToolA, ToolB and ToolC will all be applied to the instances generated by ToolX.
+The next flowfxn will only apply to the tools generated by ToolC.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descname">sequence_</tt><big>(</big><em>*flowlist</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#DAG.sequence_"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Applies each flowfxn in *flowlist sequentially to each other. Very similar to python&#8217;s builtin <tt class="xref py py-meth docutils literal"><span class="pre">reduce()</span></tt>
+function (not to be confused with <a class="reference internal" href="#cosmos.lib.ezflow.dag.DAG.reduce_" title="cosmos.lib.ezflow.dag.DAG.reduce_"><tt class="xref py py-meth docutils literal"><span class="pre">DAG.reduce_()</span></tt></a>), initialized with the current active_nodes.</p>
+<p>For example, at a high level sequence_(B,C,D) translates to D(C(B(active_tools))).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>*flowlist</strong> &#8211; A sequence of flowfxns</li>
+<li><strong>combine</strong> &#8211; Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(DAG) this dag</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dag</span><span class="o">.</span><span class="n">sequence_</span><span class="p">(</span><span class="n">map_</span><span class="p">(</span><span class="n">ToolX</span><span class="p">),</span> <span class="n">seq_</span><span class="p">([</span> <span class="n">reduce_</span><span class="p">([</span><span class="s">&#39;a&#39;</span><span class="p">],</span><span class="n">ToolA</span><span class="p">),</span> <span class="n">map_</span><span class="p">(,</span><span class="n">ToolB</span><span class="p">]),</span> <span class="n">split_</span><span class="p">([</span><span class="s">&#39;b&#39;</span><span class="p">,[</span><span class="s">&#39;2&#39;</span><span class="p">]],</span><span class="n">ToolC</span><span class="p">])</span> <span class="p">]))</span>
+</pre></div>
+</div>
+<p>In the above example, ToolA will be applied to Toolx, ToolB to ToolA, and ToolC applied to ToolB. ToolC
+will be set as dag.active_tools</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.lib.ezflow.dag.DAG._DAG__new_task">
+<tt class="descname">_DAG__new_task</tt><big>(</big><em>stage</em>, <em>tool</em><big>)</big><a class="headerlink" href="#cosmos.lib.ezflow.dag.DAG._DAG__new_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a task from a tool. Assumes TaskFiles already have real primary keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stage</strong> &#8211; The stage the task should belong to.</li>
+<li><strong>tool</strong> &#8211; The Tool.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.MethodStore">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">MethodStore</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#MethodStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.MethodStore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.add_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">add_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#add_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.add_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.map_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">map_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#map_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.map_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.split_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">split_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#split_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.split_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.reduce_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">reduce_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#reduce_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.reduce_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.reduce_split_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">reduce_split_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#reduce_split_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.reduce_split_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.branch_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">branch_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#branch_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.branch_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.sequence_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">sequence_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#sequence_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.sequence_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.apply_">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">apply_</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#apply_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.apply_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.configure">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">configure</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#configure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.configure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="cosmos.lib.ezflow.dag.add_run">
+<em class="property">class </em><tt class="descclassname">cosmos.lib.ezflow.dag.</tt><tt class="descname">add_run</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/lib/ezflow/dag.html#add_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.lib.ezflow.dag.add_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples.html" class="btn btn-neutral float-right" title="3. Workflow Code Examples"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tools.html" class="btn btn-neutral" title="1. Defining Tools"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

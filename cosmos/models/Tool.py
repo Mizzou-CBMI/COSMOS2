@@ -197,7 +197,7 @@ class Tool(object):
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
         self.output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
-        self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)
+        # self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
@@ -316,9 +316,11 @@ class Tool(object):
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return out  # strip_lines(out)
 
-    def _prepend_cmd(self, task):
-        return 'OUT={out}\n' \
-               'cd $OUT\n\n'.format(out=task.output_dir)
+    def wrap_cmd(self, cmd):
+        task = self.task
+        return 'cd {ex_out}\n' \
+                'mkdir -p {out}' \
+               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir) + cmd
 
     def cmd(self, **kwargs):
         """
@@ -337,7 +339,7 @@ class Tool(object):
         cmd = self._cmd(task.input_files, task.output_files, task)
         if cmd == NOOP:
             return NOOP
-        return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
+        return self.wrap_cmd(self._cmd(task.input_files, task.output_files, task))
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
