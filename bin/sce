@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+import argparse
+
+from starcluster.static import STARCLUSTER_CFG_FILE
+from starcluster.config import StarClusterConfig
+
+from sce.utils.plugin import get_plugin_instance
+
+
+starcluster_config = StarClusterConfig(STARCLUSTER_CFG_FILE)
+starcluster_config.load()
+cluster_manager = starcluster_config.get_cluster_manager()
+
+
+def on_add_node(cluster_name, plugin_name):
+    """
+    Runs plugin.on_add_node
+    """
+    cluster = cluster_manager.get_cluster(cluster_name)
+    plugin_instance = get_plugin_instance(starcluster_config, plugin_name)
+    for node in cluster.nodes:
+        plugin_instance.on_add_node(node=node, nodes=cluster.nodes, master=cluster.master_node,
+                                    user='root',
+                                    user_shell='bash', volumes=cluster.volumes)
+
+
+def run(cluster_name, plugin_name):
+    """
+    Runs a plugin
+    """
+    cluster = cluster_manager.get_cluster(cluster_name)
+    plugin_instance = get_plugin_instance(starcluster_config, plugin_name)
+
+    plugin_instance.run(nodes=cluster.nodes, master=cluster.master_node, user='root', user_shell='bash',
+                        volumes=cluster.volumes)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='SCE CLI')
+    parser.add_argument('-d', '--debug', action='store_true', help='launch ipdb on exception')
+    subparsers = parser.add_subparsers(title="Commands", metavar="<command>")
+
+    sp = subparsers.add_parser('run', help=run.__doc__)
+    sp.add_argument('cluster_name', type=str, help='Cluster Name')
+    sp.add_argument('plugin_name', type=str, help='Cluster Name')
+    sp.set_defaults(func=run)
+
+    sp = subparsers.add_parser('on_add_node', help=on_add_node.__doc__)
+    sp.add_argument('cluster_name', type=str, help='Cluster Name')
+    sp.add_argument('plugin_name', type=str, help='Cluster Name')
+    sp.set_defaults(func=on_add_node)
+
+    kwargs = vars(parser.parse_args())
+    func = kwargs.pop('func')
+    debug = kwargs.pop('debug')
+    if debug:
+        import ipdb
+
+        with ipdb.launch_ipdb_on_exception():
+            func(**kwargs)
+    else:
+        func(**kwargs)
+
+
+if __name__ == '__main__':
+    main()
+

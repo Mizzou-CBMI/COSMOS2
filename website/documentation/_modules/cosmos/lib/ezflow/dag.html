@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.lib.ezflow.dag &mdash; Cosmos v0.5.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos v0.5.1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> COSMOS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">2. Install</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#requirements">2.1. Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#install-method">2.2. Install Method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../install.html#experimental-features">2.3. Experimental Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../config.html">3. Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../config.html#install-configuration-file">3.1. 1. Install Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../config.html#create-sql-tables-and-load-static-files">3.2. 2. Create SQL Tables and Load Static Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">4. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#execute-an-example-workflow">4.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#launch-the-web-interface">4.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#terminating-a-workflow">4.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../getting_started.html#resuming-a-workflow">4.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ezflow/index.html">5. Writing Workflows with EZFlow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/workflows.html">2. Designing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ezflow/examples.html">3. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">6. Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../cli.html#examples">6.1. Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../shell.html">7. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#launch-the-ipython-shell">7.1. Launch the IPython shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#interactive-workflow">7.2. Interactive Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#filtering">7.3. Filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../shell.html#deleting">7.4. Deleting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../advanced.html">8. Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../advanced.html#setting-custom-job-submission-flags">8.1. Setting Custom Job Submission Flags</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">9. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API/index.html">10. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/Workflow.html">10.1. Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../API/Job.html">10.2. JobManager</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../glossary.html">11. Glossary</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">COSMOS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+    <li>cosmos.lib.ezflow.dag</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for cosmos.lib.ezflow.dag</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">cosmos.utils.helpers</span> <span class="kn">import</span> <span class="n">groupby</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">pygraphviz</span> <span class="kn">as</span> <span class="nn">pgv</span>
+<span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span><span class="n">TaskError</span><span class="p">,</span><span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">decorator</span> <span class="kn">import</span> <span class="n">decorator</span>
+<span class="kn">from</span> <span class="nn">tool</span> <span class="kn">import</span> <span class="n">Tool</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">cosmos.Workflow.models</span> <span class="kn">import</span> <span class="n">TaskFile</span>
+
+<div class="viewcode-block" id="DAGError"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAGError">[docs]</a><span class="k">class</span> <span class="nc">DAGError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span></div>
+<div class="viewcode-block" id="StageNameCollision"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.StageNameCollision">[docs]</a><span class="k">class</span> <span class="nc">StageNameCollision</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="FlowFxnValidationError"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.FlowFxnValidationError">[docs]</a><span class="k">class</span> <span class="nc">FlowFxnValidationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span><span class="k">pass</span>
+
+</div>
+<span class="nd">@decorator</span>
+<div class="viewcode-block" id="flowfxn"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.flowfxn">[docs]</a><span class="k">def</span> <span class="nf">flowfxn</span><span class="p">(</span><span class="n">func</span><span class="p">,</span><span class="n">dag</span><span class="p">,</span><span class="o">*</span><span class="n">RHS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">* The decorated function should return a generator, so evaluate it</span>
+<span class="sd">* Set the dag.active_tools to the decorated function&#39;s return value, if the function was not `sequence_`, which handles</span>
+<span class="sd">this automatically</span>
+<span class="sd">* Return the dag</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dag</span><span class="p">)</span> <span class="o">!=</span> <span class="n">DAG</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="s">&#39;The left hand side should be of type dag.DAG&#39;</span>
+    <span class="n">dag</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">dag</span><span class="p">,</span><span class="o">*</span><span class="n">RHS</span><span class="p">))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">stage_name</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">active_tools</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stage_name</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">DAGError</span><span class="p">,</span><span class="s">&#39;Tried to DAG.{0}(), but dag.active_tools is not set. Make sure to `add_` some INPUTs first.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dag</span><span class="o">.</span><span class="n">ignore_stage_name_collisions</span> <span class="ow">and</span> <span class="n">stage_name</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">stage_names_used</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">StageNameCollision</span><span class="p">,</span> <span class="s">&#39;Duplicate stage_names detected {0}. If you want to have flowfxns add tools to&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage_name</span><span class="p">)</span> <span class="o">+</span> \
+                                  <span class="s">&#39;existing stages, set dag.ignore_stage_name_collusions=True.&#39;</span>
+
+    <span class="k">if</span> <span class="n">stage_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dag</span><span class="o">.</span><span class="n">stage_names_used</span><span class="p">:</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">stage_names_used</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stage_name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dag</span>
+
+</div>
+<div class="viewcode-block" id="DAG"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG">[docs]</a><span class="k">class</span> <span class="nc">DAG</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A Representation of a workflow as a :term:`DAG` of jobs.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu_req_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">ignore_stage_name_collisions</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">mem_req_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:param cpu_req_override: set to an integer to override all task cpu_requirements. Useful when a :term:`DRM` does not support requesting multiple cpus</span>
+<span class="sd">:param mem_req_factor: multiply all task mem_reqs by this number.</span>
+<span class="sd">:param dag.ignore_stage_name_collisions: Allows the flowfxns to add to stages that already exists.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span> <span class="o">=</span> <span class="n">cpu_req_override</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem_req_factor</span> <span class="o">=</span> <span class="n">mem_req_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stage_names_used</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_stage_name_collisions</span> <span class="o">=</span> <span class="n">ignore_stage_name_collisions</span>
+
+<div class="viewcode-block" id="DAG.get_tools_by"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.get_tools_by">[docs]</a>    <span class="k">def</span> <span class="nf">get_tools_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">stage_names</span><span class="o">=</span><span class="p">[],</span><span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:param stage_names: (str) Only returns tasks belonging to stages in stage_names</span>
+<span class="sd">:param tags: (dict) The criteria used to decide which tasks to return.</span>
+<span class="sd">:return: (list) A list of tasks</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stage_name</span> <span class="ow">in</span> <span class="n">stage_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stage_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_names_used</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="s">&#39;Stage name &quot;{0}&quot; does not exist.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage_name</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">dict_intersection_is_equal</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span><span class="n">d2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">d2</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">d1</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">v</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">False</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">task</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">stage_name</span> <span class="ow">in</span> <span class="n">stage_names</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">dict_intersection_is_equal</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span><span class="n">tags</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">tasks</span>
+</div>
+<div class="viewcode-block" id="DAG.add_edge"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.add_edge">[docs]</a>    <span class="k">def</span> <span class="nf">add_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">,</span><span class="n">child</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Adds a dependency</span>
+<span class="sd">:param parent: (Tool) a parent</span>
+<span class="sd">:param child: (Tool) a child</span>
+<span class="sd">:return: (DAG) self</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span><span class="n">child</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="DAG.branch_from_tools"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.branch_from_tools">[docs]</a>    <span class="k">def</span> <span class="nf">branch_from_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tools</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Branches from a list of tools</span>
+<span class="sd">:param tools: (list) a list of tools</span>
+<span class="sd">:return: (DAG) self</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="n">tools</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="DAG.branch_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.branch_">[docs]</a>    <span class="k">def</span> <span class="nf">branch_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">stage_names</span><span class="o">=</span><span class="p">[],</span><span class="n">tags</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Updates active_tools to be the tools in the stages with name stage_name.</span>
+<span class="sd">The next infix operation will thus be applied to `stage_name`.</span>
+<span class="sd">This way the infix operations an be applied to multiple stages if the workflow isn&#39;t &quot;linear&quot;.</span>
+
+<span class="sd">:param stage_names: (str) Only returns tasks belonging to stages in stage_names</span>
+<span class="sd">:param tags: (dict) The criteria used to decide which tasks to return.</span>
+<span class="sd">:return: (list) A list of tasks</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tools_by</span><span class="p">(</span><span class="n">stage_names</span><span class="o">=</span><span class="n">stage_names</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+        </div>
+<div class="viewcode-block" id="DAG.create_dag_img"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.create_dag_img">[docs]</a>    <span class="k">def</span> <span class="nf">create_dag_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Writes the :term:`DAG` as an image.</span>
+<span class="sd">gat</span>
+<span class="sd">:param path: the path to write to</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">dag</span> <span class="o">=</span> <span class="n">pgv</span><span class="o">.</span><span class="n">AGraph</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">fontname</span><span class="o">=</span><span class="s">&quot;Courier&quot;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">node_attr</span><span class="p">[</span><span class="s">&#39;fontname&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&quot;Courier&quot;</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">node_attr</span><span class="p">[</span><span class="s">&#39;fontsize&#39;</span><span class="p">]</span><span class="o">=</span><span class="mi">8</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">stage</span><span class="p">,</span><span class="n">tasks</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">.</span><span class="n">stage_name</span><span class="p">):</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">add_subgraph</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;cluster_{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;lightgrey&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">task</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        
+        <span class="n">dag</span><span class="o">.</span><span class="n">layout</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s">&quot;dot&quot;</span><span class="p">)</span>
+        <span class="n">dag</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;svg&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;wrote to {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DAG.configure"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.configure">[docs]</a>    <span class="k">def</span> <span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">settings</span><span class="o">=</span><span class="p">{},</span><span class="n">parameters</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Sets the parameters an settings of every tool in the dag.</span>
+
+<span class="sd">:param parameters: (dict) {&#39;stage_name&#39;: { &#39;name&#39;:&#39;value&#39;, ... }, {&#39;stage_name2&#39;: { &#39;key&#39;:&#39;value&#39;, ... } }</span>
+<span class="sd">:param settings: (dict) { &#39;key&#39;:&#39;val&#39;} }</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">:</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
+            <span class="k">if</span> <span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="c">#set defaults, then override with parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">default_params</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,{}))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">,{}))</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">,{})</span>
+        <span class="k">return</span> <span class="bp">self</span>
+            </div>
+<div class="viewcode-block" id="DAG.add_to_workflow"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.add_to_workflow">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_workflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">workflow</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Add this dag to a workflow. Only adds tools to stages that are new, that is, another tag in the same</span>
+<span class="sd">stage with the same tags does not already exist.</span>
+
+<span class="sd">:param workflow: the workflow to add</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Adding tasks to workflow.&#39;</span><span class="p">)</span>
+        
+        <span class="c">#Validation</span>
+        <span class="n">taskfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span> <span class="n">n</span><span class="o">.</span><span class="n">output_files</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span> <span class="p">]))</span>
+        <span class="c">#check paths</span>
+        <span class="c">#TODO this code is really weird.</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tf</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="n">taskfiles</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span><span class="n">v</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span><span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="p">))):</span>
+            <span class="kn">import</span> <span class="nn">pprint</span>
+            <span class="k">raise</span> <span class="n">DAGError</span><span class="p">(</span><span class="s">&#39;Multiple taskfiles refer to the same path. Paths should be unique. taskfile.paths are:{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="p">))))</span>
+
+        <span class="c">#Add stages, and set the tool.stage reference for all tools</span>
+        <span class="n">stages</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># for tool in nx.topological_sort(self.G):</span>
+        <span class="c"># stage_name = tool.stage_name</span>
+        <span class="c"># if stage_name not in stages: #have not seen this stage yet</span>
+        <span class="c"># stages[stage_name] = workflow.add_stage(stage_name)</span>
+        <span class="c"># tool.stage = stages[stage_name]</span>
+
+        <span class="c"># Load stages or add if they don&#39;t exist</span>
+        <span class="k">for</span> <span class="n">stage_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_names_used</span><span class="p">:</span>
+            <span class="n">stages</span><span class="p">[</span><span class="n">stage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_stage</span><span class="p">(</span><span class="n">stage_name</span><span class="p">)</span>
+
+        <span class="c"># Set tool.stage</span>
+        <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">stage</span> <span class="o">=</span> <span class="n">stages</span><span class="p">[</span><span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span><span class="p">]</span>
+
+        <span class="c">#update tool._task_instance and tool.output_files with existing data</span>
+        <span class="n">stasks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="s">&#39;_output_files&#39;</span><span class="p">,</span><span class="s">&#39;stage&#39;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">tpl</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">stasks</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">name</span><span class="p">)):</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="n">tpl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">stage_name</span> <span class="o">=</span> <span class="n">tpl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">tool</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">Task</span><span class="p">)</span> <span class="k">else</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">task</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Task</span><span class="p">)</span> <span class="k">else</span> <span class="n">group</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">tool</span><span class="o">.</span><span class="n">output_files</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">output_files</span>
+                <span class="n">tool</span><span class="o">.</span><span class="n">_task_instance</span> <span class="o">=</span> <span class="n">task</span>
+        
+        <span class="c">#bulk save tasks</span>
+        <span class="n">new_nodes</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="s">&#39;_task_instance&#39;</span><span class="p">),</span> <span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">))</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Total tasks: {0}, New tasks being added: {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span><span class="nb">len</span><span class="p">(</span><span class="n">new_nodes</span><span class="p">)))</span>
+        
+        <span class="c">#bulk save task_files. All inputs have to at some point be an output, so just bulk save the outputs.</span>
+        <span class="c">#Must come before adding tasks, since taskfile.ids must be populated to compute the proper pcmd.</span>
+        <span class="n">taskfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span> <span class="n">n</span><span class="o">.</span><span class="n">output_files</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="p">]))</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">bulk_save_taskfiles</span><span class="p">(</span><span class="n">taskfiles</span><span class="p">)</span>
+        
+        <span class="c">#bulk save tasks</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">new_nodes</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">_task_instance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__new_task</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">stage</span><span class="p">,</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">node</span><span class="o">.</span><span class="n">_task_instance</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="p">]</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">bulk_save_tasks</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+        
+        <span class="c">### Bulk add task-&gt;output_taskfile relationships</span>
+        <span class="n">ThroughModel</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">_output_files</span><span class="o">.</span><span class="n">through</span>
+        <span class="n">rels</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ThroughModel</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">_task_instance</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="n">taskfile_id</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">output_files</span> <span class="p">]</span>
+        <span class="n">ThroughModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">bulk_create</span><span class="p">(</span><span class="n">rels</span><span class="p">)</span>
+
+        <span class="c">### Bulk add task-&gt;input_taskfile relationships</span>
+        <span class="n">ThroughModel</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">_input_files</span><span class="o">.</span><span class="n">through</span>
+        <span class="n">rels</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ThroughModel</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">_task_instance</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="n">taskfile_id</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">input_files</span> <span class="p">]</span>
+        <span class="n">ThroughModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">bulk_create</span><span class="p">(</span><span class="n">rels</span><span class="p">)</span>
+
+
+        <span class="c">### Bulk add task-&gt;parent_task relationships</span>
+        <span class="n">ThroughModel</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">_parents</span><span class="o">.</span><span class="n">through</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="ow">or</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_nodes</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">rels</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ThroughModel</span><span class="p">(</span><span class="n">from_task_id</span><span class="o">=</span><span class="n">child</span><span class="o">.</span><span class="n">_task_instance</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                              <span class="n">to_task_id</span><span class="o">=</span><span class="n">parent</span><span class="o">.</span><span class="n">_task_instance</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">parent</span><span class="p">,</span><span class="n">child</span> <span class="ow">in</span> <span class="n">new_edges</span> <span class="p">]</span>
+        <span class="n">ThroughModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">bulk_create</span><span class="p">(</span><span class="n">rels</span><span class="p">)</span>
+
+
+        <span class="c">#bulk save edges</span>
+        <span class="n">new_edges</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_nodes</span> <span class="ow">or</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">new_nodes</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">task_edges</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">_task_instance</span><span class="p">,</span><span class="n">child</span><span class="o">.</span><span class="n">_task_instance</span><span class="p">)</span> <span class="k">for</span> <span class="n">parent</span><span class="p">,</span><span class="n">child</span> <span class="ow">in</span> <span class="n">new_edges</span> <span class="p">]</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">bulk_save_task_edges</span><span class="p">(</span><span class="n">task_edges</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DAG.add_run"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.add_run">[docs]</a>    <span class="k">def</span> <span class="nf">add_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">workflow</span><span class="p">,</span><span class="n">finish</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Shortcut to add to workflow and then run the workflow</span>
+<span class="sd">:param workflow: the workflow this dag will be added to</span>
+<span class="sd">:param finish: pass to workflow.run()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_to_workflow</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">finish</span><span class="o">=</span><span class="n">finish</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__new_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">stage</span><span class="p">,</span><span class="n">tool</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Instantiates a task from a tool. Assumes TaskFiles already have real primary keys.</span>
+
+<span class="sd">:param stage: The stage the task should belong to.</span>
+<span class="sd">:param tool: The Tool.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">pcmd</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">pcmd</span>
+        <span class="c"># for m in re.findall(&#39;(#F\[(.+?):(.+?):(.+?)\])&#39;,pcmd):</span>
+        <span class="c"># if m[1] not in [t.id for t in tool.output_files]:</span>
+        <span class="c"># tool.input_files.append(TaskFile.objects.get(pk=m[1]))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Task</span><span class="p">(</span>
+                      <span class="n">stage</span> <span class="o">=</span> <span class="n">stage</span><span class="p">,</span>
+                      <span class="n">pcmd</span> <span class="o">=</span> <span class="n">pcmd</span><span class="p">,</span>
+                      <span class="n">tags</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span>
+                      <span class="c"># input_files = tool.input_files,</span>
+                      <span class="c"># output_files = tool.output_files,</span>
+                      <span class="n">memory_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">mem_req</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem_req_factor</span><span class="p">,</span>
+                      <span class="n">cpu_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">cpu_req</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span><span class="p">,</span>
+                      <span class="n">time_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">time_req</span><span class="p">,</span>
+                      <span class="n">NOOP</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">NOOP</span><span class="p">,</span>
+                      <span class="n">succeed_on_failure</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">succeed_on_failure</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">TaskError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TaskError</span><span class="p">(</span><span class="s">&#39;{0}. Task is {1}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">tool</span><span class="p">))</span>
+
+    <span class="nd">@flowfxn</span>
+<div class="viewcode-block" id="DAG.add_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.add_">[docs]</a>    <span class="k">def</span> <span class="nf">add_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tools</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Always the first flowfxn used to describe a DAG. Simply adds a list of tool instances to the dag,</span>
+<span class="sd">without adding any dependencies.</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">This operator is different than the others in that its input is a list of</span>
+<span class="sd">instantiated instances of Tools, rather than a Tool class.</span>
+
+<span class="sd">:param tools: (list) Tool instances.</span>
+<span class="sd">:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.</span>
+<span class="sd">:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn.</span>
+<span class="sd">:return: (DAG) self.</span>
+
+<span class="sd">&gt;&gt;&gt; DAG().add_([tool1,tool2,tool3,tool4])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tools</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">FlowFxnValidationError</span><span class="p">,</span> <span class="s">&#39;The parameter `tools` must be a list&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FlowFxnValidationError</span><span class="p">,</span><span class="s">&#39;The parameter `tools` must have at least one Tool in it&#39;</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">FlowFxnValidationError</span><span class="p">,</span> <span class="s">&#39;{0} has no tags, at least one tag is required&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tools</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Tool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">FlowFxnValidationError</span><span class="p">,</span> <span class="s">&#39;`tools` must be a list of Tools&#39;</span>
+        <span class="k">if</span> <span class="n">stage_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">stage_name</span> <span class="o">=</span> <span class="n">tools</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stage_name</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">]))</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tools</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">FlowFxnValidationError</span><span class="p">,</span> <span class="s">&#39;Duplicate tags detected when trying to add tools to stage &quot;{0}&quot;. Tags within a stage must be unique. Duplicate Tags are {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stage_name</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">stage_name</span> <span class="o">=</span> <span class="n">stage_name</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">tool</span>
+</div>
+    <span class="nd">@flowfxn</span>
+<div class="viewcode-block" id="DAG.map_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.map_">[docs]</a>    <span class="k">def</span> <span class="nf">map_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tool_class</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Creates one2one relationships of the dag&#39;s current active_tools with a new tool of</span>
+<span class="sd">type `tool_class`.</span>
+
+<span class="sd">:param tool_class: (subclass of Tool)</span>
+<span class="sd">:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.</span>
+<span class="sd">:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn</span>
+<span class="sd">:return: (DAG) self</span>
+
+<span class="sd">&gt;&gt;&gt; dag.map_(Tool_Class)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">parent_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span>
+        <span class="k">for</span> <span class="n">parent_tool</span> <span class="ow">in</span> <span class="n">parent_tools</span><span class="p">:</span>
+            <span class="n">tags2</span> <span class="o">=</span> <span class="n">parent_tool</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">tags2</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">new_tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">stage_name</span><span class="o">=</span><span class="n">stage_name</span><span class="p">,</span><span class="n">dag</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="n">tags2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">parent_tool</span><span class="p">,</span><span class="n">new_tool</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">new_tool</span>
+            </div>
+    <span class="nd">@flowfxn</span>
+<div class="viewcode-block" id="DAG.split_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.split_">[docs]</a>    <span class="k">def</span> <span class="nf">split_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">split_by</span><span class="p">,</span><span class="n">tool_class</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Creates one2many relationships for each tool in the dag&#39;s active_tools, with every possible combination</span>
+<span class="sd">of keywords in split_by. New tools will be of class `tool_class` and tagged with one of the possible keyword</span>
+<span class="sd">combinations.</span>
+
+<span class="sd">:param split_by: (list of (str,list)) Tags to split by.</span>
+<span class="sd">:param tool_class: (list) Tool instances.</span>
+<span class="sd">:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.</span>
+<span class="sd">:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn.</span>
+<span class="sd">:return: (DAG) self</span>
+
+<span class="sd">&gt;&gt;&gt; dag.split_([(&#39;shape&#39;,[&#39;square&#39;,&#39;circle&#39;]),(&#39;color&#39;,[&#39;red&#39;,&#39;blue&#39;])],Tool_Class)</span>
+
+
+<span class="sd">The above will create 4 new tools dependent on each tool in active_tools. The new tools will be tagged</span>
+<span class="sd">with the tags of their parents plus these:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">{&#39;shape&#39;:&#39;square&#39;,&#39;color&#39;:&#39;red&#39;}, {&#39;shape&#39;:&#39;square&#39;,&#39;color&#39;:blue&#39;},</span>
+<span class="sd">{&#39;shape&#39;:&#39;circle&#39;,&#39;color&#39;:&#39;red&#39;}, {&#39;shape&#39;:&#39;square&#39;,&#39;circle&#39;:blue&#39;}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">parent_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span>
+        <span class="n">splits</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="n">split</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">split_by</span> <span class="p">]</span> <span class="c">#splits = [[(key1,val1),(key1,val2),(key1,val3)],[(key2,val1),(key2,val2),(key2,val3)],[...]]</span>
+        <span class="k">for</span> <span class="n">parent_tool</span> <span class="ow">in</span> <span class="n">parent_tools</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">new_tags</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">splits</span><span class="p">):</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parent_tool</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+                <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">new_tags</span><span class="p">))</span>
+                <span class="n">new_tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">stage_name</span><span class="o">=</span><span class="n">stage_name</span><span class="p">,</span><span class="n">dag</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">parent_tool</span><span class="p">,</span><span class="n">new_tool</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">new_tool</span>
+
+</div>
+    <span class="nd">@flowfxn</span>
+<div class="viewcode-block" id="DAG.reduce_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.reduce_">[docs]</a>    <span class="k">def</span> <span class="nf">reduce_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keywords</span><span class="p">,</span><span class="n">tool_class</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Create new tools with a many2one relationship to the dag&#39;s current active_tools.</span>
+
+<span class="sd">:param keywords: (list of str) Tags to reduce to. All keywords not listed will</span>
+<span class="sd">not be passed on to the tasks generated. Tools not tagged with a value in keywords will be a parent</span>
+<span class="sd">of all new tools generated.</span>
+<span class="sd">:param tool_class: (list) Tool instances.</span>
+<span class="sd">:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.</span>
+<span class="sd">:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn</span>
+<span class="sd">:return: (DAG) self</span>
+
+<span class="sd">&gt;&gt;&gt; dag.reduce([&#39;shape&#39;,&#39;color&#39;],Tool_Class)</span>
+
+<span class="sd">In the above example, a new stage will be created using `Tool_Class`. The active_nodes will be placed</span>
+<span class="sd">into groups of the possible combinations of `shape` and `color`, and a child tools will be tagged</span>
+<span class="sd">with the same `shape` and `color` of their parents.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">parent_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;keywords must be a list&#39;</span><span class="p">)</span>
+
+        <span class="n">parent_tools_without_all_keywords</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">k</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">tags</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">]),</span> <span class="n">parent_tools</span><span class="p">)</span>
+        <span class="n">parent_tools_with_all_keywords</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">tags</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">),</span> <span class="n">parent_tools</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tags</span><span class="p">,</span> <span class="n">parent_tool_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">parent_tools_with_all_keywords</span><span class="p">,</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keywords</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">)):</span>
+            <span class="n">parent_tool_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parent_tool_group</span><span class="p">)</span> <span class="o">+</span> <span class="n">parent_tools_without_all_keywords</span>
+            <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="n">new_tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">stage_name</span><span class="o">=</span><span class="n">stage_name</span><span class="p">,</span><span class="n">dag</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">parent_tool</span> <span class="ow">in</span> <span class="n">parent_tool_group</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">parent_tool</span><span class="p">,</span><span class="n">new_tool</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">new_tool</span>
+</div>
+    <span class="nd">@flowfxn</span>
+<div class="viewcode-block" id="DAG.reduce_split_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.reduce_split_">[docs]</a>    <span class="k">def</span> <span class="nf">reduce_split_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keywords</span><span class="p">,</span><span class="n">split_by</span><span class="p">,</span><span class="n">tool_class</span><span class="p">,</span><span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Create new tools by first reducing then splitting.</span>
+
+<span class="sd">:param keywords: (list of str) Tags to reduce to. All keywords not listed will not be passed on to the tasks generated.</span>
+<span class="sd">:param split_by: (list of (str,list)) Tags to split by. Creates every possible product of the tags.</span>
+<span class="sd">:param tool_class: (list) Tool instances.</span>
+<span class="sd">:param stage_name: (str) The name of the stage to add to. Defaults to the name of the tool class.</span>
+<span class="sd">:param tag: (dict) A dictionary of tags to add to the tools produced by this flowfxn</span>
+<span class="sd">:return: (DAG) self</span>
+
+<span class="sd">&gt;&gt;&gt; dag.reduce_split_([&#39;color&#39;,&#39;shape&#39;],[(&#39;size&#39;,[&#39;small&#39;,&#39;large&#39;])],Tool_Class)</span>
+
+<span class="sd">The above example will reduce the active_tools by `color` and `shape`, and then split into two tools with tags</span>
+<span class="sd">``{&#39;size&#39;:&#39;large&#39;}`` and ``{&#39;size&#39;:&#39;small&#39;}``, plus the ``color`` and ``shape``</span>
+<span class="sd">of their parents.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">parent_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span>
+        <span class="n">splits</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span><span class="n">split</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">split_by</span> <span class="p">]</span> <span class="c">#splits = [[(key1,val1),(key1,val2),(key1,val3)],[(key2,val1),(key2,val2),(key2,val3)],[...]]</span>
+
+        <span class="k">for</span> <span class="n">group_tags</span><span class="p">,</span><span class="n">parent_tool_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">parent_tools</span><span class="p">,</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">k</span><span class="p">,</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">])):</span>
+            <span class="n">parent_tool_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parent_tool_group</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">new_tags</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">splits</span><span class="p">):</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="n">group_tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+                <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">new_tags</span><span class="p">))</span>
+                <span class="n">new_tool</span> <span class="o">=</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">stage_name</span><span class="o">=</span><span class="n">stage_name</span><span class="p">,</span><span class="n">dag</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">parent_tool</span> <span class="ow">in</span> <span class="n">parent_tool_group</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">parent_tool</span><span class="p">,</span><span class="n">new_tool</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">new_tool</span>
+
+</div>
+<div class="viewcode-block" id="DAG.apply_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.apply_">[docs]</a>    <span class="k">def</span> <span class="nf">apply_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">flowlist</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Applies each flowfxn in \*flowlist to current dag.active_tools.</span>
+
+<span class="sd">For example, at a high level, apply_(B,C,D) translates to B(active_tools),C(active_tools),D(active_tools).</span>
+
+<span class="sd">:param \*flowlist: A sequence of flowfxns</span>
+<span class="sd">:param combine: Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</span>
+<span class="sd">:returns: (DAG) this dag</span>
+
+<span class="sd">&gt;&gt;&gt; dag.sequence_(map_(ToolX), sequence_([ reduce_([&#39;a&#39;],ToolA), map_(,ToolB]), split_([&#39;b&#39;,[&#39;2&#39;]],ToolC]) ]))</span>
+
+<span class="sd">In the above example, ToolA, ToolB and ToolC will all be applied to the instances generated by ToolX.</span>
+<span class="sd">The next flowfxn will only apply to the tools generated by ToolC.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flowlist</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="s">&quot;flowlist must be a tuple, flowlist is a {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">flowlist</span><span class="o">.</span><span class="n">__class_</span><span class="p">)</span>
+
+        <span class="n">combine</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;combine&#39;</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">combined_result_tools</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">original_active_tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span>
+        <span class="k">for</span> <span class="n">flowclass</span> <span class="ow">in</span> <span class="n">flowlist</span><span class="p">:</span>
+            <span class="n">fxn_name</span> <span class="o">=</span> <span class="n">flowclass</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">fxn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fxn_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="n">original_active_tools</span>
+            <span class="n">fxn</span><span class="p">(</span><span class="o">*</span><span class="n">flowclass</span><span class="o">.</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">flowclass</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">combined_result_tools</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">combine</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="n">combined_result_tools</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="DAG.sequence_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.DAG.sequence_">[docs]</a>    <span class="k">def</span> <span class="nf">sequence_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">flowlist</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Applies each flowfxn in \*flowlist sequentially to each other. Very similar to python&#39;s builtin :py:meth:`reduce`</span>
+<span class="sd">function (not to be confused with :py:meth:`DAG.reduce_`), initialized with the current active_nodes.</span>
+
+<span class="sd">For example, at a high level sequence_(B,C,D) translates to D(C(B(active_tools))).</span>
+
+<span class="sd">:param \*flowlist: A sequence of flowfxns</span>
+<span class="sd">:param combine: Combines all tools produced by flowlist and sets the self.active_tools to the union of them.</span>
+<span class="sd">:returns: (DAG) this dag</span>
+
+<span class="sd">&gt;&gt;&gt; dag.sequence_(map_(ToolX), seq_([ reduce_([&#39;a&#39;],ToolA), map_(,ToolB]), split_([&#39;b&#39;,[&#39;2&#39;]],ToolC]) ]))</span>
+
+<span class="sd">In the above example, ToolA will be applied to Toolx, ToolB to ToolA, and ToolC applied to ToolB. ToolC</span>
+<span class="sd">will be set as dag.active_tools</span>
+<span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">combine</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;combine&#39;</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flowlist</span><span class="p">,</span><span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="s">&quot;flowlist must be a tuple, flowlist is a {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">flowlist</span><span class="o">.</span><span class="n">__class_</span><span class="p">)</span>
+
+        <span class="n">combined_result_tools</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">flowclass</span> <span class="ow">in</span> <span class="n">flowlist</span><span class="p">:</span>
+            <span class="n">fxn_name</span> <span class="o">=</span> <span class="n">flowclass</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">fxn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fxn_name</span><span class="p">)</span>
+            <span class="n">fxn</span><span class="p">(</span><span class="o">*</span><span class="n">flowclass</span><span class="o">.</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">flowclass</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">combined_result_tools</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">combine</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="n">combined_result_tools</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+</div></div>
+<div class="viewcode-block" id="MethodStore"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.MethodStore">[docs]</a><span class="k">class</span> <span class="nc">MethodStore</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+</div>
+<div class="viewcode-block" id="add_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.add_">[docs]</a><span class="k">class</span> <span class="nc">add_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="map_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.map_">[docs]</a><span class="k">class</span> <span class="nc">map_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="split_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.split_">[docs]</a><span class="k">class</span> <span class="nc">split_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="reduce_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.reduce_">[docs]</a><span class="k">class</span> <span class="nc">reduce_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span> <span class="k">pass</span></div>
+<div class="viewcode-block" id="reduce_split_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.reduce_split_">[docs]</a><span class="k">class</span> <span class="nc">reduce_split_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="branch_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.branch_">[docs]</a><span class="k">class</span> <span class="nc">branch_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="sequence_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.sequence_">[docs]</a><span class="k">class</span> <span class="nc">sequence_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="apply_"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.apply_">[docs]</a><span class="k">class</span> <span class="nc">apply_</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="configure"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.configure">[docs]</a><span class="k">class</span> <span class="nc">configure</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span></div>
+<div class="viewcode-block" id="add_run"><a class="viewcode-back" href="../../../../ezflow/workflows.html#cosmos.lib.ezflow.dag.add_run">[docs]</a><span class="k">class</span> <span class="nc">add_run</span><span class="p">(</span><span class="n">MethodStore</span><span class="p">):</span><span class="k">pass</span>
+</div>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="c">#TODO: this might work really well with named pipes</span>
+<span class="c"># def pipe_(*tool_classes):</span>
+    <span class="c"># if len(tool_classes) &lt;2:</span>
+    <span class="c"># raise FlowFxnValidationError, &#39;pipe_ requires at least two tools&#39;</span>
+    <span class="c"># if not issubclass(tool_classes[0],Tool):</span>
+    <span class="c"># raise FlowFxnValidationError, &#39;pipe_ requires its inputs to be a list of Tools&#39;</span>
+    <span class="c"># if len(tool_classes[0].outputs) &gt; 1 or len(tool_classes[0].inputs) &gt; 1:</span>
+    <span class="c"># raise FlowFxnValidationError, &#39;pipe_ does not currently support tools with multiple inputs or outputs&#39;</span>
+    <span class="c">#</span>
+    <span class="c">#</span>
+    <span class="c"># class Piped(tool_classes[-1]):</span>
+    <span class="c"># def cmd(self,i,s,p):</span>
+    <span class="c"># minidag = DAG()</span>
+    <span class="c"># cmds = []</span>
+    <span class="c"># last_parents = self.parents</span>
+    <span class="c"># for tool_num,tc in enumerate(self.tool_classes):</span>
+    <span class="c"># tc = tc(dag=minidag,stage_name=self.stage_name,tags=self.tags)</span>
+    <span class="c"># for parent in last_parents: #should only be more than one for the first tool</span>
+    <span class="c"># minidag.G.add_edge(parent,tc)</span>
+    <span class="c"># i2 = {tc.inputs[0]:[&#39;/dev/stdin&#39;]} if tool_num&gt;0 else i</span>
+    <span class="c"># cmd = tc.cmd(i2,s,p)</span>
+    <span class="c"># if tool_num&lt;len(tool_classes)-1:</span>
+    <span class="c"># cmd = cmd.replace(&#39;$OUT.&#39;+tc.outputs[0],&#39;/dev/stdout&#39;)</span>
+    <span class="c"># cmds.append(cmd)</span>
+    <span class="c"># return &#39;\n|\n&#39;.join(cmds)</span>
+    <span class="c">#</span>
+    <span class="c"># Piped.tool_classes = tool_classes</span>
+    <span class="c"># Piped.inputs = tool_classes[0].inputs</span>
+    <span class="c"># Piped.outputs = tool_classes[-1].outputs</span>
+    <span class="c"># Piped.name = &#39;Pipetest&#39;</span>
+    <span class="c"># return Piped</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2012-2014, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'.5.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
