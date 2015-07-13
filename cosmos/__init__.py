@@ -26,7 +26,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
-def default_get_submit_args(task, default_queue=None, grid_engine_parallel_environment='smp'):
+def default_get_submit_args(task, default_queue=None):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
@@ -39,10 +39,11 @@ def default_get_submit_args(task, default_queue=None, grid_engine_parallel_envir
     drm = task.drm or default_queue
     default_job_priority = None
     use_mem_req = False
+    use_time_req = False
 
     cpu_req = task.cpu_req
-    mem_req = task.mem_req
-    time_req = task.time_req
+    mem_req = task.mem_req if use_mem_req else None
+    time_req = task.time_req if use_time_req else None
 
     jobname = '%s_task(%s)' % (task.stage.name, task.id)
     queue = ' -q %s' % default_queue if default_queue else ''
@@ -54,8 +55,15 @@ def default_get_submit_args(task, default_queue=None, grid_engine_parallel_envir
         return '-R "{rusage}span[hosts=1]" -n {task.cpu_req}{time}{queue} -J "{jobname}"'.format(**locals())
 
     elif drm == 'ge':
-        mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req))) if mem_req and use_mem_req else ''
-        return '-pe {grid_engine_parallel_environment} {cpu_req}{queue}{mem_req_s}{priority} -N "{jobname}"'.format(**locals())
+        h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
+        def g():
+            resource_reqs = dict(h_vmem=h_vmem, cpu=cpu_req, time_req=time_req)
+            for k,v in resource_reqs.items():
+                if v:
+                    yield '%s=%s' % (k,v)
+        resource_str = ','.join(g())
+
+        return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
     elif drm == 'local':
         return None
     else:

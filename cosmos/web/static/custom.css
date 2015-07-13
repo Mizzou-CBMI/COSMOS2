@@ -13,7 +13,8 @@
 }
 
 body, h1, h2, h3, h4, h5, p {
-    font-family: monospace;
+    /*font-family: monospace;*/
+    font-family: "Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
 }
 
 table {
@@ -37,3 +38,7 @@ a:visited
 /*{*/
     /*background-color: #FFFFE0 !important*/
 /*}*/
+
+.navbar-inverse {
+    #background-color: #800000
+}

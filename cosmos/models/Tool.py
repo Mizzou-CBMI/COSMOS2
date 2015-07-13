@@ -4,12 +4,13 @@ import re
 import itertools as it
 import operator
 from collections import OrderedDict
+import types
 
 from .. import TaskFile, Task, NOOP
+
 from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
 from ..util.iterstuff import only_one
 from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
-import types
 
 
 class ToolValidationError(Exception): pass
@@ -316,11 +317,14 @@ class Tool(object):
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return out  # strip_lines(out)
 
-    def wrap_cmd(self, cmd):
+    def before_cmd(self):
         task = self.task
         return 'cd {ex_out}\n' \
-                'mkdir -p {out}' \
-               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir) + cmd
+               'mkdir -p {out}' \
+               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir)
+
+    def after_cmd(self):
+        return ''
 
     def cmd(self, **kwargs):
         """
@@ -339,7 +343,7 @@ class Tool(object):
         cmd = self._cmd(task.input_files, task.output_files, task)
         if cmd == NOOP:
             return NOOP
-        return self.wrap_cmd(self._cmd(task.input_files, task.output_files, task))
+        return self.before_cmd() + self._cmd(task.input_files, task.output_files, task) + self.after_cmd()
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
@@ -397,7 +401,7 @@ class Input(Tool):
         :param dict tags: tags for the task that will be generated
         """
 
-        path = _abs(path)
+        # path = _abs(path)
         if tags is None:
             tags = dict()
 
@@ -487,7 +491,7 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # assert type in ['input', 'output']
 # self.type = type
 # self.taskfiles = taskfiles
-#         if type == 'input':
+# if type == 'input':
 #             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
 #         else:
 #             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
