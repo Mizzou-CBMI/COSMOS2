@@ -319,9 +319,11 @@ class Tool(object):
 
     def before_cmd(self):
         task = self.task
-        return 'cd {ex_out}\n' \
-               'mkdir -p {out}' \
-               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir)
+        # import IPython
+        # IPython.embed()
+        mkdir = 'mkdir -p %s\n' % task.output_dir if task.output_dir else ''
+        return 'cd {ex_out}\n{mkdir}' \
+               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir, mkdir=mkdir)
 
     def after_cmd(self):
         return ''

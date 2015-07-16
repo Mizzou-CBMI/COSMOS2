@@ -10,7 +10,7 @@ import itertools as it
 def run_ex1(execution):
     # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
     echos = execution.add([Echo(tags=dict(word='hello'), out='{word}'),
-                           Echo(tags=dict(word='world!'))])
+                           Echo(tags=dict(word='world'))])
 
     # Split each echo into two jobs (a one2many relationship).
     cats = execution.add(Cat(tags=dict(n=n, **echo_task.tags), parents=[echo_task], out='{word}/{n}')
