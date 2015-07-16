@@ -10,8 +10,8 @@ which contain the entire structure of a workflow.
 
     from cosmos import Cosmos
     cosmos = Cosmos('sqlite:///my_cosmos_db.sqlite')
-    cosmos.initdb
-    execution = cosmos.start('My_Workflow)
+    cosmos.initdb()
+    execution = cosmos.start('My_Workflow')
 
 You will likely have to install the python package required to use the driver you'd like. For example, if you are using
 ``postgres+psycopg2:///``, make sure you ``pip install psycopg2``.  See `SQLAlchemy Engines <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_

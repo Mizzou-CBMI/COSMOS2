@@ -110,7 +110,7 @@ def readfile(path):
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
-            return fh.read()
+            return fh.read(2**20)
     except:
         return 'error parsing as utf-8: %s' % path
 

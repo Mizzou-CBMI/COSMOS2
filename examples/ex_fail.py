@@ -7,7 +7,7 @@ import tools
 from cosmos.util.helpers import mkdir
 
 
-def main(execution):
+def run_ex2(execution):
     # These tasks have no dependencies
     inpts = execution.add([Input('/tmp', 'tmp_dir', 'dir', dict(test='tag'))])
     echos = execution.add([tools.Echo(dict(word='hello')), tools.Echo(tags=dict(word='world'))])
@@ -30,4 +30,4 @@ if __name__ == '__main__':
     mkdir('out')
 
     ex = cosmos.start('Failed_Task', 'out/failed_task', max_attempts=2, restart=True, skip_confirm=True)
-    main(ex)
+    run_ex2(ex)

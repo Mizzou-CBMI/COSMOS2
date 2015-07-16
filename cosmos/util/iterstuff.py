@@ -6,6 +6,7 @@ import operator
 from itertools import (chain, combinations, count, cycle, groupby, ifilterfalse, imap,
                        islice, izip, izip_longest, repeat, starmap, tee)
 
+from .helpers import groupby2
 
 def partition(predicate, items):
     """

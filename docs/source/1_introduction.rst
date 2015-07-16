@@ -2,30 +2,31 @@
 
 Introduction
 ============
+`COSMOS <http://cosmos.hms.harvard.edu>`_ is a Python library for workflow management that allows formal description of pipelines and partitioning of jobs. In addition, it includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow. Workflows can be created on traditional computing clusters as well as cloud-based services. It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School and the `Wall Lab <wall-lab.stanford.edu>`_ at Stanford University.
 
-Cosmos is a workflow management system for Python.  It allows you to efficiently program complex workflows of command line tools that automatically take
+COSMOS allows you to efficiently program complex workflows of command line tools that automatically take
 advantage of a compute cluster, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
 able to scale on a traditional cluster such as :term:`LSF` or :term:`SGE` with a shared filesystem.  It is especially
 powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and
 `StarCluster <http://star.mit.edu/cluster/>`_.
 
+Cite COSMOS
+___________
+
+Gafni E, Luquette LJ, Lancaster AK, Hawkins JB, Jung J-Y, Souilmi Y, Wall DP, Tonellato PJ: COSMOS: Python library for massively parallel workflows. Bioinformatics 2014. doi: `10.1093/bioinformatics/btu385 <http://bioinformatics.oxfordjournals.org/content/30/20/2956>`_.
 
 History
 ___________
 
-COSMOS was published as an Application Note in the journal `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_,
-but has evolved a lot since it's original inception.  If you use COSMOS
-for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
-
-Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
-`The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
+Since the original publication, COSMOS has been re-written and open-sourced by the original author, in a collaboration between
+`The Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
 `Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
 
 Features
 _________
-* Written in python which is easy to learn, powerful, and popular.  A programmer with limited experience can begin writing Cosmos workflows right away.
+
 * Powerful syntax for the creation of complex and highly parallelized workflows.
-* Reusable recipes and definitions of tools and sub workflows allows for DRY code.
+* Reusable recipes and definitions of tools and sub-workflows allows for DRY code.
 * Keeps track of workflows, job information, and resource utilization and provenance in an SQL database.
 * The ability to visualize all jobs and job dependencies as a convenient image.
 * Monitor and debug running workflows, and a history of all workflows via a web dashboard.

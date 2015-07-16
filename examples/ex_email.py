@@ -1,9 +1,9 @@
 from cosmos import Cosmos, signal_execution_status_change, ExecutionStatus
-from ex1 import main
+from ex1 import run_ex1
 import os
 from cosmos.util.helpers import mkdir
 
-def main(execution):
+def run_ex3(execution):
     @signal_execution_status_change.connect
     def sig(ex):
         msg = "%s %s" % (ex, ex.status)
@@ -20,7 +20,7 @@ def main(execution):
 
         message = client.messages.create(to="+1231231234", from_="+1231231234", body=message)
 
-    main(execution)
+    run_ex1(execution)
 
 
 if __name__ == '__main__':
@@ -29,4 +29,4 @@ if __name__ == '__main__':
     mkdir('out')
 
     execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
-    main(execution)
+    run_ex1(execution)

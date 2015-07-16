@@ -110,7 +110,7 @@ def isgenerator(iterable):
 
 
 def groupby2(iterable, fxn):
-    """aggregates an iterable using a function"""
+    """Sorts and aggregates an iterable using a function"""
     return it.groupby(sorted(iterable, key=fxn), fxn)
 
 

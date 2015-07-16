@@ -115,6 +115,7 @@ class Execution(Base):
             self.info = dict()
         self.jobmanager = None
         self.created_on = datetime.datetime.now()
+        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
 
     def __getattr__(self, item):
         if item == 'log':
@@ -183,6 +184,9 @@ class Execution(Base):
         #todo temporary
         for t in new_tasks:
             assert hasattr(t, 'tool')
+
+        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute += new_tasks
+
         return new_tasks
 
     def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
