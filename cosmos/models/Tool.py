@@ -315,7 +315,9 @@ class Tool(object):
             for input_name, aif in self.input_arg_map.iteritems():
                 if input_name in params:
                     # did user manually set input path?
-                    # TODO check that this is a TaskFile?
+                    # TODO check that this is a TaskFile?  Probably not..
+                    if input_name == 'ploidy_map':
+                        raise
                     yield input_name, params[input_name]
                 else:
                     # find the input automatically
