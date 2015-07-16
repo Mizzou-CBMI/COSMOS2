@@ -341,20 +341,24 @@ class Tool(object):
                 Exception=e.msg,
             ))
 
-
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
         return out  # strip_lines(out)
 
-    def _prepend_cmd(self, task):
-        return 'OUT={out}\n' \
-               'mkdir -p $OUT\n '.format(out=task.output_dir)
-               #'cd $OUT\n\n'.format(out=task.output_dir)
+    def before_cmd(self):
+        task = self.task
+        out = task.output_dir if task.output_dir else ''
+        return 'cd {ex_out}\n' \
+               'OUT={out}\n' \
+               'mkdir -p $OUT\n' \
+               '\n'.format(out=out, ex_out=task.execution.output_dir)
+
+    def after_cmd(self):
+        return ''
 
     def cmd(self, **kwargs):
         """
         Constructs the command string.  Lines will be .strip()ed.
-
         :param dict kwargs:  Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
         :rtype: str
         :returns: The text to write into the shell script that gets executed
@@ -368,7 +372,7 @@ class Tool(object):
         cmd = self._cmd(task.input_files, task.output_files, task)
         if cmd == NOOP:
             return NOOP
-        return self._prepend_cmd(task) + self._cmd(task.input_files, task.output_files, task)
+        return self.before_cmd() + self._cmd(task.input_files, task.output_files, task) + self.after_cmd()
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
@@ -684,8 +688,4 @@ def _find(taskfiles, abstract_file, error_if_missing=False):
             yield tf
             found = True
     if not found and error_if_missing:
-<<<<<<< HEAD
         raise ValueError, 'No taskfile found for %s' % abstract_file
-=======
-        raise ValueError, 'No taskfile found for %s' % abstract_file
->>>>>>> f2f54e5d75275a0637c92c829a4b3f8a995a3e84
