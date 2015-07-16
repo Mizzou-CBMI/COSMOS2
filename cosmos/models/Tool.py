@@ -319,7 +319,7 @@ class Tool(object):
 
     def before_cmd(self):
         task = self.task
-        out = task.output_dir if task.output_dir else ''
+        out = task.output_dir if task.output_dir else '.'
         return 'cd {ex_out}\n' \
                'OUT={out}\n' \
                'mkdir -p $OUT\n' \
