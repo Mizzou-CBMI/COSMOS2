@@ -315,7 +315,9 @@ class Tool(object):
             for input_name, aif in self.input_arg_map.iteritems():
                 if input_name in params:
                     # did user manually set input path?
-                    # TODO check that this is a TaskFile?
+                    # TODO check that this is a TaskFile?  Probably not..
+                    if input_name == 'ploidy_map':
+                        raise
                     yield input_name, params[input_name]
                 else:
                     # find the input automatically
@@ -684,8 +686,4 @@ def _find(taskfiles, abstract_file, error_if_missing=False):
             yield tf
             found = True
     if not found and error_if_missing:
-<<<<<<< HEAD
         raise ValueError, 'No taskfile found for %s' % abstract_file
-=======
-        raise ValueError, 'No taskfile found for %s' % abstract_file
->>>>>>> f2f54e5d75275a0637c92c829a4b3f8a995a3e84
