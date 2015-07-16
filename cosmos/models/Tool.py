@@ -166,10 +166,6 @@ class Tool(object):
             assert any(
                 isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
                                                                            'Tag values should be a str, int, float or bool.'
-<<<<<<< HEAD
-=======
-
->>>>>>> f2f54e5d75275a0637c92c829a4b3f8a995a3e84
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
@@ -194,11 +190,7 @@ class Tool(object):
         Default method to map abstract_inputs.  Can be overriden if a different behavior is desired
         :returns: [(taskfile, is_forward), ...]
         """
-<<<<<<< HEAD
         for aif_index, abstract_input_file in enumerate(self.abstract_inputs):
-=======
-        for aif_index, abstract_input_file in enumerate(self.inputs):
->>>>>>> f2f54e5d75275a0637c92c829a4b3f8a995a3e84
             mapped_input_taskfiles = list(set(self._map_input(abstract_input_file, parents)))
             self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles, parents)
             yield abstract_input_file, mapped_input_taskfiles
@@ -293,7 +285,6 @@ class Tool(object):
 
         argspec = getargspec(self.cmd)
         self.task = task
-<<<<<<< HEAD
 
         def get_params():
             for k in argspec.args:
@@ -308,10 +299,7 @@ class Tool(object):
         #           for k, v in self.tags.items()
         #           if k in argspec.args
         #           if k not in self.input_arg_map and k not in self.output_arg_map}
-=======
-        params = {k: v for k, v in self.tags.items()
-                  if k in argspec.args}
->>>>>>> f2f54e5d75275a0637c92c829a4b3f8a995a3e84
+
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
