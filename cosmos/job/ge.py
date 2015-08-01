@@ -16,7 +16,7 @@ class DRM_GE(DRM):
                                                                                     stderr=task.output_stderr_path,
                                                                                     ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
+        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.command_script_path, qsub=qsub),
                               env=os.environ,
                               preexec_fn=preexec_function,
                               shell=True)
