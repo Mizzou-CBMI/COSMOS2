@@ -2,6 +2,7 @@ import subprocess as sp
 import re
 import os
 from collections import OrderedDict
+import time
 
 from ..util.iterstuff import grouper
 from .drm import DRM
@@ -16,7 +17,7 @@ class DRM_GE(DRM):
                                                                                     stderr=task.output_stderr_path,
                                                                                     ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.command_script_path, qsub=qsub),
+        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
                               env=os.environ,
                               preexec_fn=preexec_function,
                               shell=True)
@@ -86,12 +87,22 @@ class DRM_GE(DRM):
 
 
 def qacct(task):
-    out = sp.check_output('qacct -j %s' % task.drm_jobID)
+    start = time.time()
+    out = None
+    with open(os.devnull, 'w') as DEVNULL:
+        while time.time() - start < 100:
+            try:
+                out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
+                break
+            except sp.CalledProcessError:
+                pass
+            time.sleep(1)
+
+    if out is None:
+        raise ValueError('Could not qacct -j %s' % task.drm_jobID)
 
     def g():
-        for i, line in out.split('\n'):
-            if i == 0:
-                continue
+        for line in out.strip().split('\n')[1:]: # first line is a header
             yield line.split()
 
     return OrderedDict(g())
