@@ -1,6 +1,7 @@
 import subprocess as sp
 import re
 import os
+from collections import OrderedDict
 
 from ..util.iterstuff import grouper
 from .drm import DRM
@@ -15,7 +16,7 @@ class DRM_GE(DRM):
                                                                                     stderr=task.output_stderr_path,
                                                                                     ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), qsub=qsub),
+        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
                               env=os.environ,
                               preexec_fn=preexec_function,
                               shell=True)
@@ -55,6 +56,24 @@ class DRM_GE(DRM):
             return {}
 
 
+    def get_task_return_data(self, task):
+        d = qacct(task)
+        return dict(
+            exit_status=int(d['exit_status']),
+            percent_cpu=float(d['cpu']),
+            user_time=d['ru_utime'],
+            system_time=d['ru_stime'],
+            wall_time=d['ru_wallclock']
+        )
+        # exit_status = Column(Integer)
+        #
+        # percent_cpu = Column(Integer)
+        # wall_time = Column(BigInteger)
+        #
+        # cpu_time = Column(BigInteger)
+        # user_time = Column(BigInteger)
+        # system_time = Column(BigInteger)
+
     def kill(self, task):
         "Terminates a task"
         raise NotImplementedError
@@ -64,6 +83,18 @@ class DRM_GE(DRM):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: str(t.drm_jobID), group))
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
+
+
+def qacct(task):
+    out = sp.check_output('qacct -j %s' % task.drm_jobID)
+
+    def g():
+        for i, line in out.split('\n'):
+            if i == 0:
+                continue
+            yield line.split()
+
+    return OrderedDict(g())
 
 
 def qstat_all():

@@ -544,7 +544,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
 
 def _process_finished_tasks(jobmanager):
     for task in jobmanager.get_finished_tasks():
-        if task.NOOP or task.profile.get('exit_status', None) == 0:
+        if task.NOOP or task.exit_status == 0:
             task.status = TaskStatus.successful
             yield task
         else:

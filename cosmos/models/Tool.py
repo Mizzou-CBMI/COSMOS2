@@ -7,10 +7,8 @@ from collections import OrderedDict
 import types
 
 from .. import TaskFile, Task, NOOP
-
 from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
-from ..util.iterstuff import only_one
-from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
+from ..util.helpers import str_format, has_duplicates, strip_lines
 
 
 class ToolValidationError(Exception): pass
@@ -163,7 +161,6 @@ class Tool(object):
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
-        import pprint
 
         if not OPS[op](real_count, int(number)):
             s = '******ERROR****** \n' \
@@ -319,9 +316,17 @@ class Tool(object):
 
     def before_cmd(self):
         task = self.task
-        return 'cd {ex_out}\n' \
-               'mkdir -p {out}' \
-               '\n\n'.format(out=task.output_dir, ex_out=task.execution.output_dir)
+        o = '#!/bin/bash\n' \
+            'set -e\n' \
+            'set -o pipefail\n' \
+            'cd %s\n' % task.execution.output_dir
+
+        if task.output_dir:
+            o += 'mkdir -p %s\n' % task.output_dir
+
+        o += "\n"
+
+        return o
 
     def after_cmd(self):
         return ''
@@ -492,8 +497,8 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # self.type = type
 # self.taskfiles = taskfiles
 # if type == 'input':
-#             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
-#         else:
+# kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
+# else:
 #             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
 #
 #         super(TaskFileDict, self).__init__(**kwargs)

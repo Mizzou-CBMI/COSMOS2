@@ -5,7 +5,7 @@ from ..util.helpers import mkdir
 from .local import DRM_Local
 from .lsf import DRM_LSF
 from .ge import DRM_GE
-from .. import TaskStatus, StageStatus, ExecutionStatus, NOOP
+from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
 
@@ -61,29 +61,29 @@ class JobManager(object):
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             for t in self.drms[drm].filter_is_done(list(tasks)):
                 self.running_tasks.remove(t)
-                try:
-                    t.update_from_profile_output()
-                except IOError as e:
-                    t.log.info(e)
-                    t.execution.status = ExecutionStatus.failed
+                # try:
+                # t.update_from_profile_output()
+                # except IOError as e:
+                #     t.log.info(e)
+                #     t.execution.status = ExecutionStatus.failed
+                for k, v in self.drms[drm].get_task_return_data(t).items():
+                    setattr(t, k, v)
                 yield t
 
     def _create_command_sh(self, task, command):
         """Create a sh script that will execute a command"""
         with open(task.output_command_script_path, 'wb') as f:
-            f.write('#!/bin/bash\n'
-                    'set -e\n'
-                    'set -o pipefail\n'
-                    '\n'
-                    + command + "\n")
+            f.write(command)
         os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
 
-    def get_command_str(self, task):
-        "The command to be stored in the command.sh script"
-        p = "psprofile{skip_profile} -w 100 -o {profile_out} {command_script_path}".format(
-            profile_out=task.output_profile_path,
-            command_script_path=task.output_command_script_path,
-            skip_profile=' --skip_profile' if task.skip_profile else ''
-        )
-        return p
+    # def get_command_str(self, task):
+    #     "The command to be stored in the command.sh script"
+    #     return task.output_command_script_path
+    #
+    #     # p = "psprofile{skip_profile} -w 100 -o {profile_out} {command_script_path}".format(
+    #     # profile_out=task.output_profile_path,
+    #     #     command_script_path=task.output_command_script_path,
+    #     #     skip_profile=' --skip_profile' if task.skip_profile else ''
+    #     # )
+    #     return p
 

@@ -1,9 +1,8 @@
-from subprocess import Popen
 import os
 
 import psutil
-from .drm import DRM
 
+from .drm import DRM
 from .. import TaskStatus
 
 
@@ -12,23 +11,25 @@ class DRM_Local(DRM):
 
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
+        self.procs = dict()
 
     def submit_job(self, task):
-        p = Popen(self.jobmanager.get_command_str(task),
-                  stdout=open(task.output_stderr_path, 'w'),
-                  stderr=open(task.output_stdout_path, 'w'),
-                  preexec_fn=preexec_function(),
-                  shell=True
-                  )
+        p = psutil.Popen(task.output_command_script_path,
+                         stdout=open(task.output_stderr_path, 'w'),
+                         stderr=open(task.output_stdout_path, 'w'),
+                         preexec_fn=preexec_function(),
+                         shell=False
+        )
         task.drm_jobID = p.pid
+        self.procs[task.drm_jobID] = p
 
     def _is_done(self, task):
         try:
-            p = psutil.Process(task.drm_jobID)
+            p = self.procs[task.drm_jobID]
             p.wait(timeout=0)
             return True
         except psutil.TimeoutExpired:
-            pass
+            return False
         except psutil.NoSuchProcess:
             # profile_output = json.load(open(task.output_profile_path, 'r'))
             # exit_code = profile_output['exit_status']
@@ -54,6 +55,9 @@ class DRM_Local(DRM):
                 return ''
 
         return {task.drm_jobID: f(task) for task in tasks}
+
+    def get_task_return_data(self, task):
+        return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0))
 
     def kill(self, task):
         "Terminates a task"
