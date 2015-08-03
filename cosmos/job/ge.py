@@ -59,21 +59,14 @@ class DRM_GE(DRM):
 
     def get_task_return_data(self, task):
         d = qacct(task)
+        failed = d['failed'] != '0'
         return dict(
-            exit_status=int(d['exit_status']),
+            exit_status=int(d['exit_status']) if not failed else re.search('^(\d+)', d['failed']).group(1),
             percent_cpu=float(d['cpu']),
             user_time=d['ru_utime'],
             system_time=d['ru_stime'],
             wall_time=d['ru_wallclock']
         )
-        # exit_status = Column(Integer)
-        #
-        # percent_cpu = Column(Integer)
-        # wall_time = Column(BigInteger)
-        #
-        # cpu_time = Column(BigInteger)
-        # user_time = Column(BigInteger)
-        # system_time = Column(BigInteger)
 
     def kill(self, task):
         "Terminates a task"
@@ -86,11 +79,12 @@ class DRM_GE(DRM):
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
-def qacct(task):
+def qacct(task, timeout=60):
     start = time.time()
-    out = None
     with open(os.devnull, 'w') as DEVNULL:
-        while time.time() - start < 100:
+        while True:
+            if time.time() - start > timeout:
+                raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
                 out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
                 break
@@ -98,12 +92,9 @@ def qacct(task):
                 pass
             time.sleep(1)
 
-    if out is None:
-        raise ValueError('Could not qacct -j %s' % task.drm_jobID)
-
     def g():
-        for line in out.strip().split('\n')[1:]: # first line is a header
-            yield line.split()
+        for line in out.strip().split('\n')[1:]:  # first line is a header
+            yield re.split("\s+", line, maxsplit=1)
 
     return OrderedDict(g())
 

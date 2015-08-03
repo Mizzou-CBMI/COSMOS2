@@ -55,7 +55,7 @@ def reduce_(parents, by):
 
 
     for group_tags, parent_group in it.groupby(sorted(parents, key=f), f):
-        yield group_tags.copy(), parent_group
+        yield group_tags.copy(), list(parent_group)
 
 
 def many2one(tool_class, parents, groupby, tag=None, out=''):

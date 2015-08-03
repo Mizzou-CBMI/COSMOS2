@@ -14,11 +14,12 @@ class DRM_Local(DRM):
         self.procs = dict()
 
     def submit_job(self, task):
+
         p = psutil.Popen(task.output_command_script_path,
                          stdout=open(task.output_stderr_path, 'w'),
                          stderr=open(task.output_stdout_path, 'w'),
                          preexec_fn=preexec_function(),
-                         shell=False
+                         shell=False,env=os.environ
         )
         task.drm_jobID = p.pid
         self.procs[task.drm_jobID] = p

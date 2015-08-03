@@ -59,7 +59,7 @@ def default_get_submit_args(task, default_queue=None):
         def g():
             resource_reqs = dict(h_vmem=h_vmem, cpu=cpu_req, time_req=time_req)
             for k,v in resource_reqs.items():
-                if v:
+                if v is not None:
                     yield '%s=%s' % (k,v)
         resource_str = ','.join(g())
 

@@ -76,14 +76,11 @@ class Tool(object):
     output_dir = None
     api_version = 2
 
-    def __init__(self, tags, parents=None, params=None, out=''):
+    def __init__(self, tags, parents=None, out=''):
         """
         :param tags: (dict) A dictionary of tags.  The combination of tags are the unique identifier for a Task,
             and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag
             values must be basic python types.
-        :param params: (dict) Extra parameters to pass to the cmd() call.  This is also a way to specify input_files
-            more explicitly (parents will be automatically added if this functionality is used).
-            Param keys should not conflict with tags.
         :param parents: (list of Tasks).  A list of parent tasks
         :param out: an output directory, will be .format()ed with tags
         """
@@ -93,12 +90,7 @@ class Tool(object):
             parents = list(parents)
         if parents is None:
             parents = []
-        if params is None:
-            params = dict()
 
-        self.params = params
-        for k in self.params:
-            assert k not in tags, 'params and tags both have the %s keyword' % k
 
         if issubclass(parents.__class__, Task):
             parents = [parents]
@@ -162,10 +154,10 @@ class Tool(object):
             raise ToolValidationError(
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
-        for v in self.tags.itervalues():
+        for k,v in self.tags.iteritems():
             assert any(
                 isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
-                                                                           'Tag values should be a str, int, float or bool.'
+                                                                           'Tag values should be a str, int, float or bool.' % (self,k)
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
@@ -289,9 +281,7 @@ class Tool(object):
 
         def get_params():
             for k in argspec.args:
-                if k in self.params:
-                    yield k, self.params[k]
-                elif k in self.tags:
+                if k in self.tags:
                     yield k, self.tags[k]
 
         params = dict(get_params())
