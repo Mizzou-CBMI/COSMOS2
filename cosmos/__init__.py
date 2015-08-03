@@ -57,7 +57,7 @@ def default_get_submit_args(task, default_queue=None):
     elif drm == 'ge':
         h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
         def g():
-            resource_reqs = dict(h_vmem=h_vmem, cpu=cpu_req, time_req=time_req)
+            resource_reqs = dict(h_vmem=h_vmem, num_proc=cpu_req, time_req=time_req)
             for k,v in resource_reqs.items():
                 if v is not None:
                     yield '%s=%s' % (k,v)

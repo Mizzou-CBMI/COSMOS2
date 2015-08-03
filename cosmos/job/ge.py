@@ -59,13 +59,17 @@ class DRM_GE(DRM):
 
     def get_task_return_data(self, task):
         d = qacct(task)
-        failed = d['failed'] != '0'
+        failed = d['failed'][0] != '0'
         return dict(
-            exit_status=int(d['exit_status']) if not failed else re.search('^(\d+)', d['failed']).group(1),
+            exit_status=int(d['exit_status']) if not failed else int(re.search('^(\d+)', d['failed']).group(1)),
             percent_cpu=float(d['cpu']),
-            user_time=d['ru_utime'],
-            system_time=d['ru_stime'],
-            wall_time=d['ru_wallclock']
+            user_time=float(d['ru_utime']),
+            system_time=float(d['ru_stime']),
+            wall_time=float(d['ru_wallclock']),
+            max_rss_mem_kb=float(d['ru_maxrss']),
+            max_vms_mem_kb=float(d['maxvmem']),
+            io_read_count=int(d['ru_inblock']),
+            io_write_count=int(d['ru_oublock']),
         )
 
     def kill(self, task):
@@ -94,7 +98,8 @@ def qacct(task, timeout=60):
 
     def g():
         for line in out.strip().split('\n')[1:]:  # first line is a header
-            yield re.split("\s+", line, maxsplit=1)
+            k,v = re.split("\s+", line, maxsplit=1)
+            yield k, v.strip()
 
     return OrderedDict(g())
 

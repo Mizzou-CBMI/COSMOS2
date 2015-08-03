@@ -4,7 +4,7 @@ import psutil
 
 from .drm import DRM
 from .. import TaskStatus
-
+import time
 
 class DRM_Local(DRM):
     name = 'local'
@@ -21,6 +21,7 @@ class DRM_Local(DRM):
                          preexec_fn=preexec_function(),
                          shell=False,env=os.environ
         )
+        p.start_time = time.time()
         task.drm_jobID = p.pid
         self.procs[task.drm_jobID] = p
 
@@ -58,7 +59,8 @@ class DRM_Local(DRM):
         return {task.drm_jobID: f(task) for task in tasks}
 
     def get_task_return_data(self, task):
-        return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0))
+        return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
+                    wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
     def kill(self, task):
         "Terminates a task"
