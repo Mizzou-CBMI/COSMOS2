@@ -1,6 +1,8 @@
 import subprocess as sp
 import re
 import os
+from collections import OrderedDict
+import time
 
 from ..util.iterstuff import grouper
 from .drm import DRM
@@ -15,7 +17,7 @@ class DRM_GE(DRM):
                                                                                     stderr=task.output_stderr_path,
                                                                                     ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), qsub=qsub),
+        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
                               env=os.environ,
                               preexec_fn=preexec_function,
                               shell=True)
@@ -55,6 +57,21 @@ class DRM_GE(DRM):
             return {}
 
 
+    def get_task_return_data(self, task):
+        d = qacct(task)
+        failed = d['failed'][0] != '0'
+        return dict(
+            exit_status=int(d['exit_status']) if not failed else int(re.search('^(\d+)', d['failed']).group(1)),
+            percent_cpu=float(d['cpu']),
+            user_time=float(d['ru_utime']),
+            system_time=float(d['ru_stime']),
+            wall_time=float(d['ru_wallclock']),
+            max_rss_mem_kb=float(d['ru_maxrss']),
+            max_vms_mem_kb=float(d['maxvmem']),
+            io_read_count=int(d['ru_inblock']),
+            io_write_count=int(d['ru_oublock']),
+        )
+
     def kill(self, task):
         "Terminates a task"
         raise NotImplementedError
@@ -64,6 +81,27 @@ class DRM_GE(DRM):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: str(t.drm_jobID), group))
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
+
+
+def qacct(task, timeout=60):
+    start = time.time()
+    with open(os.devnull, 'w') as DEVNULL:
+        while True:
+            if time.time() - start > timeout:
+                raise ValueError('Could not qacct -j %s' % task.drm_jobID)
+            try:
+                out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
+                break
+            except sp.CalledProcessError:
+                pass
+            time.sleep(1)
+
+    def g():
+        for line in out.strip().split('\n')[1:]:  # first line is a header
+            k,v = re.split("\s+", line, maxsplit=1)
+            yield k, v.strip()
+
+    return OrderedDict(g())
 
 
 def qstat_all():

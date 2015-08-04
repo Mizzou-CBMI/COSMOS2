@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="A front-end template that helps you build fast, modern mobile web apps.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title>COSMOS</title>
+
+		<!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="images/touch/chrome-touch-icon-192x192.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Material Design Lite">
+    <link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+		<script src="./material.min.js"></script>
+		<link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+    <link rel="stylesheet" href="material.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    #view-source {
+      position: fixed;
+      display: block;
+      right: 0;
+      bottom: 0;
+      margin-right: 40px;
+      margin-bottom: 40px;
+      z-index: 900;
+    }
+    </style>
+
+    <!-- Altmetrics badges JS -->
+    <script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
+
+</head>
+
+<body class="mdl-demo mdl-color--grey-100 mdl-color-text--grey-700 mdl-base">
+	<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <!-- Start Header -->
+		<header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
+			<div class="mdl-layout--large-screen-only mdl-layout__header-row">
+			</div>
+			<div class="mdl-layout__header-row">
+				<div id="title">
+					<a href="http://cosmos.hms.harvard.edu" id="logo"><img src="images/header_logo.png" width="189" height="86" alt="logo"/></a>
+				</div>
+			</div>
+			<div id="menu" class="mdl-layout--large-screen-only mdl-layout__header-row">
+			</div>
+			<div class="mdl-layout--large-screen-only mdl-layout__tab-bar mdl-js-ripple-effect  mdl-color--primary-dark">
+        <a href="#Overview" class="mdl-layout__tab is-active">Overview</a>
+        <a href="#Cite" class="mdl-layout__tab is-active">Cite</a>
+        <a href="#Code" class="mdl-layout__tab">Download</a>
+        <a href="#Documentation" class="mdl-layout__tab is-active">Documentation</a>
+        <a href="#Publications" class="mdl-layout__tab is-active">Publications</a>
+        <a href="#Workflows" class="mdl-layout__tab">Workflows</a>
+        <a href="#FAQ" class="mdl-layout__tab">FAQ</a>
+			</div>
+    </header>
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">Material Design Lite</span>
+      <nav class="mdl-navigation">
+        <a href="#Overview" class="mdl-layout__tab is-active">Overview</a>
+        <a href="#Cite" class="mdl-layout__tab is-active">Cite</a>
+        <a href="#Code" class="mdl-layout__tab">Download</a>
+        <a href="#Documentation" class="mdl-layout__tab is-active">Documentation</a>
+        <a href="#Publications" class="mdl-layout__tab is-active">Publications</a>
+        <a href="#Workflows" class="mdl-layout__tab">Workflows</a>
+        <a href="#FAQ" class="mdl-layout__tab">FAQ</a>
+      </nav>
+    </div>
+
+    <!-- BEGIN SECTION MAIN CONTENT -->
+
+    <main class="mdl-layout__content">
+      <div class="mdl-layout__tab-panel is-active" id="overview">
+
+        <!-- INTRODUCTION TEXT -->
+        <section id="Overview" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text">
+              <h4>COSMOS: Workflow Management System</h4>
+              <p><strong>COSMOS</strong> is a Python library for workflow management that allows formal description of pipelines and partitioning of jobs. In addition, it includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow. Workflows can be created on traditional computing clusters as well as cloud-based services.  It is developed jointly by the <a href="http://lpm.hms.harvard.edu">Laboratory for Personalized Medicine</a> at Harvard Medical School and the <a href="http://wall-lab.stanford.edu/">Wall Lab</a> at Stanford University.</p>
+            </div>
+            <div class="mdl-card__actions">
+              <a href="http://bioinformatics.oxfordjournals.org/content/30/20/2956.full?sid=12dd5c01-fc2b-4d78-80cc-eed064039844" target="_blank" class="mdl-button">Read the Bioinformatics application note</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- CITATION -->
+        <section id="Cite" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text">
+              <h4>How to Cite COSMOS</h4>
+              <table>
+                <tr>
+                  <th></th>
+                  <th></th>
+                </tr>
+
+                <tr>
+                  <td><p>Gafni E, Luquette LJ, Lancaster AK, Hawkins JB, Jung J-Y, Souilmi Y, Wall DP, Tonellato PJ: COSMOS: Python library for massively parallel workflows. Bioinformatics (2014) 30 (20): 2956-2958. <a href="http://bioinformatics.oxfordjournals.org/content/30/20/2956.full?sid=12dd5c01-fc2b-4d78-80cc-eed064039844" target="_blank">doi: 10.1093/bioinformatics/btu385</a></p></td>
+                  <td><div data-badge-popover="right" data-badge-type="medium-donut" data-doi="10.1093/bioinformatics/btu385 e.2014.14583" class="altmetric-embed"></div></td>
+                </tr>
+              </table>
+
+            </div>
+            <div class="mdl-card__actions">
+              <a href="Cite_COSMOS.bib" target="_blank" class="mdl-button">Download formated citation</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- DOWNLOADS -->
+        <section id="Code" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing">
+              <h4 class="mdl-cell mdl-cell--12-col">Download COSMOS Code</h4>
+
+                <h6>COSMOS is avaialable in two versions:</h6><br>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>COSMOS 2.0 beta</strong></h5>
+                <p>COSMOS 2.0 beta release is available for <a href="https://github.com/LPM-HMS/COSMOS-2.0" target="_blank">download</a> fully open source under an APACHE 2.0 LICENCE</p>
+                COSMOS 2.0 beta code is available on gihtub as well as through Python PIP repository.</p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>COSMOS 1.0</strong></h5>
+                <p>COSMOS 1.0 is available for <a href="download.html" target="_blank">download</a> FOR ACADEMIC NON-COMMERCIAL RESEARCH PURPOSES.</p>
+              </div>
+          </div>
+        </section>
+
+        <!-- Documentation -->
+        <section id="Documentation" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing">
+              <h4 class="mdl-cell mdl-cell--12-col">COSMOS Documentation</h4>
+
+                <h6>COSMOS documentations for the version 1.0 and 2.0 beta are available:</h6><br>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>COSMOS 2.0 beta</strong></h5>
+                <p>COSMOS 2.0 beta release documentation is available to build from the code, and also accessible online here:
+                   <a href="http://cosmos-wfm.readthedocs.org" target="_blank">Access online documentation</a></p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>COSMOS 1.0</strong></h5>
+                <p>COSMOS 1.0 documentation is available to build from the code, and also accessible here:
+                   <a href="documentation/index.html" target="_blank">Access online documentation</a></p>
+              </div>
+          </div>
+          <div class="mdl-card__actions">
+            <a href="https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge" target="_blank" class="mdl-button" rel="nofollow">Contact us on the support room:       <img src="https://badges.gitter.im/Join%20Chat.svg"></a>
+
+          </div>
+        </section>
+
+
+        <!-- Publications -->
+        <section id="Publications" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing">
+              <h4 class="mdl-cell mdl-cell--12-col">COSMOS Publications</h4>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone" id="bench2">
+                <h5><strong>BMC Medical Genomics</strong></h5>
+                <p>Souilmi Y., Lancaster AK, Jung J-Y., Ettore R., Jared HB., Ryan Powles, Amzazi S., Ghazal H.,  Tonellato, P., Wall DP. (2015). 	Scalable and Cost-effective NGS Genotyping in the Cloud. Forthcoming.</p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone" id="bench1">
+                <h5><strong>BMC Bioinformatics: ISCB Student Council Symposium 2014 Highlight</strong></h5>
+                <p>Souilmi Y., Jung J-Y., Lancaster AK, Gafni E., Amzazi S., Ghazal H., Wall DP., Tonellato, P. (2015). COSMOS: cloud enabled NGS analysis. BMC Bioinformatics, 16(Suppl 2), A2. <a href="http://www.biomedcentral.com/1471-2105/16/S2/A2" target="_blank">doi: 10.1186/1471-2105-16-S2-A2</a></p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Bioinformatics Application Note</strong></h5>
+                <p>Gafni E, Luquette LJ, Lancaster AK, Hawkins JB, Jung J-Y, Souilmi Y, Wall DP, Tonellato PJ: COSMOS: Python library for massively parallel workflows. Bioinformatics (2014) 30 (20): 2956-2958. <a href="http://bioinformatics.oxfordjournals.org/content/30/20/2956.full?sid=12dd5c01-fc2b-4d78-80cc-eed064039844" target="_blank">doi: 10.1093/bioinformatics/btu385</a></p>
+              </div>
+
+          </div>
+        </section>
+
+        <!-- Workflows -->
+        <section id="Workflows" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing">
+              <h4 class="mdl-cell mdl-cell--12-col">COSMOS Compatible Workflows</h4>
+              We share here COSMOS compatible workflows:
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>GenomeKey</strong></h5>
+                <p>GenomeKey 1.0 is a COSMOS 1.0 implementation of GATK best practices. It offers high-performance and high-throughput whole exome/genome data analysis. GenomeKey's performance was systematically benchmarked as shown in <a href="#bench1" target="_blank">the BMC Bioinformatics preview</a> and <a href="#bench2" target="_blank">the full BMC Medical Genomics paper</a>.</p>
+                <p>GenomeKey 1.0 is <a href="https://github.com/LPM-HMS/GenomeKey" target="_blank">available</a> under APACHE 2.0 LICENCE.</p>
+                <p><strong>Note 1</strong>: We are also building a COSMOS 2.0 compatible version.
+                <br><strong>Note 2</strong>: For instructions on how to use Genomekey on AWS, please refer to the github <a href="https://github.com/LPM-HMS/GenomeKey/wiki/COSMOS-and-Genomekey-on-AWS" target="_blank">wiki page</a>. </p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>PvKey</strong></h5>
+                <p>PvKey 1.0 is a COSMOS 1.0 workflow for Tumor-Normal matched samples analysis. It calls somatic variants using Mutect and structural variants using SVDetect. It can handle genome, exome and targeted samples (TruSeq Custom Amplicon).</p>
+                <p>PvKey 1.0 is <a href="https://github.com/LPM-HMS/PvKey" target="_blank">available</a> under APACHE 2.0 LICENCE.</p>
+                <p><strong>Note 1</strong>: We are also building a COSMOS 2.0 compatible version.
+                <br><strong>Note 2</strong>: For instructions on how to use PvKey, please refer to the github <a href="https://github.com/LPM-HMS/PvKey/blob/master/README.md" target="_blank">instructions page</a>. </p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Where can I find documentation?</strong></h5>
+                <p>You can refer to the <a href="#Documentation">documentation section</a> for more details.</p>
+              </div>
+
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="FAQ" class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+          <div class="mdl-card mdl-cell mdl-cell--12-col">
+            <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing">
+              <h4 class="mdl-cell mdl-cell--12-col">FAQ</h4>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Is COSMOS free to use?</strong></h5>
+                <p>COSMOS is available in two versions 1.0 and 2.0 beta. Version 1.0 is free and open FOR ACADEMIC NON-COMMERCIAL RESEARCH PURPOSES only, please check the <a href="download.html#License" target="_blank">license agreement</a>. COSMOS 2.0 beta is open source and available under APACHE 2.0 LICENCE.</p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>How can I get COSMOS?</strong></h5>
+                <p>You can refer to the <a href="#Download">download section</a> for more details.</p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Where can I find documentation?</strong></h5>
+                <p>You can refer to the <a href="#Documentation">documentation section</a> for more details.</p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Where can I find support?</strong></h5>
+                <p>You use the Please use the <a href="https://github.com/LPM-HMS/Cosmos2/issues" target="_blank">Github Issue Tracker</a>, or contact us on the support room: <a href="https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge" rel="nofollow"><img src="https://badges.gitter.im/Join%20Chat.svg"></a></p>
+              </div>
+
+              <div class="section__text mdl-cell mdl-cell--10-col-desktop mdl-cell--6-col-tablet mdl-cell--3-col-phone">
+                <h5><strong>Is COSMOS 2.0 beta retro-compatible with 1.0's workflows?</strong></h5>
+                <p>COSMOS 2.0 beta was built with the same philosophy and keeps the same feature and adds many more. The new API was built using modern technics and is not retro-compatible with 1.0 pipelines. However, the porting is not very complicated once you familiarize yourself with the new syntax, which is more self explenatory. Please refere to <a href="http://cosmos-wfm.readthedocs.org" target="_blank">Access online documentation</a> for more details.</p>
+              </div>
+
+          </div>
+        </section>
+
+        </div>
+
+
+
+      <footer class="mdl-mega-footer">
+        <div class="mdl-mega-footer--middle-section">
+          <div class="mdl-mega-footer--drop-down-section">
+            <input class="mdl-mega-footer--heading-checkbox" type="checkbox" checked>
+            <h1 class="mdl-mega-footer--heading"></h1>
+
+          </div>
+          <div class="mdl-mega-footer--drop-down-section">
+            <input class="mdl-mega-footer--heading-checkbox" type="checkbox" checked>
+            <h1 class="mdl-mega-footer--heading"><a href="http://lpm.hms.harvard.edu" target="_blank">Laboratory for Personalized Medicine</a></h1>
+
+          </div>
+          <div class="mdl-mega-footer--drop-down-section">
+            <input class="mdl-mega-footer--heading-checkbox" type="checkbox" checked>
+            <h1 class="mdl-mega-footer--heading"></h1>
+
+          </div>
+          <div class="mdl-mega-footer--drop-down-section">
+
+            <h1 class="mdl-mega-footer--heading"><a href="http://wall-lab.stanford.edu/" target="_blank">The Wall Lab</a></h1>
+
+          </div>
+        </div>
+        <div class="mdl-mega-footer--bottom-section">
+          <center>
+
+            <strong>Copyright &copy; 2012-2014 by the President and Fellows of Harvard College</strong>
+
+
+            <br>
+            Credit Yassine Souilmi
+          </center>
+        </div>
+      </footer>
+    </main>
+</body>
+</html>

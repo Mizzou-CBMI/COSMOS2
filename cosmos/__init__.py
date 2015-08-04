@@ -26,7 +26,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
 
-def default_get_submit_args(task, default_queue=None, grid_engine_parallel_environment='smp'):
+def default_get_submit_args(task, default_queue=None):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
@@ -39,10 +39,11 @@ def default_get_submit_args(task, default_queue=None, grid_engine_parallel_envir
     drm = task.drm or default_queue
     default_job_priority = None
     use_mem_req = False
+    use_time_req = False
 
     cpu_req = task.cpu_req
-    mem_req = task.mem_req
-    time_req = task.time_req
+    mem_req = task.mem_req if use_mem_req else None
+    time_req = task.time_req if use_time_req else None
 
     jobname = '%s_task(%s)' % (task.stage.name, task.id)
     queue = ' -q %s' % default_queue if default_queue else ''
@@ -54,8 +55,15 @@ def default_get_submit_args(task, default_queue=None, grid_engine_parallel_envir
         return '-R "{rusage}span[hosts=1]" -n {task.cpu_req}{time}{queue} -J "{jobname}"'.format(**locals())
 
     elif drm == 'ge':
-        mem_req_s = ' -l h_vmem=%sM' % int(math.ceil(mem_req / float(cpu_req))) if mem_req and use_mem_req else ''
-        return '-pe {grid_engine_parallel_environment} {cpu_req}{queue}{mem_req_s}{priority} -N "{jobname}"'.format(**locals())
+        h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
+        def g():
+            resource_reqs = dict(h_vmem=h_vmem, num_proc=cpu_req, time_req=time_req)
+            for k,v in resource_reqs.items():
+                if v is not None:
+                    yield '%s=%s' % (k,v)
+        resource_str = ','.join(g())
+
+        return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
     elif drm == 'local':
         return None
     else:
@@ -83,7 +91,11 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
-        self.flask_app = flask_app if flask_app else Flask(__name__)
+        if flask_app:
+            self.flask_app = flask_app
+        else:
+            self.flask_app = Flask(__name__)
+            self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -309,5 +321,5 @@ from .models.Stage import Stage
 from .models.Tool import Tool, Tool_old, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
-from .util.tool import one2one, make_dict, many2one, many2many, one2many
+from .util.tool import one2one, one2many, many2one, many2many, make_dict
 from .graph.draw import draw_task_graph, draw_stage_graph

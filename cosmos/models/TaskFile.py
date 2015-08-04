@@ -62,6 +62,10 @@ def abstract_output_taskfile(basename=None, name=None, format=None, persist=Fals
     assert (name and format) or basename, 'must specify basename or both name and format'
     if basename:
         name2, ext = os.path.splitext(os.path.basename(basename))
+        # if ext == 'gz':
+        #     name2, ext2 = os.path.splitext(name2)
+        #     ext = ext2 + '.' + ext
+
         if name is None:
             name = name2
         if format is None:
@@ -152,7 +156,7 @@ class TaskFile(Base):
         """
         self.log.debug('Deleting %s' % self)
 
-        #if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
+        # if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
         if not self.task_output_for.NOOP and delete_file and os.path.exists(self.path):
             if not in_directory(self.path, self.execution.output_dir):
                 self.log.warn('Not deleting %s, outside of %s' % (self.path, self.execution.output_dir))

@@ -1,4 +1,5 @@
 import itertools as it
+
 from .. import Tool, Task
 
 
@@ -38,7 +39,7 @@ def one2one(tool_class, tasks, tag=None, out=None):
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
 
-def _reduce(parents, groupby):
+def reduce_(parents, by):
     """
     helpers for many2one and many2many
     """
@@ -48,13 +49,14 @@ def _reduce(parents, groupby):
 
     def f(task):
         try:
-            return {k: task.tags[k] for k in groupby}
+            return {k: task.tags[k] for k in by}
         except KeyError as k:
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
 
     for group_tags, parent_group in it.groupby(sorted(parents, key=f), f):
-        yield group_tags.copy(), parent_group
+        yield group_tags.copy(), list(parent_group)
+
 
 def many2one(tool_class, parents, groupby, tag=None, out=''):
     """
@@ -72,7 +74,7 @@ def many2one(tool_class, parents, groupby, tag=None, out=''):
         tag = dict()
     assert isinstance(tag, dict), '`tag` must be a dict'
 
-    for new_tags, parent_group in _reduce(parents, groupby):
+    for new_tags, parent_group in reduce_(parents, groupby):
         new_tags.update(tag)
         yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
@@ -85,17 +87,24 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
         tag = dict()
     assert isinstance(tag, dict), '`tag` must be a dict'
 
-
-    for group_tags, parent_group in _reduce(parents, groupby):
+    for group_tags, parent_group in reduce_(parents, groupby):
         parent_group = list(parent_group)
-        for new_tags in _split(splitby):
+        if hasattr(splitby, '__call__'):
+            g = splitby(group_tags)
+        else:
+            g = combinations(splitby)
+
+        for new_tags in g:
             new_tags.update(group_tags)
             new_tags.update(tag)
-            yield tool_class(tags=new_tags, parents=parent_group, out=out(group_tags) if hasattr(out, '__call__') else out)
+            yield tool_class(tags=new_tags, parents=parent_group,
+                             out=out(group_tags) if hasattr(out, '__call__') else out)
 
-def _split(splitby):
-    for items in it.product(*[[(k,v) for v in l] for k,l in splitby.items()]):
+
+def combinations(splitby):
+    for items in it.product(*[[(k, v) for v in l] for k, l in splitby.items()]):
         yield dict(items)
+
 
 def one2many(tool_class, parents, splitby, tag=None, out=''):
     """
@@ -107,6 +116,8 @@ def one2many(tool_class, parents, splitby, tag=None, out=''):
     assert isinstance(tag, dict), '`tag` must be a dict'
 
     for parent in parents:
-        for new_tags in _split(splitby):
+        new_tags = parent.tags.copy()
+        for split_tags in combinations(splitby):
+            new_tags.update(split_tags)
             new_tags.update(tag)
             yield tool_class(tags=new_tags, parents=[parent], out=out(new_tags) if hasattr(out, '__call__') else out)

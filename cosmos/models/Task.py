@@ -281,21 +281,21 @@ class Task(Base):
         """
         return self.output_files + self.forwarded_inputs
 
-    @property
-    def profile(self):
-        if self.NOOP:
-            return {}
-        if self._cache_profile is None:
-            if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
-                with open(self.output_profile_path, 'r') as fh:
-                    self._cache_profile = json.load(fh)
-            else:
-                raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
-        return self._cache_profile
+    # @property
+    # def profile(self):
+    #     if self.NOOP:
+    #         return {}
+    #     if self._cache_profile is None:
+    #         if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
+    #             with open(self.output_profile_path, 'r') as fh:
+    #                 self._cache_profile = json.load(fh)
+    #         else:
+    #             raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
+    #     return self._cache_profile
 
-    def update_from_profile_output(self):
-        for k, v in self.profile.items():
-            setattr(self, k, v)
+    # def update_from_profile_output(self):
+    #     for k, v in self.profile.items():
+    #         setattr(self, k, v)
 
     def all_predecessors(self, as_dict=False):
         """

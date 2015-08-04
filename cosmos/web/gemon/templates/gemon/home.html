@@ -1,0 +1,16 @@
+{% extends "cosmos/layout.html" %}
+{% block title %}
+GridEngine Monitor
+{% endblock %}
+{% block content %}
+
+        <h3>User Summary</h3>
+        {{df_user_summary.to_html(classes=["table","table-condensed","table-striped"], index=False)|safe}}
+        <hr>
+        <h3>Cluster Usage Summary</h3>
+        {{df_all_summary.to_html(classes=["table","table-condensed","table-striped"], index=False)|safe}}
+        <hr>
+
+        <h3>Qstat</h3>
+        {{df_user.to_html(classes=["table","table-condensed","table-striped","datatable"], index=False)|safe}}
+{% endblock %}

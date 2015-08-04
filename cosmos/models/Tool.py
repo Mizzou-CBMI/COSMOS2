@@ -4,12 +4,11 @@ import re
 import itertools as it
 import operator
 from collections import OrderedDict
+import types
 
 from .. import TaskFile, Task, NOOP
 from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
-from ..util.iterstuff import only_one
-from ..util.helpers import str_format, groupby2, has_duplicates, strip_lines, isgenerator
-import types
+from ..util.helpers import str_format, has_duplicates, strip_lines
 
 
 class ToolValidationError(Exception): pass
@@ -46,16 +45,17 @@ def error(message, dct):
     print >> sys.stderr, '    %s' % message
     for k, v in dct.items():
         print >> sys.stderr, '***%s***' % k
-    if isinstance(v, list):
-        for v2 in v:
-            print >> sys.stderr, "    %s" % v2
-    elif isinstance(v, dict):
-        for k2,v2 in v.items():
-            print >> sys.stderr, "    %s=%s" % (k2,v2)
-    else:
-        print >> sys.stderr, "    %s" % v
+        if isinstance(v, list):
+            for v2 in v:
+                print >> sys.stderr, "    %s" % v2
+        elif isinstance(v, dict):
+            for k2, v2 in v.items():
+                print >> sys.stderr, "    %s = %s" % (k2, v2)
+        else:
+            print >> sys.stderr, "    %s" % v
 
     raise ToolValidationError(message)
+
 
 class Tool(object):
     """
@@ -153,28 +153,27 @@ class Tool(object):
             raise ToolValidationError(
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
-        for v in self.tags.itervalues():
+        for k,v in self.tags.iteritems():
             assert any(
                 isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
-                                                                           'Tag values should be a str, int, float or bool.'
+                                                                           'Tag values should be a str, int, float or bool.' % (self,k)
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
         op, number = parse_aif_cardinality(abstract_input_file.n)
-        import pprint
 
         if not OPS[op](real_count, int(number)):
             s = '******ERROR****** \n' \
                 '{self} does not have right number of inputs: for {abstract_input_file}\n' \
                 '***Parents*** \n' \
                 '{prnts}\n' \
-                '***Inputs Available ({real_count})*** \n' \
+                '***Inputs Matched ({real_count})*** \n' \
                 '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
                                 prnts="\n".join(map(str, parents)), **locals())
             import sys
 
             print >> sys.stderr, s
-            raise ToolValidationError('Missing Input Files')
+            raise ToolValidationError('Input files are missing, or their cardinality do not match.')
 
     def _map_inputs(self, parents):
         """
@@ -194,6 +193,7 @@ class Tool(object):
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
         self.output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
+        # self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)
         d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
         d['drm'] = 'local' if self.drm is not None else default_drm
 
@@ -202,6 +202,7 @@ class Tool(object):
         ifas = [InputFileAssociation(taskfile=tf, forward=aif.forward) for aif, tfs in aif_2_input_taskfiles.items() for
                 tf in tfs]
 
+        # Validation
         f = lambda ifa: ifa.taskfile
         for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
             group_of_ifas = list(group_of_ifas)
@@ -329,11 +330,18 @@ class Tool(object):
 
     def before_cmd(self):
         task = self.task
-        out = task.output_dir if task.output_dir else ''
-        return 'cd {ex_out}\n' \
-               'OUT={out}\n' \
-               'mkdir -p $OUT\n' \
-               '\n'.format(out=out, ex_out=task.execution.output_dir)
+        o = '#!/bin/bash\n' \
+            'set -e\n' \
+            'set -o pipefail\n' \
+            'cd %s\n' % task.execution.output_dir
+
+        if task.output_dir:
+            o += 'mkdir -p %s\n' % task.output_dir
+
+        o += "\n"
+
+        return o
+
 
     def after_cmd(self):
         return ''
@@ -412,7 +420,7 @@ class Input(Tool):
         :param dict tags: tags for the task that will be generated
         """
 
-        path = _abs(path)
+        # path = _abs(path)
         if tags is None:
             tags = dict()
 
@@ -501,10 +509,10 @@ def unpack_if_cardinality_1(aif, taskfiles):
 # def __init__(self, taskfiles, type):
 # assert type in ['input', 'output']
 # self.type = type
-#         self.taskfiles = taskfiles
-#         if type == 'input':
-#             kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
-#         else:
+# self.taskfiles = taskfiles
+# if type == 'input':
+# kwargs = {name: list(input_files) for name, input_files in groupby2(taskfiles, lambda i: i.name)}
+# else:
 #             kwargs = {t.name: t for t in taskfiles}  # only have 1 output_file per name
 #
 #         super(TaskFileDict, self).__init__(**kwargs)
