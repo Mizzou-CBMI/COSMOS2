@@ -198,9 +198,8 @@ class Execution(Base):
              By default task log output is stored in output_dir/log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
         :param dry: (bool) if True, do not actually run any jobs.
-        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to add and
+        :param set_successful: (bool) sets this execution as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this execution later.
-
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'

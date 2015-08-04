@@ -76,14 +76,11 @@ class Tool(object):
     output_dir = None
     api_version = 2
 
-    def __init__(self, tags, parents=None, params=None, out=''):
+    def __init__(self, tags, parents=None, out=''):
         """
         :param tags: (dict) A dictionary of tags.  The combination of tags are the unique identifier for a Task,
             and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag
             values must be basic python types.
-        :param params: (dict) Extra parameters to pass to the cmd() call.  This is also a way to specify input_files
-            more explicitly (parents will be automatically added if this functionality is used).
-            Param keys should not conflict with tags.
         :param parents: (list of Tasks).  A list of parent tasks
         :param out: an output directory, will be .format()ed with tags
         """
@@ -93,12 +90,6 @@ class Tool(object):
             parents = list(parents)
         if parents is None:
             parents = []
-        if params is None:
-            params = dict()
-
-        self.params = params
-        for k in self.params:
-            assert k not in tags, 'params and tags both have the %s keyword' % k
 
         if issubclass(parents.__class__, Task):
             parents = [parents]
@@ -288,9 +279,7 @@ class Tool(object):
 
         def get_params():
             for k in argspec.args:
-                if k in self.params:
-                    yield k, self.params[k]
-                elif k in self.tags:
+                if k in self.tags:
                     yield k, self.tags[k]
 
         params = dict(get_params())
@@ -299,7 +288,6 @@ class Tool(object):
         #           for k, v in self.tags.items()
         #           if k in argspec.args
         #           if k not in self.input_arg_map and k not in self.output_arg_map}
-
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
@@ -316,8 +304,6 @@ class Tool(object):
                 if input_name in params:
                     # did user manually set input path?
                     # TODO check that this is a TaskFile?  Probably not..
-                    if input_name == 'ploidy_map':
-                        raise
                     yield input_name, params[input_name]
                 else:
                     # find the input automatically
@@ -335,13 +321,7 @@ class Tool(object):
         kwargs.update(output_map)
         kwargs.update(params)
 
-        try:
-            out = self.cmd(**kwargs)
-        except TypeError as e:
-            error('Parameter TypeError running %s.cmd' % self, dict(
-                Params=kwargs,
-                Exception=e.msg,
-            ))
+        out = self.cmd(**kwargs)
 
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
