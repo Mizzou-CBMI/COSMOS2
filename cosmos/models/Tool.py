@@ -153,10 +153,18 @@ class Tool(object):
             raise ToolValidationError(
                 "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
-        for k,v in self.tags.iteritems():
-            assert any(
-                isinstance(v, t) for t in [basestring, int, float, bool]), '%s.tags[%s] is not a basic python type.  ' \
-                                                                           'Tag values should be a str, int, float or bool.' % (self,k)
+        from cosmos import ERROR_IF_TAG_IS_NOT_BASIC_TYPE
+        if ERROR_IF_TAG_IS_NOT_BASIC_TYPE:
+            for k,v in self.tags.iteritems():
+                # msg = '%s.tags[%s] is not a basic python type.  ' \
+                #       'Tag values should be a str, int, float or bool.' \
+                #       'Alternatively, you can set cosmos.ERROR_OF_TAG_IS_NOT_BASIC_TYPE = False. \'' \
+                #       'IF YOU ENABLE THIS, TAGS THAT ARE NOT BASIC TYPES WILL ONLY BE USED AS PARAMETERS TO THE cmd()' \
+                #       'FUNCTION, AND NOT FOR MATCHING PREVIOUSLY SUCCESSFUL TASKS WHEN RESUMING OR STORED IN THE' \
+                #       'SQL DB.' % (self,k)
+                msg = '%s.tags[%s] is not a basic python type.  ' \
+                      'Tag values should be a str, int, float or bool.' % (self,k)
+                assert any(isinstance(v, t) for t in [basestring, int, float, bool]), msg
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
