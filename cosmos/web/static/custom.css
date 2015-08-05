@@ -13,8 +13,8 @@
 }
 
 body, h1, h2, h3, h4, h5, p {
-    /*font-family: monospace;*/
-    font-family: "Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace
+    /*font-family: "Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;*/
 }
 
 table {

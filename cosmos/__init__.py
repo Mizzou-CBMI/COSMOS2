@@ -56,11 +56,13 @@ def default_get_submit_args(task, default_queue=None):
 
     elif drm == 'ge':
         h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
+
         def g():
             resource_reqs = dict(h_vmem=h_vmem, num_proc=cpu_req, time_req=time_req)
-            for k,v in resource_reqs.items():
+            for k, v in resource_reqs.items():
                 if v is not None:
-                    yield '%s=%s' % (k,v)
+                    yield '%s=%s' % (k, v)
+
         resource_str = ','.join(g())
 
         return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
@@ -106,7 +108,7 @@ class Cosmos(object):
 
         # setup flask views
         from cosmos.web.views import gen_bprint
-        #from cosmos.web.admin import add_cosmos_admin
+        # from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)
@@ -205,7 +207,6 @@ class Cosmos(object):
         ex.cosmos_app = self
 
         return ex
-
 
     def initdb(self):
         """
@@ -309,7 +310,6 @@ class RelationshipType(MyEnum):
     one2many = 'one2many',
     many2one = 'many2one',
     many2many = 'many2many'
-
 
 ########################################################################################################################
 # Warnings

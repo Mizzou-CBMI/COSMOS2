@@ -8,6 +8,15 @@ from ..util.iterstuff import grouper
 from .drm import DRM
 
 
+def convert_size_to_kb(size_str):
+    if size_str.endswith('G'):
+        return float(size_str[:-1]) * 1024 * 1024
+    if size_str.endswith('M'):
+        return float(size_str[:-1]) * 1024
+    else:
+        return float(size_str)
+
+
 class DRM_GE(DRM):
     name = 'ge'
 
@@ -56,7 +65,6 @@ class DRM_GE(DRM):
         else:
             return {}
 
-
     def get_task_return_data(self, task):
         d = qacct(task)
         failed = d['failed'][0] != '0'
@@ -66,8 +74,8 @@ class DRM_GE(DRM):
             user_time=float(d['ru_utime']),
             system_time=float(d['ru_stime']),
             wall_time=float(d['ru_wallclock']),
-            max_rss_mem_kb=float(d['ru_maxrss']),
-            max_vms_mem_kb=float(d['maxvmem']),
+            max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+            max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
             io_read_count=int(d['ru_inblock']),
             io_write_count=int(d['ru_oublock']),
         )
@@ -98,7 +106,7 @@ def qacct(task, timeout=60):
 
     def g():
         for line in out.strip().split('\n')[1:]:  # first line is a header
-            k,v = re.split("\s+", line, maxsplit=1)
+            k, v = re.split("\s+", line, maxsplit=1)
             yield k, v.strip()
 
     return OrderedDict(g())
