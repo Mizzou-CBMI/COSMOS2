@@ -529,13 +529,26 @@ def _run_queued_and_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
-    for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
-        cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
-        if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
-            execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
-            break
 
-        execution.jobmanager.submit(ready_task)
+    if max_cpus is None:
+        submittable_tasks = ready_tasks
+    else:
+        cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
+        cores_left = max_cpus - cores_used
+
+        def consume_cpus(task):
+            global cores_left
+            there_are_cpus_left = task.cpu_req > cores_left
+            if there_are_cpus_left:
+                cores_left -= task.cpu_req
+            return True
+
+        submittable_tasks = list(it.takewhile(consume_cpus, ready_tasks))
+
+    # submit in a batch for speed
+    execution.jobmanager.submit_tasks(submittable_tasks)
+    if len(submittable_tasks) < len(ready_tasks):
+        execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
 
     # only commit submitted Tasks after submitting a batch
     execution.session.commit()
