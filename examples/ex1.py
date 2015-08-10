@@ -40,5 +40,5 @@ if __name__ == '__main__':
     cosmos.initdb()
     mkdir('out')
 
-    execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True)
+    execution = cosmos.start('Example1', 'out/ex1', max_attempts=2, restart=True, skip_confirm=True, max_cpus=10)
     run_ex1(execution)

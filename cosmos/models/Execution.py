@@ -536,18 +536,23 @@ def _run_queued_and_ready_tasks(task_queue, execution):
         cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
         cores_left = max_cpus - cores_used
 
-        def consume_cpus(task):
-            global cores_left
-            there_are_cpus_left = task.cpu_req > cores_left
+        submittable_tasks = []
+        ready_tasks = sorted(ready_tasks, key=lambda t: t.cpu_req)
+        while len(ready_tasks) > 0:
+            task = ready_tasks[0]
+            there_are_cpus_left = task.cpu_req <= cores_left
             if there_are_cpus_left:
                 cores_left -= task.cpu_req
-            return True
-
-        submittable_tasks = list(it.takewhile(consume_cpus, ready_tasks))
+                submittable_tasks.append(task)
+                ready_tasks.pop(0)
+            else:
+                break
 
     # submit in a batch for speed
     execution.jobmanager.submit_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
+        print submittable_tasks
+        print ready_tasks
         execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
 
     # only commit submitted Tasks after submitting a batch

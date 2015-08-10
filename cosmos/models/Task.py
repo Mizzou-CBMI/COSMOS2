@@ -1,21 +1,18 @@
 import os
-import json
 import itertools as it
 import shutil
 import codecs
 import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
-from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Boolean, Integer, String, PickleType, DateTime, BigInteger, Text
+from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
-from sqlalchemy_utils.types.json import JSONType
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 from .TaskFile import InputFileAssociation
@@ -110,7 +107,7 @@ def readfile(path):
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
-            return fh.read(2**20)
+            return fh.read(2 ** 20)
     except:
         return 'error parsing as utf-8: %s' % path
 
@@ -124,7 +121,6 @@ class TaskEdge(Base):
     def __init__(self, parent=None, child=None):
         self.parent = parent
         self.child = child
-
 
     def __str__(self):
         return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
@@ -228,7 +224,6 @@ class Task(Base):
                 signal_task_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
-
 
     @property
     def execution(self):
@@ -346,4 +341,3 @@ class Task(Base):
 
     def __str__(self):
         return self.__repr__()
-
