@@ -101,6 +101,7 @@ class Cosmos(object):
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.flask_app.config['SQLALCHEMY_ECHO'] = True
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
         self.default_queue = default_queue
@@ -322,6 +323,7 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 ########################################################################################################################
 
 # from .models.TaskFile import abstract_output_taskfile_old, abstract_input_taskfile, abstract_output_taskfile
+from .models.files import find, out_dir, find_deprecated, forward
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Tool_old, Input, Inputs

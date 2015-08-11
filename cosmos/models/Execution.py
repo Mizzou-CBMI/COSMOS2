@@ -246,29 +246,29 @@ class Execution(Base):
 
         import itertools as it
 
-        def assert_no_duplicate_taskfiles():
-            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
-            f = lambda tf: tf.path
-            for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-                group = list(group)
-                if len(group) > 1:
-                    t1 = group[0].task_output_for
-                    tf1 = group[0]
-                    t2 = group[1].task_output_for
-                    tf2 = group[1]
-                    div = "-" * 72 + "\n"
-                    self.log.error("Duplicate taskfiles paths detected:\n "
-                                   "{div}"
-                                   "{t1}\n"
-                                   "* {tf1}\n"
-                                   "{div}"
-                                   "{t2}\n"
-                                   "* {tf2}\n"
-                                   "{div}".format(**locals()))
-
-                    raise ValueError('Duplicate taskfile paths')
-
-        assert_no_duplicate_taskfiles()
+        # def assert_no_duplicate_taskfiles():
+        #     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
+        #     f = lambda tf: tf.path
+        #     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
+        #         group = list(group)
+        #         if len(group) > 1:
+        #             t1 = group[0].task_output_for
+        #             tf1 = group[0]
+        #             t2 = group[1].task_output_for
+        #             tf2 = group[1]
+        #             div = "-" * 72 + "\n"
+        #             self.log.error("Duplicate taskfiles paths detected:\n "
+        #                            "{div}"
+        #                            "{t1}\n"
+        #                            "* {tf1}\n"
+        #                            "{div}"
+        #                            "{t2}\n"
+        #                            "* {tf2}\n"
+        #                            "{div}".format(**locals()))
+        #
+        #             raise ValueError('Duplicate taskfile paths')
+        #
+        # assert_no_duplicate_taskfiles()
 
 
         # Collapse

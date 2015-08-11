@@ -25,7 +25,7 @@ OPS = OrderedDict([("<=", operator.le),
                    ("=", operator.eq)])
 
 
-def parse_aif_cardinality(n):
+def parse_cardinality(n):
     op, number = re.search('(.*?)(\d+)', str(n)).groups()
     if op == '':
         op = '=='
@@ -72,8 +72,6 @@ class Tool(object):
     persist = False
     drm = None
     skip_profile = False
-    abstract_inputs = []  # class property!  Does not change per instance.
-    abstract_outputs = []  # class property!  Does not change per instance.
     output_dir = None
 
     def __init__(self, tags, parents=None, out=''):
@@ -123,9 +121,6 @@ class Tool(object):
             elif kw.startswith('out_') or isinstance(default, find):
                 self.output_arg_map[kw] = default
 
-        self.abstract_inputs = self.input_arg_map.values()
-        self.abstract_outputs = self.output_arg_map.values()
-
     def __validate(self):
         # assert all(i.__class__.__name__ == 'AbstractInputFile' for i in
         #            self.abstract_inputs), '%s Tool.abstract_inputs must be of type AbstractInputFile' % self
@@ -144,8 +139,9 @@ class Tool(object):
         #         "%s are a reserved names, and cannot be used as a tag keyword in %s" % (reserved, self))
 
         from cosmos import ERROR_IF_TAG_IS_NOT_BASIC_TYPE
+
         if ERROR_IF_TAG_IS_NOT_BASIC_TYPE:
-            for k,v in self.tags.iteritems():
+            for k, v in self.tags.iteritems():
                 # msg = '%s.tags[%s] is not a basic python type.  ' \
                 #       'Tag values should be a str, int, float or bool.' \
                 #       'Alternatively, you can set cosmos.ERROR_OF_TAG_IS_NOT_BASIC_TYPE = False. \'' \
@@ -153,12 +149,12 @@ class Tool(object):
                 #       'FUNCTION, AND NOT FOR MATCHING PREVIOUSLY SUCCESSFUL TASKS WHEN RESUMING OR STORED IN THE' \
                 #       'SQL DB.' % (self,k)
                 msg = '%s.tags[%s] is not a basic python type.  ' \
-                      'Tag values should be a str, int, float or bool.' % (self,k)
+                      'Tag values should be a str, int, float or bool.' % (self, k)
                 assert any(isinstance(v, t) for t in [basestring, int, float, bool]), msg
 
     def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
         real_count = len(mapped_input_taskfiles)
-        op, number = parse_aif_cardinality(abstract_input_file.n)
+        op, number = parse_cardinality(abstract_input_file.n)
 
         if not OPS[op](real_count, int(number)):
             s = '******ERROR****** \n' \
@@ -173,21 +169,6 @@ class Tool(object):
             print >> sys.stderr, s
             raise ToolValidationError('Input files are missing, or their cardinality do not match.')
 
-    # def _map_inputs(self, parents):
-    #     """
-    #     Default method to map abstract_inputs.  Can be overriden if a different behavior is desired
-    #     :returns: [(taskfile, is_forward), ...]
-    #     """
-    #     for aif_index, abstract_input_file in enumerate(self.abstract_inputs):
-    #         mapped_input_taskfiles = list(set(self._map_input(abstract_input_file, parents)))
-    #         self._validate_input_mapping(abstract_input_file, mapped_input_taskfiles, parents)
-    #         yield abstract_input_file, mapped_input_taskfiles
-    #
-    # def _map_input(self, abstract_input_file, parents):
-    #     for p in parents:
-    #         for tf in _find(p.output_files + p.forwarded_inputs, abstract_input_file, error_if_missing=False):
-    #             yield tf
-
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
         self.output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
@@ -196,18 +177,16 @@ class Tool(object):
         d['drm'] = 'local' if self.drm is not None else default_drm
 
         # Validation
-        f = lambda ifa: ifa.taskfile
-        for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
-            group_of_ifas = list(group_of_ifas)
-            if len(group_of_ifas) > 1:
-                error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
-                    TaskFiles=tf
-                ))
+        # f = lambda ifa: ifa.taskfile
+        # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+        #     group_of_ifas = list(group_of_ifas)
+        #     if len(group_of_ifas) > 1:
+        #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+        #             TaskFiles=tf
+        #         ))
 
-        task = Task(stage=stage, tags=self.tags,  parents=parents, output_dir=self.output_dir,
-                    input_files=self.input_arg_map.values(),
-                    output_files=self.output_arg_map.values()
-                    **d)
+        task = Task(stage=stage, tags=self.tags, parents=parents, output_dir=self.output_dir, input_files=list(),
+                    output_files=list(), **d)
         task.skip_profile = self.skip_profile
 
         # inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
@@ -215,9 +194,7 @@ class Tool(object):
         task.tool = self
         return task
 
-
-
-    def _cmd(self, possible_input_taskfiles, output_taskfiles, task):
+    def _cmd(self, task):
         argspec = getargspec(self.cmd)
         self.task = task
 
@@ -227,11 +204,6 @@ class Tool(object):
                     yield k, self.tags[k]
 
         params = dict(get_params())
-
-        # params = {k: v
-        #           for k, v in self.tags.items()
-        #           if k in argspec.args
-        #           if k not in self.input_arg_map and k not in self.output_arg_map}
 
         def validate_params():
             ndefaults = len(argspec.defaults) if argspec.defaults else 0
@@ -244,21 +216,35 @@ class Tool(object):
         validate_params()
 
         def get_input_map():
-            for input_name, aif in self.input_arg_map.iteritems():
+            for input_name, input_value in self.input_arg_map.iteritems():
                 if input_name in params:
-                    # did user manually set input path?
-                    # TODO check that this is a TaskFile?  Probably not..
-                    yield input_name, params[input_name]
+                    # user specified explicitly
+                    input_file = params[input_name]
+                    task.input_files.append(input_file)
+                    yield input_name, input_file
                 else:
-                    # find the input automatically
-                    input_taskfiles = list(_find(possible_input_taskfiles, aif, error_if_missing=True))
-                    input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(aif, input_taskfiles)
+                    find_instance = input_value
+                    available_files = it.chain(*(p.output_files for p in task.parents))
+                    input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=True))
+
+                    task.input_files += input_taskfiles
+
+                    input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
                     yield input_name, input_taskfile_or_input_taskfiles
 
-        input_map = dict(get_input_map())
+        def get_output_map():
+            for name, value in self.output_arg_map.iteritems():
+                if name in params:
+                    output_file = params[name]
+                    task.output_files.append(output_file)
+                    yield name, output_file
+                else:
+                    output_file = os.path.join(self.output_dir, value.basename)
+                    task.output_files.append(output_file)
+                    yield name, output_file
 
-        outputs = sorted(output_taskfiles, key=lambda tf: tf.order)
-        output_map = dict(zip(self.output_arg_map.iterkeys(), outputs))
+        input_map = dict(get_input_map())
+        output_map = dict(get_output_map())
 
         kwargs = dict()
         kwargs.update(input_map)
@@ -285,7 +271,6 @@ class Tool(object):
 
         return o
 
-
     def after_cmd(self):
         return ''
 
@@ -302,10 +287,10 @@ class Tool(object):
         """
         Generates the command
         """
-        cmd = self._cmd(task.input_files, task.output_files, task)
+        cmd = self._cmd(task)
         if cmd == NOOP:
             return NOOP
-        return self.before_cmd() + self._cmd(task.input_files, task.output_files, task) + self.after_cmd()
+        return self.before_cmd() + cmd + self.after_cmd()
 
     def __repr__(self):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
@@ -410,19 +395,19 @@ def _abs(path):
     return path2
 
 
-def unpack_taskfiles_with_cardinality_1(odict):
-    new = odict.copy()
-    for aif, taskfiles in odict.items():
-        op, number = parse_aif_cardinality(aif.n)
-        if op in ['=', '=='] and number == 1:
-            new[aif] = taskfiles[0]
-        else:
-            new[aif] = taskfiles
-    return new
+# def unpack_taskfiles_with_cardinality_1(odict):
+#     new = odict.copy()
+#     for find_instance, taskfiles in odict.items():
+#         op, number = parse_cardinality(find_instance.n)
+#         if op in ['=', '=='] and number == 1:
+#             new[find_instance] = taskfiles[0]
+#         else:
+#             new[find_instance] = taskfiles
+#     return new
 
 
-def unpack_if_cardinality_1(aif, taskfiles):
-    op, number = parse_aif_cardinality(aif.n)
+def unpack_if_cardinality_1(find_instance, taskfiles):
+    op, number = parse_cardinality(find_instance.n)
     if op in ['=', '=='] and number == 1:
         return taskfiles[0]
     else:

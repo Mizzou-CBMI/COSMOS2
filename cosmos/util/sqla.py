@@ -37,11 +37,11 @@ class ListOfStrings(types.TypeDecorator):
     impl = types.Text
 
     def __init__(self):
-        return types.TypeDecorator.__init__(self, '')
+        return types.TypeDecorator.__init__(self)
 
     def process_bind_param(self, value, dialect):
         assert isinstance(value, list), '%s must be a list' % value
-        return ', '.join(value) if value else None
+        return ', '.join(value)
 
     def process_result_value(self, value, dialect):
         return value.split(', ') if value else []
@@ -104,4 +104,26 @@ class MutableDict(Mutable, dict):
         "Detect dictionary del events and emit change events."
 
         dict.__delitem__(self, key)
+        self.changed()
+
+class MutableList(Mutable, list):
+    @classmethod
+    def coerce(cls, key, value):
+        "Convert plain dictionaries to MutableDict."
+
+        if not isinstance(value, MutableList):
+            if isinstance(value, list):
+                return MutableList(value)
+
+            # this call will raise ValueError
+            return Mutable.coerce(key, value)
+        else:
+            return value
+
+    def append(self, p_object):
+        list.append(self, p_object)
+        self.changed()
+
+    def remove(self, value):
+        list.append(self, value)
         self.changed()

@@ -12,12 +12,14 @@ from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 # from .TaskFile import InputFileAssociation
 import datetime
 from sqlalchemy_utils import ScalarListType, JSONType
+
+
 
 opj = os.path.join
 
@@ -163,15 +165,10 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    input_files = Column(ScalarListType(str))
-    output_files = Column(ScalarListType(str))
+    input_files = Column(MutableList.as_mutable(ListOfStrings))
+    output_files = Column(MutableList.as_mutable(ListOfStrings))
 
     # command = Column(Text)
-
-    @property
-    def input_files(self):
-        # todo this should be an assoc proxy?
-        return [ifa.taskfile for ifa in self._input_file_assocs]
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
@@ -266,16 +263,13 @@ class Task(Base):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
-    @property
-    def forwarded_inputs(self):
-        return [ifa.taskfile for ifa in self._input_file_assocs if ifa.forward]
 
-    @property
-    def all_output_files(self):
-        """
-        :return: all output taskfiles, including any being forwarded
-        """
-        return self.output_files + self.forwarded_inputs
+    # @property
+    # def all_output_files(self):
+    #     """
+    #     :return: all output taskfiles, including any being forwarded
+    #     """
+    #     return self.output_files + self.forwarded_inputs
 
     # @property
     # def profile(self):
@@ -325,7 +319,7 @@ class Task(Base):
         self.log.debug('Deleting %s' % self)
         if delete_files:
             for tf in self.output_files:
-                tf.delete(True)
+                os.unlink(tf)
             if os.path.exists(self.log_dir):
                 shutil.rmtree(self.log_dir)
 
