@@ -322,8 +322,7 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 # Imports
 ########################################################################################################################
 
-# from .models.TaskFile import abstract_output_taskfile_old, abstract_input_taskfile, abstract_output_taskfile
-from .models.files import find, out_dir, find_deprecated, forward
+from .models.files import find, out_dir, input_abstract_file, output_abstract_file, forward
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Tool_old, Input, Inputs

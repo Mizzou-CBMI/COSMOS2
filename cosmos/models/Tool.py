@@ -152,22 +152,7 @@ class Tool(object):
                       'Tag values should be a str, int, float or bool.' % (self, k)
                 assert any(isinstance(v, t) for t in [basestring, int, float, bool]), msg
 
-    def _validate_input_mapping(self, abstract_input_file, mapped_input_taskfiles, parents):
-        real_count = len(mapped_input_taskfiles)
-        op, number = parse_cardinality(abstract_input_file.n)
 
-        if not OPS[op](real_count, int(number)):
-            s = '******ERROR****** \n' \
-                '{self} does not have right number of inputs: for {abstract_input_file}\n' \
-                '***Parents*** \n' \
-                '{prnts}\n' \
-                '***Inputs Matched ({real_count})*** \n' \
-                '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
-                                prnts="\n".join(map(str, parents)), **locals())
-            import sys
-
-            print >> sys.stderr, s
-            raise ToolValidationError('Input files are missing, or their cardinality do not match.')
 
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
@@ -223,13 +208,16 @@ class Tool(object):
                     task.input_files.append(input_file)
                     yield input_name, input_file
                 else:
+                    # user used find()
                     find_instance = input_value
                     available_files = it.chain(*(p.output_files for p in task.parents))
                     input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=True))
+                    _validate_input_mapping(find_instance, input_taskfiles, task.parents)
 
                     task.input_files += input_taskfiles
 
                     input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
+
                     yield input_name, input_taskfile_or_input_taskfiles
 
         def get_output_map():
@@ -423,3 +411,20 @@ def _find(filenames, regex, error_if_missing=False):
 
     if not found and error_if_missing:
         raise ValueError, 'No taskfile found for %s' % regex
+
+def _validate_input_mapping(find_instance, mapped_input_taskfiles, parents):
+    real_count = len(mapped_input_taskfiles)
+    op, number = parse_cardinality(find_instance.n)
+
+    if not OPS[op](real_count, int(number)):
+        s = '******ERROR****** \n' \
+            '{self} does not have right number of inputs: for {abstract_input_file}\n' \
+            '***Parents*** \n' \
+            '{prnts}\n' \
+            '***Inputs Matched ({real_count})*** \n' \
+            '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
+                            prnts="\n".join(map(str, parents)), **locals())
+        import sys
+
+        print >> sys.stderr, s
+        raise ToolValidationError('Input files are missing, or their cardinality do not match.')
