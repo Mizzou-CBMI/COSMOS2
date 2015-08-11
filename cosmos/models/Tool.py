@@ -284,13 +284,6 @@ class Tool(object):
         return '<Tool[%s] %s %s>' % (id(self), self.name, self.tags)
 
 
-class Tool_old(Tool):
-    """
-    Old input/output specification.  Deprecated and will be removed.
-    """
-    api_version = 1
-
-
 from collections import namedtuple
 
 
@@ -381,17 +374,6 @@ def _abs(path):
     path2 = os.path.abspath(os.path.expanduser(path))
     assert os.path.exists(path2), '%s path does not exist' % path2
     return path2
-
-
-# def unpack_taskfiles_with_cardinality_1(odict):
-#     new = odict.copy()
-#     for find_instance, taskfiles in odict.items():
-#         op, number = parse_cardinality(find_instance.n)
-#         if op in ['=', '=='] and number == 1:
-#             new[find_instance] = taskfiles[0]
-#         else:
-#             new[find_instance] = taskfiles
-#     return new
 
 
 def unpack_if_cardinality_1(find_instance, taskfiles):
