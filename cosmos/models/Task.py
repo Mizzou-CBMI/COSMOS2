@@ -15,8 +15,9 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
-from .TaskFile import InputFileAssociation
+# from .TaskFile import InputFileAssociation
 import datetime
+from sqlalchemy_utils import ScalarListType, JSONType
 
 opj = os.path.join
 
@@ -162,11 +163,9 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
-    output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
-                                passive_deletes=True)
-    _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
-                                      passive_deletes=True)
+    input_files = Column(ScalarListType(str))
+    output_files = Column(ScalarListType(str))
+
     # command = Column(Text)
 
     @property
@@ -212,6 +211,8 @@ class Task(Base):
 
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
+
+    extra = Column(JSONType)
 
     @declared_attr
     def status(cls):

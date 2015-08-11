@@ -81,7 +81,6 @@ class Execution(Base):
 
     exclude_from_dict = ['info']
 
-
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -93,7 +92,6 @@ class Execution(Base):
                 signal_execution_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
-
 
     @validates('name')
     def validate_name(self, key, name):
@@ -181,7 +179,7 @@ class Execution(Base):
             new_tasks.append(task)
         stage.parents += list(new_parent_stages.difference(stage.parents))
 
-        #todo temporary
+        # todo temporary
         for t in new_tasks:
             assert hasattr(t, 'tool')
 
@@ -220,6 +218,7 @@ class Execution(Base):
 
         if self.started_on is None:
             import datetime
+
             self.started_on = datetime.datetime.now()
 
         # Render task graph and to session
@@ -281,7 +280,7 @@ class Execution(Base):
 
         # taskg and stageg are now finalized
 
-        #stages = stage_g.nodes()
+        # stages = stage_g.nodes()
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
             next(duplicates(self.stages)))
 
@@ -290,7 +289,7 @@ class Execution(Base):
             s.number = i + 1
 
         # Add final taskgraph to session
-        #session.expunge_all()
+        # session.expunge_all()
         session.add(self)
         # session.add_all(stage_g.nodes())
         # session.add_all(task_g.nodes())
@@ -364,7 +363,6 @@ class Execution(Base):
 
         self.log.info('Execution complete')
 
-
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
@@ -392,12 +390,6 @@ class Execution(Base):
         return [t for s in self.stages for t in s.tasks]
         # return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
-    @property
-    def taskfilesq(self):
-        from . import TaskFile, Stage
-
-        return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
-
     def stage_graph(self):
         """
         :return: (networkx.DiGraph) a DAG of the stages
@@ -416,7 +408,6 @@ class Execution(Base):
         g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
         return g
 
-
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):
             f = lambda s: s.id == name_or_id
@@ -429,18 +420,15 @@ class Execution(Base):
 
         raise ValueError('Stage with name %s does not exist' % name_or_id)
 
-
     @property
     def url(self):
         return url_for('cosmos.execution', name=self.name)
-
 
     def __repr__(self):
         return '<Execution[%s] %s>' % (self.id or '', self.name)
 
     def __unicode__(self):
         return self.__repr__()
-
 
     def delete(self, delete_files):
         """
