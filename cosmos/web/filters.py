@@ -24,7 +24,7 @@ def add_filters(bprint_or_app, type_='bprint'):
         if re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
         elif field_name == 'percent_cpu':
-            return "{0}%".format(val)
+            return "{0}%".format(val*100)
         elif 'mem' in field_name:
             return format_memory_kb(val)
         elif type(val) in [int, long]:

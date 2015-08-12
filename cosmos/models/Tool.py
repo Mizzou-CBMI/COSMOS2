@@ -82,7 +82,7 @@ class Tool(object):
         :param out: an output directory, will be .format()ed with tags
         """
         assert isinstance(tags, dict), '`tags` must be a dict'
-        assert isinstance(out, basestring), '`out` must be a str'
+        assert isinstance(out, basestring), '`out_dir` must be a str'
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
@@ -217,9 +217,11 @@ class Tool(object):
                         raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
                                        '%s.cmd()' % (value.input_parameter_name, self.name))
                     yield name, input_value
-                else:
-                    output_file = os.path.join(self.output_dir, value.basename)
+                elif isinstance(value, out_dir):
+                    output_file = os.path.join(self.output_dir, value.basename.format(**self.tags))
                     yield name, output_file
+                else:
+                    yield name, value
 
 
             # for Input() and Inputs() nodes
@@ -273,7 +275,7 @@ class Tool(object):
 
         assert isinstance(out, basestring), '%s.cmd did not return a str' % self
         out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-        return out  # strip_lines(out)
+        return out  # strip_lines(out_dir)
 
     def before_cmd(self):
         task = self.task

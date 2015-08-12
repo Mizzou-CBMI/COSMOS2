@@ -1,4 +1,4 @@
-from cosmos import Tool, find, out_dir 
+from cosmos import Tool, find, out_dir
 from main import settings as s
 
 

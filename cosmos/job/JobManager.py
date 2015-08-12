@@ -39,7 +39,7 @@ class JobManager(object):
             task.status = TaskStatus.submitted
 
     def submit_tasks(self, tasks):
-        # TODO figure out how to parallelize this
+        # TODO figure out_dir how to parallelize this
         for t in tasks:
             self.submit(t)
 

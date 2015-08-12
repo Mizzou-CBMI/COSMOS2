@@ -67,7 +67,7 @@ def many2one(tool_class, parents, groupby, tag=None, out=''):
     :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
     :param str|callable out: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
         Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
-        a str.  ie. ``out=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
+        a str.  ie. ``out_dir=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
     :yields: new Tools
     """
     if tag is None:

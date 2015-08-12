@@ -311,13 +311,15 @@ class Execution(Base):
         handle_exits(self)
 
         self.log.info('Setting log output directories...')
-        # set log dirs
-        log_dirs = {t.log_dir: t for t in successful}
-        for task in task_queue.nodes():
-            log_dir = log_output_dir(task)
-            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-            log_dirs[log_dir] = task
-            task.log_dir = log_dir
+        def set_log_dirs():
+            log_dirs = {t.log_dir: t for t in successful}
+            for task in task_queue.nodes():
+                log_dir = log_output_dir(task)
+                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+                log_dirs[log_dir] = task
+                task.log_dir = log_dir
+        set_log_dirs()
+
 
         self.log.info('Checking stage attributes...')
 

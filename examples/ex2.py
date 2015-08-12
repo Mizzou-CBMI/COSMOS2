@@ -31,7 +31,7 @@ def main(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
-    mkdir('out')
+    mkdir('out_dir')
 
-    execution = cosmos.start('Example2', 'out/ex2', max_attempts=2, restart=True, skip_confirm=True)
+    execution = cosmos.start('Example2', 'out_dir/ex2', max_attempts=2, restart=True, skip_confirm=True)
     main(execution)
