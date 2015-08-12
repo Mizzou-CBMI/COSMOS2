@@ -122,6 +122,12 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
+    def add2(self, tasks, name=None):
+        # new_tasks = [ execution.add(cropdump_row_to_testcase, tags=dict(), parents=[], out='')
+        #       for i in range(10)]
+
+        pass
+
     def add(self, tools, name=None):
         """
         Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
