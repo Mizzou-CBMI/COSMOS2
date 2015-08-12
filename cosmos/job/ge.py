@@ -75,11 +75,17 @@ class DRM_GE(DRM):
             percent_cpu=float(d['cpu']),
             user_time=float(d['ru_utime']),
             system_time=float(d['ru_stime']),
+            cpu_time=float(d['cpu']),
             wall_time=float(d['ru_wallclock']),
             max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
             max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
+            avg_rss_mem=d['ru_ixrss'],
+            avg_vms_mem=None,
             io_read_count=int(d['ru_inblock']),
             io_write_count=int(d['ru_oublock']),
+            io_wait=float(d['iow']),
+            ctx_switch_voluntary=int(d['ru_nvcsw']),
+            ctx_switch_involuntary=int(d['ru_nivcsw'])
         )
 
     def kill(self, task):

@@ -179,7 +179,7 @@ class Task(Base):
                       'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
-    exclude_from_dict = profile_fields + ['command', 'info']
+    exclude_from_dict = profile_fields + ['command', 'info', 'input_files','output_files']
 
     exit_status = Column(Integer)
 
@@ -197,6 +197,7 @@ class Task(Base):
 
     io_read_count = Column(BigInteger)
     io_write_count = Column(BigInteger)
+    io_wait = Column(BigInteger)
     io_read_kb = Column(BigInteger)
     io_write_kb = Column(BigInteger)
 
@@ -209,7 +210,7 @@ class Task(Base):
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
 
-    extra = Column(JSONType)
+    extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
 
     @declared_attr
     def status(cls):
@@ -330,9 +331,15 @@ class Task(Base):
     def url(self):
         return url_for('cosmos.task', ex_name=self.execution.name, stage_name=self.stage.name, task_id=self.id)
 
+    @property
+    def tags_pretty(self):
+        return '%s' % ', '.join('%s=%s'%(k,v) for k,v in self.tags.items())
+
     def __repr__(self):
-        s = self.stage.name if self.stage else ''
-        return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
+        return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
+                                     self.stage.name if self.stage else '',
+                                           self.tags_pretty
+                                     )
 
     def __str__(self):
         return self.__repr__()

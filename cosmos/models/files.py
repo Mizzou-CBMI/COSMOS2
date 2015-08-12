@@ -1,16 +1,21 @@
 # class FindFromParents(object):
-from collections import namedtuple
+from recordtype import recordtype
 
 
 # for reverse compatibility
-def input_abstract_file(name=None, format=None, n=1):
+def abstract_input_taskfile(name=None, format=None, n=1):
     return find(name or '' + '.' + format or '', n)
 
-def output_abstract_file(basename, name=None, format=None, n=None):
+def abstract_output_taskfile(basename=None, name=None, format=None):
     if not basename:
         basename = name or '' + '.' + format or ''
-    return out_dir(basename, n)
+    return out_dir(basename)
 
-find = namedtuple('FindFromParents', 'regex n')
-out_dir = namedtuple('OutputDir', 'basename')
-forward = namedtuple('Forward', 'input_name')
+def abstract_output_taskfile_old(name=None, format=None, basename=None):
+    if not basename:
+        basename = name or '' + '.' + format or ''
+    return out_dir(basename)
+
+find = recordtype('FindFromParents', 'regex n tags', default=None)
+out_dir = recordtype('OutputDir', 'basename', default=None)
+forward = recordtype('Forward', 'input_parameter_name', default=None)

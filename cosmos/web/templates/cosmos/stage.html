@@ -86,7 +86,7 @@
             {% for t in stage.tasks %}
             <tr>
                 <td>{{t.id}}</td>
-                <td><a href="{{ t.url }}">{{t.tags}}</a></td>
+                <td><a href="{{ t.url }}">{{t.tags_pretty}}</a></td>
                 <td>{{t.successful|to_thumb}}</td>
                 <td>{{t.status}}</td>
                 <td>{{drm_statuses.get(t.drm_jobID,'')}}</td>

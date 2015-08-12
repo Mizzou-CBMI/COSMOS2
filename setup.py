@@ -47,7 +47,8 @@ setup(
         "Flask-Failsafe",
         "six",
         "SQLAlchemy-Utils",
-        "pyparsing==1.5.7"
+        "pyparsing==1.5.7",
+        "recordtype"
     ],
     packages=find_packages(),
     include_package_data=True,

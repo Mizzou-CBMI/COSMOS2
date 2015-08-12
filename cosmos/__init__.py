@@ -322,10 +322,10 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 # Imports
 ########################################################################################################################
 
-from .models.files import find, out_dir, input_abstract_file, output_abstract_file, forward
+from .models.files import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, abstract_output_taskfile_old
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Tool import Tool, Tool_old, Input, Inputs
+from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .util.tool import one2one, one2many, many2one, many2many, make_dict
