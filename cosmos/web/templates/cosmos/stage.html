@@ -1,107 +1,113 @@
 {% extends "cosmos/layout.html" %}
 {% block title %}
-{{ stage.name }}
+    {{ stage.name }}
 {% endblock %}
 {% block content %}
 
-<ul class="breadcrumb">
-    <li><a href="{{ url_for('.index') }}">Home</a></li>
-    <li><a href="{{ stage.execution.url }}">{{stage.execution}}</a></li>
-    <li class="active">{{stage}}</li>
-</ul>
+    <ul class="breadcrumb">
+        <li><a href="{{ url_for('.index') }}">Home</a></li>
+        <li><a href="{{ stage.execution.url }}">{{ stage.execution }}</a></li>
+        <li class="active">{{ stage }}</li>
+    </ul>
 
 
-<dl class="dl-horizontal" >
-    {% for k,v in stage.attrs_as_dict().items() %}
-    <dt>{{k}}</dt>
-    <dd>{{v}}</dd>
-    {% endfor %}
-    <dt>parents</dt>
-    <dd>{{stage.parents}}</dd>
-</dl>
-<dl class="dl-horizontal">
-    {% with s=stage %}
-    <dt>progress</dt>
-    <dd>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</dd>
-    <dt>&nbsp;</dt>
-    <dd>
-        {% with %}
-        {% set successful = s.percent_successful() %}
-        {% set running = s.percent_running() %}
-        {% set failed = s.percent_failed() %}
-        <div class="progress progress-striped" style="width: 150px">
-            <div class="progress-bar progress-bar-success progress-striped" style="width: {{successful}}%">
-                <span class="sr-only">{{successful}}% Complete (success)</span>
-            </div>
-            <div class="progress-bar progress-bar-warning progress-bar-striped" style="width: {{running}}%">
-                <span class="sr-only">{{running}}% Complete (running)</span>
-            </div>
-            <div class="progress-bar progress-bar-danger progress-striped" style="width: {{failed}}%">
-                <span class="sr-only">{{failed}}% Complete (failed)</span>
-            </div>
-        </div>
-        {%endwith%}
-    </dd>
-    <dt>failed</dt>
-    <dd>{{ s.num_failed_tasks() }}</dd>
-    <dt>avg(%_cpu)</dt>
-    <dd>{{s|stage_stat('percent_cpu', 'avg')}}</dd>
-    <dt>avg(cpu_req)</dt>
-    <dd>{{s|stage_stat('cpu_req', 'avg')}}</dd>
-    <dt>avg(rss_mem)</dt>
-    <dd>{{s|stage_stat('avg_rss_mem_kb', 'avg')}}</dd>
-    <dt>avg(mem_req)</dt>
-    <dd>{{s|stage_stat('mem_req', 'avg')}}</dd>
-    <dt>avg(wall_time)</dt>
-    <dd>{{s|stage_stat('wall_time', 'avg')}}</dd>
-    <dt>avg(cpu_time)</dt>
-    <dd>{{s|stage_stat('cpu_time', 'avg')}}</dd>
-    {%endwith%}
-</dl>
-<div style="clear:both">
-</div>
-<div class="panel panel-primary">
-    <div class="panel-heading">
-        <span class="pull-right"></span>
-
-        <h3 class="panel-title">{{stage}}.tasks</h3>
-    </div>
-    <div class="panel-body">
-        <table class="table table-condensed table-striped datatable" id="table_expected">
-            <thead>
-            <tr>
-                <th>id</th>
-                <th>task</th>
-                <th>successful</th>
-                <th>status</th>
-                <th>drm_status</th>
-                <th>drm_jobid</th>
-                <th>attempts</th>
-                <th>submitted_on</th>
-                <th>finished_on</th>
-                <th>wall_time</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for t in stage.tasks %}
-            <tr>
-                <td>{{t.id}}</td>
-                <td><a href="{{ t.url }}">{{t.tags}}</a></td>
-                <td>{{t.successful|to_thumb}}</td>
-                <td>{{t.status}}</td>
-                <td>{{drm_statuses.get(t.drm_jobID,'')}}</td>
-                <th>{{t.drm_jobID}}</th>
-                <td>{{t.attempt}}</td>
-                <td>{{t.submitted_on}}</td>
-                <td>{{t.finished_on}}</td>
-                <td>{% if t.finished_on %}{{ t.finished_on - t.started_on|or_datetime_now }}{% endif %}</td>
-            </tr>
+    <dl class="dl-horizontal">
+        {% for k,v in stage.attrs_as_dict().items() %}
+            <dt>{{ k }}</dt>
+            <dd>{{ v }}</dd>
+        {% endfor %}
+        <dt>parents</dt>
+        <dd>
+            {% for parent in stage.parents %}
+                <a href="{{ parent.url }}">{{ parent }}</a>
             {% endfor %}
-            </tbody>
-        </table>
-
+        </dd>
+    </dl>
+    <dl class="dl-horizontal">
+        {% with s=stage %}
+            <dt>progress</dt>
+            <dd>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</dd>
+            <dt>&nbsp;</dt>
+            <dd>
+                {% with %}
+                    {% set successful = s.percent_successful() %}
+                    {% set running = s.percent_running() %}
+                    {% set failed = s.percent_failed() %}
+                    <div class="progress progress-striped" style="width: 150px">
+                        <div class="progress-bar progress-bar-success progress-striped"
+                             style="width: {{ successful }}%">
+                            <span class="sr-only">{{ successful }}% Complete (success)</span>
+                        </div>
+                        <div class="progress-bar progress-bar-warning progress-bar-striped"
+                             style="width: {{ running }}%">
+                            <span class="sr-only">{{ running }}% Complete (running)</span>
+                        </div>
+                        <div class="progress-bar progress-bar-danger progress-striped" style="width: {{ failed }}%">
+                            <span class="sr-only">{{ failed }}% Complete (failed)</span>
+                        </div>
+                    </div>
+                {% endwith %}
+            </dd>
+            <dt>failed</dt>
+            <dd>{{ s.num_failed_tasks() }}</dd>
+            <dt>avg(%_cpu)</dt>
+            <dd>{{ s|stage_stat('percent_cpu', 'avg') }}</dd>
+            <dt>avg(cpu_req)</dt>
+            <dd>{{ s|stage_stat('cpu_req', 'avg') }}</dd>
+            <dt>avg(rss_mem)</dt>
+            <dd>{{ s|stage_stat('avg_rss_mem_kb', 'avg') }}</dd>
+            <dt>avg(mem_req)</dt>
+            <dd>{{ s|stage_stat('mem_req', 'avg') }}</dd>
+            <dt>avg(wall_time)</dt>
+            <dd>{{ s|stage_stat('wall_time', 'avg') }}</dd>
+            <dt>avg(cpu_time)</dt>
+            <dd>{{ s|stage_stat('cpu_time', 'avg') }}</dd>
+        {% endwith %}
+    </dl>
+    <div style="clear:both">
     </div>
-</div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <span class="pull-right"></span>
+
+            <h3 class="panel-title">{{ stage }}.tasks</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-condensed table-striped datatable" id="table_expected">
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>task</th>
+                    <th>successful</th>
+                    <th>status</th>
+                    <th>drm_status</th>
+                    <th>drm_jobid</th>
+                    <th>attempts</th>
+                    <th>submitted_on</th>
+                    <th>finished_on</th>
+                    <th>wall_time</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for t in stage.tasks %}
+                    <tr>
+                        <td><a href="{{ t.url }}">{{ t.id }}</td>
+                        <td><a href="{{ t.url }}">{{ t.tags_pretty }}</a></td>
+                        <td>{{ t.successful|to_thumb }}</td>
+                        <td>{{ t.status }}</td>
+                        <td>{{ drm_statuses.get(t.drm_jobID,'') }}</td>
+                        <th>{{ t.drm_jobID }}</th>
+                        <td>{{ t.attempt }}</td>
+                        <td>{{ t.submitted_on }}</td>
+                        <td>{{ t.finished_on }}</td>
+                        <td>{% if t.finished_on %}{{ t.finished_on - t.started_on|or_datetime_now }}{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
 
 
 {% endblock %}

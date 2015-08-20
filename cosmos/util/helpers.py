@@ -63,8 +63,8 @@ def confirm(prompt=None, default=False, timeout=0):
         pass
 
     def timed_out(signum, frame):
-        "called when stdin read times out"
-        raise TimeOutException('Timed out')
+        "called when stdin read times out_dir"
+        raise TimeOutException('Timed out_dir')
 
     signal.signal(signal.SIGALRM, timed_out)
 
@@ -91,7 +91,7 @@ def confirm(prompt=None, default=False, timeout=0):
             if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out after {0}s, returning default of '{1}'".format(timeout,
+            print "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
                                                                                          'yes' if default else 'no')
             return default
 

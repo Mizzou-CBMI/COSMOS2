@@ -12,11 +12,14 @@ from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
-from .TaskFile import InputFileAssociation
+# from .TaskFile import InputFileAssociation
 import datetime
+from sqlalchemy_utils import ScalarListType, JSONType
+
+
 
 opj = os.path.join
 
@@ -162,17 +165,10 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
-    output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
-                                passive_deletes=True)
-    _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
-                                      passive_deletes=True)
-    # command = Column(Text)
+    input_files = Column(MutableList.as_mutable(ListOfStrings))
+    output_files = Column(MutableList.as_mutable(ListOfStrings))
 
-    @property
-    def input_files(self):
-        # todo this should be an assoc proxy?
-        return [ifa.taskfile for ifa in self._input_file_assocs]
+    # command = Column(Text)
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
@@ -183,7 +179,7 @@ class Task(Base):
                       'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
-    exclude_from_dict = profile_fields + ['command', 'info']
+    exclude_from_dict = profile_fields + ['command', 'info', 'input_files','output_files']
 
     exit_status = Column(Integer)
 
@@ -201,6 +197,7 @@ class Task(Base):
 
     io_read_count = Column(BigInteger)
     io_write_count = Column(BigInteger)
+    io_wait = Column(BigInteger)
     io_read_kb = Column(BigInteger)
     io_write_kb = Column(BigInteger)
 
@@ -212,6 +209,8 @@ class Task(Base):
 
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
+
+    extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
 
     @declared_attr
     def status(cls):
@@ -265,16 +264,13 @@ class Task(Base):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
-    @property
-    def forwarded_inputs(self):
-        return [ifa.taskfile for ifa in self._input_file_assocs if ifa.forward]
 
-    @property
-    def all_output_files(self):
-        """
-        :return: all output taskfiles, including any being forwarded
-        """
-        return self.output_files + self.forwarded_inputs
+    # @property
+    # def all_output_files(self):
+    #     """
+    #     :return: all output taskfiles, including any being forwarded
+    #     """
+    #     return self.output_files + self.forwarded_inputs
 
     # @property
     # def profile(self):
@@ -324,7 +320,7 @@ class Task(Base):
         self.log.debug('Deleting %s' % self)
         if delete_files:
             for tf in self.output_files:
-                tf.delete(True)
+                os.unlink(tf)
             if os.path.exists(self.log_dir):
                 shutil.rmtree(self.log_dir)
 
@@ -335,9 +331,15 @@ class Task(Base):
     def url(self):
         return url_for('cosmos.task', ex_name=self.execution.name, stage_name=self.stage.name, task_id=self.id)
 
+    @property
+    def tags_pretty(self):
+        return '%s' % ', '.join('%s=%s'%(k,v) for k,v in self.tags.items())
+
     def __repr__(self):
-        s = self.stage.name if self.stage else ''
-        return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
+        return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
+                                     self.stage.name if self.stage else '',
+                                           self.tags_pretty
+                                     )
 
     def __str__(self):
         return self.__repr__()

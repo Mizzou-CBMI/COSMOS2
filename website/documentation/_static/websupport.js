@@ -486,7 +486,7 @@
    * Open a reply form used to reply to an existing comment.
    */
   function openReply(id) {
-    // Swap out the reply link for the hide link
+    // Swap out_dir the reply link for the hide link
     $('#rl' + id).hide();
     $('#cr' + id).show();
 
@@ -519,7 +519,7 @@
       $(this).remove();
     });
 
-    // Swap out the hide link for the reply link
+    // Swap out_dir the hide link for the reply link
     $('#cr' + id).hide();
     $('#rl' + id).show();
   }

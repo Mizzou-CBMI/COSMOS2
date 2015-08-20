@@ -81,7 +81,6 @@ class Execution(Base):
 
     exclude_from_dict = ['info']
 
-
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -93,7 +92,6 @@ class Execution(Base):
                 signal_execution_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
-
 
     @validates('name')
     def validate_name(self, key, name):
@@ -123,6 +121,12 @@ class Execution(Base):
             return self.log
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
+
+    def add2(self, tasks, name=None):
+        # new_tasks = [ execution.add(cropdump_row_to_testcase, tags=dict(), parents=[], out='')
+        #       for i in range(10)]
+
+        pass
 
     def add(self, tools, name=None):
         """
@@ -181,7 +185,7 @@ class Execution(Base):
             new_tasks.append(task)
         stage.parents += list(new_parent_stages.difference(stage.parents))
 
-        #todo temporary
+        # todo temporary
         for t in new_tasks:
             assert hasattr(t, 'tool')
 
@@ -220,6 +224,7 @@ class Execution(Base):
 
         if self.started_on is None:
             import datetime
+
             self.started_on = datetime.datetime.now()
 
         # Render task graph and to session
@@ -247,29 +252,29 @@ class Execution(Base):
 
         import itertools as it
 
-        def assert_no_duplicate_taskfiles():
-            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
-            f = lambda tf: tf.path
-            for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-                group = list(group)
-                if len(group) > 1:
-                    t1 = group[0].task_output_for
-                    tf1 = group[0]
-                    t2 = group[1].task_output_for
-                    tf2 = group[1]
-                    div = "-" * 72 + "\n"
-                    self.log.error("Duplicate taskfiles paths detected:\n "
-                                   "{div}"
-                                   "{t1}\n"
-                                   "* {tf1}\n"
-                                   "{div}"
-                                   "{t2}\n"
-                                   "* {tf2}\n"
-                                   "{div}".format(**locals()))
-
-                    raise ValueError('Duplicate taskfile paths')
-
-        assert_no_duplicate_taskfiles()
+        # def assert_no_duplicate_taskfiles():
+        #     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
+        #     f = lambda tf: tf.path
+        #     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
+        #         group = list(group)
+        #         if len(group) > 1:
+        #             t1 = group[0].task_output_for
+        #             tf1 = group[0]
+        #             t2 = group[1].task_output_for
+        #             tf2 = group[1]
+        #             div = "-" * 72 + "\n"
+        #             self.log.error("Duplicate taskfiles paths detected:\n "
+        #                            "{div}"
+        #                            "{t1}\n"
+        #                            "* {tf1}\n"
+        #                            "{div}"
+        #                            "{t2}\n"
+        #                            "* {tf2}\n"
+        #                            "{div}".format(**locals()))
+        #
+        #             raise ValueError('Duplicate taskfile paths')
+        #
+        # assert_no_duplicate_taskfiles()
 
 
         # Collapse
@@ -281,7 +286,7 @@ class Execution(Base):
 
         # taskg and stageg are now finalized
 
-        #stages = stage_g.nodes()
+        # stages = stage_g.nodes()
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
             next(duplicates(self.stages)))
 
@@ -290,7 +295,7 @@ class Execution(Base):
             s.number = i + 1
 
         # Add final taskgraph to session
-        #session.expunge_all()
+        # session.expunge_all()
         session.add(self)
         # session.add_all(stage_g.nodes())
         # session.add_all(task_g.nodes())
@@ -312,13 +317,15 @@ class Execution(Base):
         handle_exits(self)
 
         self.log.info('Setting log output directories...')
-        # set log dirs
-        log_dirs = {t.log_dir: t for t in successful}
-        for task in task_queue.nodes():
-            log_dir = log_output_dir(task)
-            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-            log_dirs[log_dir] = task
-            task.log_dir = log_dir
+        def set_log_dirs():
+            log_dirs = {t.log_dir: t for t in successful}
+            for task in task_queue.nodes():
+                log_dir = log_output_dir(task)
+                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+                log_dirs[log_dir] = task
+                task.log_dir = log_dir
+        set_log_dirs()
+
 
         self.log.info('Checking stage attributes...')
 
@@ -364,7 +371,6 @@ class Execution(Base):
 
         self.log.info('Execution complete')
 
-
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
@@ -392,12 +398,6 @@ class Execution(Base):
         return [t for s in self.stages for t in s.tasks]
         # return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
-    @property
-    def taskfilesq(self):
-        from . import TaskFile, Stage
-
-        return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
-
     def stage_graph(self):
         """
         :return: (networkx.DiGraph) a DAG of the stages
@@ -416,7 +416,6 @@ class Execution(Base):
         g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
         return g
 
-
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):
             f = lambda s: s.id == name_or_id
@@ -429,18 +428,15 @@ class Execution(Base):
 
         raise ValueError('Stage with name %s does not exist' % name_or_id)
 
-
     @property
     def url(self):
         return url_for('cosmos.execution', name=self.name)
-
 
     def __repr__(self):
         return '<Execution[%s] %s>' % (self.id or '', self.name)
 
     def __unicode__(self):
         return self.__repr__()
-
 
     def delete(self, delete_files):
         """

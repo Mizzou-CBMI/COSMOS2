@@ -72,14 +72,36 @@ class DRM_GE(DRM):
         failed = d['failed'][0] != '0'
         return dict(
             exit_status=int(d['exit_status']) if not failed else int(re.search('^(\d+)', d['failed']).group(1)),
-            percent_cpu=float(d['cpu']),
+
+            percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
+            wall_time=float(d['ru_wallclock']),
+
+            cpu_time=float(d['cpu']),
             user_time=float(d['ru_utime']),
             system_time=float(d['ru_stime']),
-            wall_time=float(d['ru_wallclock']),
+
+            avg_rss_mem=d['ru_ixrss'],
             max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+            avg_vms_mem_kb=None,
             max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
+
             io_read_count=int(d['ru_inblock']),
             io_write_count=int(d['ru_oublock']),
+            io_wait=float(d['iow']),
+            io_read_kb=float(d['io']),
+            io_write_kb=float(d['io']),
+
+            ctx_switch_voluntary=int(d['ru_nvcsw']),
+            ctx_switch_involuntary=int(d['ru_nivcsw']),
+
+            avg_num_threads=None,
+            max_num_threads=None,
+
+            avg_num_fds=None,
+            max_num_fds=None,
+
+            memory=float(d['mem']),
+
         )
 
     def kill(self, task):
@@ -137,3 +159,9 @@ def preexec_function():
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
     return os.setsid
+
+def div(n,d):
+    if d == 0.:
+        return 1
+    else:
+        return n/d

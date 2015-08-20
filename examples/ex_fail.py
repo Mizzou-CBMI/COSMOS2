@@ -27,7 +27,7 @@ def run_ex2(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///sqlite.db')
     cosmos.initdb()
-    mkdir('out')
+    mkdir('out_dir')
 
-    ex = cosmos.start('Failed_Task', 'out/failed_task', max_attempts=2, restart=True, skip_confirm=True)
+    ex = cosmos.start('Failed_Task', 'out_dir/failed_task', max_attempts=2, restart=True, skip_confirm=True)
     run_ex2(ex)
