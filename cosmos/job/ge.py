@@ -73,7 +73,7 @@ class DRM_GE(DRM):
         return dict(
             exit_status=int(d['exit_status']) if not failed else int(re.search('^(\d+)', d['failed']).group(1)),
 
-            percent_cpu=float(d['cpu']) / float(d['ru_wallclock']),
+            percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
             wall_time=float(d['ru_wallclock']),
 
             cpu_time=float(d['cpu']),
@@ -159,3 +159,9 @@ def preexec_function():
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
     return os.setsid
+
+def div(n,d):
+    if d == 0.:
+        return 1
+    else:
+        return n/d
