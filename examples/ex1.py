@@ -2,7 +2,7 @@ import os
 from cosmos import Cosmos
 from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
-from cosmos.util.helpers import mkdir
+import subprocess as sp
 
 
 def run_ex1(execution):
@@ -49,7 +49,8 @@ def run_ex1(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
-    mkdir('out_dir')
+    sp.check_call(['mkdir', '-p', 'analysis_output'])
 
-    execution = cosmos.start('Example1', 'out_dir/ex1', max_attempts=1, restart=True, skip_confirm=True, max_cpus=10)
+    execution = cosmos.start('Example1', 'analysis_output/ex1', max_attempts=1, restart=True, skip_confirm=True,
+                             max_cpus=10)
     run_ex1(execution)

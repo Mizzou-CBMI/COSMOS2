@@ -252,8 +252,7 @@ class Execution(Base):
         return new_tasks
 
     def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
-            cmd_prepend_func=signature.default_cmd_prepend,
-            cmd_append_func=signature.default_cmd_append):
+            cmd_wrapper=signature.default_cmd_fxn_wrapper):
         """
         Renders and executes the :param:`recipe`
 
@@ -277,8 +276,7 @@ class Execution(Base):
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_prepend_func=cmd_prepend_func,
-                                     cmd_append_func=cmd_append_func)
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper)
 
         self.status = ExecutionStatus.running
         self.successful = False

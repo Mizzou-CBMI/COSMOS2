@@ -34,13 +34,14 @@ def call(cmd_fxn, task):
     return out  # strip_lines(out_dir)
 
 
-# import decorator
+import decorator
 
-def default_cmd_prepend(task):
+
+def default_prepend(task):
     o = '#!/bin/bash\n' \
-    'set -e\n' \
-    'set -o pipefail\n' \
-    'cd %s\n' % task.execution.output_dir
+        'set -e\n' \
+        'set -o pipefail\n' \
+        'cd %s\n' % task.execution.output_dir
 
     if task.output_dir:
         o += 'mkdir -p %s\n' % task.output_dir
@@ -55,12 +56,13 @@ def default_cmd_prepend(task):
     o += "\n"
     return o
 
-def default_cmd_append(task):
-    return ''
+
+# def default_cmd_append(task):
+#     return ''
 
 
-# def default_cmd_fxn_wrapper(task):
-#     def real_decorator(fxn, *args, **kwargs):
-#         return default_prepend(task.execution.output_dir, task.output_dir) + fxn(*args, **kwargs)
-#
-#     return decorator.decorator(real_decorator)
+def default_cmd_fxn_wrapper(task):
+    def real_decorator(fxn, *args, **kwargs):
+        return default_prepend(task) + fxn(*args, **kwargs)
+
+    return decorator.decorator(real_decorator)

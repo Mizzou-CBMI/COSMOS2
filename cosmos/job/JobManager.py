@@ -12,7 +12,7 @@ from ..core.cmd_fxn.signature import call
 
 
 class JobManager(object):
-    def __init__(self, get_submit_args, default_queue=None, cmd_prepend_func=None, cmd_append_func=None):
+    def __init__(self, get_submit_args, default_queue=None, cmd_wrapper=None):
         self.drms = dict(local=DRM_Local(self))  # always support local execution
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
@@ -21,16 +21,17 @@ class JobManager(object):
         self.running_tasks = []
         self.get_submit_args = get_submit_args
         self.default_queue = default_queue
-        self.cmd_prepend_func = cmd_prepend_func
-        self.cmd_append_func = cmd_append_func
+        self.cmd_wrapper = cmd_wrapper
 
     def submit(self, task):
         self.running_tasks.append(task)
         # task.status = TaskStatus.waiting
 
-        prepend = self.cmd_prepend_func(task) if self.cmd_prepend_func is not None else ''
-        append = self.cmd_append_func(task) if self.cmd_append_func is not None else ''
-        command = prepend + call(task.cmd_fxn, task) + append
+        if self.cmd_wrapper:
+            fxn = self.cmd_wrapper(task)(task.cmd_fxn)
+        else:
+            fxn = task.cmd_fxn
+        command = call(fxn, task)
 
         if command == NOOP:
             task.NOOP = True

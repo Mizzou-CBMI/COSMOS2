@@ -8,20 +8,22 @@ from cosmos.util.helpers import mkdir
 
 
 def run_ex2(execution):
-    # These tasks have no dependencies
-    inpts = execution.add([Input('/tmp', 'tmp_dir', 'dir', dict(test='tag'))])
-    echos = execution.add([tools.Echo(dict(word='hello')), tools.Echo(tags=dict(word='world'))])
-
-    # This task always fails
-    fails = execution.add(tools.Fail, inpts)
-
-    # Not dependent on the task that failed, will be executed
-    sleeps = execution.add(tools.Sleep(dict(time=5), [inp]) for inp in inpts)
-
-    # This will not run, because it depends on a task that failed
-    cats = execution.add(tools.Cat(parents=[echos[0], fails[0]]))
-
-    execution.run()
+    # TODO update this
+    pass
+    # # These tasks have no dependencies
+    # inpts = execution.add([Input('/tmp', 'tmp_dir', 'dir', dict(test='tag'))])
+    # echos = execution.add([tools.Echo(dict(word='hello')), tools.Echo(tags=dict(word='world'))])
+    #
+    # # This task always fails
+    # fails = execution.add(tools.Fail, inpts)
+    #
+    # # Not dependent on the task that failed, will be executed
+    # sleeps = execution.add(tools.Sleep(dict(time=5), [inp]) for inp in inpts)
+    #
+    # # This will not run, because it depends on a task that failed
+    # cats = execution.add(tools.Cat(parents=[echos[0], fails[0]]))
+    #
+    # execution.run()
 
 
 if __name__ == '__main__':
