@@ -9,28 +9,13 @@ import types
 from .. import Task, NOOP
 # from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
 from ..util.helpers import str_format, has_duplicates, strip_lines
-from .files import find, forward, out_dir
+from ..core.cmd_signature.io import find, forward, out_dir, _validate_input_mapping, get_input_and_output_defaults, unpack_if_cardinality_1, _find
 
 
 class ToolValidationError(Exception): pass
 
 
 opj = os.path.join
-
-OPS = OrderedDict([("<=", operator.le),
-                   ("<", operator.lt),
-                   (">=", operator.ge),
-                   (">", operator.gt),
-                   ('==', operator.eq),
-                   ("=", operator.eq)])
-
-
-def parse_cardinality(n):
-    op, number = re.search('(.*?)(\d+)', str(n)).groups()
-    if op == '':
-        op = '=='
-    number = int(number)
-    return op, number
 
 
 class _ToolMeta(type):
@@ -105,20 +90,7 @@ class Tool(object):
         self.out = out
         self.task_parents = parents if parents else []
 
-        argspec = getargspec(self.cmd)
-        self.input_arg_to_default = dict()
-        self.output_arg_to_default = dict()
 
-        # iterate over argspec keywords and their defaults
-        num_no_default = len(argspec.args)-len(argspec.defaults or [])
-        for kw, default in zip(argspec.args,[None]*num_no_default + list(argspec.defaults or [])):
-            if isinstance(kw, list):
-                # for when user specifies unpacking in a parameter name
-                kw = frozenset(kw)
-            if kw.startswith('in_') or isinstance(default, find):
-                self.input_arg_to_default[kw] = default
-            elif kw.startswith('out_') or isinstance(default, out_dir) or isinstance(default, forward):
-                self.output_arg_to_default[kw] = default
 
     def __validate(self):
         # assert all(i.__class__.__name__ == 'AbstractInputFile' for i in
@@ -152,22 +124,7 @@ class Tool(object):
                 assert any(isinstance(v, t) for t in [basestring, int, float, bool]), msg
 
 
-    def _validate_input_mapping(self, find_instance, mapped_input_taskfiles, parents):
-        real_count = len(mapped_input_taskfiles)
-        op, number = parse_cardinality(find_instance.n)
 
-        if not OPS[op](real_count, int(number)):
-            s = '******ERROR****** \n' \
-                '{self} does not have right number of inputs: for {find_instance}\n' \
-                '***Parents*** \n' \
-                '{prnts}\n' \
-                '***Inputs Matched ({real_count})*** \n' \
-                '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
-                                prnts="\n".join(map(str, parents)), **locals())
-            import sys
-
-            print >> sys.stderr, s
-            raise ToolValidationError('Input files are missing, or their cardinality do not match.')
 
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
@@ -185,51 +142,8 @@ class Tool(object):
         #             TaskFiles=tf
         #         ))
 
-        def get_input_map():
-            for input_name, input_value in self.input_arg_to_default.iteritems():
-                if input_name in self.tags:
-                    # user specified explicitly
-                    input_file = self.tags[input_name]
-                    yield input_name, input_file
-                elif isinstance(input_value, find):
-                    # user used find()
-                    find_instance = input_value
-                    available_files = it.chain(*(p.output_files for p in parents))
-                    input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=False))
-                    self._validate_input_mapping(find_instance, input_taskfiles, parents)
-                    input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
-                    yield input_name, input_taskfile_or_input_taskfiles
-                else:
-                    raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify' \
-                                          'its value via tags' % (self, input_name, input_value)
-
-        def get_output_map():
-            for name, value in self.output_arg_to_default.iteritems():
-                if name in self.tags:
-                    output_file = self.tags[name]
-                    yield name, output_file
-
-                elif isinstance(value, forward):
-                    try:
-                        input_value = self.input_map[value.input_parameter_name]
-                    except KeyError:
-                        raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
-                                       '%s.cmd()' % (value.input_parameter_name, self.name))
-                    yield name, input_value
-                elif isinstance(value, out_dir):
-                    output_file = os.path.join(self.output_dir, value.basename.format(**self.tags))
-                    yield name, output_file
-                else:
-                    yield name, value
-
-
-            # for Input() and Inputs() nodes
-            for (path, name, format) in self.load_sources:
-                yield name, path
-
-        self.input_map = dict(get_input_map())
-        self.output_map = dict(get_output_map())
+        self.input_files, self.output_files = get_io_map(self.cmd, self.tags, parents)
 
         input_files = list(it.chain(*(v if isinstance(v, list) else [v] for v in self.input_map.values())))
         output_files = list(it.chain(*(v if isinstance(v, list) else [v] for v in self.output_map.values())))
@@ -408,20 +322,3 @@ def _abs(path):
     return path2
 
 
-def unpack_if_cardinality_1(find_instance, taskfiles):
-    op, number = parse_cardinality(find_instance.n)
-    if op in ['=', '=='] and number == 1:
-        return taskfiles[0]
-    else:
-        return taskfiles
-
-
-def _find(filenames, regex, error_if_missing=False):
-    found = False
-    for filename in filenames:
-        if re.search(regex, filename):
-            yield filename
-            found = True
-
-    if not found and error_if_missing:
-        raise ValueError, 'No taskfile found for %s' % regex

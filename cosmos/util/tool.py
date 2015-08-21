@@ -38,13 +38,17 @@ def one2one(tool_class, tasks, tag=None, out=None):
         new_tags.update(tag)
         yield tool_class(tags=new_tags, parents=parent, out=out or parent.output_dir)
 
+def group(tasks, by):
+    """
+    A way to create common Many2one relationships, works similarly to a SQL GROUP BY
 
-def reduce_(parents, by):
+    :param iterable tasks: tasks to divide into groups
+    :param list[str] by: the tag keys with which to create the groups.  Tasks with the same tag values of these keys
+      will be partitioned into the same group, similar to a groupby.
+    :yields dict, list[Tasks]: The common tags for this group, and the list of Tasks with those tags.
     """
-    helpers for many2one and many2many
-    """
-    parents = list(parents)
-    assert all(isinstance(t, Task) for t in parents), '`parents` must be an iterable of Tasks'
+    tasks = list(tasks)
+    assert all(isinstance(t, Task) for t in tasks), '`tasks` must be an iterable of Tasks'
 
 
     def f(task):
@@ -54,9 +58,10 @@ def reduce_(parents, by):
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
 
-    for group_tags, parent_group in it.groupby(sorted(parents, key=f), f):
+    for group_tags, parent_group in it.groupby(sorted(tasks, key=f), f):
         yield group_tags.copy(), list(parent_group)
 
+reduce_ = group # deprecated name
 
 def many2one(tool_class, parents, groupby, tag=None, out=''):
     """
@@ -74,7 +79,7 @@ def many2one(tool_class, parents, groupby, tag=None, out=''):
         tag = dict()
     assert isinstance(tag, dict), '`tag` must be a dict'
 
-    for new_tags, parent_group in reduce_(parents, groupby):
+    for new_tags, parent_group in group(parents, groupby):
         new_tags.update(tag)
         yield tool_class(tags=new_tags, parents=parent_group, out=out(new_tags) if hasattr(out, '__call__') else out)
 
@@ -87,7 +92,7 @@ def many2many(tool_class, parents, groupby, splitby, tag=None, out=''):
         tag = dict()
     assert isinstance(tag, dict), '`tag` must be a dict'
 
-    for group_tags, parent_group in reduce_(parents, groupby):
+    for group_tags, parent_group in group(parents, groupby):
         parent_group = list(parent_group)
         if hasattr(splitby, '__call__'):
             g = splitby(group_tags)

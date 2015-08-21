@@ -36,6 +36,7 @@ setup(
     install_requires=[
         'gntp',
         "psprofile",
+        "decorator",
         "Flask",
         'blinker',
         "sqlalchemy",

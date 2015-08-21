@@ -4,8 +4,6 @@ from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
 from cosmos.util.helpers import mkdir
 
-import itertools as it
-
 
 def run_ex1(execution):
     # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
@@ -19,7 +17,8 @@ def run_ex1(execution):
                                tags=dict(n=n, **echo_task.tags),
                                parents=[echo_task],
                                out_dir='{word}/{n}')
-            for echo_task in echos for n in [1, 2]]
+            for echo_task in echos
+            for n in [1, 2]]
 
     # Count the words in the previous stage.  An example of a one2one relationship,
     # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
