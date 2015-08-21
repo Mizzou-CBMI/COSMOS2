@@ -23,8 +23,8 @@ def call(cmd_fxn, task):
     validate_params()
 
     kwargs = dict()
-    kwargs.update(cmd_fxn.input_map)
-    kwargs.update(cmd_fxn.output_map)
+    kwargs.update(task.input_map)
+    kwargs.update(task.output_map)
     kwargs.update(params)
 
     out = cmd_fxn(**kwargs)
@@ -45,9 +45,13 @@ def default_cmd_prepend(task):
     if task.output_dir:
         o += 'mkdir -p %s\n' % task.output_dir
 
-    o += '\n#' + str(task.cmd_fxn.input_map)
-    o += '\n#' + str(task.cmd_fxn.output_map)
-    o += '\n'
+    # assert task.cmd_fxn == task
+
+    # o += '\n#' + str(task.cmd_fxn.input_map)
+    # o += '\n#' + str(task.cmd_fxn.output_map)
+    # o += '\n# cmd fxn ' + str(task.cmd_fxn)
+    # o += '\n# tags ' + str(task.tags)
+    # o += '\n'
     o += "\n"
     return o
 

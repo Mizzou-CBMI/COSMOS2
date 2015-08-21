@@ -238,7 +238,6 @@ class Task(Base):
         # print cmd_fxn.output_map
         # print '*'*72
 
-        task.cmd_fxn = cmd_fxn
         return task
 
     @declared_attr

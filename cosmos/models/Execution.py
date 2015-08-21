@@ -20,6 +20,7 @@ import time
 import itertools as it
 import datetime
 from ..core.cmd_fxn import signature
+from ..core.cmd_fxn import io
 
 opj = os.path.join
 import signal
@@ -161,7 +162,18 @@ class Execution(Base):
             attrs = {k: tags[k] for k in ['drm', 'mem_req', 'time_req', 'cpu_req', 'must_succeed'] if k in tags}
             if 'drm' not in attrs:
                 attrs['drm'] = self.cosmos_app.default_drm
-            task = Task.create_task(cmd_fxn, tags, stage, parents, out_dir, attrs)
+
+            input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir)
+            input_files = io.unpack_io_map(input_map)
+            output_files = io.unpack_io_map(output_map)
+
+            task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
+                        output_files=output_files, output_dir=out_dir,
+                        **attrs)
+
+            task.cmd_fxn = cmd_fxn
+            task.input_map = input_map
+            task.output_map = output_map
 
         # Add Stage Dependencies
         for p in parents:
@@ -169,7 +181,6 @@ class Execution(Base):
                 stage.parents.append(p.stage)
 
         self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute.append(task)
-        cmd_fxn.task = task
 
         return task
 
