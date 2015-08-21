@@ -13,7 +13,7 @@ from networkx.algorithms.dag import descendants, topological_sort
 import atexit
 from ..util.iterstuff import only_one
 import sys
-
+import types
 from ..util.helpers import duplicates, groupby2
 from ..db import Base
 import time
@@ -122,7 +122,34 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add2(self, tasks, name=None):
+    def add_task(self, cmd, tags, parents=None, out_dir='', stage_name=None):
+        from .. import Stage
+
+        if isinstance(parents, types.GeneratorType):
+            parents = list(parents)
+        if parents is None:
+            parents = []
+        if stage_name is None:
+            stage_name = cmd.__name__
+
+        stage = only_one((s for s in self.stages if s.name == stage_name), None)
+        if stage is None:
+            stage = Stage(execution=self, name=stage_name)
+        self.session.add(stage)
+
+        # check if task is already in stage
+
+
+        # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
+        # were already removed on execution load
+
+
+        # check for duplicate tags here?  would be a lot faster at Execution.run
+        successful_tasks = {frozenset(t.tags.items()): t for t in stage.tasks}
+
+
+
+
         # new_tasks = [ execution.add(cropdump_row_to_testcase, tags=dict(), parents=[], out='')
         #       for i in range(10)]
 
@@ -317,6 +344,7 @@ class Execution(Base):
         handle_exits(self)
 
         self.log.info('Setting log output directories...')
+
         def set_log_dirs():
             log_dirs = {t.log_dir: t for t in successful}
             for task in task_queue.nodes():
@@ -324,8 +352,8 @@ class Execution(Base):
                 assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
                 log_dirs[log_dir] = task
                 task.log_dir = log_dir
-        set_log_dirs()
 
+        set_log_dirs()
 
         self.log.info('Checking stage attributes...')
 

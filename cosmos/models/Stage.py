@@ -139,14 +139,16 @@ class Stage(Base):
         self.session.delete(self)
         self.session.commit()
 
-    def get_tasks(self, **filter_by):
-        return [t for t in self.tasks if all(str(t.tags.get(k, None)) == v for k, v in filter_by.items())]
+    def filter_tasks(self, **filter_by):
+        return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
-    def get_task(self, **filter_by):
-        tasks = self.get_tasks(**filter_by)
-        assert len(tasks) > 0, 'no task found with tags %s' % filter_by
-        assert len(tasks) == 1, 'more than one task with tags %s' % filter_by
-        return tasks[0]
+
+
+    # def get_task(self, **filter_by):
+    #     tasks = self.filter_tasks(**filter_by)
+    #     assert len(tasks) > 0, 'no task found with tags %s' % filter_by
+    #     assert len(tasks) == 1, 'more than one task with tags %s' % filter_by
+    #     return tasks[0]
 
     def percent_successful(self):
         return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
