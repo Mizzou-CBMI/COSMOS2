@@ -1,0 +1,1 @@
+       6 world/1/cat.txt

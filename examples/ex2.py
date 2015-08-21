@@ -56,4 +56,4 @@ if __name__ == '__main__':
 
     execution = cosmos.start('Example1', 'analysis_output/ex1', max_attempts=1, restart=True, skip_confirm=True,
                              max_cpus=10)
-    run_ex1(execution)
+    run_ex2(execution)

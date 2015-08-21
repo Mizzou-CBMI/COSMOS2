@@ -1,4 +1,4 @@
-from cosmos import find, out_dir
+from cosmos.api import find, out_dir
 from main import settings as s
 
 
