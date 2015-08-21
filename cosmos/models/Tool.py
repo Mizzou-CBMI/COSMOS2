@@ -9,9 +9,10 @@ import types
 from .. import Task, NOOP
 # from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile
 from ..util.helpers import str_format, has_duplicates, strip_lines
-from ..core.cmd_signature.io import find, forward, out_dir, _validate_input_mapping, get_input_and_output_defaults, unpack_if_cardinality_1, _find
+from ..core.cmd_fxn.io import get_io_map, unpack_io_map
+# find, forward, out_dir, _validate_input_mapping, get_input_and_output_defaults, unpack_if_cardinality_1, _find
 
-
+from functools import partial
 class ToolValidationError(Exception): pass
 
 
@@ -90,8 +91,6 @@ class Tool(object):
         self.out = out
         self.task_parents = parents if parents else []
 
-
-
     def __validate(self):
         # assert all(i.__class__.__name__ == 'AbstractInputFile' for i in
         # self.abstract_inputs), '%s Tool.abstract_inputs must be of type AbstractInputFile' % self
@@ -123,15 +122,12 @@ class Tool(object):
                       'Tag values should be a str, int, float or bool.' % (self, k)
                 assert any(isinstance(v, t) for t in [basestring, int, float, bool]), msg
 
-
-
-
     def _generate_task(self, stage, parents, default_drm):
         assert self.out is not None
         self.output_dir = str_format(self.out, self.tags, '%s.output_dir' % self)
         # self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)
-        d = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
-        d['drm'] = 'local' if self.drm is not None else default_drm
+        attrs = {attr: getattr(self, attr) for attr in ['mem_req', 'time_req', 'cpu_req', 'must_succeed']}
+        attrs['drm'] = 'local' if self.drm is not None else default_drm
 
         # Validation
         # f = lambda ifa: ifa.taskfile
@@ -142,19 +138,18 @@ class Tool(object):
         #             TaskFiles=tf
         #         ))
 
+        Task.create_task(self.cmd, self.tags, stage, parents, attrs)
 
-        self.input_files, self.output_files = get_io_map(self.cmd, self.tags, parents)
-
-        input_files = list(it.chain(*(v if isinstance(v, list) else [v] for v in self.input_map.values())))
-        output_files = list(it.chain(*(v if isinstance(v, list) else [v] for v in self.output_map.values())))
-
+        self.input_map, self.output_map = get_io_map(self.cmd, self.tags, parents, output_dir=self.output_dir)
+        input_files = unpack_io_map(self.input_map)
+        output_files = unpack_io_map(self.output_map)
 
         task = Task(stage=stage, tags=self.tags, parents=parents, output_dir=self.output_dir, input_files=input_files,
-                    output_files=output_files, **d)
+                    output_files=output_files, **attrs)
 
         # inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()
 
-        task.tool = self
+        task.cmd_fxn = partial(self.generate_command,task=task)
         return task
 
     def _cmd(self, task):
@@ -177,8 +172,6 @@ class Tool(object):
                         'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
 
         validate_params()
-
-
 
         kwargs = dict()
         kwargs.update(self.input_map)
@@ -320,5 +313,3 @@ def _abs(path):
     path2 = os.path.abspath(os.path.expanduser(path))
     assert os.path.exists(path2), '%s path does not exist' % path2
     return path2
-
-

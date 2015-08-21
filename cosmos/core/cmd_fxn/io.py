@@ -64,6 +64,7 @@ def parse_cardinality(n):
 
 find = recordtype('FindFromParents', 'regex n tags', default=None)
 out_dir = recordtype('OutputDir', 'basename', default=None)
+
 forward = recordtype('Forward', 'input_parameter_name', default=None)
 
 
@@ -85,10 +86,7 @@ def _validate_input_mapping(cmd_name, find_instance, mapped_input_taskfiles, par
         raise ValueError('Input files are missing, or their cardinality do not match.')
 
 
-def _get_input_map(fxn, input_arg_to_default, tags, parents, cmd_name=None):
-    # if cmd_name is None:
-    #     cmd_name = str(fxn)
-
+def _get_input_map(cmd_name, input_arg_to_default, tags, parents):
     # todo handle inputs without default
 
     for input_name, input_value in input_arg_to_default.iteritems():
@@ -107,10 +105,10 @@ def _get_input_map(fxn, input_arg_to_default, tags, parents, cmd_name=None):
             yield input_name, input_taskfile_or_input_taskfiles
         else:
             raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify' \
-                                  'its value via tags' % (str(fxn), input_name, input_value)
+                                  'its value via tags' % (cmd_name, input_name, input_value)
 
 
-def _get_output_map(output_arg_to_default, tags):
+def _get_output_map(cmd_name, output_arg_to_default, tags, input_map, output_dir):
     for name, value in output_arg_to_default.iteritems():
         if name in tags:
             output_file = tags[name]
@@ -121,17 +119,30 @@ def _get_output_map(output_arg_to_default, tags):
                 input_value = input_map[value.input_parameter_name]
             except KeyError:
                 raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
-                               '%s.cmd()' % (value.input_parameter_name, self.name))
+                               '%s.cmd()' % (value.input_parameter_name, cmd_name))
             yield name, input_value
         elif isinstance(value, out_dir):
-            output_file = os.path.join(self.output_dir, value.basename.format(**self.tags))
+            if output_dir is not None:
+                output_file = os.path.join(output_dir,
+                                           value.basename.format(**tags))
+            else:
+                output_file = value.basename.format(**tags)
+            # output_file = value.format(**tags)
             yield name, output_file
         else:
-            yield name, value
+            print name, value, tags
+            yield name, value.format(**tags)
 
 
-def get_io_map(fxn, tags, parents):
+def get_io_map(fxn, tags, parents, cmd_name, output_dir):
     input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
+    input_map = dict(_get_input_map(cmd_name, input_arg_to_default, tags, parents))
+    output_map = dict(_get_output_map(cmd_name, output_arg_to_default, tags, input_map, output_dir))
+
+    return input_map, output_map
+
+def unpack_io_map(io_map):
+    return list(it.chain(*(v if isinstance(v, list) else [v] for v in io_map.values())))
 
 
 ### Deprecated

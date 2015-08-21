@@ -65,6 +65,10 @@ def add_filters(bprint_or_app, type_='bprint'):
             return '{}%'.format(a)
         return a
 
+    @add_filter
+    def datetime_format(value, format='%Y-%m-%d %H:%M'):
+        return value.strftime(format) if value else 'None'
+
 
 def intWithCommas(x):
     if x is None:

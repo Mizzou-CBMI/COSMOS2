@@ -322,7 +322,7 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 # Imports
 ########################################################################################################################
 
-from .core.cmd_signature.io import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, abstract_output_taskfile_old
+from .core.cmd_fxn.io import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, abstract_output_taskfile_old
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Tool import Tool, Input, Inputs

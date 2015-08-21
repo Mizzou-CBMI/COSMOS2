@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 An example of how to setup a project of multiple workflows
 """

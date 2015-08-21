@@ -18,8 +18,8 @@ from ..util.helpers import wait_for_file
 # from .TaskFile import InputFileAssociation
 import datetime
 from sqlalchemy_utils import ScalarListType, JSONType
-
-
+from ..core.cmd_fxn import io
+from functools import partial
 
 opj = os.path.join
 
@@ -179,7 +179,7 @@ class Task(Base):
                       'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
-    exclude_from_dict = profile_fields + ['command', 'info', 'input_files','output_files']
+    exclude_from_dict = profile_fields + ['command', 'info', 'input_files', 'output_files']
 
     exit_status = Column(Integer)
 
@@ -211,6 +211,35 @@ class Task(Base):
     max_num_fds = Column(Integer)
 
     extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+
+    @staticmethod
+    def create_task(cmd_fxn, tags, stage, parents, output_dir, attrs):
+        # Validation
+        # f = lambda ifa: ifa.taskfile
+        # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+        # group_of_ifas = list(group_of_ifas)
+        #     if len(group_of_ifas) > 1:
+        #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+        #             TaskFiles=tf
+        #         ))
+
+        cmd_fxn.input_map, cmd_fxn.output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, output_dir)
+        input_files = io.unpack_io_map(cmd_fxn.input_map)
+        output_files = io.unpack_io_map(cmd_fxn.output_map)
+
+        task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
+                    output_files=output_files,output_dir=output_dir,
+                    **attrs)
+        #
+        # print '*'*72
+        # print cmd_fxn
+        # print tags
+        # print output_files
+        # print cmd_fxn.output_map
+        # print '*'*72
+
+        task.cmd_fxn = cmd_fxn
+        return task
 
     @declared_attr
     def status(cls):
@@ -263,7 +292,6 @@ class Task(Base):
     def command_script_text(self):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
-
 
     # @property
     # def all_output_files(self):
@@ -333,13 +361,13 @@ class Task(Base):
 
     @property
     def tags_pretty(self):
-        return '%s' % ', '.join('%s=%s'%(k,v) for k,v in self.tags.items())
+        return '%s' % ', '.join('%s=%s' % (k, v) for k, v in self.tags.items())
 
     def __repr__(self):
         return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
-                                     self.stage.name if self.stage else '',
-                                           self.tags_pretty
-                                     )
+                                      self.stage.name if self.stage else '',
+                                      self.tags_pretty
+                                      )
 
     def __str__(self):
         return self.__repr__()

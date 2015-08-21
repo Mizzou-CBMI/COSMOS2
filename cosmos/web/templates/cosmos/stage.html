@@ -12,10 +12,14 @@
 
 
     <dl class="dl-horizontal">
-        {% for k,v in stage.attrs_as_dict().items() %}
-            <dt>{{ k }}</dt>
-            <dd>{{ v }}</dd>
-        {% endfor %}
+            <dt>name</dt>
+            <dd>{{ stage.name }}</dd>
+            <dt>status</dt>
+            <dd>{{ stage.status }}</dd>
+            <dt>started_on</dt>
+            <dd>{{ stage.started_on }}</dd>
+            <dt>finished_on</dt>
+            <dd>{{ stage.finished_on }}</dd>
         <dt>parents</dt>
         <dd>
             {% for parent in stage.parents %}
@@ -98,9 +102,9 @@
                         <td>{{ drm_statuses.get(t.drm_jobID,'') }}</td>
                         <th>{{ t.drm_jobID }}</th>
                         <td>{{ t.attempt }}</td>
-                        <td>{{ t.submitted_on }}</td>
-                        <td>{{ t.finished_on }}</td>
-                        <td>{% if t.finished_on %}{{ t.finished_on - t.started_on|or_datetime_now }}{% endif %}</td>
+                        <td>{{ t.submitted_on|datetime_format }}</td>
+                        <td>{{ t.finished_on|datetime_format }}</td>
+                        <td>{% if t.finished_on %}{{ (t.finished_on - t.started_on|or_datetime_now) }}{% endif %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

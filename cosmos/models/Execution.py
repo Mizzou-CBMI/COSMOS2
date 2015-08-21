@@ -19,6 +19,7 @@ from ..db import Base
 import time
 import itertools as it
 import datetime
+from ..core.cmd_fxn import signature
 
 opj = os.path.join
 import signal
@@ -122,41 +123,60 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add_task(self, cmd, tags, parents=None, out_dir='', stage_name=None):
+    def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
         from .. import Stage
 
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
             parents = []
-        if stage_name is None:
-            stage_name = cmd.__name__
 
+        if out_dir:
+            out_dir = out_dir.format(**tags)
+
+        # for k, v in tags.items():
+        #     if isinstance(v, basestring):
+        #         tags[k] = v.format(**tags)
+
+        # Get the right Stage
+        if stage_name is None:
+            stage_name = str(cmd_fxn.__name__).replace('_', ' ').title().replace(' ', '_')
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
         if stage is None:
             stage = Stage(execution=self, name=stage_name)
-        self.session.add(stage)
+            self.session.add(stage)
 
-        # check if task is already in stage
+        # Check if task is already in stage
+        task = stage.get_task(tags, None)
+        if task is not None:
+            # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
+            # were already removed on execution load
+            if task.successful:
+                return task
+            else:
+                # TODO check for duplicate tags here?  would be a lot faster at Execution.run
+                raise ValueError('Duplicate tags, you have added a job to %s with tags %s twice' % (stage_name, tags))
+        else:
+            # Create Task
+            attrs = {k: tags[k] for k in ['drm', 'mem_req', 'time_req', 'cpu_req', 'must_succeed'] if k in tags}
+            if 'drm' not in attrs:
+                attrs['drm'] = self.cosmos_app.default_drm
+            task = Task.create_task(cmd_fxn, tags, stage, parents, out_dir, attrs)
 
+        # Add Stage Dependencies
+        for p in parents:
+            if p.stage not in stage.parents:
+                stage.parents.append(p.stage)
 
-        # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
-        # were already removed on execution load
+        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute.append(task)
+        cmd_fxn.task = task
 
-
-        # check for duplicate tags here?  would be a lot faster at Execution.run
-        successful_tasks = {frozenset(t.tags.items()): t for t in stage.tasks}
-
-
-
-
-        # new_tasks = [ execution.add(cropdump_row_to_testcase, tags=dict(), parents=[], out='')
-        #       for i in range(10)]
-
-        pass
+        return task
 
     def add(self, tools, name=None):
         """
+        DEPRECATED
+
         Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
 
         :param itrbl(tool) tools: For each tool in `tools`, new task will be added to the stage with stage `name`.
@@ -220,11 +240,13 @@ class Execution(Base):
 
         return new_tasks
 
-    def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
+    def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
+            cmd_prepend_func=signature.default_cmd_prepend,
+            cmd_append_func=signature.default_cmd_append):
         """
         Renders and executes the :param:`recipe`
 
-        :param log_output_dir: (function) a function that computes a task's log_output_dir.
+        :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
              It receives one parameter: the task instance.
              By default task log output is stored in output_dir/log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
@@ -235,7 +257,7 @@ class Execution(Base):
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
-        assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
+        assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
@@ -244,7 +266,8 @@ class Execution(Base):
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue)
+                                     default_queue=self.cosmos_app.default_queue, cmd_prepend_func=cmd_prepend_func,
+                                     cmd_append_func=cmd_append_func)
 
         self.status = ExecutionStatus.running
         self.successful = False
@@ -348,7 +371,7 @@ class Execution(Base):
         def set_log_dirs():
             log_dirs = {t.log_dir: t for t in successful}
             for task in task_queue.nodes():
-                log_dir = log_output_dir(task)
+                log_dir = log_out_dir_func(task)
                 assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
                 log_dirs[log_dir] = task
                 task.log_dir = log_dir

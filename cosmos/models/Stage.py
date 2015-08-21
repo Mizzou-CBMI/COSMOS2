@@ -142,6 +142,15 @@ class Stage(Base):
     def filter_tasks(self, **filter_by):
         return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
+    def get_task(self, tags, default='ERROR'):
+        tags = frozenset(tags.items())
+        for task in self.tasks:
+            if frozenset(task.tags.items()) == tags:
+                return task
+        if default == 'ERROR':
+            raise KeyError('Task with tags %s does not exist' % tags)
+        else:
+            return default
 
 
     # def get_task(self, **filter_by):

@@ -8,10 +8,11 @@ from .ge import DRM_GE
 from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
+from ..core.cmd_fxn.signature import call
 
 
 class JobManager(object):
-    def __init__(self, get_submit_args, default_queue=None):
+    def __init__(self, get_submit_args, default_queue=None, cmd_prepend_func=None, cmd_append_func=None):
         self.drms = dict(local=DRM_Local(self))  # always support local execution
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
@@ -20,12 +21,16 @@ class JobManager(object):
         self.running_tasks = []
         self.get_submit_args = get_submit_args
         self.default_queue = default_queue
+        self.cmd_prepend_func = cmd_prepend_func
+        self.cmd_append_func = cmd_append_func
 
     def submit(self, task):
         self.running_tasks.append(task)
         # task.status = TaskStatus.waiting
 
-        command = task.tool._generate_command(task)
+        prepend = self.cmd_prepend_func(task) if self.cmd_prepend_func is not None else ''
+        append = self.cmd_append_func(task) if self.cmd_append_func is not None else ''
+        command = prepend + call(task.cmd_fxn, task) + append
 
         if command == NOOP:
             task.NOOP = True
@@ -43,31 +48,31 @@ class JobManager(object):
         for t in tasks:
             self.submit(t)
 
-        # The implementation below is failing because sqlite won't allow my to query across threads.  This can probably
-        # be fixed...
-        #
-        # from multiprocessing.pool import ThreadPool
-        #
-        # p = ThreadPool()
-        #
-        # def preprocess(task):
-        #     command = task.tool._generate_command(task)
-        #     if command == NOOP:
-        #         task.NOOP = True
-        #     else:
-        #         task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)
-        #     task.status = TaskStatus.waiting
-        #     return task, command
-        #
-        # def submit((task, command)):
-        #     mkdir(task.log_dir)
-        #     self._create_command_sh(task, command)
-        #     self.drms[task.drm].submit_job(task)
-        #
-        # pre_processed = map(preprocess, tasks)
-        # p.map(submit, pre_processed)
-        # for t in tasks:
-        #     t.status = TaskStatus.submitted
+            # The implementation below is failing because sqlite won't allow my to query across threads.  This can probably
+            # be fixed...
+            #
+            # from multiprocessing.pool import ThreadPool
+            #
+            # p = ThreadPool()
+            #
+            # def preprocess(task):
+            #     command = task.tool._generate_command(task)
+            #     if command == NOOP:
+            #         task.NOOP = True
+            #     else:
+            #         task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)
+            #     task.status = TaskStatus.waiting
+            #     return task, command
+            #
+            # def submit((task, command)):
+            #     mkdir(task.log_dir)
+            #     self._create_command_sh(task, command)
+            #     self.drms[task.drm].submit_job(task)
+            #
+            # pre_processed = map(preprocess, tasks)
+            # p.map(submit, pre_processed)
+            # for t in tasks:
+            #     t.status = TaskStatus.submitted
 
     def terminate(self):
         f = lambda t: t.drm
