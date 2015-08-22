@@ -15,6 +15,6 @@ Be sure to spend a lot of time with the examples, as this is often the easiest w
     :maxdepth: 4
 
     initializing
-    tools
-    dag
+    command_functions
+    executions
     examples

@@ -14,6 +14,7 @@ features of Cosmos.  The number beside each object inside brackets, `[#]`, is th
 git repository so that you have access to the examples code:
 
 .. code-block:: bash
+
     $ git clone https://github.com/LPM-HMS/Cosmos2 Cosmos
     $ cd Cosmos/examples
     $ python ex1.py
