@@ -10,24 +10,24 @@ def echo(word, out_txt=out_dir('echo.txt')):
     return '{s[echo_path]} {word} > {out_txt}'.format(s=s, **locals())
 
 
-def cat(inputs=find('txt$', n='>=1'), out_txt=out_dir('cat.txt')):
+def cat(in_txts=find('txt$', n='>=1'), out_txt=out_dir('cat.txt')):
     return 'cat {input_str} > {out_txt}'.format(
-        input_str=' '.join(map(str, inputs)),
+        input_str=' '.join(map(str, in_txts)),
         **locals()
     )
 
 
-def paste(input_txts=find('txt$', n='>=1'), out_txt=out_dir('paste.txt')):
+def paste(in_txts=find('txt$', n='>=1'), out_txt=out_dir('paste.txt')):
     return 'paste {input} > {out_txt}'.format(
-        input=' '.join(map(str, (input_txts,))),
+        input=' '.join(map(str, (in_txts,))),
         **locals()
     )
 
 
-def word_count(chars=False, input_txts=find('txt$', n='>=1'), out_txt=out_dir('wc.txt')):
+def word_count(chars=False, in_txts=find('txt$', n='>=1'), out_txt=out_dir('wc.txt')):
     c = ' -c' if chars else ''
     return 'wc{c} {input} > {out_txt}'.format(
-        input=' '.join(map(str, input_txts)),
+        input=' '.join(map(str, in_txts)),
         **locals()
     )
 

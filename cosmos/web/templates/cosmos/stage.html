@@ -12,14 +12,14 @@
 
 
     <dl class="dl-horizontal">
-            <dt>name</dt>
-            <dd>{{ stage.name }}</dd>
-            <dt>status</dt>
-            <dd>{{ stage.status }}</dd>
-            <dt>started_on</dt>
-            <dd>{{ stage.started_on }}</dd>
-            <dt>finished_on</dt>
-            <dd>{{ stage.finished_on }}</dd>
+        <dt>name</dt>
+        <dd>{{ stage.name }}</dd>
+        <dt>status</dt>
+        <dd>{{ stage.status }}</dd>
+        <dt>started_on</dt>
+        <dd>{{ stage.started_on }}</dd>
+        <dt>finished_on</dt>
+        <dd>{{ stage.finished_on }}</dd>
         <dt>parents</dt>
         <dd>
             {% for parent in stage.parents %}
@@ -104,7 +104,7 @@
                         <td>{{ t.attempt }}</td>
                         <td>{{ t.submitted_on|datetime_format }}</td>
                         <td>{{ t.finished_on|datetime_format }}</td>
-                        <td>{% if t.finished_on %}{{ (t.finished_on - t.started_on|or_datetime_now) }}{% endif %}</td>
+                        <td>{% if t.finished_on %}{{ (t.wall_time or 0)|parse_seconds }}{% endif %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

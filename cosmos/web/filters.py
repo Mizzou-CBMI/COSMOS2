@@ -69,6 +69,14 @@ def add_filters(bprint_or_app, type_='bprint'):
     def datetime_format(value, format='%Y-%m-%d %H:%M'):
         return value.strftime(format) if value else 'None'
 
+    @add_filter
+    def parse_seconds(amount, type="seconds"):
+        if amount is None or amount == '':
+            return ''
+        if type == 'minutes':
+            amount = amount * 60
+        amount = int(amount) if amount > 5 else amount
+        return datetime.timedelta(seconds=amount)
 
 def intWithCommas(x):
     if x is None:

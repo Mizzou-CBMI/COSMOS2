@@ -27,11 +27,14 @@ class JobManager(object):
         self.running_tasks.append(task)
         # task.status = TaskStatus.waiting
 
-        if self.cmd_wrapper:
-            fxn = self.cmd_wrapper(task)(task.cmd_fxn)
+        if hasattr(task, 'cmd_fxn'):
+            if self.cmd_wrapper:
+                fxn = self.cmd_wrapper(task)(task.cmd_fxn)
+            else:
+                fxn = task.cmd_fxn
+            command = call(fxn, task)
         else:
-            fxn = task.cmd_fxn
-        command = call(fxn, task)
+            command = task.tool._generate_command(task)
 
         if command == NOOP:
             task.NOOP = True
@@ -49,8 +52,9 @@ class JobManager(object):
         for t in tasks:
             self.submit(t)
 
-            # The implementation below is failing because sqlite won't allow my to query across threads.  This can probably
-            # be fixed...
+            # The implementation below is failing because sqlite won't allow me to query across threads.  This can probably
+            # be fixed...  This would allow task functions to be run and submitted concurrently, giving major speedups
+            # for large workflows
             #
             # from multiprocessing.pool import ThreadPool
             #

@@ -230,13 +230,6 @@ class Task(Base):
         task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
                     output_files=output_files,output_dir=output_dir,
                     **attrs)
-        #
-        # print '*'*72
-        # print cmd_fxn
-        # print tags
-        # print output_files
-        # print cmd_fxn.output_map
-        # print '*'*72
 
         return task
 
