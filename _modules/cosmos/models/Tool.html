@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.models.Tool &mdash; Cosmos 1.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos 1.3.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="cosmos" href="../../cosmos.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../1_introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#history">1.2. History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#features">1.3. Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3_getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/index.html">4. Writing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/initializing.html">4.1. Initializing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/tools.html">4.2. Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/examples.html">4.4. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../shell.html">5. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#delete-a-stage-and-all-of-it-s-descendants">5.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#getting-a-stage-s-descendants">5.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#manually-altering-attributes">5.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#api">5.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glossary.html">6. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">7. Cosmos FAQ</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../cosmos.html">cosmos</a> &raquo;</li>
+      
+    <li>cosmos.models.Tool</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for cosmos.models.Tool</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getargspec</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">NOOP</span>
+<span class="c"># from ..models.TaskFile import InputFileAssociation, AbstractInputFile, AbstractOutputFile</span>
+<span class="kn">from</span> <span class="nn">..util.helpers</span> <span class="kn">import</span> <span class="n">str_format</span><span class="p">,</span> <span class="n">has_duplicates</span><span class="p">,</span> <span class="n">strip_lines</span>
+<span class="kn">from</span> <span class="nn">.files</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> <span class="n">out_dir</span>
+
+
+<span class="k">class</span> <span class="nc">ToolValidationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<span class="n">opj</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+
+<span class="n">OPS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">le</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s">&quot;&lt;&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">lt</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">ge</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s">&quot;&gt;&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">gt</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s">&#39;==&#39;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s">&quot;=&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">eq</span><span class="p">)])</span>
+
+
+<span class="k">def</span> <span class="nf">parse_cardinality</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">op</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;(.*?)(\d+)&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="s">&#39;==&#39;</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">op</span><span class="p">,</span> <span class="n">number</span>
+
+
+<span class="k">class</span> <span class="nc">_ToolMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">_ToolMeta</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+
+    <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;******ERROR*******&#39;</span>
+    <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;    </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">message</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;***</span><span class="si">%s</span><span class="s">***&#39;</span> <span class="o">%</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">v2</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;    </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">v2</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k2</span><span class="p">,</span> <span class="n">v2</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;    </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k2</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;    </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">v</span>
+
+    <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Tool"><a class="viewcode-back" href="../../../workflows/tools.html#cosmos.models.Tool.Tool">[docs]</a><span class="k">class</span> <span class="nc">Tool</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Essentially a factory that produces Tasks.  :meth:`cmd` must be overridden unless it is a NOOP task.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">_ToolMeta</span>
+
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">time_req</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">must_succeed</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># NOOP = False</span>
+    <span class="n">persist</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">drm</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Tool.__init__"><a class="viewcode-back" href="../../../workflows/tools.html#cosmos.models.Tool.Tool.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param tags: (dict) A dictionary of tags.  The combination of tags are the unique identifier for a Task,</span>
+<span class="sd">            and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag</span>
+<span class="sd">            values must be basic python types.</span>
+<span class="sd">        :param parents: (list of Tasks).  A list of parent tasks</span>
+<span class="sd">        :param out: an output directory, will be .format()ed with tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tags` must be a dict&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">),</span> <span class="s">&#39;`out_dir` must be a str&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parents</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parents</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">parents</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="n">Task</span><span class="p">):</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[</span><span class="n">parents</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parents</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">),</span> <span class="s">&#39;Tried to set </span><span class="si">%s</span><span class="s">.parents to </span><span class="si">%s</span><span class="s"> which is not iterable&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="n">Task</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">),</span> <span class="s">&#39;parents must be an iterable of Tasks or a Task&#39;</span>
+
+        <span class="n">parents</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c"># can&#39;t expect the User to remember to do this.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_sources</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># for Inputs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_parents</span> <span class="o">=</span> <span class="n">parents</span> <span class="k">if</span> <span class="n">parents</span> <span class="k">else</span> <span class="p">[]</span>
+
+        <span class="n">argspec</span> <span class="o">=</span> <span class="n">getargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_arg_to_default</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_arg_to_default</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="c"># iterate over argspec keywords and their defaults</span>
+        <span class="n">num_no_default</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="n">kw</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">,[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="n">num_no_default</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">or</span> <span class="p">[])):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kw</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="c"># for when user specifies unpacking in a parameter name</span>
+                <span class="n">kw</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">kw</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kw</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;in_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">find</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">input_arg_to_default</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span>
+            <span class="k">elif</span> <span class="n">kw</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;out_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">forward</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">output_arg_to_default</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">default</span>
+</div>
+    <span class="k">def</span> <span class="nf">__validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># assert all(i.__class__.__name__ == &#39;AbstractInputFile&#39; for i in</span>
+        <span class="c"># self.abstract_inputs), &#39;%s Tool.abstract_inputs must be of type AbstractInputFile&#39; % self</span>
+        <span class="c"># assert all(o.__class__.__name__ == &#39;AbstractOutputFile&#39; for o in</span>
+        <span class="c">#            self.abstract_outputs), &#39;%s Tool.abstract_outputs must be of type AbstractOutputFile&#39; % self</span>
+
+        <span class="c"># if has_duplicates([(i.name, i.format) for i in self.abstract_inputs]):</span>
+        <span class="c">#     raise ToolValidationError(&quot;Duplicate task.abstract_inputs detected in {0}&quot;.format(self))</span>
+        <span class="c">#</span>
+        <span class="c"># if has_duplicates([(i.name, i.format) for i in self.abstract_outputs]):</span>
+        <span class="c">#     raise ToolValidationError(&quot;Duplicate task.abstract_outputs detected in {0}&quot;.format(self))</span>
+
+        <span class="c"># reserved = {&#39;name&#39;, &#39;format&#39;, &#39;basename&#39;}</span>
+        <span class="c"># if not set(self.tags.keys()).isdisjoint(reserved):</span>
+        <span class="c">#     raise ToolValidationError(</span>
+        <span class="c">#         &quot;%s are a reserved names, and cannot be used as a tag keyword in %s&quot; % (reserved, self))</span>
+
+        <span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">ERROR_IF_TAG_IS_NOT_BASIC_TYPE</span>
+
+        <span class="k">if</span> <span class="n">ERROR_IF_TAG_IS_NOT_BASIC_TYPE</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="c"># msg = &#39;%s.tags[%s] is not a basic python type.  &#39; \</span>
+                <span class="c">#       &#39;Tag values should be a str, int, float or bool.&#39; \</span>
+                <span class="c">#       &#39;Alternatively, you can set cosmos.ERROR_OF_TAG_IS_NOT_BASIC_TYPE = False. \&#39;&#39; \</span>
+                <span class="c">#       &#39;IF YOU ENABLE THIS, TAGS THAT ARE NOT BASIC TYPES WILL ONLY BE USED AS PARAMETERS TO THE cmd()&#39; \</span>
+                <span class="c">#       &#39;FUNCTION, AND NOT FOR MATCHING PREVIOUSLY SUCCESSFUL TASKS WHEN RESUMING OR STORED IN THE&#39; \</span>
+                <span class="c">#       &#39;SQL DB.&#39; % (self,k)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.tags[</span><span class="si">%s</span><span class="s">] is not a basic python type.  &#39;</span> \
+                      <span class="s">&#39;Tag values should be a str, int, float or bool.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">basestring</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]),</span> <span class="n">msg</span>
+
+
+    <span class="k">def</span> <span class="nf">_validate_input_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">find_instance</span><span class="p">,</span> <span class="n">mapped_input_taskfiles</span><span class="p">,</span> <span class="n">parents</span><span class="p">):</span>
+        <span class="n">real_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapped_input_taskfiles</span><span class="p">)</span>
+        <span class="n">op</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">parse_cardinality</span><span class="p">(</span><span class="n">find_instance</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">OPS</span><span class="p">[</span><span class="n">op</span><span class="p">](</span><span class="n">real_count</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">number</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;******ERROR****** </span><span class="se">\n</span><span class="s">&#39;</span> \
+                <span class="s">&#39;{self} does not have right number of inputs: for {find_instance}</span><span class="se">\n</span><span class="s">&#39;</span> \
+                <span class="s">&#39;***Parents*** </span><span class="se">\n</span><span class="s">&#39;</span> \
+                <span class="s">&#39;{prnts}</span><span class="se">\n</span><span class="s">&#39;</span> \
+                <span class="s">&#39;***Inputs Matched ({real_count})*** </span><span class="se">\n</span><span class="s">&#39;</span> \
+                <span class="s">&#39;{mit} &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mit</span><span class="o">=</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">mapped_input_taskfiles</span><span class="p">)),</span>
+                                <span class="n">prnts</span><span class="o">=</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">parents</span><span class="p">)),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+            <span class="kn">import</span> <span class="nn">sys</span>
+
+            <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">s</span>
+            <span class="k">raise</span> <span class="n">ToolValidationError</span><span class="p">(</span><span class="s">&#39;Input files are missing, or their cardinality do not match.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_generate_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">default_drm</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">str_format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.output_dir&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="c"># self.output_dir = os.path.join(stage.execution.output_dir, self.output_dir)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">attr</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;mem_req&#39;</span><span class="p">,</span> <span class="s">&#39;time_req&#39;</span><span class="p">,</span> <span class="s">&#39;cpu_req&#39;</span><span class="p">,</span> <span class="s">&#39;must_succeed&#39;</span><span class="p">]}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s">&#39;drm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;local&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">default_drm</span>
+
+        <span class="c"># Validation</span>
+        <span class="c"># f = lambda ifa: ifa.taskfile</span>
+        <span class="c"># for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):</span>
+        <span class="c"># group_of_ifas = list(group_of_ifas)</span>
+        <span class="c">#     if len(group_of_ifas) &gt; 1:</span>
+        <span class="c">#         error(&#39;An input file mapped to multiple AbstractInputFiles for %s&#39; % self, dict(</span>
+        <span class="c">#             TaskFiles=tf</span>
+        <span class="c">#         ))</span>
+
+        <span class="k">def</span> <span class="nf">get_input_map</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">input_name</span><span class="p">,</span> <span class="n">input_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_arg_to_default</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">input_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                    <span class="c"># user specified explicitly</span>
+                    <span class="n">input_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">input_name</span><span class="p">]</span>
+                    <span class="k">yield</span> <span class="n">input_name</span><span class="p">,</span> <span class="n">input_file</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="n">find</span><span class="p">):</span>
+                    <span class="c"># user used find()</span>
+                    <span class="n">find_instance</span> <span class="o">=</span> <span class="n">input_value</span>
+                    <span class="n">available_files</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">output_files</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">))</span>
+                    <span class="n">input_taskfiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_find</span><span class="p">(</span><span class="n">available_files</span><span class="p">,</span> <span class="n">find_instance</span><span class="o">.</span><span class="n">regex</span><span class="p">,</span> <span class="n">error_if_missing</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_validate_input_mapping</span><span class="p">(</span><span class="n">find_instance</span><span class="p">,</span> <span class="n">input_taskfiles</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
+                    <span class="n">input_taskfile_or_input_taskfiles</span> <span class="o">=</span> <span class="n">unpack_if_cardinality_1</span><span class="p">(</span><span class="n">find_instance</span><span class="p">,</span> <span class="n">input_taskfiles</span><span class="p">)</span>
+
+                    <span class="k">yield</span> <span class="n">input_name</span><span class="p">,</span> <span class="n">input_taskfile_or_input_taskfiles</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> Bad input `</span><span class="si">%s</span><span class="s">`, with default `</span><span class="si">%s</span><span class="s">`.  Set its default to find(), or specify&#39;</span> \
+                                          <span class="s">&#39;its value via tags&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_name</span><span class="p">,</span> <span class="n">input_value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_output_map</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_arg_to_default</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                    <span class="n">output_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                    <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_file</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">forward</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">input_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_map</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">input_parameter_name</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s">&#39;Cannot forward name `</span><span class="si">%s</span><span class="s">`,it is not a valid input parameter of &#39;</span>
+                                       <span class="s">&#39;</span><span class="si">%s</span><span class="s">.cmd()&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">input_parameter_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                    <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">input_value</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">):</span>
+                    <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">basename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">))</span>
+                    <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_file</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span>
+
+
+            <span class="c"># for Input() and Inputs() nodes</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_sources</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">get_input_map</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">get_output_map</span><span class="p">())</span>
+
+        <span class="n">input_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">v</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_map</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="n">output_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">v</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_map</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">input_files</span><span class="o">=</span><span class="n">input_files</span><span class="p">,</span>
+                    <span class="n">output_files</span><span class="o">=</span><span class="n">output_files</span><span class="p">,</span> <span class="o">**</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="c"># inputs = unpack_taskfiles_with_cardinality_1(aif_2_input_taskfiles).values()</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">task</span>
+
+    <span class="k">def</span> <span class="nf">_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="n">argspec</span> <span class="o">=</span> <span class="n">getargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
+
+        <span class="k">def</span> <span class="nf">get_params</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">get_params</span><span class="p">())</span>
+
+        <span class="k">def</span> <span class="nf">validate_params</span><span class="p">():</span>
+            <span class="n">ndefaults</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span> <span class="k">if</span> <span class="n">argspec</span><span class="o">.</span><span class="n">defaults</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argspec</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">ndefaults</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                        <span class="s">&#39;</span><span class="si">%s</span><span class="s">.cmd() requires the parameter `</span><span class="si">%s</span><span class="s">`, are you missing a tag?  Either provide a default in the cmd() &#39;</span>
+                        <span class="s">&#39;method signature, or pass a value for `</span><span class="si">%s</span><span class="s">` with a tag&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="n">arg</span><span class="p">))</span>
+
+        <span class="n">validate_params</span><span class="p">()</span>
+
+
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_map</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_map</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.cmd did not return a str&#39;</span> <span class="o">%</span> <span class="bp">self</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&lt;TaskFile\[(.*?)\] .+?:(.+?)&gt;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>  <span class="c"># strip_lines(out_dir)</span>
+
+    <span class="k">def</span> <span class="nf">before_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="s">&#39;#!/bin/bash</span><span class="se">\n</span><span class="s">&#39;</span> \
+            <span class="s">&#39;set -e</span><span class="se">\n</span><span class="s">&#39;</span> \
+            <span class="s">&#39;set -o pipefail</span><span class="se">\n</span><span class="s">&#39;</span> \
+            <span class="s">&#39;cd </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">task</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">output_dir</span>
+
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">output_dir</span><span class="p">:</span>
+            <span class="n">o</span> <span class="o">+=</span> <span class="s">&#39;mkdir -p </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">task</span><span class="o">.</span><span class="n">output_dir</span>
+
+        <span class="n">o</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+        <span class="k">return</span> <span class="n">o</span>
+
+    <span class="k">def</span> <span class="nf">after_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+
+<div class="viewcode-block" id="Tool.cmd"><a class="viewcode-back" href="../../../workflows/tools.html#cosmos.models.Tool.Tool.cmd">[docs]</a>    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs the command string.  Lines will be .strip()ed.</span>
+<span class="sd">        :param dict kwargs:  Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        :returns: The text to write into the shell script that gets executed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&quot;{0}.cmd is not implemented.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">_generate_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the command</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="n">NOOP</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NOOP</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">before_cmd</span><span class="p">()</span> <span class="o">+</span> <span class="n">cmd</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">after_cmd</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;Tool[</span><span class="si">%s</span><span class="s">] </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+
+</div>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+
+<span class="k">class</span> <span class="nc">InputSource</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;InputSource&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;format&#39;</span><span class="p">])):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">format</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">format</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>  <span class="c"># remove the &#39;.&#39;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">InputSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">set_default_name_format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">default_name</span><span class="p">,</span> <span class="n">default_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">default_name</span>
+    <span class="k">if</span> <span class="n">format</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">format</span> <span class="o">=</span> <span class="n">default_ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">format</span>
+
+
+<div class="viewcode-block" id="Input"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.models.Tool.Input">[docs]</a><span class="k">class</span> <span class="nc">Input</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A NOOP Task who&#39;s output_files contain a *single* file that already exists on the filesystem.</span>
+<span class="sd">    &gt;&gt;&gt; Input(path_to_file,tags={&#39;key&#39;:&#39;val&#39;})</span>
+<span class="sd">    &gt;&gt;&gt; Input(path=path_to_file, name=&#39;myfile&#39;,format=&#39;txt&#39;,tags={&#39;key&#39;:&#39;val&#39;})</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Load_Input_Files&#39;</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="Input.__init__"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.models.Tool.Input.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str path: the path to the input file</span>
+<span class="sd">        :param str name: the name or keyword for the input file.  defaults to whatever format is set to.</span>
+<span class="sd">        :param str format: the format of the input file.  Defaults to the value in `name`</span>
+<span class="sd">        :param dict tags: tags for the task that will be generated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># path = _abs(path)</span>
+        <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">name</span><span class="p">,</span> <span class="n">format</span> <span class="o">=</span> <span class="n">set_default_name_format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Input</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InputSource</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">format</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">NOOP</span>
+
+</div>
+<div class="viewcode-block" id="Inputs"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.models.Tool.Inputs">[docs]</a><span class="k">class</span> <span class="nc">Inputs</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same as :class:`Input`, but loads multiple input files.</span>
+<span class="sd">    &gt;&gt;&gt; Inputs([(&#39;name1&#39;,&#39;txt&#39;,&#39;/path/to/input&#39;), (&#39;name2&#39;,&#39;gz&#39;,&#39;/path/to/input2&#39;)], tags={&#39;key&#39;:&#39;val&#39;})</span>
+<span class="sd">    &quot;root_path   name = &#39;Load_Input_Files&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Load_Input_Files&#39;</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="Inputs.__init__"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.models.Tool.Inputs.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param list inputs: a list of tuples that are (path, name, format)</span>
+<span class="sd">        :param dict tags:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># self.NOOP = True</span>
+        <span class="k">if</span> <span class="n">tags</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Inputs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">fmt</span> <span class="o">=</span> <span class="n">set_default_name_format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fmt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InputSource</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">fmt</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">NOOP</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_abs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">path2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path2</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> path does not exist&#39;</span> <span class="o">%</span> <span class="n">path2</span>
+    <span class="k">return</span> <span class="n">path2</span>
+
+
+<span class="k">def</span> <span class="nf">unpack_if_cardinality_1</span><span class="p">(</span><span class="n">find_instance</span><span class="p">,</span> <span class="n">taskfiles</span><span class="p">):</span>
+    <span class="n">op</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">parse_cardinality</span><span class="p">(</span><span class="n">find_instance</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;=&#39;</span><span class="p">,</span> <span class="s">&#39;==&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">taskfiles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">taskfiles</span>
+
+
+<span class="k">def</span> <span class="nf">_find</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">regex</span><span class="p">,</span> <span class="n">error_if_missing</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">filename</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">and</span> <span class="n">error_if_missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="s">&#39;No taskfile found for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">regex</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

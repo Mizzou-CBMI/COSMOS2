@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos &mdash; Cosmos 1.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos 1.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#history">1.2. History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#features">1.3. Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/index.html">4. Writing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/initializing.html">4.1. Initializing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/tools.html">4.2. Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../workflows/examples.html">4.4. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">5. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">5.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">5.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">5.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">5.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">6. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">7. Cosmos FAQ</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>cosmos</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for cosmos</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask.ext.sqlalchemy</span> <span class="kn">import</span> <span class="n">SQLAlchemy</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+
+<span class="kn">from</span> <span class="nn">.util.helpers</span> <span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">mkdir</span><span class="p">,</span> <span class="n">confirm</span><span class="p">,</span> <span class="n">str_format</span>
+<span class="kn">from</span> <span class="nn">.util.args</span> <span class="kn">import</span> <span class="n">get_last_cmd_executed</span>
+<span class="kn">from</span> <span class="nn">.db</span> <span class="kn">import</span> <span class="n">Base</span>
+
+<span class="c"># turn SQLAlchemy warnings into errors</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">SAWarning</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s">&quot;error&quot;</span><span class="p">,</span> <span class="n">SAWarning</span><span class="p">)</span>
+
+<span class="n">opj</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+
+<span class="c">#########################################################################################################################</span>
+<span class="c"># Settings</span>
+<span class="c">#########################################################################################################################</span>
+
+<span class="n">library_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">library_path</span><span class="p">,</span> <span class="s">&#39;VERSION&#39;</span><span class="p">),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">__version__</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="default_get_submit_args"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.default_get_submit_args">[docs]</a><span class="k">def</span> <span class="nf">default_get_submit_args</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">default_queue</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Default method for determining the extra arguments to pass to the DRM.</span>
+<span class="sd">    For example, returning `&quot;-n 3&quot; if` `task.drm == &quot;lsf&quot;` would caused all jobs</span>
+<span class="sd">    to be submitted with `bsub -n 3`.</span>
+
+<span class="sd">    :param cosmos.Task task: The Task being submitted.</span>
+<span class="sd">    :param default_queue: The default queue.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">drm</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">drm</span> <span class="ow">or</span> <span class="n">default_queue</span>
+    <span class="n">default_job_priority</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">use_mem_req</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">use_time_req</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">cpu_req</span>
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">mem_req</span> <span class="k">if</span> <span class="n">use_mem_req</span> <span class="k">else</span> <span class="bp">None</span>
+    <span class="n">time_req</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">time_req</span> <span class="k">if</span> <span class="n">use_time_req</span> <span class="k">else</span> <span class="bp">None</span>
+
+    <span class="n">jobname</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_task(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">queue</span> <span class="o">=</span> <span class="s">&#39; -q </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">default_queue</span> <span class="k">if</span> <span class="n">default_queue</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+    <span class="n">priority</span> <span class="o">=</span> <span class="s">&#39; -p </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">default_job_priority</span> <span class="k">if</span> <span class="n">default_job_priority</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;lsf&#39;</span><span class="p">:</span>
+        <span class="n">rusage</span> <span class="o">=</span> <span class="s">&#39;-R &quot;rusage[mem={mem}] &#39;</span> <span class="k">if</span> <span class="n">mem_req</span> <span class="ow">and</span> <span class="n">use_mem_req</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="s">&#39; -W 0:{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">time_req</span><span class="p">)</span> <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">time_req</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s">&#39;-R &quot;{rusage}span[hosts=1]&quot; -n {task.cpu_req}{time}{queue} -J &quot;{jobname}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+    <span class="k">elif</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;ge&#39;</span><span class="p">:</span>
+        <span class="n">h_vmem</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">mem_req</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">cpu_req</span><span class="p">)))</span> <span class="k">if</span> <span class="n">mem_req</span> <span class="k">else</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">g</span><span class="p">():</span>
+            <span class="n">resource_reqs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">h_vmem</span><span class="o">=</span><span class="n">h_vmem</span><span class="p">,</span> <span class="n">num_proc</span><span class="o">=</span><span class="n">cpu_req</span><span class="p">,</span> <span class="n">time_req</span><span class="o">=</span><span class="n">time_req</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">resource_reqs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="n">resource_str</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">g</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="s">&#39;-l &quot;{resource_str}&quot;{priority} -N &quot;{jobname}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;local&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;DRM not supported: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">drm</span><span class="p">)</span>
+
+
+<span class="c">#########################################################################################################################</span>
+<span class="c"># Cosmos Class</span>
+<span class="c">#########################################################################################################################</span>
+</div>
+<div class="viewcode-block" id="Cosmos"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.Cosmos">[docs]</a><span class="k">class</span> <span class="nc">Cosmos</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Cosmos.__init__"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.Cosmos.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">database_url</span><span class="o">=</span><span class="s">&#39;sqlite:///:memory:&#39;</span><span class="p">,</span>
+                 <span class="n">get_submit_args</span><span class="o">=</span><span class="n">default_get_submit_args</span><span class="p">,</span>
+                 <span class="n">default_drm</span><span class="o">=</span><span class="s">&#39;local&#39;</span><span class="p">,</span> <span class="n">default_queue</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">flask_app</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str database_url: A `sqlalchemy database url &lt;http://docs.sqlalchemy.org/en/latest/core/engines.html&gt;`_.  ex: sqlite:///home/user/sqlite.db or</span>
+<span class="sd">            mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name</span>
+<span class="sd">        :param func get_submit_args: a function that returns arguments to be passed to the job submitter, like resource</span>
+<span class="sd">            requirements or the queue to submit to.  See :func:`cosmos.default_get_submit_args` for details</span>
+<span class="sd">        :param Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.</span>
+<span class="sd">        :param str default_drm: The Default DRM to use (ex &#39;local&#39;, &#39;lsf&#39;, or &#39;ge&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">default_drm</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;local&#39;</span><span class="p">,</span> <span class="s">&#39;lsf&#39;</span><span class="p">,</span> <span class="s">&#39;ge&#39;</span><span class="p">],</span> <span class="s">&#39;unsupported drm: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">default_drm</span>
+        <span class="k">assert</span> <span class="s">&#39;://&#39;</span> <span class="ow">in</span> <span class="n">database_url</span><span class="p">,</span> <span class="s">&#39;Invalid database_url: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">database_url</span>
+
+        <span class="k">if</span> <span class="n">flask_app</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span> <span class="o">=</span> <span class="n">flask_app</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">secret_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_submit_args</span> <span class="o">=</span> <span class="n">get_submit_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SQLALCHEMY_DATABASE_URI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">database_url</span>
+        <span class="c"># self.flask_app.config[&#39;SQLALCHEMY_ECHO&#39;] = True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sqla</span> <span class="o">=</span> <span class="n">SQLAlchemy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sqla</span><span class="o">.</span><span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_queue</span> <span class="o">=</span> <span class="n">default_queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_drm</span> <span class="o">=</span> <span class="n">default_drm</span>
+
+        <span class="c"># setup flask views</span>
+        <span class="kn">from</span> <span class="nn">cosmos.web.views</span> <span class="kn">import</span> <span class="n">gen_bprint</span>
+        <span class="c"># from cosmos.web.admin import add_cosmos_admin</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span> <span class="o">=</span> <span class="n">gen_bprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span><span class="p">)</span>
+        <span class="c"># add_cosmos_admin(flask_app, self.session)</span>
+</div>
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">restart</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">max_cpus</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+              <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Start, resume, or restart an execution based on its name.  If resuming, deletes failed tasks.</span>
+
+<span class="sd">        :param str name: A name for the workflow.  Must be unique for this Cosmos session.</span>
+<span class="sd">        :param str output_dir: The directory to write files to.  Defaults to the current working directory.</span>
+<span class="sd">        :param bool restart: If True and the execution exists, delete it first.</span>
+<span class="sd">        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.</span>
+<span class="sd">        :param int max_cpus: The maximum number of CPUs to use at once.</span>
+<span class="sd">        :param int max_attempts: The maximum number of times to retry a failed job.</span>
+<span class="sd">        :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir already exists.</span>
+
+<span class="sd">        :returns: An Execution instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()),</span> <span class="s">&quot;The current working dir of this environment, </span><span class="si">%s</span><span class="s">, does not exist&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="k">if</span> <span class="n">output_dir</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;/&#39;</span> <span class="k">else</span> <span class="n">output_dir</span><span class="p">[</span><span class="mi">0</span><span class="p">:]</span>  <span class="c"># remove trailing slash</span>
+        <span class="n">prefix_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">prefix_dir</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> does not exist&#39;</span> <span class="o">%</span> <span class="n">prefix_dir</span>
+        <span class="kn">from</span> <span class="nn">.util.helpers</span> <span class="kn">import</span> <span class="n">mkdir</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+
+        <span class="n">old_id</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">restart</span><span class="p">:</span>
+            <span class="n">ex</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Execution</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">old_id</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Restarting </span><span class="si">%s</span><span class="s">.  Are you sure you want to delete the contents of output_dir `</span><span class="si">%s</span><span class="s">` &#39;</span> \
+                      <span class="s">&#39;and all sql records for this execution?&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                          <span class="n">ex</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">ex</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_confirm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">confirm</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Quitting&#39;</span><span class="p">)</span>
+
+                <span class="n">ex</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_files</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_confirm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">confirm</span><span class="p">(</span><span class="s">&#39;Execution with name </span><span class="si">%s</span><span class="s"> does not exist, &#39;</span>
+                                                    <span class="s">&#39;but `restart` is set to True.  &#39;</span>
+                                                    <span class="s">&#39;Continue by starting a new Execution?&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Quitting&#39;</span><span class="p">)</span>
+
+        <span class="c"># resuming?</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Execution</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="c"># msg = &#39;Execution started, Cosmos v%s&#39; % __version__</span>
+        <span class="k">if</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="c"># resuming.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_confirm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">confirm</span><span class="p">(</span><span class="s">&#39;Resuming </span><span class="si">%s</span><span class="s">.  All non-successful jobs will be deleted, &#39;</span>
+                                                <span class="s">&#39;then any new tasks in the graph will be added and executed.  &#39;</span>
+                                                <span class="s">&#39;Are you sure?&#39;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Quitting&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">ex</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">==</span> <span class="n">output_dir</span><span class="p">,</span> <span class="s">&#39;cannot change the output_dir of an execution being resumed.&#39;</span>
+
+            <span class="n">ex</span><span class="o">.</span><span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">ex</span><span class="o">.</span><span class="n">finished_on</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">output_dir</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;output_directory </span><span class="si">%s</span><span class="s"> does not exist, cannot resume </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">ex</span><span class="p">))</span>
+
+            <span class="n">ex</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Resuming </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="n">failed_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ex</span><span class="o">.</span><span class="n">stages</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">tasks</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">successful</span><span class="p">]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_tasks</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span><span class="p">:</span>
+                <span class="n">ex</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Deleting </span><span class="si">%s</span><span class="s"> failed task(s) from SQL database, delete_files=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">failed_tasks</span><span class="p">:</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">):</span>
+                <span class="n">ex</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Deleting stage </span><span class="si">%s</span><span class="s">, since it has no successful Tasks&#39;</span> <span class="o">%</span> <span class="n">stage</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># start from scratch</span>
+            <span class="k">if</span> <span class="n">check_output_dir</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">),</span> <span class="s">&#39;Execution output_dir `</span><span class="si">%s</span><span class="s">` already exists.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+            <span class="n">mkdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>  <span class="c"># make it here so we can start logging to logfile</span>
+            <span class="n">ex</span> <span class="o">=</span> <span class="n">Execution</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">old_id</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">manual_instantiation</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+
+        <span class="n">ex</span><span class="o">.</span><span class="n">max_cpus</span> <span class="o">=</span> <span class="n">max_cpus</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">max_attempts</span> <span class="o">=</span> <span class="n">max_attempts</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;last_cmd_executed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_last_cmd_executed</span><span class="p">()</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;cwd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">expunge_all</span><span class="p">()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+
+        <span class="n">ex</span><span class="o">.</span><span class="n">cosmos_app</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">return</span> <span class="n">ex</span>
+
+<div class="viewcode-block" id="Cosmos.initdb"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.Cosmos.initdb">[docs]</a>    <span class="k">def</span> <span class="nf">initdb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;Initializing sql database for Cosmos v</span><span class="si">%s</span><span class="s">...&#39;</span> <span class="o">%</span> <span class="n">__version__</span>
+        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">.db</span> <span class="kn">import</span> <span class="n">MetaData</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">initdb_library_version</span><span class="o">=</span><span class="n">__version__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Cosmos.resetdb"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.Cosmos.resetdb">[docs]</a>    <span class="k">def</span> <span class="nf">resetdb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets (deletes then initializes) the database.  This is not reversible!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;Dropping tables in db...&#39;</span>
+        <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">drop_all</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Cosmos.shell"><a class="viewcode-back" href="../shell.html#cosmos.Cosmos.shell">[docs]</a>    <span class="k">def</span> <span class="nf">shell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Launch an IPython shell with useful variables already imported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cosmos_app</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+        <span class="n">executions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Execution</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="n">ex</span> <span class="o">=</span> <span class="n">executions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">executions</span><span class="p">)</span> <span class="k">else</span> <span class="bp">None</span>
+
+        <span class="kn">import</span> <span class="nn">IPython</span>
+
+        <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Cosmos.runweb"><a class="viewcode-back" href="../workflows/initializing.html#cosmos.Cosmos.runweb">[docs]</a>    <span class="k">def</span> <span class="nf">runweb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Starts the web dashboard</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+
+
+<span class="c">#########################################################################################################################</span>
+<span class="c"># Misc</span>
+<span class="c">#########################################################################################################################</span>
+</div></div>
+<span class="k">class</span> <span class="nc">ExecutionFailed</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+
+<span class="c">#########################################################################################################################</span>
+<span class="c"># Signals</span>
+<span class="c">#########################################################################################################################</span>
+<span class="kn">import</span> <span class="nn">blinker</span>
+
+<span class="n">signal_task_status_change</span> <span class="o">=</span> <span class="n">blinker</span><span class="o">.</span><span class="n">Signal</span><span class="p">()</span>
+<span class="n">signal_stage_status_change</span> <span class="o">=</span> <span class="n">blinker</span><span class="o">.</span><span class="n">Signal</span><span class="p">()</span>
+<span class="n">signal_execution_status_change</span> <span class="o">=</span> <span class="n">blinker</span><span class="o">.</span><span class="n">Signal</span><span class="p">()</span>
+
+
+<span class="c">########################################################################################################################</span>
+<span class="c"># Enums</span>
+<span class="c">########################################################################################################################</span>
+<span class="kn">import</span> <span class="nn">enum</span>
+
+
+<span class="k">class</span> <span class="nc">MyEnum</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_</span>
+
+
+<span class="n">NOOP</span> <span class="o">=</span> <span class="s">&#39;&lt;NO OPERATION&gt;&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">TaskStatus</span><span class="p">(</span><span class="n">MyEnum</span><span class="p">):</span>
+    <span class="n">no_attempt</span> <span class="o">=</span> <span class="s">&#39;Has not been attempted&#39;</span><span class="p">,</span>
+    <span class="n">waiting</span> <span class="o">=</span> <span class="s">&#39;Waiting to execute&#39;</span><span class="p">,</span>
+    <span class="n">submitted</span> <span class="o">=</span> <span class="s">&#39;Submitted to the job manager&#39;</span><span class="p">,</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="s">&#39;Finished successfully&#39;</span><span class="p">,</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="s">&#39;Finished, but failed&#39;</span>
+    <span class="n">killed</span> <span class="o">=</span> <span class="s">&#39;Manually killed&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">StageStatus</span><span class="p">(</span><span class="n">MyEnum</span><span class="p">):</span>
+    <span class="n">no_attempt</span> <span class="o">=</span> <span class="s">&#39;Has not been attempted&#39;</span><span class="p">,</span>
+    <span class="n">running</span> <span class="o">=</span> <span class="s">&#39;Running&#39;</span><span class="p">,</span>
+    <span class="n">running_but_failed</span> <span class="o">=</span> <span class="s">&#39;Running, but a task failed&#39;</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="s">&#39;Finished successfully&#39;</span><span class="p">,</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="s">&#39;Finished, but failed&#39;</span>
+    <span class="n">killed</span> <span class="o">=</span> <span class="s">&#39;Manually killed&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">ExecutionStatus</span><span class="p">(</span><span class="n">MyEnum</span><span class="p">):</span>
+    <span class="n">no_attempt</span> <span class="o">=</span> <span class="s">&#39;No Attempt yet&#39;</span><span class="p">,</span>
+    <span class="n">running</span> <span class="o">=</span> <span class="s">&#39;Running&#39;</span><span class="p">,</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="s">&#39;Successfully Finished&#39;</span><span class="p">,</span>
+    <span class="n">killed</span> <span class="o">=</span> <span class="s">&#39;Killed&#39;</span>
+    <span class="n">failed_but_running</span> <span class="o">=</span> <span class="s">&quot;Running, but a task failed&quot;</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="s">&#39;Failed, but finished&#39;</span>
+
+
+<span class="k">class</span> <span class="nc">RelationshipType</span><span class="p">(</span><span class="n">MyEnum</span><span class="p">):</span>
+    <span class="n">one2one</span> <span class="o">=</span> <span class="s">&#39;one2one&#39;</span><span class="p">,</span>
+    <span class="n">one2many</span> <span class="o">=</span> <span class="s">&#39;one2many&#39;</span><span class="p">,</span>
+    <span class="n">many2one</span> <span class="o">=</span> <span class="s">&#39;many2one&#39;</span><span class="p">,</span>
+    <span class="n">many2many</span> <span class="o">=</span> <span class="s">&#39;many2many&#39;</span>
+
+<span class="c">########################################################################################################################</span>
+<span class="c"># Warnings</span>
+<span class="c">########################################################################################################################</span>
+
+<span class="n">ERROR_IF_TAG_IS_NOT_BASIC_TYPE</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c">########################################################################################################################</span>
+<span class="c"># Imports</span>
+<span class="c">########################################################################################################################</span>
+
+<span class="kn">from</span> <span class="nn">.models.files</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">abstract_input_taskfile</span><span class="p">,</span> <span class="n">abstract_output_taskfile</span><span class="p">,</span> <span class="n">forward</span><span class="p">,</span> \
+    <span class="n">abstract_output_taskfile_old</span>  <span class="c"># these are all deprecated</span>
+<span class="kn">from</span> <span class="nn">.models.Task</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">.models.Stage</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">.models.Tool</span> <span class="kn">import</span> <span class="n">Tool</span><span class="p">,</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span> <span class="nn">.models.Execution</span> <span class="kn">import</span> <span class="n">Execution</span>
+<span class="kn">from</span> <span class="nn">.util.args</span> <span class="kn">import</span> <span class="n">add_execution_args</span>
+<span class="kn">from</span> <span class="nn">.util.tool</span> <span class="kn">import</span> <span class="n">one2one</span><span class="p">,</span> <span class="n">one2many</span><span class="p">,</span> <span class="n">many2one</span><span class="p">,</span> <span class="n">many2many</span><span class="p">,</span> <span class="n">make_dict</span>
+<span class="kn">from</span> <span class="nn">.graph.draw</span> <span class="kn">import</span> <span class="n">draw_task_graph</span><span class="p">,</span> <span class="n">draw_stage_graph</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

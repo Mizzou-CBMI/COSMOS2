@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4.1. Initializing &mdash; Cosmos 1.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos 1.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="4. Writing Workflows" href="index.html"/>
+        <link rel="next" title="4.2. Tools" href="tools.html"/>
+        <link rel="prev" title="4. Writing Workflows" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#history">1.2. History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#features">1.3. Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. Writing Workflows</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">4.1. Initializing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.html">4.2. Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">4.4. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">5. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">5.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">5.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">5.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">5.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">6. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">7. Cosmos FAQ</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">4. Writing Workflows</a> &raquo;</li>
+      
+    <li>4.1. Initializing</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/workflows/initializing.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="initializing">
+<span id="tools"></span><h1>4.1. Initializing<a class="headerlink" href="#initializing" title="Permalink to this headline">¶</a></h1>
+<p>Cosmos is initialized using the <a class="reference internal" href="#cosmos.Cosmos" title="cosmos.Cosmos"><tt class="xref py py-class docutils literal"><span class="pre">cosmos.Cosmos</span></tt></a> object, which is subsequently used to starts instances of <tt class="xref py py-class docutils literal"><span class="pre">Execution</span></tt>
+which contain the entire structure of a workflow.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
+<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s">&#39;sqlite:///my_cosmos_db.sqlite&#39;</span><span class="p">)</span>
+<span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
+<span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;My_Workflow&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You will likely have to install the python package required to use the driver you&#8217;d like. For example, if you are using
+<tt class="docutils literal"><span class="pre">postgres+psycopg2:///</span></tt>, make sure you <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">psycopg2</span></tt>.  See <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html">SQLAlchemy Engines</a>
+for more details.</p>
+<div class="section" id="api">
+<h2>4.1.1. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cosmos">
+<h3>4.1.1.1. Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="cosmos.Cosmos">
+<em class="property">class </em><tt class="descclassname">cosmos.</tt><tt class="descname">Cosmos</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10eb57c80&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><big>)</big><a class="reference internal" href="../_modules/cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Cosmos" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="cosmos.Cosmos.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10eb57c80&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><big>)</big><a class="reference internal" href="../_modules/cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>database_url</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html">sqlalchemy database url</a>.  ex: sqlite:///home/user/sqlite.db or
+mysql://user:pass&#64;localhost/database_name or postgresql+psycopg2://user:pass&#64;localhost/database_name</li>
+<li><strong>get_submit_args</strong> (<em>func</em>) &#8211; a function that returns arguments to be passed to the job submitter, like resource
+requirements or the queue to submit to.  See <a class="reference internal" href="#cosmos.default_get_submit_args" title="cosmos.default_get_submit_args"><tt class="xref py py-func docutils literal"><span class="pre">cosmos.default_get_submit_args()</span></tt></a> for details</li>
+<li><strong>flask_app</strong> (<em>Flask</em>) &#8211; A Flask application instance for the web interface.  The default behavior is to create one.</li>
+<li><strong>default_drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The Default DRM to use (ex &#8216;local&#8217;, &#8216;lsf&#8217;, or &#8216;ge&#8217;)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Cosmos.initdb">
+<tt class="descname">initdb</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos.html#Cosmos.initdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Cosmos.initdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Cosmos.resetdb">
+<tt class="descname">resetdb</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/cosmos.html#Cosmos.resetdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Cosmos.resetdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets (deletes then initializes) the database.  This is not reversible!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.Cosmos.runweb">
+<tt class="descname">runweb</tt><big>(</big><em>host</em>, <em>port</em>, <em>debug=True</em><big>)</big><a class="reference internal" href="../_modules/cosmos.html#Cosmos.runweb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Cosmos.runweb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the web dashboard</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cosmos.default_get_submit_args">
+<tt class="descclassname">cosmos.</tt><tt class="descname">default_get_submit_args</tt><big>(</big><em>task</em>, <em>default_queue=None</em><big>)</big><a class="reference internal" href="../_modules/cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default method for determining the extra arguments to pass to the DRM.
+For example, returning <cite>&#8220;-n 3&#8221; if</cite> <cite>task.drm == &#8220;lsf&#8221;</cite> would caused all jobs
+to be submitted with <cite>bsub -n 3</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>task</strong> (<em>cosmos.Task</em>) &#8211; The Task being submitted.</li>
+<li><strong>default_queue</strong> &#8211; The default queue.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tools.html" class="btn btn-neutral float-right" title="4.2. Tools"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="4. Writing Workflows"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

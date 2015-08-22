@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4.2. Tools &mdash; Cosmos 1.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos 1.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="4. Writing Workflows" href="index.html"/>
+        <link rel="next" title="4.3. DAG (Directed Acyclic Graph)" href="dag.html"/>
+        <link rel="prev" title="4.1. Initializing" href="initializing.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#history">1.2. History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#features">1.3. Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. Writing Workflows</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="initializing.html">4.1. Initializing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">4.2. Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">4.4. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">5. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">5.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">5.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">5.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">5.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">6. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">7. Cosmos FAQ</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">4. Writing Workflows</a> &raquo;</li>
+      
+    <li>4.2. Tools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/workflows/tools.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <span class="target" id="module-cosmos.Tool"><span id="tools"></span></span><div class="section" id="id1">
+<h1>4.2. Tools<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>A <a class="reference internal" href="#module-cosmos.Tool" title="cosmos.Tool"><tt class="xref py py-class docutils literal"><span class="pre">Tool</span></tt></a> represents an executable (like echo, cat, or paste, or script) that is run from the command line.
+A tool is a class that overrides <tt class="xref py py-class docutils literal"><span class="pre">Tool</span></tt>, and implements the method <tt class="xref py py-meth docutils literal"><span class="pre">cmd()</span></tt>.  Each instance of
+<a class="reference internal" href="#module-cosmos.Tool" title="cosmos.Tool"><tt class="xref py py-class docutils literal"><span class="pre">Tool</span></tt></a> corresponds to one <tt class="xref py py-class docutils literal"><span class="pre">Task</span></tt> of the <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Tool</span><span class="p">,</span> <span class="n">abstract_input_file</span> <span class="k">as</span> <span class="n">aif</span><span class="p">,</span> <span class="n">abstract_output_file</span> <span class="k">as</span> <span class="n">aof</span>
+
+<span class="k">class</span> <span class="nc">WordCount</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Count the number of words, and write it to another text file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># You change change these defaults</span>
+    <span class="n">mem_req</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span> <span class="c"># MB of RAM</span>
+    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">1</span> <span class="c"># cores</span>
+    <span class="n">time_req</span> <span class="o">=</span> <span class="mi">60</span> <span class="c"># mins</span>
+
+    <span class="c"># Or specify these options</span>
+    <span class="n">drm</span> <span class="o">=</span> <span class="s">&#39;local&#39;</span> <span class="c"># run as a subprocess on the local machine, rather than submitting to the DRM</span>
+    <span class="n">skip_profile</span> <span class="o">=</span> <span class="bp">True</span> <span class="c"># skip profiling this job</span>
+    <span class="n">must_succeed</span> <span class="o">=</span> <span class="bp">False</span> <span class="c"># run the children of this job even if it fails</span>
+
+
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">in_txt</span><span class="o">=</span><span class="n">aif</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;txt&#39;</span><span class="p">),</span> <span class="n">out_txt</span><span class="o">=</span><span class="n">aof</span><span class="p">(</span><span class="s">&#39;count.txt&#39;</span><span class="p">)):</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="s">&#39; -l&#39;</span> <span class="k">if</span> <span class="n">lines</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s">r&quot;&quot;&quot;</span>
+<span class="s">            wc{l} {in_txt} &gt; {out_txt}</span>
+<span class="s">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="section" id="abstract-input-file">
+<h2>4.2.1. Abstract Input File<a class="headerlink" href="#abstract-input-file" title="Permalink to this headline">¶</a></h2>
+<p>An <a class="reference internal" href="#cosmos.abstract_input_taskfile" title="cosmos.abstract_input_taskfile"><tt class="xref py py-func docutils literal"><span class="pre">abstract_input_taskfile()</span></tt></a> specifies the input file(s) required by a Tool.  All parents will be searched for output_files
+that match both the name and/or format specified (at least the name or format must be specified).  The name and format
+are regular expressions.  For example if you&#8217;re expecting two .txt files but only know one name, you could do something
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">text1</span> <span class="o">=</span> <span class="n">aif</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;(?!expected_name)&#39;</span><span class="p">,</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;txt&#39;</span><span class="p">)</span> <span class="c"># this aif&#39;s name matches anything that is NOT &quot;expected_name&quot;</span>
+<span class="n">text2</span> <span class="o">=</span> <span class="n">aif</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;expected_name&#39;</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;txt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also override the signature of Tools for extremely special cases:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ToolB</span><span class="p">(</span><span class="n">Tool</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aif</span><span class="o">=</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;txt|txt.gz&#39;</span><span class="p">)):</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">ToolB</span><span class="p">(</span><span class="n">ToolA</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aif</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;very_specific_name&#39;</span><span class="p">,</span><span class="s">&#39;txt|txt.gz&#39;</span><span class="p">)):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<div class="section" id="cardinality">
+<h3>4.2.1.1. Cardinality<a class="headerlink" href="#cardinality" title="Permalink to this headline">¶</a></h3>
+<p>The cardinality (The <cite>n</cite> parameter), is enforced such that <tt class="docutils literal"><span class="pre">n</span></tt> number of input_files should match.  By default,
+the cardinality of each abstract_input_file is <tt class="docutils literal"><span class="pre">==1</span></tt>, but this can be changed using the <tt class="docutils literal"><span class="pre">n</span></tt> parameter: <tt class="docutils literal"><span class="pre">itf(format='txt',</span> <span class="pre">n='&gt;=1')</span></tt>).
+If you specify a cardinality where there may be more than 1, for example <tt class="docutils literal"><span class="pre">n='&gt;=1'</span></tt>, the <tt class="docutils literal"><span class="pre">cmd()</span></tt> parameter will be passed a list
+of input files than output files.</p>
+</div>
+</div>
+<div class="section" id="abstract-output-file">
+<h2>4.2.2. Abstract Output File<a class="headerlink" href="#abstract-output-file" title="Permalink to this headline">¶</a></h2>
+<p>An <a class="reference internal" href="#cosmos.abstract_output_taskfile" title="cosmos.abstract_output_taskfile"><tt class="xref py py-func docutils literal"><span class="pre">abstract_output_taskfile()</span></tt></a> specifies an output file that a tool will generate.
+Cardinality of output_files cannot be specified and is always 1.</p>
+</div>
+<div class="section" id="tags">
+<h2>4.2.3. Tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h2>
+<p>Every instance of a Tool (and it&#8217;s relevant Task) has a dictionary of tags.  These tags are used for the following:</p>
+<ul class="simple">
+<li>A unique identifier.  No tool/task can have the same set of tags within the <em>same stage</em>.</li>
+<li>Parameters.  If a keyword in a tool&#8217;s tags matches a parameter in it&#8217;s <tt class="docutils literal"><span class="pre">cmd()</span></tt> method, it will be passed into the call to <tt class="docutils literal"><span class="pre">cmd()</span></tt> as a parameter.
+For example when <tt class="docutils literal"><span class="pre">cmd()</span></tt> is called by Cossmos for the tool <tt class="docutils literal"><span class="pre">WordCount(tags=dict(lines=True,</span> <span class="pre">other='val'))</span></tt>, it will be called like this:
+<tt class="docutils literal"><span class="pre">cmd(lines=True,</span> <span class="pre">other='val',...)</span></tt>.</li>
+<li>A way to group similar tasks together when defining the <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a>.</li>
+<li>A way to look up particular tasks in the Web Interface or using the API.</li>
+</ul>
+</div>
+<div class="section" id="api">
+<h2>4.2.4. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cosmos.models.Tool">
+<span id="tool"></span><h3>4.2.4.1. Tool<a class="headerlink" href="#module-cosmos.models.Tool" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="cosmos.models.Tool.Tool">
+<em class="property">class </em><tt class="descclassname">cosmos.models.Tool.</tt><tt class="descname">Tool</tt><big>(</big><em>tags</em>, <em>parents=None</em>, <em>out=''</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Essentially a factory that produces Tasks.  <a class="reference internal" href="#cosmos.models.Tool.Tool.cmd" title="cosmos.models.Tool.Tool.cmd"><tt class="xref py py-meth docutils literal"><span class="pre">cmd()</span></tt></a> must be overridden unless it is a NOOP task.</p>
+<dl class="method">
+<dt id="cosmos.models.Tool.Tool.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>tags</em>, <em>parents=None</em>, <em>out=''</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tags</strong> &#8211; (dict) A dictionary of tags.  The combination of tags are the unique identifier for a Task,
+and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag
+values must be basic python types.</li>
+<li><strong>parents</strong> &#8211; (list of Tasks).  A list of parent tasks</li>
+<li><strong>out</strong> &#8211; an output directory, will be .format()ed with tags</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.models.Tool.Tool.cmd">
+<tt class="descname">cmd</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool.cmd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool.cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs the command string.  Lines will be .strip()ed.
+:param dict kwargs:  Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
+:rtype: str
+:returns: The text to write into the shell script that gets executed</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="abstract-i-o-files">
+<h4>4.2.4.1.1. Abstract I/O Files<a class="headerlink" href="#abstract-i-o-files" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="cosmos.abstract_input_taskfile">
+<tt class="descclassname">cosmos.</tt><tt class="descname">abstract_input_taskfile</tt><big>(</big><em>name=None</em>, <em>format=None</em>, <em>n=1</em><big>)</big><a class="headerlink" href="#cosmos.abstract_input_taskfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cosmos.abstract_output_taskfile">
+<tt class="descclassname">cosmos.</tt><tt class="descname">abstract_output_taskfile</tt><big>(</big><em>basename=None</em>, <em>name=None</em>, <em>format=None</em><big>)</big><a class="headerlink" href="#cosmos.abstract_output_taskfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dag.html" class="btn btn-neutral float-right" title="4.3. DAG (Directed Acyclic Graph)"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="initializing.html" class="btn btn-neutral" title="4.1. Initializing"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, Harvard Medical School.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
