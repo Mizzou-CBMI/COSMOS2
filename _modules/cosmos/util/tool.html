@@ -74,8 +74,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/index.html">4. Writing Workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../workflows/initializing.html">4.1. Initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../workflows/tools.html">4.2. Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../workflows/dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/command_functions.html">4.2. Command Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/executions.html">4.3. Executions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../workflows/examples.html">4.4. Workflow Code Examples</a></li>
 </ul>
 </li>
@@ -147,7 +147,7 @@
     <span class="k">return</span> <span class="n">r</span>
 
 
-<div class="viewcode-block" id="one2one"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.util.tool.one2one">[docs]</a><span class="k">def</span> <span class="nf">one2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="one2one"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.util.tool.one2one">[docs]</a><span class="k">def</span> <span class="nf">one2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.</span>
 <span class="sd">    :param itrbl(Task) tasks: A child tool will be created for each element in this list.</span>
@@ -190,7 +190,7 @@
 
 <span class="n">reduce_</span> <span class="o">=</span> <span class="n">group</span> <span class="c"># deprecated name</span>
 
-<div class="viewcode-block" id="many2one"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.util.tool.many2one">[docs]</a><span class="k">def</span> <span class="nf">many2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="many2one"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.util.tool.many2one">[docs]</a><span class="k">def</span> <span class="nf">many2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.</span>
 <span class="sd">    :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in</span>
@@ -211,7 +211,7 @@
         <span class="k">yield</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parent_group</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">(</span><span class="n">new_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="many2many"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.util.tool.many2many">[docs]</a><span class="k">def</span> <span class="nf">many2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="many2many"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.util.tool.many2many">[docs]</a><span class="k">def</span> <span class="nf">many2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :param dict splitby: a dict who&#39;s values are lists, ex: dict(color=[&#39;red&#39;,&#39;blue&#39;], shape=[&#39;square&#39;,&#39;circle&#39;])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -238,7 +238,7 @@
         <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="one2many"><a class="viewcode-back" href="../../../workflows/dag.html#cosmos.util.tool.one2many">[docs]</a><span class="k">def</span> <span class="nf">one2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="one2many"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.util.tool.one2many">[docs]</a><span class="k">def</span> <span class="nf">one2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :param dict splitby: a dict who&#39;s values are lists, ex: dict(color=[&#39;red&#39;,&#39;blue&#39;], shape=[&#39;square&#39;,&#39;circle&#39;])</span>
 <span class="sd">    :return:</span>

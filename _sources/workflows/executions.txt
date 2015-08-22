@@ -1,37 +1,48 @@
 .. _recipes:
 
 
-DAG (Directed Acyclic Graph)
+Executions
 =================================
 
-Executions costs of a :term:`DAG` of Tasks.  Tasks execute as soon as their dependencies have completed.
+Executions consist of a :term:`DAG` of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
+and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.
 
-To create your :term:`DAG`, add instances of your :class:`Tool` and specify their dependencies.  Python generators
+Every task as a set of tags (a python `dict`), which serve two prinmary purposes:
+
+* Uniquely identifies the tag.  All Tasks in a Stage have a unique set of tags.  When resuming an Execution,
+* If you run :meth:`Execution.add_task` and a Task has already been successful with those tags, it will not be run again.  Think memoization.
+* Passed as parameters to the `command_function`.  If a `command_function` does not have a default specified for one of its parameters, the tag will be required.
+
+To create your :term:`DAG`, use :meth:`Execution.add_task`. Python generators
 and comprehensions are a great way to do this in a very readable way.
-
 
 .. code-block:: python
 
     from cosmos import Cosmos
 
+    def word_count(use_lines=False, in_txt=find('txt$'), out_txt=out_dir('count.txt')):
+        l = ' -l' if use_lines else ''
+        return r"""
+            wc{l} {in_txt} > {out_txt}
+            """.format(**locals())
+
     cosmos = Cosmos()
     cosmos.initdb()
     execution = cosmos.start('My_Workflow', 'out_dir)
-    stageA = execution.add([Input('/path/to/file.txt', tags=dict(file='1')),
-                            Input('/path/to/file2.txt', tags=dict(file='2'))],
-                            name="Load_Input_Files")
+
+    # note in_txt is specified, so find() will not be used.
+    wc_tasks = [ execution.add_task(word_count, tags=dict(in_txt='a.txt')) ]
 
 
-Each call to execution.add() creates a new stage (which must have a unique name, the default is the name of the first Tool added).
-Stages are only for the user's mental organization and visualization of a group of Tasks, and has nothing to do with how the DAG gets executed.
+Each call to :meth:`Execution.add_task` does the following:
 
-Input
--------
+1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `command_function`)
+2) Checks to see if a Task with the same tags already completed successfully in that stage
+3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
+4) if `2)` is False, then create and return new Task instance
 
-An :class:`Input` is just a type of Tool that does nothing but outputs the file you specified.  :class:`Inputs` can
-be used if you'd like a single Input Task to output multiple files.
 
-Creating Tasks and Dependencies (Nodes and Edges)
+Creating Your Job Dependency Graph (DAG)
 ---------------------------------------------------
 A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.
 
@@ -45,9 +56,9 @@ This is the most common stage dependency.  For each task in StageA, you create a
     cosmos = Cosmos()
     cosmos.initdb()
     execution = cosmos.start('One2One', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add(ToolA(tags=dict(i=i))
+    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i))
                                  for i in [1, 2])
-    stageB_tasks = execution.add(ToolB(tags=task.tags, parents=[task])
+    stageB_tasks = execution.add_task(tool_b, ags=task.tags, parents=[task])
                                  for task in stageA_tasks)
     draw_task_graph(execution.task_graph(), 'one2one.png')
 
@@ -62,11 +73,11 @@ For each parent task in StageA, two or more new children are generated in StageB
 .. code-block:: python
 
     execution = cosmos.start('One2Many', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add(ToolA(tags=dict(i=i))
-                                 for i in [1, 2])
-    stageB_tasks = execution.add(ToolB(tags=dict(j=j, **task.tags), parents=[task])
-                                 for task in stageA_tasks
-                                 for j in [1, 2])
+    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i))
+                                      for i in [1, 2])
+    stageB_tasks = execution.add_task(tool_b, tags=dict(j=j, **task.tags), parents=[task])
+                                      for task in stageA_tasks
+                                      for j in ['a','b'])
     draw_task_graph(execution.task_graph(), 'one2many.png')
 
 
@@ -82,12 +93,12 @@ Two or more parents in StageA produce one task in StageB.
 .. code-block:: python
 
     execution = cosmos.start('Many2One', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add(ToolA(tags=dict(i=i, j=j))
-                                 for i in [1, 2]
-                                 for j in [1, 2])
+    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i, j=j))
+                                      for i in [1, 2]
+                                      for j in ['a','b'])
     get_i = lambda task: task.tags['i']
-    stageB_tasks = execution.add(ToolB(tags=dict(i=i), parents=list(tasks))
-                                 for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
+    stageB_tasks = execution.add_task(tool_b, tags=dict(i=i), parents=list(tasks))
+                                      for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
     draw_task_graph(execution.task_graph(), 'many2one.png')
 
 
@@ -101,18 +112,18 @@ Two or more parents in StageA produce two or more parents in StageB.
 .. code-block:: python
 
     execution = cosmos.start('many2many', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add(ToolA(tags=dict(i=i, j=j))
-                                 for i in [1, 2]
-                                 for j in [1, 2])
+    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i, j=j))
+                                      for i in [1, 2]
+                                      for j in ['a','b'])
     def B_generator(stageA_tasks):
         # For the more complicated relationships, it's usually best to just define a generator
         get_i = lambda task: task.tags['i']
         for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i):
             parents = list(tasks)
             for k in ['x', 'y']:
-                yield ToolB(tags=dict(i=i, k=k), parents=parents)
+                yield tool_b, tags=dict(i=i, k=k), parents=parents)
 
-    stageB_tasks = execution.add(B_generator(stageA_tasks))
+    stageB_tasks = execution.add_task(B_generator(stageA_tasks))
     draw_task_graph(execution.task_graph(), 'many2many.png')
 
 
@@ -146,18 +157,11 @@ Notes
 API
 -----------
 
-Execution.add
+Execution
 ++++++++++++++
 
 .. autoclass:: cosmos.Execution
-    :members: add, run
-
-
-Inputs
-++++++++++
-
-.. automodule:: cosmos.models.Tool
-    :members: Input, Inputs
+    :members: add_task, run
 
 
 Helpers

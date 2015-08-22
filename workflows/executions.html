@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4.3. DAG (Directed Acyclic Graph) &mdash; Cosmos 1.3.0 documentation</title>
+  <title>4.3. Executions &mdash; Cosmos 1.3.0 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
     <link rel="top" title="Cosmos 1.3.0 documentation" href="../index.html"/>
         <link rel="up" title="4. Writing Workflows" href="index.html"/>
         <link rel="next" title="4.4. Workflow Code Examples" href="examples.html"/>
-        <link rel="prev" title="4.2. Tools" href="tools.html"/> 
+        <link rel="prev" title="4.2. Command Functions" href="command_functions.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -76,8 +76,8 @@
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">4. Writing Workflows</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="initializing.html">4.1. Initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools.html">4.2. Tools</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html">4.2. Command Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">4.3. Executions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html">4.4. Workflow Code Examples</a></li>
 </ul>
 </li>
@@ -115,10 +115,10 @@
       
           <li><a href="index.html">4. Writing Workflows</a> &raquo;</li>
       
-    <li>4.3. DAG (Directed Acyclic Graph)</li>
+    <li>4.3. Executions</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/workflows/dag.txt" rel="nofollow"> View page source</a>
+          <a href="../_sources/workflows/executions.txt" rel="nofollow"> View page source</a>
         
       </li>
   </ul>
@@ -126,40 +126,53 @@
 </div>
           <div role="main">
             
-  <div class="section" id="dag-directed-acyclic-graph">
-<span id="recipes"></span><h1>4.3. DAG (Directed Acyclic Graph)<a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this headline">¶</a></h1>
-<p>Executions costs of a <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a> of Tasks.  Tasks execute as soon as their dependencies have completed.</p>
-<p>To create your <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a>, add instances of your <tt class="xref py py-class docutils literal"><span class="pre">Tool</span></tt> and specify their dependencies.  Python generators
+  <div class="section" id="executions">
+<span id="recipes"></span><h1>4.3. Executions<a class="headerlink" href="#executions" title="Permalink to this headline">¶</a></h1>
+<p>Executions consist of a <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a> of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
+and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.</p>
+<p>Every task as a set of tags (a python <cite>dict</cite>), which serve two prinmary purposes:</p>
+<ul class="simple">
+<li>Uniquely identifies the tag.  All Tasks in a Stage have a unique set of tags.  When resuming an Execution,</li>
+<li>If you run <tt class="xref py py-meth docutils literal"><span class="pre">Execution.add_task()</span></tt> and a Task has already been successful with those tags, it will not be run again.  Think memoization.</li>
+<li>Passed as parameters to the <cite>command_function</cite>.  If a <cite>command_function</cite> does not have a default specified for one of its parameters, the tag will be required.</li>
+</ul>
+<p>To create your <a class="reference internal" href="../glossary.html#term-dag"><em class="xref std std-term">DAG</em></a>, use <tt class="xref py py-meth docutils literal"><span class="pre">Execution.add_task()</span></tt>. Python generators
 and comprehensions are a great way to do this in a very readable way.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
+
+<span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">use_lines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">in_txt</span><span class="o">=</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;txt$&#39;</span><span class="p">),</span> <span class="n">out_txt</span><span class="o">=</span><span class="n">out_dir</span><span class="p">(</span><span class="s">&#39;count.txt&#39;</span><span class="p">)):</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="s">&#39; -l&#39;</span> <span class="k">if</span> <span class="n">use_lines</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s">r&quot;&quot;&quot;</span>
+<span class="s">        wc{l} {in_txt} &gt; {out_txt}</span>
+<span class="s">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
 <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
 <span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="s">&#39;out_dir)</span>
-<span class="n">stageA</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="n">Input</span><span class="p">(</span><span class="s">&#39;/path/to/file.txt&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">)),</span>
-                        <span class="n">Input</span><span class="p">(</span><span class="s">&#39;/path/to/file2.txt&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s">&#39;2&#39;</span><span class="p">))],</span>
-                        <span class="n">name</span><span class="o">=</span><span class="s">&quot;Load_Input_Files&quot;</span><span class="p">)</span>
+
+<span class="c"># note in_txt is specified, so find() will not be used.</span>
+<span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="s">&#39;a.txt&#39;</span><span class="p">))</span> <span class="p">]</span>
 </pre></div>
 </div>
-<p>Each call to execution.add() creates a new stage (which must have a unique name, the default is the name of the first Tool added).
-Stages are only for the user&#8217;s mental organization and visualization of a group of Tasks, and has nothing to do with how the DAG gets executed.</p>
-<div class="section" id="input">
-<h2>4.3.1. Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
-<p>An <tt class="xref py py-class docutils literal"><span class="pre">Input</span></tt> is just a type of Tool that does nothing but outputs the file you specified.  <tt class="xref py py-class docutils literal"><span class="pre">Inputs</span></tt> can
-be used if you&#8217;d like a single Input Task to output multiple files.</p>
-</div>
-<div class="section" id="creating-tasks-and-dependencies-nodes-and-edges">
-<h2>4.3.2. Creating Tasks and Dependencies (Nodes and Edges)<a class="headerlink" href="#creating-tasks-and-dependencies-nodes-and-edges" title="Permalink to this headline">¶</a></h2>
+<p>Each call to <tt class="xref py py-meth docutils literal"><span class="pre">Execution.add_task()</span></tt> does the following:</p>
+<ol class="arabic simple">
+<li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>command_function</cite>)</li>
+<li>Checks to see if a Task with the same tags already completed successfully in that stage</li>
+<li>If <cite>2)</cite> is True, then return that Task instance (it will also be skipped when the <cite>DAG</cite> is run)</li>
+<li>if <cite>2)</cite> is False, then create and return new Task instance</li>
+</ol>
+<div class="section" id="creating-your-job-dependency-graph-dag">
+<h2>4.3.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
 <p>A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.</p>
 <div class="section" id="one2one-aka-a-map-operation">
-<h3>4.3.2.1. One2one (aka a map() operation)<a class="headerlink" href="#one2one-aka-a-map-operation" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.1. One2one (aka a map() operation)<a class="headerlink" href="#one2one-aka-a-map-operation" title="Permalink to this headline">¶</a></h3>
 <p>This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
 <span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;One2One&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolA</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
                              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolB</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">task</span><span class="p">])</span>
+<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_b</span><span class="p">,</span> <span class="n">ags</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">task</span><span class="p">])</span>
                              <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">stageA_tasks</span><span class="p">)</span>
 <span class="n">draw_task_graph</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">task_graph</span><span class="p">(),</span> <span class="s">&#39;one2one.png&#39;</span><span class="p">)</span>
 </pre></div>
@@ -169,14 +182,14 @@ be used if you&#8217;d like a single Input Task to output multiple files.</p>
 </div>
 </div>
 <div class="section" id="one2many">
-<h3>4.3.2.2. One2many<a class="headerlink" href="#one2many" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.2. One2many<a class="headerlink" href="#one2many" title="Permalink to this headline">¶</a></h3>
 <p>For each parent task in StageA, two or more new children are generated in StageB</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;One2Many&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolA</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
-                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolB</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="o">**</span><span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">task</span><span class="p">])</span>
-                             <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">stageA_tasks</span>
-                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
+                                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_b</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">,</span> <span class="o">**</span><span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">task</span><span class="p">])</span>
+                                  <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">stageA_tasks</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">])</span>
 <span class="n">draw_task_graph</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">task_graph</span><span class="p">(),</span> <span class="s">&#39;one2many.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -185,15 +198,15 @@ be used if you&#8217;d like a single Input Task to output multiple files.</p>
 </div>
 </div>
 <div class="section" id="many2one">
-<h3>4.3.2.3. Many2one<a class="headerlink" href="#many2one" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.3. Many2one<a class="headerlink" href="#many2one" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce one task in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;Many2One&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolA</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
-                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
+                                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">])</span>
 <span class="n">get_i</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s">&#39;i&#39;</span><span class="p">]</span>
-<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolB</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">tasks</span><span class="p">))</span>
-                             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tasks</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">get_i</span><span class="p">),</span> <span class="n">get_i</span><span class="p">))</span>
+<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_b</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">tasks</span><span class="p">))</span>
+                                  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tasks</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">get_i</span><span class="p">),</span> <span class="n">get_i</span><span class="p">))</span>
 <span class="n">draw_task_graph</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">task_graph</span><span class="p">(),</span> <span class="s">&#39;many2one.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -202,21 +215,21 @@ be used if you&#8217;d like a single Input Task to output multiple files.</p>
 </div>
 </div>
 <div class="section" id="many2many">
-<h3>4.3.2.4. Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.4. Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce two or more parents in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;many2many&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ToolA</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
-                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
+                                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">B_generator</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">):</span>
     <span class="c"># For the more complicated relationships, it&#39;s usually best to just define a generator</span>
     <span class="n">get_i</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">task</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s">&#39;i&#39;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tasks</span> <span class="ow">in</span> <span class="n">it</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">get_i</span><span class="p">),</span> <span class="n">get_i</span><span class="p">):</span>
         <span class="n">parents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">]:</span>
-            <span class="k">yield</span> <span class="n">ToolB</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">tool_b</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">)</span>
 
-<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">B_generator</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">))</span>
+<span class="n">stageB_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">B_generator</span><span class="p">(</span><span class="n">stageA_tasks</span><span class="p">))</span>
 <span class="n">draw_task_graph</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">task_graph</span><span class="p">(),</span> <span class="s">&#39;many2many.png&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -225,7 +238,7 @@ be used if you&#8217;d like a single Input Task to output multiple files.</p>
 </div>
 </div>
 <div class="section" id="helpers">
-<h3>4.3.2.5. Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.5. Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h3>
 <p>The above patterns are very common, so there are some handy generators available that take care of many cases.
 However, it is not
 recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
@@ -238,7 +251,7 @@ patterns!</p>
 </ul>
 </div>
 <div class="section" id="notes">
-<h3>4.3.2.6. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.1.6. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>The above is <strong>not</strong> exhaustive.  For example, you could have a task who has 3 different parents, each belonging to a different stage.
 It is <strong>highly</strong> recommended that you get familiar with itertools, especially <a class="reference external" href="https://docs.python.org/2.7/library/itertools.html#itertools.groupby" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">itertools.groupby()</span></tt></a>.  You will often want to group parent Tasks
@@ -246,32 +259,31 @@ by a particular set of tags.</div></blockquote>
 </div>
 </div>
 <div class="section" id="api">
-<h2>4.3.3. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="execution-add">
-<h3>4.3.3.1. Execution.add<a class="headerlink" href="#execution-add" title="Permalink to this headline">¶</a></h3>
+<h2>4.3.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="execution">
+<h3>4.3.2.1. Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="cosmos.Execution">
 <em class="property">class </em><tt class="descclassname">cosmos.</tt><tt class="descname">Execution</tt><big>(</big><em>manual_instantiation=True</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#cosmos.Execution" title="Permalink to this definition">¶</a></dt>
 <dd><p>The primary object.  An Execution is an instantiation of a recipe being run.</p>
 <dl class="method">
-<dt id="cosmos.Execution.add">
-<tt class="descname">add</tt><big>(</big><em>tools</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#cosmos.Execution.add" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRECATED</p>
-<p>Add tools to the Stage with <cite>name</cite>.  If a Stage with <cite>name</cite> does not exist, create it.</p>
+<dt id="cosmos.Execution.add_task">
+<tt class="descname">add_task</tt><big>(</big><em>cmd_fxn</em>, <em>tags</em>, <em>parents=None</em>, <em>out_dir=None</em>, <em>stage_name=None</em><big>)</big><a class="headerlink" href="#cosmos.Execution.add_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a Task</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tools</strong> (<em>itrbl(tool)</em>) &#8211; For each tool in <cite>tools</cite>, new task will be added to the stage with stage <cite>name</cite>.</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default is to the class name of the first tool in tools.</li>
+<li><strong>cmd_fxn</strong> (<em>func</em>) &#8211; A function that returns a str or NOOP</li>
+<li><strong>tags</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A dictionary of key/value pairs to identify this Task, and to be passed as parameters to <cite>cmd_fxn</cite></li>
+<li><strong>parents</strong> (<em>list[Task]</em>) &#8211; List of dependencies</li>
+<li><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Output directy (can be absolute or relative to execution output_dir)</li>
+<li><strong>stage_name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the stage to add this task to</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">list(Task)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">New tasks that were created.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Task</p>
 </td>
 </tr>
 </tbody>
@@ -280,7 +292,7 @@ by a particular set of tags.</div></blockquote>
 
 <dl class="method">
 <dt id="cosmos.Execution.run">
-<tt class="descname">run</tt><big>(</big><em>log_out_dir_func=&lt;function _default_task_log_output_dir at 0x10ef79050&gt;</em>, <em>dry=False</em>, <em>set_successful=True</em>, <em>cmd_wrapper=&lt;function default_cmd_fxn_wrapper at 0x10ef6ef50&gt;</em><big>)</big><a class="headerlink" href="#cosmos.Execution.run" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">run</tt><big>(</big><em>log_out_dir_func=&lt;function _default_task_log_output_dir at 0x10e395050&gt;</em>, <em>dry=False</em>, <em>set_successful=True</em>, <em>cmd_wrapper=&lt;function default_cmd_fxn_wrapper at 0x10e38df50&gt;</em><big>)</big><a class="headerlink" href="#cosmos.Execution.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renders and executes the <a href="#id1"><span class="problematic" id="id2">:param:`recipe`</span></a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -304,63 +316,8 @@ run more tasks in this execution later.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-cosmos.models.Tool">
-<span id="inputs"></span><h3>4.3.3.2. Inputs<a class="headerlink" href="#module-cosmos.models.Tool" title="Permalink to this headline">¶</a></h3>
-<dl class="class">
-<dt id="cosmos.models.Tool.Input">
-<em class="property">class </em><tt class="descclassname">cosmos.models.Tool.</tt><tt class="descname">Input</tt><big>(</big><em>path</em>, <em>name=None</em>, <em>format=None</em>, <em>tags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Input" title="Permalink to this definition">¶</a></dt>
-<dd><p>A NOOP Task who&#8217;s output_files contain a <em>single</em> file that already exists on the filesystem.
-&gt;&gt;&gt; Input(path_to_file,tags={&#8216;key&#8217;:&#8217;val&#8217;})
-&gt;&gt;&gt; Input(path=path_to_file, name=&#8217;myfile&#8217;,format=&#8217;txt&#8217;,tags={&#8216;key&#8217;:&#8217;val&#8217;})</p>
-<dl class="method">
-<dt id="cosmos.models.Tool.Input.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>path</em>, <em>name=None</em>, <em>format=None</em>, <em>tags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Input.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Input.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the path to the input file</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name or keyword for the input file.  defaults to whatever format is set to.</li>
-<li><strong>format</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the format of the input file.  Defaults to the value in <cite>name</cite></li>
-<li><strong>tags</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; tags for the task that will be generated</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="cosmos.models.Tool.Inputs">
-<em class="property">class </em><tt class="descclassname">cosmos.models.Tool.</tt><tt class="descname">Inputs</tt><big>(</big><em>inputs</em>, <em>tags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Inputs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Same as <a class="reference internal" href="#cosmos.models.Tool.Input" title="cosmos.models.Tool.Input"><tt class="xref py py-class docutils literal"><span class="pre">Input</span></tt></a>, but loads multiple input files.
-&gt;&gt;&gt; Inputs([(&#8216;name1&#8217;,&#8217;txt&#8217;,&#8217;/path/to/input&#8217;), (&#8216;name2&#8217;,&#8217;gz&#8217;,&#8217;/path/to/input2&#8217;)], tags={&#8216;key&#8217;:&#8217;val&#8217;})
-&#8220;root_path   name = &#8216;Load_Input_Files&#8217;</p>
-<dl class="method">
-<dt id="cosmos.models.Tool.Inputs.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>inputs</em>, <em>tags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Inputs.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Inputs.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>inputs</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; a list of tuples that are (path, name, format)</li>
-<li><strong>tags</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="id3">
-<h3>4.3.3.3. Helpers<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>4.3.2.2. Helpers<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-cosmos.util.tool"></span><dl class="function">
 <dt id="cosmos.util.tool.one2one">
 <tt class="descclassname">cosmos.util.tool.</tt><tt class="descname">one2one</tt><big>(</big><em>tool_class</em>, <em>tasks</em>, <em>tag=None</em>, <em>out=None</em><big>)</big><a class="reference internal" href="../_modules/cosmos/util/tool.html#one2one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.tool.one2one" title="Permalink to this definition">¶</a></dt>
@@ -369,7 +326,7 @@ run more tasks in this execution later.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tool_class</strong> (<a class="reference internal" href="tools.html#module-cosmos.Tool" title="cosmos.Tool"><em>cosmos.Tool</em></a>) &#8211; a subclass of Tool to create new tasks with.</li>
+<li><strong>tool_class</strong> (<em>cosmos.Tool</em>) &#8211; a subclass of Tool to create new tasks with.</li>
 <li><strong>tasks</strong> (<em>itrbl(Task)</em>) &#8211; A child tool will be created for each element in this list.</li>
 <li><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Tags to add to the Tools&#8217;s dictionary.  The Tool will also inherit the tags of its parent.</li>
 <li><strong>out</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The directory to output to, will be .formated() with its task&#8217;s tags.  ex. &#8216;{shape}/{color}&#8217;.
@@ -392,7 +349,7 @@ Defaults to the output_dir of the parent task.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tool_class</strong> (<a class="reference internal" href="tools.html#module-cosmos.Tool" title="cosmos.Tool"><em>cosmos.Tool</em></a>) &#8211; a subclass of Tool to create new tasks with.</li>
+<li><strong>tool_class</strong> (<em>cosmos.Tool</em>) &#8211; a subclass of Tool to create new tasks with.</li>
 <li><strong>groupby</strong> (<em>list(str)</em>) &#8211; A list of keys to groupby.  Parents will be grouped if they have the same values in
 their tags given by <cite>groupby</cite>.</li>
 <li><strong>parents</strong> (<em>itrbl(Task)</em>) &#8211; An group of parents to groupby</li>
@@ -451,7 +408,7 @@ a str.  ie. <tt class="docutils literal"><span class="pre">out_dir=lambda</span>
         <a href="examples.html" class="btn btn-neutral float-right" title="4.4. Workflow Code Examples"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="tools.html" class="btn btn-neutral" title="4.2. Tools"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="command_functions.html" class="btn btn-neutral" title="4.2. Command Functions"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

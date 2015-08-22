@@ -74,8 +74,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/index.html">4. Writing Workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="workflows/initializing.html">4.1. Initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/tools.html">4.2. Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/command_functions.html">4.2. Command Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html">4.3. Executions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="workflows/examples.html">4.4. Workflow Code Examples</a></li>
 </ul>
 </li>
@@ -149,15 +149,7 @@
 
       <dd><dl>
         
-  <dt><a href="workflows/dag.html#cosmos.models.Tool.Input.__init__">(cosmos.models.Tool.Input method)</a>
-  </dt>
-
-        
-  <dt><a href="workflows/dag.html#cosmos.models.Tool.Inputs.__init__">(cosmos.models.Tool.Inputs method)</a>
-  </dt>
-
-        
-  <dt><a href="workflows/tools.html#cosmos.models.Tool.Tool.__init__">(cosmos.models.Tool.Tool method)</a>
+  <dt><a href="workflows/command_functions.html#cosmos.models.Tool.Tool.__init__">(cosmos.models.Tool.Tool method)</a>
   </dt>
 
       </dl></dd>
@@ -168,17 +160,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/tools.html#cosmos.abstract_input_taskfile">abstract_input_taskfile() (in module cosmos)</a>
-  </dt>
-
-      
-  <dt><a href="workflows/tools.html#cosmos.abstract_output_taskfile">abstract_output_taskfile() (in module cosmos)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="workflows/dag.html#cosmos.Execution.add">add() (cosmos.Execution method)</a>
+  <dt><a href="workflows/executions.html#cosmos.Execution.add_task">add_task() (cosmos.Execution method)</a>
   </dt>
 
   </dl></td>
@@ -188,7 +170,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/tools.html#cosmos.models.Tool.Tool.cmd">cmd() (cosmos.models.Tool.Tool method)</a>
+  <dt><a href="workflows/command_functions.html#cosmos.models.Tool.Tool.cmd">cmd() (cosmos.models.Tool.Tool method)</a>
   </dt>
 
       
@@ -196,21 +178,21 @@
   </dt>
 
       
-  <dt><a href="workflows/index.html#module-cosmos.graph">cosmos.graph (module)</a>
+  <dt><a href="workflows/command_functions.html#module-cosmos.core.cmd_fxn">cosmos.core.cmd_fxn (module)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/tools.html#module-cosmos.models.Tool">cosmos.models.Tool (module)</a>, <a href="workflows/dag.html#module-cosmos.models.Tool">[1]</a>
+  <dt><a href="workflows/index.html#module-cosmos.graph">cosmos.graph (module)</a>
   </dt>
 
       
-  <dt><a href="workflows/tools.html#module-cosmos.Tool">cosmos.Tool (module)</a>
+  <dt><a href="workflows/command_functions.html#module-cosmos.models.Tool">cosmos.models.Tool (module)</a>
   </dt>
 
       
-  <dt><a href="workflows/dag.html#module-cosmos.util.tool">cosmos.util.tool (module)</a>
+  <dt><a href="workflows/executions.html#module-cosmos.util.tool">cosmos.util.tool (module)</a>
   </dt>
 
   </dl></td>
@@ -244,7 +226,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/dag.html#cosmos.Execution">Execution (class in cosmos)</a>
+  <dt><a href="workflows/executions.html#cosmos.Execution">Execution (class in cosmos)</a>
   </dt>
 
   </dl></td>
@@ -254,7 +236,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="workflows/command_functions.html#cosmos.api.find">find() (in module cosmos.api)</a>
+  </dt>
+
+      
   <dt><a href="glossary.html#term-flask"><strong>Flask</strong></a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="workflows/command_functions.html#cosmos.api.forward">forward() (in module cosmos.api)</a>
   </dt>
 
   </dl></td>
@@ -277,16 +269,6 @@
   <dt><a href="workflows/initializing.html#cosmos.Cosmos.initdb">initdb() (cosmos.Cosmos method)</a>
   </dt>
 
-      
-  <dt><a href="workflows/dag.html#cosmos.models.Tool.Input">Input (class in cosmos.models.Tool)</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="workflows/dag.html#cosmos.models.Tool.Inputs">Inputs (class in cosmos.models.Tool)</a>
-  </dt>
-
   </dl></td>
 </tr></table>
 
@@ -304,13 +286,13 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/dag.html#cosmos.util.tool.many2many">many2many() (in module cosmos.util.tool)</a>
+  <dt><a href="workflows/executions.html#cosmos.util.tool.many2many">many2many() (in module cosmos.util.tool)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/dag.html#cosmos.util.tool.many2one">many2one() (in module cosmos.util.tool)</a>
+  <dt><a href="workflows/executions.html#cosmos.util.tool.many2one">many2one() (in module cosmos.util.tool)</a>
   </dt>
 
   </dl></td>
@@ -320,13 +302,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/dag.html#cosmos.util.tool.one2many">one2many() (in module cosmos.util.tool)</a>
+  <dt><a href="workflows/executions.html#cosmos.util.tool.one2many">one2many() (in module cosmos.util.tool)</a>
+  </dt>
+
+      
+  <dt><a href="workflows/executions.html#cosmos.util.tool.one2one">one2one() (in module cosmos.util.tool)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/dag.html#cosmos.util.tool.one2one">one2one() (in module cosmos.util.tool)</a>
+  <dt><a href="workflows/command_functions.html#cosmos.api.out_dir">out_dir() (in module cosmos.api)</a>
   </dt>
 
   </dl></td>
@@ -340,7 +326,7 @@
   </dt>
 
       
-  <dt><a href="workflows/dag.html#cosmos.Execution.run">run() (cosmos.Execution method)</a>
+  <dt><a href="workflows/executions.html#cosmos.Execution.run">run() (cosmos.Execution method)</a>
   </dt>
 
   </dl></td>
@@ -376,7 +362,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="workflows/tools.html#cosmos.models.Tool.Tool">Tool (class in cosmos.models.Tool)</a>
+  <dt><a href="workflows/command_functions.html#cosmos.models.Tool.Tool">Tool (class in cosmos.models.Tool)</a>
   </dt>
 
   </dl></td>

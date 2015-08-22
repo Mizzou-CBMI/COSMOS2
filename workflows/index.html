@@ -75,8 +75,8 @@
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">4. Writing Workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="initializing.html">4.1. Initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools.html">4.2. Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dag.html">4.3. DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html">4.2. Command Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="executions.html">4.3. Executions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html">4.4. Workflow Code Examples</a></li>
 </ul>
 </li>
@@ -137,37 +137,34 @@ Workflows are stored and visualized as a <a class="reference internal" href="../
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tools.html">4.2. Tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tools.html#abstract-input-file">4.2.1. Abstract Input File</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tools.html#cardinality">4.2.1.1. Cardinality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_functions.html">4.2. Command Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#more-on-find">4.2.1. More on Find()</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command_functions.html#cardinality">4.2.1.1. Cardinality</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tools.html#abstract-output-file">4.2.2. Abstract Output File</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools.html#tags">4.2.3. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tools.html#api">4.2.4. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="tools.html#module-cosmos.models.Tool">4.2.4.1. Tool</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tools.html#abstract-i-o-files">4.2.4.1.1. Abstract I/O Files</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#tags">4.2.2. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#api">4.2.3. API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command_functions.html#module-cosmos.models.Tool">4.2.3.1. Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command_functions.html#abstract-i-o-files">4.2.3.1.1. Abstract I/O Files</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dag.html">4.3. DAG (Directed Acyclic Graph)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dag.html#input">4.3.1. Input</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dag.html#creating-tasks-and-dependencies-nodes-and-edges">4.3.2. Creating Tasks and Dependencies (Nodes and Edges)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#one2one-aka-a-map-operation">4.3.2.1. One2one (aka a map() operation)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#one2many">4.3.2.2. One2many</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#many2one">4.3.2.3. Many2one</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#many2many">4.3.2.4. Many2many</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#helpers">4.3.2.5. Helpers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#notes">4.3.2.6. Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dag.html#api">4.3.3. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#execution-add">4.3.3.1. Execution.add</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#module-cosmos.models.Tool">4.3.3.2. Inputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="dag.html#id3">4.3.3.3. Helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="executions.html">4.3. Executions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="executions.html#creating-your-job-dependency-graph-dag">4.3.1. Creating Your Job Dependency Graph (DAG)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#one2one-aka-a-map-operation">4.3.1.1. One2one (aka a map() operation)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#one2many">4.3.1.2. One2many</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#many2one">4.3.1.3. Many2one</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#many2many">4.3.1.4. Many2many</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#helpers">4.3.1.5. Helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#notes">4.3.1.6. Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="executions.html#api">4.3.2. API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#execution">4.3.2.1. Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="executions.html#id3">4.3.2.2. Helpers</a></li>
 </ul>
 </li>
 </ul>
