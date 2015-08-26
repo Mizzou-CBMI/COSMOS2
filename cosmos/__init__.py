@@ -56,11 +56,13 @@ def default_get_submit_args(task, default_queue=None):
 
     elif drm == 'ge':
         h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
+
         def g():
-            resource_reqs = dict(h_vmem=h_vmem, cpu=cpu_req, time_req=time_req)
-            for k,v in resource_reqs.items():
-                if v:
-                    yield '%s=%s' % (k,v)
+            resource_reqs = dict(h_vmem=h_vmem, num_proc=cpu_req, time_req=time_req)
+            for k, v in resource_reqs.items():
+                if v is not None:
+                    yield '%s=%s' % (k, v)
+
         resource_str = ','.join(g())
 
         return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
@@ -99,6 +101,7 @@ class Cosmos(object):
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.flask_app.config['SQLALCHEMY_ECHO'] = True
         self.sqla = SQLAlchemy(self.flask_app)
         self.session = self.sqla.session
         self.default_queue = default_queue
@@ -106,7 +109,7 @@ class Cosmos(object):
 
         # setup flask views
         from cosmos.web.views import gen_bprint
-        #from cosmos.web.admin import add_cosmos_admin
+        # from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)
@@ -205,7 +208,6 @@ class Cosmos(object):
         ex.cosmos_app = self
 
         return ex
-
 
     def initdb(self):
         """
@@ -310,15 +312,21 @@ class RelationshipType(MyEnum):
     many2one = 'many2one',
     many2many = 'many2many'
 
+########################################################################################################################
+# Warnings
+########################################################################################################################
+
+ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 
 ########################################################################################################################
 # Imports
 ########################################################################################################################
 
-from .models.TaskFile import TaskFile, abstract_output_taskfile_old, abstract_input_taskfile, abstract_output_taskfile
+from .models.files import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, \
+    abstract_output_taskfile_old  # these are all deprecated
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Tool import Tool, Tool_old, Input, Inputs
+from .models.Tool import Tool, Input, Inputs
 from .models.Execution import Execution
 from .util.args import add_execution_args
 from .util.tool import one2one, one2many, many2one, many2many, make_dict

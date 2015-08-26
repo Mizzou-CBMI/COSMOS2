@@ -13,12 +13,14 @@ from networkx.algorithms.dag import descendants, topological_sort
 import atexit
 from ..util.iterstuff import only_one
 import sys
-
+import types
 from ..util.helpers import duplicates, groupby2
 from ..db import Base
 import time
 import itertools as it
 import datetime
+from ..core.cmd_fxn import signature
+from ..core.cmd_fxn import io
 
 opj = os.path.join
 import signal
@@ -81,7 +83,6 @@ class Execution(Base):
 
     exclude_from_dict = ['info']
 
-
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -93,7 +94,6 @@ class Execution(Base):
                 signal_execution_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
-
 
     @validates('name')
     def validate_name(self, key, name):
@@ -124,8 +124,80 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
+    def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
+        """
+        Adds a Task
+        
+	:param func cmd_fxn: A function that returns a str or NOOP
+        :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
+        :param list[Task] parents: List of dependencies
+        :param str out_dir: Output directy (can be absolute or relative to execution output_dir)
+        :param str stage_name: Name of the stage to add this task to
+        :return: a Task
+        """
+        from .. import Stage
+
+        if isinstance(parents, types.GeneratorType):
+            parents = list(parents)
+        if parents is None:
+            parents = []
+
+        if out_dir:
+            out_dir = out_dir.format(**tags)
+
+        # for k, v in tags.items():
+        #     if isinstance(v, basestring):
+        #         tags[k] = v.format(**tags)
+
+        # Get the right Stage
+        if stage_name is None:
+            stage_name = str(cmd_fxn.__name__).replace('_', ' ').title().replace(' ', '_')
+        stage = only_one((s for s in self.stages if s.name == stage_name), None)
+        if stage is None:
+            stage = Stage(execution=self, name=stage_name)
+            self.session.add(stage)
+
+        # Check if task is already in stage
+        task = stage.get_task(tags, None)
+        if task is not None:
+            # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
+            # were already removed on execution load
+            if task.successful:
+                return task
+            else:
+                # TODO check for duplicate tags here?  would be a lot faster at Execution.run
+                raise ValueError('Duplicate tags, you have added a job to %s with tags %s twice' % (stage_name, tags))
+        else:
+            # Create Task
+            attrs = {k: tags[k] for k in ['drm', 'mem_req', 'time_req', 'cpu_req', 'must_succeed'] if k in tags}
+            if 'drm' not in attrs:
+                attrs['drm'] = self.cosmos_app.default_drm
+
+            input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir)
+            input_files = io.unpack_io_map(input_map)
+            output_files = io.unpack_io_map(output_map)
+
+            task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
+                        output_files=output_files, output_dir=out_dir,
+                        **attrs)
+
+            task.cmd_fxn = cmd_fxn
+            task.input_map = input_map
+            task.output_map = output_map
+
+        # Add Stage Dependencies
+        for p in parents:
+            if p.stage not in stage.parents:
+                stage.parents.append(p.stage)
+
+        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute.append(task)
+
+        return task
+
     def add(self, tools, name=None):
         """
+        DEPRECATED
+
         Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
 
         :param itrbl(tool) tools: For each tool in `tools`, new task will be added to the stage with stage `name`.
@@ -181,7 +253,7 @@ class Execution(Base):
             new_tasks.append(task)
         stage.parents += list(new_parent_stages.difference(stage.parents))
 
-        #todo temporary
+        # todo temporary
         for t in new_tasks:
             assert hasattr(t, 'tool')
 
@@ -189,23 +261,23 @@ class Execution(Base):
 
         return new_tasks
 
-    def run(self, log_output_dir=_default_task_log_output_dir, dry=False, set_successful=True):
+    def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
+            cmd_wrapper=signature.default_cmd_fxn_wrapper):
         """
         Renders and executes the :param:`recipe`
 
-        :param log_output_dir: (function) a function that computes a task's log_output_dir.
+        :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
              It receives one parameter: the task instance.
              By default task log output is stored in output_dir/log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
         :param dry: (bool) if True, do not actually run any jobs.
-        :param set_successful: (bool) sets this execution as successful if all rendered recipe executes without a failure.  You might set this to False if you intend to add and
+        :param set_successful: (bool) sets this execution as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this execution later.
-
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
         assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
-        assert hasattr(log_output_dir, '__call__'), 'log_output_dir must be a function'
+        assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
         assert self.session, 'Execution must be part of a sqlalchemy session'
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
@@ -214,13 +286,14 @@ class Execution(Base):
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue)
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper)
 
         self.status = ExecutionStatus.running
         self.successful = False
 
         if self.started_on is None:
             import datetime
+
             self.started_on = datetime.datetime.now()
 
         # Render task graph and to session
@@ -248,29 +321,29 @@ class Execution(Base):
 
         import itertools as it
 
-        def assert_no_duplicate_taskfiles():
-            taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
-            f = lambda tf: tf.path
-            for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-                group = list(group)
-                if len(group) > 1:
-                    t1 = group[0].task_output_for
-                    tf1 = group[0]
-                    t2 = group[1].task_output_for
-                    tf2 = group[1]
-                    div = "-" * 72 + "\n"
-                    self.log.error("Duplicate taskfiles paths detected:\n "
-                                   "{div}"
-                                   "{t1}\n"
-                                   "* {tf1}\n"
-                                   "{div}"
-                                   "{t2}\n"
-                                   "* {tf2}\n"
-                                   "{div}".format(**locals()))
-
-                    raise ValueError('Duplicate taskfile paths')
-
-        assert_no_duplicate_taskfiles()
+        # def assert_no_duplicate_taskfiles():
+        #     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
+        #     f = lambda tf: tf.path
+        #     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
+        #         group = list(group)
+        #         if len(group) > 1:
+        #             t1 = group[0].task_output_for
+        #             tf1 = group[0]
+        #             t2 = group[1].task_output_for
+        #             tf2 = group[1]
+        #             div = "-" * 72 + "\n"
+        #             self.log.error("Duplicate taskfiles paths detected:\n "
+        #                            "{div}"
+        #                            "{t1}\n"
+        #                            "* {tf1}\n"
+        #                            "{div}"
+        #                            "{t2}\n"
+        #                            "* {tf2}\n"
+        #                            "{div}".format(**locals()))
+        #
+        #             raise ValueError('Duplicate taskfile paths')
+        #
+        # assert_no_duplicate_taskfiles()
 
 
         # Collapse
@@ -282,7 +355,7 @@ class Execution(Base):
 
         # taskg and stageg are now finalized
 
-        #stages = stage_g.nodes()
+        # stages = stage_g.nodes()
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
             next(duplicates(self.stages)))
 
@@ -291,7 +364,7 @@ class Execution(Base):
             s.number = i + 1
 
         # Add final taskgraph to session
-        #session.expunge_all()
+        # session.expunge_all()
         session.add(self)
         # session.add_all(stage_g.nodes())
         # session.add_all(task_g.nodes())
@@ -313,13 +386,16 @@ class Execution(Base):
         handle_exits(self)
 
         self.log.info('Setting log output directories...')
-        # set log dirs
-        log_dirs = {t.log_dir: t for t in successful}
-        for task in task_queue.nodes():
-            log_dir = log_output_dir(task)
-            assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-            log_dirs[log_dir] = task
-            task.log_dir = log_dir
+
+        def set_log_dirs():
+            log_dirs = {t.log_dir: t for t in successful}
+            for task in task_queue.nodes():
+                log_dir = log_out_dir_func(task)
+                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
+                log_dirs[log_dir] = task
+                task.log_dir = log_dir
+
+        set_log_dirs()
 
         self.log.info('Checking stage attributes...')
 
@@ -365,7 +441,6 @@ class Execution(Base):
 
         self.log.info('Execution complete')
 
-
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
@@ -393,12 +468,6 @@ class Execution(Base):
         return [t for s in self.stages for t in s.tasks]
         # return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
 
-    @property
-    def taskfilesq(self):
-        from . import TaskFile, Stage
-
-        return self.session.query(TaskFile).join(Task, Stage, Execution).filter(Execution.id == self.id)
-
     def stage_graph(self):
         """
         :return: (networkx.DiGraph) a DAG of the stages
@@ -417,7 +486,6 @@ class Execution(Base):
         g.add_edges_from([(t, c) for t in self.tasks for c in t.children])
         return g
 
-
     def get_stage(self, name_or_id):
         if isinstance(name_or_id, int):
             f = lambda s: s.id == name_or_id
@@ -430,18 +498,15 @@ class Execution(Base):
 
         raise ValueError('Stage with name %s does not exist' % name_or_id)
 
-
     @property
     def url(self):
         return url_for('cosmos.execution', name=self.name)
-
 
     def __repr__(self):
         return '<Execution[%s] %s>' % (self.id or '', self.name)
 
     def __unicode__(self):
         return self.__repr__()
-
 
     def delete(self, delete_files):
         """
@@ -530,13 +595,31 @@ def _run_queued_and_ready_tasks(task_queue, execution):
     max_cpus = execution.max_cpus
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
-    for ready_task in sorted(ready_tasks, key=lambda t: t.cpu_req):
-        cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
-        if max_cpus is not None and ready_task.cpu_req + cores_used > max_cpus:
-            execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
-            break
 
-        execution.jobmanager.submit(ready_task)
+    if max_cpus is None:
+        submittable_tasks = ready_tasks
+    else:
+        cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
+        cores_left = max_cpus - cores_used
+
+        submittable_tasks = []
+        ready_tasks = sorted(ready_tasks, key=lambda t: t.cpu_req)
+        while len(ready_tasks) > 0:
+            task = ready_tasks[0]
+            there_are_cpus_left = task.cpu_req <= cores_left
+            if there_are_cpus_left:
+                cores_left -= task.cpu_req
+                submittable_tasks.append(task)
+                ready_tasks.pop(0)
+            else:
+                break
+
+    # submit in a batch for speed
+    execution.jobmanager.submit_tasks(submittable_tasks)
+    if len(submittable_tasks) < len(ready_tasks):
+        print submittable_tasks
+        print ready_tasks
+        execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
 
     # only commit submitted Tasks after submitting a batch
     execution.session.commit()
@@ -544,7 +627,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
 
 def _process_finished_tasks(jobmanager):
     for task in jobmanager.get_finished_tasks():
-        if task.NOOP or task.profile.get('exit_status', None) == 0:
+        if task.NOOP or task.exit_status == 0:
             task.status = TaskStatus.successful
             yield task
         else:

@@ -12,10 +12,23 @@
 </ul>
 
 <dl class="dl-horizontal">
-    {% for k,v in execution.attrs_as_dict().items() %}
-    <dt>{{k}}</dt>
-    <dd>{{v}}</dd>
-    {% endfor %}
+
+            <dt>name</dt>
+            <dd>{{ execution.name }}</dd>
+            <dt>output_dir</dt>
+            <dd>{{ execution.output_dir }}</dd>
+            <dt>status</dt>
+            <dd>{{ execution.status }}</dd>
+            <dt>successful</dt>
+            <dd>{{ execution.successful }}</dd>
+            <dt>started_on</dt>
+            <dd>{{ execution.started_on|datetime_format }}</dd>
+            <dt>finished_on</dt>
+            <dd>{{ execution.finished_on|datetime_format }}</dd>
+            <dt>max_cpus</dt>
+            <dd>{{ execution.max_cpus }}</dd>
+            <dt>max_attempts</dt>
+            <dd>{{ execution.max_attempts }}</dd>
 
     {% for k,v in execution.info.items() %}
     <dt>info.{{k}}</dt>

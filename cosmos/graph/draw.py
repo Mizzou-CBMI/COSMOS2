@@ -13,8 +13,8 @@ except ImportError:
     pygraphviz_available = False
 
 
-def draw_task_graph(task_graph, save_to=None, format='svg'):
-    a = taskgraph_to_agraph(task_graph, False)
+def draw_task_graph(task_graph, save_to=None, format='svg', url=False):
+    a = taskgraph_to_agraph(task_graph, url=url)
     a.layout('dot')
     return a.draw(path=save_to, format=format)
 

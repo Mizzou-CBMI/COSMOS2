@@ -1,25 +1,25 @@
 import os
-import json
 import itertools as it
 import shutil
 import codecs
 import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
-from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column, ForeignKey
-from sqlalchemy.types import Boolean, Integer, String, PickleType, DateTime, BigInteger, Text
+from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask import url_for
 from networkx.algorithms import breadth_first_search
 
 from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
-from sqlalchemy_utils.types.json import JSONType
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
-from .TaskFile import InputFileAssociation
+# from .TaskFile import InputFileAssociation
 import datetime
+from sqlalchemy_utils import ScalarListType, JSONType
+from ..core.cmd_fxn import io
+from functools import partial
 
 opj = os.path.join
 
@@ -110,7 +110,7 @@ def readfile(path):
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
-            return fh.read(2**20)
+            return fh.read(2 ** 20)
     except:
         return 'error parsing as utf-8: %s' % path
 
@@ -124,7 +124,6 @@ class TaskEdge(Base):
     def __init__(self, parent=None, child=None):
         self.parent = parent
         self.child = child
-
 
     def __str__(self):
         return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
@@ -166,17 +165,10 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    input_files = association_proxy('_input_file_assocs', 'task', creator=lambda tf: InputFileAssociation(taskfile=tf))
-    output_files = relationship("TaskFile", backref=backref('task_output_for'), cascade="all, delete-orphan",
-                                passive_deletes=True)
-    _input_file_assocs = relationship("InputFileAssociation", backref=backref("task"), cascade="all, delete-orphan",
-                                      passive_deletes=True)
-    # command = Column(Text)
+    input_files = Column(MutableList.as_mutable(ListOfStrings))
+    output_files = Column(MutableList.as_mutable(ListOfStrings))
 
-    @property
-    def input_files(self):
-        # todo this should be an assoc proxy?
-        return [ifa.taskfile for ifa in self._input_file_assocs]
+    # command = Column(Text)
 
     drm_native_specification = Column(String(255))
     drm_jobID = Column(Integer)
@@ -187,7 +179,7 @@ class Task(Base):
                       'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
                       'max_num_threads',
                       'avg_num_fds', 'max_num_fds', 'exit_status']
-    exclude_from_dict = profile_fields + ['command', 'info']
+    exclude_from_dict = profile_fields + ['command', 'info', 'input_files', 'output_files']
 
     exit_status = Column(Integer)
 
@@ -205,6 +197,7 @@ class Task(Base):
 
     io_read_count = Column(BigInteger)
     io_write_count = Column(BigInteger)
+    io_wait = Column(BigInteger)
     io_read_kb = Column(BigInteger)
     io_write_kb = Column(BigInteger)
 
@@ -217,6 +210,29 @@ class Task(Base):
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
 
+    extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+
+    @staticmethod
+    def create_task(cmd_fxn, tags, stage, parents, output_dir, attrs):
+        # Validation
+        # f = lambda ifa: ifa.taskfile
+        # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+        # group_of_ifas = list(group_of_ifas)
+        #     if len(group_of_ifas) > 1:
+        #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+        #             TaskFiles=tf
+        #         ))
+
+        cmd_fxn.input_map, cmd_fxn.output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, output_dir)
+        input_files = io.unpack_io_map(cmd_fxn.input_map)
+        output_files = io.unpack_io_map(cmd_fxn.output_map)
+
+        task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
+                    output_files=output_files,output_dir=output_dir,
+                    **attrs)
+
+        return task
+
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -228,7 +244,6 @@ class Task(Base):
                 signal_task_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
-
 
     @property
     def execution(self):
@@ -270,32 +285,28 @@ class Task(Base):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
-    @property
-    def forwarded_inputs(self):
-        return [ifa.taskfile for ifa in self._input_file_assocs if ifa.forward]
+    # @property
+    # def all_output_files(self):
+    #     """
+    #     :return: all output taskfiles, including any being forwarded
+    #     """
+    #     return self.output_files + self.forwarded_inputs
 
-    @property
-    def all_output_files(self):
-        """
-        :return: all output taskfiles, including any being forwarded
-        """
-        return self.output_files + self.forwarded_inputs
+    # @property
+    # def profile(self):
+    #     if self.NOOP:
+    #         return {}
+    #     if self._cache_profile is None:
+    #         if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
+    #             with open(self.output_profile_path, 'r') as fh:
+    #                 self._cache_profile = json.load(fh)
+    #         else:
+    #             raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
+    #     return self._cache_profile
 
-    @property
-    def profile(self):
-        if self.NOOP:
-            return {}
-        if self._cache_profile is None:
-            if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
-                with open(self.output_profile_path, 'r') as fh:
-                    self._cache_profile = json.load(fh)
-            else:
-                raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
-        return self._cache_profile
-
-    def update_from_profile_output(self):
-        for k, v in self.profile.items():
-            setattr(self, k, v)
+    # def update_from_profile_output(self):
+    #     for k, v in self.profile.items():
+    #         setattr(self, k, v)
 
     def all_predecessors(self, as_dict=False):
         """
@@ -329,7 +340,7 @@ class Task(Base):
         self.log.debug('Deleting %s' % self)
         if delete_files:
             for tf in self.output_files:
-                tf.delete(True)
+                os.unlink(tf)
             if os.path.exists(self.log_dir):
                 shutil.rmtree(self.log_dir)
 
@@ -340,10 +351,15 @@ class Task(Base):
     def url(self):
         return url_for('cosmos.task', ex_name=self.execution.name, stage_name=self.stage.name, task_id=self.id)
 
+    @property
+    def tags_pretty(self):
+        return '%s' % ', '.join('%s=%s' % (k, v) for k, v in self.tags.items())
+
     def __repr__(self):
-        s = self.stage.name if self.stage else ''
-        return '<Task[%s] %s %s>' % (self.id or 'id_%s' % id(self), s, self.tags)
+        return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
+                                      self.stage.name if self.stage else '',
+                                      self.tags_pretty
+                                      )
 
     def __str__(self):
         return self.__repr__()
-

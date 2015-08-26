@@ -14,6 +14,8 @@ class DRM(object):
     def drm_statuses(self, tasks):
         raise NotImplementedError
 
+    def get_task_return_data(self, task):
+        raise NotImplementedError
 
     def kill(self, task):
         raise NotImplementedError

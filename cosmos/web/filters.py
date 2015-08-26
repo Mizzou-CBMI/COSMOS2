@@ -24,7 +24,7 @@ def add_filters(bprint_or_app, type_='bprint'):
         if re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
         elif field_name == 'percent_cpu':
-            return "{0}%".format(val)
+            return "{0}%".format(val*100)
         elif 'mem' in field_name:
             return format_memory_kb(val)
         elif type(val) in [int, long]:
@@ -65,6 +65,18 @@ def add_filters(bprint_or_app, type_='bprint'):
             return '{}%'.format(a)
         return a
 
+    @add_filter
+    def datetime_format(value, format='%Y-%m-%d %H:%M'):
+        return value.strftime(format) if value else 'None'
+
+    @add_filter
+    def parse_seconds(amount, type="seconds"):
+        if amount is None or amount == '':
+            return ''
+        if type == 'minutes':
+            amount = amount * 60
+        amount = int(amount) if amount > 5 else amount
+        return datetime.timedelta(seconds=amount)
 
 def intWithCommas(x):
     if x is None:

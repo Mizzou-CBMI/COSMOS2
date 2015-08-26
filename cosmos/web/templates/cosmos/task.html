@@ -24,19 +24,54 @@
         <li><a href="{{ url_for('.index') }}">Home</a></li>
         <li><a href="{{ task.execution.url }}">{{ task.execution }}</a></li>
         <li><a href="{{ task.stage.url }}">{{ task.stage }}</a></li>
-        <li class="active">{{ task }}</li>
+        <li class="active">&lt;Task[{{ task.id }}]&gt;</li>
     </ul>
     <div class="row">
         <div class="col-md-6">
-            <h3>Task Info</h3>
+            <h3>Attributes</h3>
             <dl class="dl-horizontal">
-                {% for k,v in task.attrs_as_dict().items() %}
-                    {% if k != 'tags' %}
-                        <dt>{{ k }}</dt>
-                        <dd>{{ v or None }}</dd>
-                    {% endif %}
-                {% endfor %}
+                <dt>status</dt>
+                <dd>{{ task.status }}</dd>
+                <dt>output_dir</dt>
+                <dd>{{ task.output_dir }}</dd>
+                <dt>cpu_req</dt>
+                <dd>{{ task.cpu_req }}</dd>
+                <dt>mem_req</dt>
+                <dd>{{ task.mem_req }}</dd>
+                <dt>time_req</dt>
+                <dd>{{ task.time_req }}</dd>
+                <dt>log_dir</dt>
+                <dd>{{ task.log_dir }}</dd>
+                <dt>started_on</dt>
+                <dd>{{ task.started_on|datetime_format }}</dd>
+                <dt>finished_on</dt>
+                <dd>{{ task.finished_on|datetime_format }}</dd>
+                <dt>attempt</dt>
+                <dd>{{ task.attempt }}</dd>
+                <dt>must_succeed</dt>
+                <dd>{{ task.must_succeed }}</dd>
+                <dt>drm</dt>
+                <dd>{{ task.drm }}</dd>
+                <dt>drm_native_specification</dt>
+                <dd>{{ task.drm_native_specification }}</dd>
+                <dt>drm_job_id</dt>
+                <dd>{{ task.drm_job_id }}</dd>
 
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <h3>Tags</h3>
+
+
+            <dl class="dl-horizontal">
+                {% for k,v in task.tags.items() %}
+                    <dt>{{ k }}</dt>
+                    <dd>{{ v }}</dd>
+                {% endfor %}
+            </dl>
+
+            <h3>IO</h3>
+            <dl class="dl-horizontal">
 
                 {% for tf in task.input_files %}
                     <dt>input file</dt>
@@ -47,29 +82,23 @@
                     <dd>{{ tf }}</dd>
                 {% endfor %}
             </dl>
-        </div>
-        <h3>Task Tags</h3>
 
-        <div class="col-md-6">
-            <dl class="dl-horizontal">
-                {% for k,v in task.tags.items() %}
-                    <dt>{{ k }}</dt>
-                    <dd>{{ v }}</dd>
-                {% endfor %}
-            </dl>
         </div>
     </div>
     <div class="row">
-        <dl class="dl-horizontal">
-            <dt>parents</dt>
-            <dd>
-                {{ long_list(task.parents) }}
-            </dd>
-            <dt>children</dt>
-            <dd>
-                {{ long_list(task.children) }}
-            </dd>
-        </dl>
+        <div class="col-md-12">
+            <h3>Dependencies</h3>
+            <dl class="dl-horizontal">
+                <dt>parents</dt>
+                <dd>
+                    {{ long_list(task.parents) }}
+                </dd>
+                <dt>children</dt>
+                <dd>
+                    {{ long_list(task.children) }}
+                </dd>
+            </dl>
+        </div>
     </div>
 
     <div class="panel panel-primary">

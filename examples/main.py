@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 An example of how to setup a project of multiple workflows
 """
@@ -73,8 +74,8 @@ if __name__ == '__main__':
         execution_params = {n: kwargs.pop(n, None) for n in
                             ['name', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts', 'output_dir']}
         if not execution_params['output_dir']:
-            mkdir(os.path.join(root_path, 'out'))
-            execution_params['output_dir'] = os.path.join(root_path, 'out', execution_params['name'])
+            mkdir(os.path.join(root_path, 'out_dir'))
+            execution_params['output_dir'] = os.path.join(root_path, 'out_dir', execution_params['name'])
 
         ex = cosmos.start(**execution_params)
         kwargs['execution'] = ex

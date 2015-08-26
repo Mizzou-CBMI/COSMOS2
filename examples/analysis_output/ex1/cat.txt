@@ -1,0 +1,4 @@
+       6 hello/1/cat.txt
+       6 hello/2/cat.txt
+       6 world/1/cat.txt
+       6 world/2/cat.txt

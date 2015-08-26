@@ -108,7 +108,7 @@ def gen_bprint(cosmos_app):
 
         if pygraphviz_available:
             if type == 'task':
-                svg = Markup(draw_task_graph(ex.task_graph()))
+                svg = Markup(draw_task_graph(ex.task_graph(), url=True))
             else:
                 svg = Markup(draw_stage_graph(ex.stage_graph(), url=True))
         else:
