@@ -5,8 +5,7 @@ code, and make your own functions for similar patterns.
 """
 
 import os
-from cosmos import Cosmos
-from cosmos.core.cmd_fxn.relationship_patterns import one2one
+from cosmos.api import Cosmos, one2one
 from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
 import subprocess as sp
