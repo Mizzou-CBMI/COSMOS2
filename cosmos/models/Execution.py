@@ -127,8 +127,8 @@ class Execution(Base):
     def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
         """
         Adds a Task
-
-        :param func cmd_fxn: A function that returns a str or NOOP
+        
+	:param func cmd_fxn: A function that returns a str or NOOP
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
         :param str out_dir: Output directy (can be absolute or relative to execution output_dir)
