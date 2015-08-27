@@ -112,7 +112,7 @@ def gen_bprint(cosmos_app):
             else:
                 svg = Markup(draw_stage_graph(ex.stage_graph(), url=True))
         else:
-            svg = 'Pygraphviz not installed, cannot visualize'
+            svg = 'Pygraphviz not installed, cannot visualize.  (Usually: apt-get install graphviz && pip install pygraphviz)'
 
         return render_template('cosmos/taskgraph.html', execution=ex, type=type,
                                svg=svg)
