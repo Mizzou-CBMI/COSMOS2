@@ -1,5 +1,4 @@
 import getpass
-import numpy as np
 from flask import Blueprint
 from flask import render_template
 
@@ -9,6 +8,7 @@ bprint = Blueprint('gemon', __name__, template_folder='templates')
 
 @bprint.route('/')
 def home():
+    import numpy as np
     from .ge import qstat
     import pandas as pd
     # df_user = qstat()
@@ -32,4 +32,5 @@ def home():
     else:
         df_user_summary, df_all_summary = None, None
 
-    return render_template('gemon/home.html', df_user=df_user, df_user_summary=df_user_summary, df_all_summary=df_all_summary)
+    return render_template('gemon/home.html', df_user=df_user, df_user_summary=df_user_summary,
+                           df_all_summary=df_all_summary)

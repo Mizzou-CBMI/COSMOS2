@@ -1,5 +1,5 @@
 import itertools as it
-from ...models.Task import Task
+from ..models.Task import Task
 
 
 def _group_paths(list_of_files_tag_tuples, by):
