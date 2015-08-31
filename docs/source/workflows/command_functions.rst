@@ -57,14 +57,8 @@ Every instance of a Tool (and it's relevant Task) has a dictionary of tags.  The
 API
 -----------
 
-Tool
-_______
 
-
-.. automodule:: cosmos.models.Tool
-    :members: Tool
-
-Abstract I/O Files
+Command Function I/O
 +++++++++++++++++++++
 .. autofunction:: cosmos.api.find
 
