@@ -7,12 +7,6 @@ Executions
 Executions consist of a :term:`DAG` of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.
 
-Every task as a set of tags (a python `dict`), which serve two prinmary purposes:
-
-* Uniquely identifies the Task.  All Tasks in a Stage have a unique set of tags.
-* Passed as parameters to the `cmd_fxn`.  If a `cmd_fxn` does not have a default specified for one of its parameters, a tag with the parameter's name will be required.
-* Used to locate Tasks in the web dashboard.
-
 To create your :term:`DAG`, use :meth:`Execution.add_task`. Python generators
 and comprehensions are a great way to do this in a very readable way.
 
@@ -152,7 +146,7 @@ Notes
     It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
     by a particular set of tags.
 
-    
+
 
 
 API
@@ -168,5 +162,5 @@ Execution
 Helpers
 +++++++++++
 
-.. automodule:: cosmos.util.tool
+.. automodule:: cosmos.util.relationship_patterns
     :members: one2one, many2one, one2many, many2many

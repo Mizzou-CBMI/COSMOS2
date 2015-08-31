@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. Executions &mdash; Cosmos 1.3.1 documentation</title>
+  <title>6. Executions &mdash; Cosmos 1.3.1 documentation</title>
   
 
   
@@ -31,9 +31,8 @@
 
   
     <link rel="top" title="Cosmos 1.3.1 documentation" href="../index.html"/>
-        <link rel="up" title="Writing Workflows" href="index.html"/>
-        <link rel="next" title="4. Workflow Code Examples" href="examples.html"/>
-        <link rel="prev" title="2. Command Functions" href="command_functions.html"/> 
+        <link rel="next" title="7. Workflow Code Examples" href="examples.html"/>
+        <link rel="prev" title="5. Command Functions" href="command_functions.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -91,61 +90,64 @@
 <li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Writing Workflows</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="initializing.html">1. Initializing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="initializing.html#api">1.1. API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="initializing.html#cosmos">1.1.1. Cosmos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">4. Initializing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#api">4.1. API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="initializing.html#cosmos">4.1.1. Cosmos</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="command_functions.html">2. Command Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="command_functions.html#more-on-find">2.1. More on Find()</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="command_functions.html#cardinality">2.1.1. Cardinality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command_functions.html">5. Command Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#more-on-find">5.1. More on Find()</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command_functions.html#cardinality">5.1.1. Cardinality</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="command_functions.html#tags">2.2. Tags</a></li>
-<li class="toctree-l3"><a class="reference internal" href="command_functions.html#api">2.3. API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="command_functions.html#module-cosmos.models.Tool">2.3.1. Tool</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">3. Executions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#creating-your-job-dependency-graph-dag">3.1. Creating Your Job Dependency Graph (DAG)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#one2one-aka-a-map-operation">3.1.1. One2one (aka a map() operation)</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#one2many">3.1.2. One2many</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#many2one">3.1.3. Many2one</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#many2many">3.1.4. Many2many</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#helpers">3.1.5. Helpers</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#notes">3.1.6. Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#api">3.2. API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#execution">3.2.1. Execution</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id3">3.2.2. Helpers</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html">4. Workflow Code Examples</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples.html#basic-workflows">4.1. Basic Workflows</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="examples.html#hello-world">4.1.1. Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#tags">5.2. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command_functions.html#api">5.3. API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command_functions.html#module-cosmos.models.Tool">5.3.1. Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command_functions.html#abstract-i-o-files">5.3.1.1. Abstract I/O Files</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../shell.html">4. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">4.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">4.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">4.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">4.4. API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">6. Executions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#one2one-aka-a-map-operation">6.1.1. One2one (aka a map() operation)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#one2many">6.1.2. One2many</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#many2one">6.1.3. Many2one</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#many2many">6.1.4. Many2many</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#helpers">6.1.5. Helpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">6.1.6. Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">5. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">6. Cosmos FAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">6.2. API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#execution">6.2.1. Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">6.2.2. Helpers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">7. Workflow Code Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#hello-world">7.1.1. Hello World</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples.html#tool-definitions-used-by-examples">7.1.1.1. Tool Definitions used by Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">8. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">8.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">8.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">8.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">8.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">9. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">10. Cosmos FAQ</a></li>
 </ul>
 
           
@@ -170,9 +172,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
-          <li><a href="index.html">Writing Workflows</a> &raquo;</li>
-      
-    <li>3. Executions</li>
+    <li>6. Executions</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -186,15 +186,9 @@
           <div role="main" class="document">
             
   <div class="section" id="executions">
-<span id="recipes"></span><h1>3. Executions<a class="headerlink" href="#executions" title="Permalink to this headline">¶</a></h1>
+<span id="recipes"></span><h1>6. Executions<a class="headerlink" href="#executions" title="Permalink to this headline">¶</a></h1>
 <p>Executions consist of a <a class="reference internal" href="../glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.</p>
-<p>Every task as a set of tags (a python <cite>dict</cite>), which serve two prinmary purposes:</p>
-<ul class="simple">
-<li>Uniquely identifies the Task.  All Tasks in a Stage have a unique set of tags.</li>
-<li>Passed as parameters to the <cite>cmd_fxn</cite>.  If a <cite>cmd_fxn</cite> does not have a default specified for one of its parameters, a tag with the parameter&#8217;s name will be required.</li>
-<li>Used to locate Tasks in the web dashboard.</li>
-</ul>
 <p>To create your <a class="reference internal" href="../glossary.html#term-dag"><span class="xref std std-term">DAG</span></a>, use <code class="xref py py-meth docutils literal"><span class="pre">Execution.add_task()</span></code>. Python generators
 and comprehensions are a great way to do this in a very readable way.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
@@ -221,10 +215,10 @@ and comprehensions are a great way to do this in a very readable way.</p>
 <li>if <cite>2)</cite> is False, then create and return new Task instance</li>
 </ol>
 <div class="section" id="creating-your-job-dependency-graph-dag">
-<h2>3.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
+<h2>6.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
 <p>A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.</p>
 <div class="section" id="one2one-aka-a-map-operation">
-<h3>3.1.1. One2one (aka a map() operation)<a class="headerlink" href="#one2one-aka-a-map-operation" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.1. One2one (aka a map() operation)<a class="headerlink" href="#one2one-aka-a-map-operation" title="Permalink to this headline">¶</a></h3>
 <p>This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
@@ -241,7 +235,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="one2many">
-<h3>3.1.2. One2many<a class="headerlink" href="#one2many" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.2. One2many<a class="headerlink" href="#one2many" title="Permalink to this headline">¶</a></h3>
 <p>For each parent task in StageA, two or more new children are generated in StageB</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;One2Many&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">))</span>
@@ -257,7 +251,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2one">
-<h3>3.1.3. Many2one<a class="headerlink" href="#many2one" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.3. Many2one<a class="headerlink" href="#many2one" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce one task in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;Many2One&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
@@ -274,7 +268,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2many">
-<h3>3.1.4. Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.4. Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce two or more parents in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;many2many&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">check_output_dir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">))</span>
@@ -297,20 +291,20 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="helpers">
-<h3>3.1.5. Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.5. Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h3>
 <p>The above patterns are very common, so there are some handy generators available that take care of many cases.
 However, it is not
 recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
 patterns!</p>
 <ul class="simple">
-<li><a class="reference internal" href="#cosmos.util.tool.one2one" title="cosmos.util.tool.one2one"><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.one2one()</span></code></a></li>
-<li><a class="reference internal" href="#cosmos.util.tool.many2one" title="cosmos.util.tool.many2one"><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.many2one()</span></code></a></li>
-<li><a class="reference internal" href="#cosmos.util.tool.one2many" title="cosmos.util.tool.one2many"><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.one2many()</span></code></a></li>
-<li><a class="reference internal" href="#cosmos.util.tool.many2many" title="cosmos.util.tool.many2many"><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.many2many()</span></code></a></li>
+<li><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.one2one()</span></code></li>
+<li><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.many2one()</span></code></li>
+<li><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.one2many()</span></code></li>
+<li><code class="xref py py-meth docutils literal"><span class="pre">cosmos.util.tool.many2many()</span></code></li>
 </ul>
 </div>
 <div class="section" id="notes">
-<h3>3.1.6. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
+<h3>6.1.6. Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>The above is <strong>not</strong> exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
 It is <strong>highly</strong> recommended that you get familiar with itertools, especially <a class="reference external" href="https://docs.python.org/2.7/library/itertools.html#itertools.groupby" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">itertools.groupby()</span></code></a>.  You will often want to group parent Tasks
@@ -318,9 +312,9 @@ by a particular set of tags.</div></blockquote>
 </div>
 </div>
 <div class="section" id="api">
-<h2>3.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2>6.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="execution">
-<h3>3.2.1. Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h3>
+<h3>6.2.1. Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="cosmos.Execution">
 <em class="property">class </em><code class="descclassname">cosmos.</code><code class="descname">Execution</code><span class="sig-paren">(</span><em>manual_instantiation=True</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Execution.html#Execution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Execution" title="Permalink to this definition">¶</a></dt>
@@ -376,20 +370,19 @@ run more tasks in this execution later.</li>
 
 </div>
 <div class="section" id="id3">
-<h3>3.2.2. Helpers<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<span class="target" id="module-cosmos.util.tool"></span><p>THIS ENTIRE MODULE IS DEPRECATED</p>
-<dl class="function">
-<dt id="cosmos.util.tool.one2one">
-<code class="descclassname">cosmos.util.tool.</code><code class="descname">one2one</code><span class="sig-paren">(</span><em>tool_class</em>, <em>tasks</em>, <em>tag=None</em>, <em>out=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/tool.html#one2one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.tool.one2one" title="Permalink to this definition">¶</a></dt>
+<h3>6.2.2. Helpers<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-cosmos.util.relationship_patterns"></span><dl class="function">
+<dt id="cosmos.util.relationship_patterns.one2one">
+<code class="descclassname">cosmos.util.relationship_patterns.</code><code class="descname">one2one</code><span class="sig-paren">(</span><em>execution</em>, <em>cmd_fxn</em>, <em>parents</em>, <em>tag=None</em>, <em>out_dir=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/relationship_patterns.html#one2one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.relationship_patterns.one2one" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tool_class</strong> (<em>cosmos.Tool</em>) &#8211; a subclass of Tool to create new tasks with.</li>
-<li><strong>tasks</strong> (<em>itrbl(Task)</em>) &#8211; A child tool will be created for each element in this list.</li>
+<li><strong>cmd_fxn</strong> (<em>func</em>) &#8211; the function that runs the command</li>
+<li><strong>parents</strong> (<em>itrbl(Task)</em>) &#8211; A child tool will be created for each element in this list.</li>
 <li><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Tags to add to the Tools&#8217;s dictionary.  The Tool will also inherit the tags of its parent.</li>
-<li><strong>out</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The directory to output to, will be .formated() with its task&#8217;s tags.  ex. &#8216;{shape}/{color}&#8217;.
+<li><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The directory to output to, will be .formated() with its task&#8217;s tags.  ex. &#8216;{shape}/{color}&#8217;.
 Defaults to the output_dir of the parent task.</li>
 </ul>
 </td>
@@ -402,19 +395,19 @@ Defaults to the output_dir of the parent task.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="cosmos.util.tool.many2one">
-<code class="descclassname">cosmos.util.tool.</code><code class="descname">many2one</code><span class="sig-paren">(</span><em>tool_class</em>, <em>parents</em>, <em>groupby</em>, <em>tag=None</em>, <em>out=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/tool.html#many2one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.tool.many2one" title="Permalink to this definition">¶</a></dt>
+<dt id="cosmos.util.relationship_patterns.many2one">
+<code class="descclassname">cosmos.util.relationship_patterns.</code><code class="descname">many2one</code><span class="sig-paren">(</span><em>execution</em>, <em>cmd_fxn</em>, <em>parents</em>, <em>groupby</em>, <em>tag=None</em>, <em>out_dir=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/relationship_patterns.html#many2one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.relationship_patterns.many2one" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tool_class</strong> (<em>cosmos.Tool</em>) &#8211; a subclass of Tool to create new tasks with.</li>
+<li><strong>cmd_fxn</strong> (<em>func</em>) &#8211; the function that runs the command</li>
 <li><strong>groupby</strong> (<em>list(str)</em>) &#8211; A list of keys to groupby.  Parents will be grouped if they have the same values in
 their tags given by <cite>groupby</cite>.</li>
 <li><strong>parents</strong> (<em>itrbl(Task)</em>) &#8211; An group of parents to groupby</li>
 <li><strong>tag</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Tags to add to the Tools&#8217;s dictionary.  The Tool will also inherit the tags of its parent.</li>
-<li><strong>out</strong> (<em>str|callable</em>) &#8211; The directory to output to, will be .formated() with its task&#8217;s tags.  ex. &#8216;{shape}/{color}&#8217;.
+<li><strong>out_dir</strong> (<em>str|callable</em>) &#8211; The directory to output to, will be .formated() with its task&#8217;s tags.  ex. &#8216;{shape}/{color}&#8217;.
 Defaults to the output_dir of the parent task.  Alternatively use a callable who&#8217;s parameter are tags and returns
 a str.  ie. <code class="docutils literal"><span class="pre">out_dir=lambda</span> <span class="pre">tags:</span> <span class="pre">'{color}/'</span> <span class="pre">if</span> <span class="pre">tags['has_color']</span> <span class="pre">else</span> <span class="pre">'square/'</span></code></li>
 </ul>
@@ -428,21 +421,8 @@ a str.  ie. <code class="docutils literal"><span class="pre">out_dir=lambda</spa
 </dd></dl>
 
 <dl class="function">
-<dt id="cosmos.util.tool.many2many">
-<code class="descclassname">cosmos.util.tool.</code><code class="descname">many2many</code><span class="sig-paren">(</span><em>tool_class</em>, <em>parents</em>, <em>groupby</em>, <em>splitby</em>, <em>tag=None</em>, <em>out=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/tool.html#many2many"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.tool.many2many" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>splitby</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; a dict who&#8217;s values are lists, ex: dict(color=[&#8216;red&#8217;,&#8217;blue&#8217;], shape=[&#8216;square&#8217;,&#8217;circle&#8217;])</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="cosmos.util.tool.one2many">
-<code class="descclassname">cosmos.util.tool.</code><code class="descname">one2many</code><span class="sig-paren">(</span><em>tool_class</em>, <em>parents</em>, <em>splitby</em>, <em>tag=None</em>, <em>out=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/tool.html#one2many"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.tool.one2many" title="Permalink to this definition">¶</a></dt>
+<dt id="cosmos.util.relationship_patterns.one2many">
+<code class="descclassname">cosmos.util.relationship_patterns.</code><code class="descname">one2many</code><span class="sig-paren">(</span><em>execution</em>, <em>cmd_fxn</em>, <em>parents</em>, <em>splitby</em>, <em>tag=None</em>, <em>out_dir=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/util/relationship_patterns.html#one2many"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.util.relationship_patterns.one2many" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -465,10 +445,10 @@ a str.  ie. <code class="docutils literal"><span class="pre">out_dir=lambda</spa
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="examples.html" class="btn btn-neutral float-right" title="4. Workflow Code Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="7. Workflow Code Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="command_functions.html" class="btn btn-neutral" title="2. Command Functions" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="command_functions.html" class="btn btn-neutral" title="5. Command Functions" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
