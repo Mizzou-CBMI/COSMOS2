@@ -2,9 +2,14 @@ COSMOS is currently BETA.  Although the code is considered stable,
 we are planning a major publication before the official release.
 
 
-
 For more information and the full documentation please visit
 `http://cosmos-wfm.readthedocs.org <http://cosmos-wfm.readthedocs.org>`_.
+
+To chat with the author/other users (many of which use COSMOS to make bioinformatics NGS workflows), use gitter:
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/LPM-HMS/Cosmos2
+   :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Install
 ==========
@@ -57,6 +62,3 @@ ____________
 
 Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>`_.
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/LPM-HMS/Cosmos2
-   :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
