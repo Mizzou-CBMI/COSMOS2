@@ -5,16 +5,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Module Index &mdash; Cosmos 1.3.0 documentation</title>
+  <title>Python Module Index &mdash; Cosmos 1.3.1 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -28,13 +28,15 @@
   
 
   
-    <link rel="top" title="Cosmos 1.3.0 documentation" href="index.html"/>
+
+  
+    <link rel="top" title="Cosmos 1.3.1 documentation" href="index.html"/>
  
 
 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -45,24 +47,39 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="index.html" class="fa fa-home"> Cosmos</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> Cosmos
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="1_introduction.html">1. Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="1_introduction.html#history">1.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="1_introduction.html#features">1.3. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_introduction.html#features">1.3. Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="1_introduction.html#multi-platform-support">1.3.1. Multi-platform Support</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
@@ -74,24 +91,64 @@
 <li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/index.html">4. Writing Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/initializing.html">4.1. Initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/command_functions.html">4.2. Command Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html">4.3. Executions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/examples.html">4.4. Workflow Code Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/index.html">Writing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/initializing.html">1. Initializing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows/initializing.html#api">1.1. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/initializing.html#cosmos">1.1.1. Cosmos</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="shell.html">5. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#delete-a-stage-and-all-of-it-s-descendants">5.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#getting-a-stage-s-descendants">5.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#manually-altering-attributes">5.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#api">5.4. API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">6. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">7. Cosmos FAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/command_functions.html">2. Command Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows/command_functions.html#more-on-find">2.1. More on Find()</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/command_functions.html#cardinality">2.1.1. Cardinality</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="workflows/command_functions.html#tags">2.2. Tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows/command_functions.html#api">2.3. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/command_functions.html#module-cosmos.models.Tool">2.3.1. Tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html">3. Executions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows/executions.html#creating-your-job-dependency-graph-dag">3.1. Creating Your Job Dependency Graph (DAG)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#one2one-aka-a-map-operation">3.1.1. One2one (aka a map() operation)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#one2many">3.1.2. One2many</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#many2one">3.1.3. Many2one</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#many2many">3.1.4. Many2many</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#helpers">3.1.5. Helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#notes">3.1.6. Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="workflows/executions.html#api">3.2. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#execution">3.2.1. Execution</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workflows/executions.html#id3">3.2.2. Helpers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/examples.html">4. Workflow Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows/examples.html#basic-workflows">4.1. Basic Workflows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="workflows/examples.html#hello-world">4.1.1. Hello World</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">4. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#delete-a-stage-and-all-of-it-s-descendants">4.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#getting-a-stage-s-descendants">4.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#manually-altering-attributes">4.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#api">4.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">5. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">6. Cosmos FAQ</a></li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -116,11 +173,13 @@
     <li></li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
 
    <h1>Python Module Index</h1>
@@ -137,27 +196,27 @@
        <td><img src="_static/minus.png" class="toggler"
               id="toggle-1" style="display: none" alt="-" /></td>
        <td>
-       <tt class="xref">cosmos</tt></td><td>
+       <code class="xref">cosmos</code></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&nbsp;&nbsp;&nbsp;
-       <a href="workflows/command_functions.html#module-cosmos.core.cmd_fxn"><tt class="xref">cosmos.core.cmd_fxn</tt></a></td><td>
+       <a href="workflows/command_functions.html#module-cosmos.core.cmd_fxn"><code class="xref">cosmos.core.cmd_fxn</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&nbsp;&nbsp;&nbsp;
-       <a href="workflows/index.html#module-cosmos.graph"><tt class="xref">cosmos.graph</tt></a></td><td>
+       <a href="workflows/index.html#module-cosmos.graph"><code class="xref">cosmos.graph</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&nbsp;&nbsp;&nbsp;
-       <a href="workflows/command_functions.html#module-cosmos.models.Tool"><tt class="xref">cosmos.models.Tool</tt></a></td><td>
+       <a href="workflows/command_functions.html#module-cosmos.models.Tool"><code class="xref">cosmos.models.Tool</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&nbsp;&nbsp;&nbsp;
-       <a href="workflows/executions.html#module-cosmos.util.tool"><tt class="xref">cosmos.util.tool</tt></a></td><td>
+       <a href="workflows/executions.html#module-cosmos.util.tool"><code class="xref">cosmos.util.tool</code></a></td><td>
        <em></em></td></tr>
    </table>
 
@@ -173,9 +232,10 @@
         &copy; Copyright 2013, Harvard Medical School.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -190,7 +250,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.3.0',
+            VERSION:'1.3.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -199,7 +259,7 @@
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

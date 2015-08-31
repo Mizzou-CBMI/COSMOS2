@@ -1,0 +1,909 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.models.Execution &mdash; Cosmos 1.3.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Cosmos 1.3.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="cosmos" href="../../cosmos.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../../index.html" class="icon icon-home"> Cosmos
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../1_introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#history">1.2. History</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../1_introduction.html#features">1.3. Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../1_introduction.html#multi-platform-support">1.3.1. Multi-platform Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3_getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/index.html">Writing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/initializing.html">1. Initializing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/initializing.html#api">1.1. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/initializing.html#cosmos">1.1.1. Cosmos</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/command_functions.html">2. Command Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/command_functions.html#more-on-find">2.1. More on Find()</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/command_functions.html#cardinality">2.1.1. Cardinality</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/command_functions.html#tags">2.2. Tags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/command_functions.html#api">2.3. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/command_functions.html#module-cosmos.models.Tool">2.3.1. Tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/executions.html">3. Executions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/executions.html#creating-your-job-dependency-graph-dag">3.1. Creating Your Job Dependency Graph (DAG)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#one2one-aka-a-map-operation">3.1.1. One2one (aka a map() operation)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#one2many">3.1.2. One2many</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#many2one">3.1.3. Many2one</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#many2many">3.1.4. Many2many</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#helpers">3.1.5. Helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#notes">3.1.6. Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/executions.html#api">3.2. API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#execution">3.2.1. Execution</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/executions.html#id3">3.2.2. Helpers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../workflows/examples.html">4. Workflow Code Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../workflows/examples.html#basic-workflows">4.1. Basic Workflows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../workflows/examples.html#hello-world">4.1.1. Hello World</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../shell.html">4. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#delete-a-stage-and-all-of-it-s-descendants">4.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#getting-a-stage-s-descendants">4.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#manually-altering-attributes">4.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../shell.html#api">4.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glossary.html">5. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">6. Cosmos FAQ</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../cosmos.html">cosmos</a> &raquo;</li>
+      
+    <li>cosmos.models.Execution</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for cosmos.models.Execution</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declared_attr</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.schema</span> <span class="kn">import</span> <span class="n">Column</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.types</span> <span class="kn">import</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">VARCHAR</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">orm</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">func</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">validates</span><span class="p">,</span> <span class="n">synonym</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">backref</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">url_for</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">networkx.algorithms.dag</span> <span class="kn">import</span> <span class="n">descendants</span><span class="p">,</span> <span class="n">topological_sort</span>
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">from</span> <span class="nn">..util.iterstuff</span> <span class="kn">import</span> <span class="n">only_one</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">..util.helpers</span> <span class="kn">import</span> <span class="n">duplicates</span><span class="p">,</span> <span class="n">groupby2</span>
+<span class="kn">from</span> <span class="nn">..db</span> <span class="kn">import</span> <span class="n">Base</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">..core.cmd_fxn</span> <span class="kn">import</span> <span class="n">signature</span>
+<span class="kn">from</span> <span class="nn">..core.cmd_fxn</span> <span class="kn">import</span> <span class="n">io</span>
+
+<span class="n">opj</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">StageStatus</span><span class="p">,</span> <span class="n">Task</span><span class="p">,</span> <span class="n">ExecutionStatus</span><span class="p">,</span> <span class="n">signal_execution_status_change</span>
+
+<span class="kn">from</span> <span class="nn">..util.helpers</span> <span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span> <span class="nn">..util.sqla</span> <span class="kn">import</span> <span class="n">Enum34_ColumnType</span><span class="p">,</span> <span class="n">MutableDict</span><span class="p">,</span> <span class="n">JSONEncodedDict</span><span class="p">,</span> <span class="n">get_or_create</span>
+
+
+<span class="k">def</span> <span class="nf">_default_task_log_output_dir</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The default function for computing Task.log_output_dir&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">opj</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">execution</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">get_or_create_task</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="n">successful_tasks</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">stage</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">default_drm</span><span class="p">):</span>
+    <span class="n">existing_task</span> <span class="o">=</span> <span class="n">successful_tasks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">tags</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">existing_task</span><span class="p">:</span>
+        <span class="n">existing_task</span><span class="o">.</span><span class="n">tool</span> <span class="o">=</span> <span class="n">tool</span>
+        <span class="k">return</span> <span class="n">existing_task</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tool</span><span class="o">.</span><span class="n">_generate_task</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">default_drm</span><span class="o">=</span><span class="n">default_drm</span><span class="p">)</span>
+
+
+<span class="nd">@signal_execution_status_change.connect</span>
+<span class="k">def</span> <span class="nf">_execution_status_changed</span><span class="p">(</span><span class="n">ex</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">successful</span><span class="p">,</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed</span><span class="p">,</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">killed</span><span class="p">]:</span>
+        <span class="n">logfunc</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span> <span class="k">if</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed</span><span class="p">,</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">killed</span><span class="p">]</span> <span class="k">else</span> <span class="n">ex</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span>
+        <span class="n">logfunc</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">, output_dir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">output_dir</span><span class="p">))</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">finished_on</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">successful</span><span class="p">:</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">successful</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">ex</span><span class="o">.</span><span class="n">finished_on</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="n">ex</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="Execution"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.Execution">[docs]</a><span class="k">class</span> <span class="nc">Execution</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The primary object.  An Execution is an instantiation of a recipe being run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;execution&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">VARCHAR</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">created_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">started_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">finished_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">max_cpus</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">max_attempts</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">MutableDict</span><span class="o">.</span><span class="n">as_mutable</span><span class="p">(</span><span class="n">JSONEncodedDict</span><span class="p">))</span>
+    <span class="c"># recipe_graph = Column(PickleType)</span>
+    <span class="n">_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum34_ColumnType</span><span class="p">(</span><span class="n">ExecutionStatus</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">no_attempt</span><span class="p">)</span>
+    <span class="n">stages</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;Stage&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s">&quot;all, delete-orphan&quot;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s">&quot;Stage.number&quot;</span><span class="p">,</span> <span class="n">passive_deletes</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                          <span class="n">backref</span><span class="o">=</span><span class="s">&#39;execution&#39;</span><span class="p">)</span>
+
+    <span class="n">exclude_from_dict</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;info&#39;</span><span class="p">]</span>
+
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span>
+
+        <span class="k">def</span> <span class="nf">set_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="n">signal_execution_status_change</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">synonym</span><span class="p">(</span><span class="s">&#39;_status&#39;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">=</span><span class="nb">property</span><span class="p">(</span><span class="n">get_status</span><span class="p">,</span> <span class="n">set_status</span><span class="p">))</span>
+
+    <span class="nd">@validates</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">r&quot;^[\w-]+$&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="s">&#39;Invalid execution name, characters are limited to letters, numbers, &#39;</span> \
+                                            <span class="s">&#39;hyphens and underscores&#39;</span>
+        <span class="k">return</span> <span class="n">name</span>
+
+    <span class="nd">@orm.reconstructor</span>
+    <span class="k">def</span> <span class="nf">constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">manual_instantiation</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manual_instantiation</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">manual_instantiation</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="s">&#39;Do not instantiate an Execution manually.  Use the Cosmos.start method.&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Execution</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;output_dir cannot be None&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># mutable dict column defaults to None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">created_on</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_references_to_stop_garbage_collection_which_destroys_tool_attribute</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s">&#39;log&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s">&#39;cosmos-</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">Execution</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">opj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="s">&#39;execution.log&#39;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not an attribute of </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Execution.add_task"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.Execution.add_task">[docs]</a>    <span class="k">def</span> <span class="nf">add_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stage_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a Task</span>
+<span class="sd">        </span>
+<span class="sd">	:param func cmd_fxn: A function that returns a str or NOOP</span>
+<span class="sd">        :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`</span>
+<span class="sd">        :param list[Task] parents: List of dependencies</span>
+<span class="sd">        :param str out_dir: Output directy (can be absolute or relative to execution output_dir)</span>
+<span class="sd">        :param str stage_name: Name of the stage to add this task to</span>
+<span class="sd">        :return: a Task</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Stage</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">):</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parents</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parents</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">parents</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">out_dir</span><span class="p">:</span>
+            <span class="n">out_dir</span> <span class="o">=</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">tags</span><span class="p">)</span>
+
+        <span class="c"># for k, v in tags.items():</span>
+        <span class="c">#     if isinstance(v, basestring):</span>
+        <span class="c">#         tags[k] = v.format(**tags)</span>
+
+        <span class="c"># Get the right Stage</span>
+        <span class="k">if</span> <span class="n">stage_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">stage_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cmd_fxn</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">stage</span> <span class="o">=</span> <span class="n">only_one</span><span class="p">((</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">stage_name</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stage</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">stage</span> <span class="o">=</span> <span class="n">Stage</span><span class="p">(</span><span class="n">execution</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">stage_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+
+        <span class="c"># Check if task is already in stage</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">stage</span><span class="o">.</span><span class="n">get_task</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks</span>
+            <span class="c"># were already removed on execution load</span>
+            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">successful</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">task</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># TODO check for duplicate tags here?  would be a lot faster at Execution.run</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Duplicate tags, you have added a job to </span><span class="si">%s</span><span class="s"> with tags </span><span class="si">%s</span><span class="s"> twice&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stage_name</span><span class="p">,</span> <span class="n">tags</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Create Task</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">tags</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;drm&#39;</span><span class="p">,</span> <span class="s">&#39;mem_req&#39;</span><span class="p">,</span> <span class="s">&#39;time_req&#39;</span><span class="p">,</span> <span class="s">&#39;cpu_req&#39;</span><span class="p">,</span> <span class="s">&#39;must_succeed&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">}</span>
+            <span class="k">if</span> <span class="s">&#39;drm&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;drm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmos_app</span><span class="o">.</span><span class="n">default_drm</span>
+
+            <span class="n">input_map</span><span class="p">,</span> <span class="n">output_map</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">get_io_map</span><span class="p">(</span><span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">stage</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span>
+            <span class="n">input_files</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">unpack_io_map</span><span class="p">(</span><span class="n">input_map</span><span class="p">)</span>
+            <span class="n">output_files</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">unpack_io_map</span><span class="p">(</span><span class="n">output_map</span><span class="p">)</span>
+
+            <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">input_files</span><span class="o">=</span><span class="n">input_files</span><span class="p">,</span>
+                        <span class="n">output_files</span><span class="o">=</span><span class="n">output_files</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">attrs</span><span class="p">)</span>
+
+            <span class="n">task</span><span class="o">.</span><span class="n">cmd_fxn</span> <span class="o">=</span> <span class="n">cmd_fxn</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">input_map</span> <span class="o">=</span> <span class="n">input_map</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">output_map</span> <span class="o">=</span> <span class="n">output_map</span>
+
+        <span class="c"># Add Stage Dependencies</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">stage</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stage</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+                <span class="n">stage</span><span class="o">.</span><span class="n">parents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">stage</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_references_to_stop_garbage_collection_which_destroys_tool_attribute</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">task</span>
+</div>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        DEPRECATED</span>
+
+<span class="sd">        Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.</span>
+
+<span class="sd">        :param itrbl(tool) tools: For each tool in `tools`, new task will be added to the stage with stage `name`.</span>
+<span class="sd">        :param str name: Default is to the class name of the first tool in tools.</span>
+<span class="sd">        :rtype: list(Task)</span>
+<span class="sd">        :return: New tasks that were created.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Tool</span><span class="p">,</span> <span class="n">Stage</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tools</span><span class="p">,</span> <span class="s">&#39;__class__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">tools</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="n">Tool</span><span class="p">):</span>
+            <span class="n">tools</span> <span class="o">=</span> <span class="p">[</span><span class="n">tools</span><span class="p">]</span>
+        <span class="n">tools</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tools</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">issubclass</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="n">Tool</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">),</span> \
+            <span class="s">&#39;`tools` must be a list of Tools, a Tool instance, or a generator of Tools&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;`tools` cannot be an empty list&#39;</span>
+        <span class="n">tools</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">tools</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">task_parents</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">p</span><span class="o">.</span><span class="n">execution</span> <span class="o">==</span> <span class="bp">self</span><span class="p">,</span> <span class="s">&quot;cannot add a tool who&#39;s parent tasks belong to a different execution&quot;</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">tools</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+
+        <span class="k">for</span> <span class="n">tags</span><span class="p">,</span> <span class="n">tool_group</span> <span class="ow">in</span> <span class="n">groupby2</span><span class="p">(</span><span class="n">tools</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">tool</span><span class="p">:</span> <span class="n">tool</span><span class="o">.</span><span class="n">tags</span><span class="p">):</span>
+            <span class="n">tool_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tool_group</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tool_group</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;Duplicate tags detected: {tags}.  </span><span class="se">\n</span><span class="s">&#39;</span> \
+                    <span class="s">&#39;In tasks: {tool_group}  </span><span class="se">\n</span><span class="s">&#39;</span> \
+                    <span class="s">&#39;Tags within a stage must be unique.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Duplicate tags detected&#39;</span><span class="p">)</span>
+
+
+        <span class="c"># stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stage</span> <span class="o">=</span> <span class="n">only_one</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">stage</span> <span class="o">=</span> <span class="n">Stage</span><span class="p">(</span><span class="n">execution</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+
+        <span class="c"># successful because failed jobs have been deleted.</span>
+        <span class="n">successful_tasks</span> <span class="o">=</span> <span class="p">{</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">stage</span><span class="o">.</span><span class="n">tasks</span><span class="p">}</span>
+
+        <span class="n">new_parent_stages</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">new_tasks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+            <span class="n">new_parent_stages</span> <span class="o">=</span> <span class="n">new_parent_stages</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">stage</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">tool</span><span class="o">.</span><span class="n">task_parents</span><span class="p">)</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">get_or_create_task</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="n">successful_tasks</span><span class="p">,</span> <span class="n">tool</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">stage</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">tool</span><span class="o">.</span><span class="n">task_parents</span><span class="p">,</span>
+                                      <span class="n">default_drm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_app</span><span class="o">.</span><span class="n">default_drm</span><span class="p">)</span>
+            <span class="n">tool</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
+            <span class="n">new_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">stage</span><span class="o">.</span><span class="n">parents</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_parent_stages</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">stage</span><span class="o">.</span><span class="n">parents</span><span class="p">))</span>
+
+        <span class="c"># todo temporary</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">new_tasks</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s">&#39;tool&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_references_to_stop_garbage_collection_which_destroys_tool_attribute</span> <span class="o">+=</span> <span class="n">new_tasks</span>
+
+        <span class="k">return</span> <span class="n">new_tasks</span>
+
+<div class="viewcode-block" id="Execution.run"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.Execution.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_out_dir_func</span><span class="o">=</span><span class="n">_default_task_log_output_dir</span><span class="p">,</span> <span class="n">dry</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">set_successful</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">signature</span><span class="o">.</span><span class="n">default_cmd_fxn_wrapper</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders and executes the :param:`recipe`</span>
+
+<span class="sd">        :param log_out_dir_func: (function) a function that computes a task&#39;s log_out_dir_func.</span>
+<span class="sd">             It receives one parameter: the task instance.</span>
+<span class="sd">             By default task log output is stored in output_dir/log/stage_name/task_id.</span>
+<span class="sd">             See _default_task_log_output_dir for more info.</span>
+<span class="sd">        :param dry: (bool) if True, do not actually run any jobs.</span>
+<span class="sd">        :param set_successful: (bool) sets this execution as successful if all tasks finish without a failure.  You might set this to False if you intend to add and</span>
+<span class="sd">            run more tasks in this execution later.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()),</span> <span class="s">&#39;current working dir does not exist! </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;cosmos_app&#39;</span><span class="p">),</span> <span class="s">&#39;Execution was not initialized using the Execution.start method&#39;</span>
+        <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">log_out_dir_func</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">),</span> <span class="s">&#39;log_out_dir_func must be a function&#39;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="s">&#39;Execution must be part of a sqlalchemy session&#39;</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Preparing to run </span><span class="si">%s</span><span class="s"> using DRM `</span><span class="si">%s</span><span class="s">`, output_dir: `</span><span class="si">%s</span><span class="s">`&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmos_app</span><span class="o">.</span><span class="n">default_drm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">))</span>
+
+        <span class="kn">from</span> <span class="nn">..job.JobManager</span> <span class="kn">import</span> <span class="n">JobManager</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span> <span class="o">=</span> <span class="n">JobManager</span><span class="p">(</span><span class="n">get_submit_args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_app</span><span class="o">.</span><span class="n">get_submit_args</span><span class="p">,</span>
+                                     <span class="n">default_queue</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_app</span><span class="o">.</span><span class="n">default_queue</span><span class="p">,</span> <span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">cmd_wrapper</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">running</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">started_on</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">datetime</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">started_on</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="c"># Render task graph and to session</span>
+        <span class="c"># import ipdb</span>
+        <span class="c"># with ipdb.launch_ipdb_on_exception():</span>
+        <span class="c">#     print self.tasks</span>
+        <span class="n">task_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_graph</span><span class="p">()</span>
+        <span class="n">stage_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_graph</span><span class="p">()</span>
+
+        <span class="c"># Set output_dirs of new tasks</span>
+        <span class="c"># for task in nx.topological_sort(task_g):</span>
+        <span class="c"># if not task.successful:</span>
+        <span class="c"># task.output_dir = task_output_dir(task)</span>
+        <span class="c">#         assert task.output_dir not in [&#39;&#39;, None], &quot;Computed an output file root_path of None or &#39;&#39; for %s&quot; % task</span>
+        <span class="c">#         for tf in task.output_files:</span>
+        <span class="c">#             if tf.path is None:</span>
+        <span class="c">#                 tf.path = opj(task.output_dir, tf.basename)</span>
+        <span class="c">#                 assert tf.path is not None, &#39;computed an output_dir for %s of None&#39; % task</span>
+        <span class="c">#                 # recipe_stage2stageprint task, tf.root_path, &#39;basename:&#39;,tf.basename</span>
+
+        <span class="c"># set commands of new tasks</span>
+        <span class="c"># for task in topological_sort(task_g):</span>
+        <span class="c">#     if not task.successful: # and not task.NOOP:</span>
+        <span class="c">#         task.command = task.tool._generate_command(task)</span>
+
+        <span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+
+        <span class="c"># def assert_no_duplicate_taskfiles():</span>
+        <span class="c">#     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)</span>
+        <span class="c">#     f = lambda tf: tf.path</span>
+        <span class="c">#     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):</span>
+        <span class="c">#         group = list(group)</span>
+        <span class="c">#         if len(group) &gt; 1:</span>
+        <span class="c">#             t1 = group[0].task_output_for</span>
+        <span class="c">#             tf1 = group[0]</span>
+        <span class="c">#             t2 = group[1].task_output_for</span>
+        <span class="c">#             tf2 = group[1]</span>
+        <span class="c">#             div = &quot;-&quot; * 72 + &quot;\n&quot;</span>
+        <span class="c">#             self.log.error(&quot;Duplicate taskfiles paths detected:\n &quot;</span>
+        <span class="c">#                            &quot;{div}&quot;</span>
+        <span class="c">#                            &quot;{t1}\n&quot;</span>
+        <span class="c">#                            &quot;* {tf1}\n&quot;</span>
+        <span class="c">#                            &quot;{div}&quot;</span>
+        <span class="c">#                            &quot;{t2}\n&quot;</span>
+        <span class="c">#                            &quot;* {tf2}\n&quot;</span>
+        <span class="c">#                            &quot;{div}&quot;.format(**locals()))</span>
+        <span class="c">#</span>
+        <span class="c">#             raise ValueError(&#39;Duplicate taskfile paths&#39;)</span>
+        <span class="c">#</span>
+        <span class="c"># assert_no_duplicate_taskfiles()</span>
+
+
+        <span class="c"># Collapse</span>
+        <span class="c"># from ..graph.collapse import collapse</span>
+        <span class="c">#</span>
+        <span class="c"># for stage_bubble, name in recipe.collapses:</span>
+        <span class="c">#     self.log.debug(&#39;Collapsing %s into `%s`&#39; % ([s.name for s in stage_bubble], name))</span>
+        <span class="c">#     collapse(session, task_g, stage_g, stage_bubble, name)</span>
+
+        <span class="c"># taskg and stageg are now finalized</span>
+
+        <span class="c"># stages = stage_g.nodes()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">),</span> <span class="s">&#39;duplicate stage name detected: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">next</span><span class="p">(</span><span class="n">duplicates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">)))</span>
+
+        <span class="c"># renumber stages</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">stage_g</span><span class="p">)):</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c"># Add final taskgraph to session</span>
+        <span class="c"># session.expunge_all()</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c"># session.add_all(stage_g.nodes())</span>
+        <span class="c"># session.add_all(task_g.nodes())</span>
+        <span class="n">successful</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">successful</span><span class="p">,</span> <span class="n">task_g</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+
+        <span class="c"># commit so task.id is set for log dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Committing </span><span class="si">%s</span><span class="s"> Tasks to the SQL database...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">task_g</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">successful</span><span class="p">)))</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="c"># print stages</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">topological_sort</span><span class="p">(</span><span class="n">stage_g</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+
+        <span class="c"># Create Task Queue</span>
+        <span class="n">task_queue</span> <span class="o">=</span> <span class="n">_copy_graph</span><span class="p">(</span><span class="n">task_g</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Skipping </span><span class="si">%s</span><span class="s"> successful tasks...&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">successful</span><span class="p">))</span>
+        <span class="n">task_queue</span><span class="o">.</span><span class="n">remove_nodes_from</span><span class="p">(</span><span class="n">successful</span><span class="p">)</span>
+
+        <span class="n">handle_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Setting log output directories...&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">set_log_dirs</span><span class="p">():</span>
+            <span class="n">log_dirs</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="o">.</span><span class="n">log_dir</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">successful</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">task_queue</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+                <span class="n">log_dir</span> <span class="o">=</span> <span class="n">log_out_dir_func</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">log_dir</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">log_dirs</span><span class="p">,</span> <span class="s">&#39;Duplicate log_dir detected for </span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">log_dirs</span><span class="p">[</span><span class="n">log_dir</span><span class="p">])</span>
+                <span class="n">log_dirs</span><span class="p">[</span><span class="n">log_dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">task</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="n">log_dir</span>
+
+        <span class="n">set_log_dirs</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Checking stage attributes...&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">reset_stage_attrs</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;Update stage attributes if new tasks were added to them&quot;&quot;&quot;</span>
+            <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Stage</span><span class="p">,</span> <span class="n">StageStatus</span>
+            <span class="c"># using .update() threw an error, so have to do it the slow way. It&#39;s not too bad though, since</span>
+            <span class="c"># there shouldn&#39;t be that many stages to update.</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Stage</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Task</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">~</span><span class="n">Task</span><span class="o">.</span><span class="n">successful</span><span class="p">,</span> <span class="n">Stage</span><span class="o">.</span><span class="n">execution_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                                                            <span class="n">Stage</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">StageStatus</span><span class="o">.</span><span class="n">no_attempt</span><span class="p">):</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">finished_on</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">StageStatus</span><span class="o">.</span><span class="n">running</span>
+
+        <span class="n">reset_stage_attrs</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Ensuring there are enough cores...&#39;</span><span class="p">)</span>
+        <span class="c"># make sure we&#39;ve got enough cores</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">task_queue</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">cpu_req</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cpus</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cpus</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> requires more cpus (</span><span class="si">%s</span><span class="s">) than `max_cpus` (</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">cpu_req</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cpus</span><span class="p">)</span>
+
+        <span class="c"># Run this thing!</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dry</span><span class="p">:</span>
+            <span class="n">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">task_queue</span><span class="p">)</span>
+
+            <span class="c"># set status</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed_but_running</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed</span>
+                <span class="c"># set stage status to failed</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">StageStatus</span><span class="o">.</span><span class="n">running_but_failed</span><span class="p">:</span>
+                        <span class="n">s</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">StageStatus</span><span class="o">.</span><span class="n">failed</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">set_successful</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">successful</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Bad execution status </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Execution complete&#39;</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">due_to_failure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Terminating </span><span class="si">%s</span><span class="s">!&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s">&#39;Processing finished tasks and terminating </span><span class="si">%s</span><span class="s"> running tasks&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span><span class="o">.</span><span class="n">running_tasks</span><span class="p">))</span>
+            <span class="n">_process_finished_tasks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">jobmanager</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">due_to_failure</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">killed</span>
+
+    <span class="c"># @property</span>
+    <span class="c"># def tasksq(self):</span>
+    <span class="c"># stage_ids = [s.id for s in self.stages]</span>
+    <span class="c"># if len(stage_ids):</span>
+    <span class="c"># return self.session.query(Task).filter(Task.stage_id.in_(stage_ids))</span>
+    <span class="c"># else:</span>
+    <span class="c"># return []</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">tasks</span><span class="p">]</span>
+        <span class="c"># return session.query(Task).join(Stage).filter(Stage.execution == ex).all()</span>
+
+    <span class="k">def</span> <span class="nf">stage_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: (networkx.DiGraph) a DAG of the stages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">children</span> <span class="k">if</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">g</span>
+
+    <span class="k">def</span> <span class="nf">task_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: (networkx.DiGraph) a DAG of the tasks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">([(</span><span class="n">t</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">t</span><span class="o">.</span><span class="n">children</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">g</span>
+
+    <span class="k">def</span> <span class="nf">get_stage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_or_id</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_or_id</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">name_or_id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name_or_id</span>
+
+        <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">(</span><span class="n">stage</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">stage</span>
+
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Stage with name </span><span class="si">%s</span><span class="s"> does not exist&#39;</span> <span class="o">%</span> <span class="n">name_or_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;cosmos.execution&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;Execution[</span><span class="si">%s</span><span class="s">] </span><span class="si">%s</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delete_files</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;log&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Deleting </span><span class="si">%s</span><span class="s">, output_dir=</span><span class="si">%s</span><span class="s">, delete_files=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">delete_files</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+                <span class="n">h</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">h</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="c"># time.sleep(.1)  # takes a second for logs to flush?</span>
+
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;Deleting output_dir: </span><span class="si">%s</span><span class="s">...&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span>
+        <span class="k">if</span> <span class="n">delete_files</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="c">### Faster deleting can be done with explicit sql queries</span>
+        <span class="c"># from .TaskFile import InputFileAssociation</span>
+        <span class="c"># from .Task import TaskEdge</span>
+        <span class="c"># from .. import Stage, TaskFile</span>
+        <span class="c"># self.session.query(InputFileAssociation).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()</span>
+        <span class="c"># self.session.query(TaskFile).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()</span>
+        <span class="c">#</span>
+        <span class="c"># self.session.query(TaskEdge).join(Stage).join(Execution).filter(Execution.id == self.id).delete()</span>
+        <span class="c"># self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()</span>
+        <span class="c"># self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()</span>
+        <span class="c">#</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;Deleting from SQL...&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> Deleted&#39;</span> <span class="o">%</span> <span class="bp">self</span>
+
+        <span class="c"># def yield_outputs(self, name):</span>
+        <span class="c"># for task in self.tasks:</span>
+        <span class="c"># tf = task.get_output(name, error_if_missing=False)</span>
+        <span class="c"># if tf is not None:</span>
+        <span class="c">#             yield tf</span>
+        <span class="c">#</span>
+        <span class="c"># def get_output(self, name):</span>
+        <span class="c">#     r = next(self.yield_outputs(name), None)</span>
+        <span class="c">#     if r is None:</span>
+        <span class="c">#         raise ValueError(&#39;Output named `{0}` does not exist in {1}&#39;.format(name, self))</span>
+        <span class="c">#     return r</span>
+
+
+<span class="c"># @event.listens_for(Execution, &#39;before_delete&#39;)</span>
+<span class="c"># def before_delete(mapper, connection, target):</span>
+<span class="c"># print &#39;before_delete %s &#39; % target</span>
+</div>
+<span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="n">execution</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">task_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Do the execution!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">execution</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Executing TaskGraph&#39;</span><span class="p">)</span>
+
+    <span class="n">available_cores</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">task_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">available_cores</span><span class="p">:</span>
+            <span class="n">_run_queued_and_ready_tasks</span><span class="p">(</span><span class="n">task_queue</span><span class="p">,</span> <span class="n">execution</span><span class="p">)</span>
+            <span class="n">available_cores</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">_process_finished_tasks</span><span class="p">(</span><span class="n">execution</span><span class="o">.</span><span class="n">jobmanager</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">failed</span> <span class="ow">and</span> <span class="n">task</span><span class="o">.</span><span class="n">must_succeed</span><span class="p">:</span>
+                <span class="c"># pop all descendents when a task fails</span>
+                <span class="n">task_queue</span><span class="o">.</span><span class="n">remove_nodes_from</span><span class="p">(</span><span class="n">descendants</span><span class="p">(</span><span class="n">task_queue</span><span class="p">,</span> <span class="n">task</span><span class="p">))</span>
+                <span class="n">task_queue</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+                <span class="n">execution</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">failed_but_running</span>
+                <span class="n">execution</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> tasks left in the queue&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">task_queue</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">successful</span><span class="p">:</span>
+                <span class="c"># just pop this task</span>
+                <span class="n">task_queue</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">no_attempt</span><span class="p">:</span>
+                <span class="c"># the task must have failed, and is being reattempted</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unexpected finished task status </span><span class="si">%s</span><span class="s"> for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">task</span><span class="p">))</span>
+            <span class="n">available_cores</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="c"># only commit Task changes after processing a batch of finished ones</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_run_queued_and_ready_tasks</span><span class="p">(</span><span class="n">task_queue</span><span class="p">,</span> <span class="n">execution</span><span class="p">):</span>
+    <span class="n">max_cpus</span> <span class="o">=</span> <span class="n">execution</span><span class="o">.</span><span class="n">max_cpus</span>
+    <span class="n">ready_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">task</span> <span class="k">for</span> <span class="n">task</span><span class="p">,</span> <span class="n">degree</span> <span class="ow">in</span> <span class="n">task_queue</span><span class="o">.</span><span class="n">in_degree</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span>
+                   <span class="n">degree</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">no_attempt</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">max_cpus</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">submittable_tasks</span> <span class="o">=</span> <span class="n">ready_tasks</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cores_used</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">cpu_req</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">execution</span><span class="o">.</span><span class="n">jobmanager</span><span class="o">.</span><span class="n">running_tasks</span><span class="p">])</span>
+        <span class="n">cores_left</span> <span class="o">=</span> <span class="n">max_cpus</span> <span class="o">-</span> <span class="n">cores_used</span>
+
+        <span class="n">submittable_tasks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ready_tasks</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ready_tasks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">cpu_req</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_tasks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">ready_tasks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">there_are_cpus_left</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">cpu_req</span> <span class="o">&lt;=</span> <span class="n">cores_left</span>
+            <span class="k">if</span> <span class="n">there_are_cpus_left</span><span class="p">:</span>
+                <span class="n">cores_left</span> <span class="o">-=</span> <span class="n">task</span><span class="o">.</span><span class="n">cpu_req</span>
+                <span class="n">submittable_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+                <span class="n">ready_tasks</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="c"># submit in a batch for speed</span>
+    <span class="n">execution</span><span class="o">.</span><span class="n">jobmanager</span><span class="o">.</span><span class="n">submit_tasks</span><span class="p">(</span><span class="n">submittable_tasks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">submittable_tasks</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_tasks</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">submittable_tasks</span>
+        <span class="k">print</span> <span class="n">ready_tasks</span>
+        <span class="n">execution</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Reached max_cpus limit of </span><span class="si">%s</span><span class="s">, waiting for a task to finish...&#39;</span> <span class="o">%</span> <span class="n">max_cpus</span><span class="p">)</span>
+
+    <span class="c"># only commit submitted Tasks after submitting a batch</span>
+    <span class="n">execution</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_process_finished_tasks</span><span class="p">(</span><span class="n">jobmanager</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">jobmanager</span><span class="o">.</span><span class="n">get_finished_tasks</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">NOOP</span> <span class="ow">or</span> <span class="n">task</span><span class="o">.</span><span class="n">exit_status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">successful</span>
+            <span class="k">yield</span> <span class="n">task</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">failed</span>
+            <span class="k">yield</span> <span class="n">task</span>
+
+
+<span class="k">def</span> <span class="nf">handle_exits</span><span class="p">(</span><span class="n">execution</span><span class="p">,</span> <span class="n">do_atexit</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c"># terminate on ctrl+c</span>
+    <span class="k">def</span> <span class="nf">ctrl_c</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">execution</span><span class="o">.</span><span class="n">successful</span><span class="p">:</span>
+            <span class="n">execution</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Caught SIGINT (ctrl+c)&#39;</span><span class="p">)</span>
+            <span class="n">execution</span><span class="o">.</span><span class="n">terminate</span><span class="p">(</span><span class="n">due_to_failure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Execution terminated with a SIGINT (ctrl+c) event&#39;</span><span class="p">)</span>
+
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">ctrl_c</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">atexit</span><span class="p">:</span>
+        <span class="nd">@atexit.register</span>
+        <span class="k">def</span> <span class="nf">cleanup_check</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">execution</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+                <span class="n">execution</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Execution </span><span class="si">%s</span><span class="s"> has a status of running atexit!&#39;</span> <span class="o">%</span> <span class="n">execution</span><span class="p">)</span>
+                <span class="n">execution</span><span class="o">.</span><span class="n">terminate</span><span class="p">(</span><span class="n">due_to_failure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c"># raise SystemExit(&#39;Execution terminated due to the python interpreter exiting&#39;)</span>
+
+
+<span class="k">def</span> <span class="nf">_copy_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+
+    <span class="n">graph2</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">graph2</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+    <span class="n">graph2</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">graph2</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, Harvard Medical School.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.3.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2. Installation &mdash; Cosmos 0.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Cosmos 0.0 documentation" href="index.html"/>
+        <link rel="next" title="3. Getting Started" href="getting_started.html"/>
+        <link rel="prev" title="1. Introduction" href="introduction.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#features">1.1. Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#multi-platform-support">1.2. Multi-platform Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/index.html">4. Writing Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/tools.html">1. Defining Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/examples.html">2. Workflow Code Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">5. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">6. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/index.html">7. API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="API/Tool.html">7.1. Tool</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>2. Installation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/install.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="installation">
+<h1>2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>If you want to use visualizations of your workflows, make sure you have graphviz and pygraphviz installed (recommended).</p>
+<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get graphviz graphviz-dev
+</pre></div>
+</div>
+<p>To install, clone the repository.  This procedure assumes you&#8217;re using <a class="reference external" href="http://virtualenv.readthedocs.org/en/latest/">VirtualEnv</a>:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nb">cd</span> /dir/to/install/Cosmos/to
+mkvirtualenv ve
+<span class="nb">source </span>ve/bin/activate
+pip install pip distribute -U
+git clone git@github.com:LPM-HMS/Cosmos3.git Cosmos --depth<span class="o">=</span>1
+<span class="nb">cd </span>Cosmos
+pip install .
+<span class="c"># optionally: pip install pygraphviz</span>
+</pre></div>
+</div>
+<p>Alternatively, use <a class="reference external" href="https://virtualenvwrapper.readthedocs.org/en/latest/">virtualenvwrapper</a></p>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="getting_started.html" class="btn btn-neutral float-right" title="3. Getting Started"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="introduction.html" class="btn btn-neutral" title="1. Introduction"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013, InVitae Hackers.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
