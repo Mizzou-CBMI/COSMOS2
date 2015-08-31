@@ -9,9 +9,9 @@ and are mostly just for keeping track of similar Tasks.  Tasks execute as soon a
 
 Every task as a set of tags (a python `dict`), which serve two prinmary purposes:
 
-* Uniquely identifies the tag.  All Tasks in a Stage have a unique set of tags.  When resuming an Execution,
-* If you run :meth:`Execution.add_task` and a Task has already been successful with those tags, it will not be run again.  Think memoization.
-* Passed as parameters to the `command_function`.  If a `command_function` does not have a default specified for one of its parameters, the tag will be required.
+* Uniquely identifies the Task.  All Tasks in a Stage have a unique set of tags.
+* Passed as parameters to the `cmd_fxn`.  If a `cmd_fxn` does not have a default specified for one of its parameters, a tag with the parameter's name will be required.
+* Used to locate Tasks in the web dashboard.
 
 To create your :term:`DAG`, use :meth:`Execution.add_task`. Python generators
 and comprehensions are a great way to do this in a very readable way.
@@ -36,7 +36,7 @@ and comprehensions are a great way to do this in a very readable way.
 
 Each call to :meth:`Execution.add_task` does the following:
 
-1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `command_function`)
+1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
 2) Checks to see if a Task with the same tags already completed successfully in that stage
 3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
 4) if `2)` is False, then create and return new Task instance
@@ -148,10 +148,11 @@ patterns!
 Notes
 +++++++
 
-    The above is **not** exhaustive.  For example, you could have a task who has 3 different parents, each belonging to a different stage.
+    The above is **not** exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
     It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
     by a particular set of tags.
 
+    
 
 
 API
