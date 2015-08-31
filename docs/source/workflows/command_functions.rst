@@ -5,7 +5,7 @@
 Command Functions
 ==================
 
-A `command function` represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
+A `command_fxn` (or `cmd_fxn`) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
 which gets written to the filesystem as a shell-script and submitted as a job.  It is a plain old python function.
 
 .. code-block:: python

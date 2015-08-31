@@ -6,12 +6,15 @@ we are planning a major publication before the official release.
 
 .. toctree::
     :numbered:
-    :maxdepth: 4
+    :maxdepth: 2
 
     1_introduction
     2_install
     3_getting_started
-    workflows/index
+    workflows/initializing
+    workflows/command_functions
+    workflows/executions
+    workflows/examples
     shell
     glossary
     faq
