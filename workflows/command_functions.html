@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Command Functions &mdash; Cosmos 1.3.1 documentation</title>
+  <title>5. Command Functions &mdash; Cosmos 1.3.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Cosmos 1.3.1 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 1.3.2 documentation" href="../index.html"/>
         <link rel="next" title="6. Executions" href="executions.html"/>
         <link rel="prev" title="4. Initializing" href="initializing.html"/> 
 
@@ -103,13 +103,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#tags">5.2. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api">5.3. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#module-cosmos.models.Tool">5.3.1. Tool</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#abstract-i-o-files">5.3.1.1. Abstract I/O Files</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#api">5.3. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="executions.html">6. Executions</a><ul>
@@ -235,45 +229,6 @@ For example when <code class="docutils literal"><span class="pre">cmd()</span></
 </div>
 <div class="section" id="api">
 <h2>5.3. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-cosmos.models.Tool">
-<span id="tool"></span><h3>5.3.1. Tool<a class="headerlink" href="#module-cosmos.models.Tool" title="Permalink to this headline">¶</a></h3>
-<dl class="class">
-<dt id="cosmos.models.Tool.Tool">
-<em class="property">class </em><code class="descclassname">cosmos.models.Tool.</code><code class="descname">Tool</code><span class="sig-paren">(</span><em>tags</em>, <em>parents=None</em>, <em>out=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Essentially a factory that produces Tasks.  <a class="reference internal" href="#cosmos.models.Tool.Tool.cmd" title="cosmos.models.Tool.Tool.cmd"><code class="xref py py-meth docutils literal"><span class="pre">cmd()</span></code></a> must be overridden unless it is a NOOP task.</p>
-<dl class="method">
-<dt id="cosmos.models.Tool.Tool.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>tags</em>, <em>parents=None</em>, <em>out=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tags</strong> &#8211; (dict) A dictionary of tags.  The combination of tags are the unique identifier for a Task,
-and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag
-values must be basic python types.</li>
-<li><strong>parents</strong> &#8211; (list of Tasks).  A list of parent tasks</li>
-<li><strong>out</strong> &#8211; an output directory, will be .format()ed with tags.  Defaults to the cwd of the Execution.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="cosmos.models.Tool.Tool.cmd">
-<code class="descname">cmd</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Tool.html#Tool.cmd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.models.Tool.Tool.cmd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructs the command string.  Lines will be .strip()ed.
-:param dict kwargs:  Inputs and Outputs (which have AbstractInputFile and AbstractOutputFile defaults) and parameters which are passed via tags.
-:rtype: str
-:returns: The text to write into the shell script that gets executed</p>
-</dd></dl>
-
-</dd></dl>
-
-<div class="section" id="abstract-i-o-files">
-<h4>5.3.1.1. Abstract I/O Files<a class="headerlink" href="#abstract-i-o-files" title="Permalink to this headline">¶</a></h4>
 <dl class="function">
 <dt id="cosmos.api.find">
 <code class="descclassname">cosmos.api.</code><code class="descname">find</code><span class="sig-paren">(</span><em>regex=None</em>, <em>n=None</em>, <em>tags=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
@@ -292,8 +247,6 @@ values must be basic python types.</li>
 <dd><p>Forward(input_parameter_name)</p>
 </dd></dl>
 
-</div>
-</div>
 </div>
 </div>
 
@@ -336,7 +289,7 @@ values must be basic python types.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.3.1',
+            VERSION:'1.3.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
