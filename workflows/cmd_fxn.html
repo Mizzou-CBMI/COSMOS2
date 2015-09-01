@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Core &mdash; Cosmos 1.3.2 documentation</title>
+  <title>5. Command Functions &mdash; Cosmos 1.3.2 documentation</title>
   
 
   
@@ -97,7 +97,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">5. Core</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="">5. Command Functions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#more-on-find">5.1. More on find()</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#api">5.2. API</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#command-function-i-o">5.2.1. Command Function I/O</a></li>
@@ -166,7 +166,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
-    <li>5. Core</li>
+    <li>5. Command Functions</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -179,8 +179,8 @@
 </div>
           <div role="main" class="document">
             
-  <span class="target" id="module-cosmos.core"><span id="tools"></span></span><div class="section" id="core">
-<h1>5. Core<a class="headerlink" href="#core" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="module-cosmos.core"><span id="tools"></span></span><div class="section" id="command-functions">
+<h1>5. Command Functions<a class="headerlink" href="#command-functions" title="Permalink to this headline">¶</a></h1>
 <p>A <cite>command_fxn</cite> (or <cite>cmd_fxn</cite>) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
 which gets written to the filesystem as a shell-script and submitted as a job.  It is a plain old python function.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">out_dir</span>
@@ -199,10 +199,10 @@ which gets written to the filesystem as a shell-script and submitted as a job.  
 <ul class="simple">
 <li>A function parameter that starts with <cite>in_</cite> is an input_file.</li>
 <li>A function parameter that starts with <cite>out_</cite> is an output_file.</li>
-<li>The <code class="xref py py-func docutils literal"><span class="pre">find()</span></code> default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
+<li>The <a class="reference internal" href="#cosmos.api.find" title="cosmos.api.find"><code class="xref py py-func docutils literal"><span class="pre">find()</span></code></a> default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
 to search all of the parents of a Task for files that match the find&#8217;s <a href="#id1"><span class="problematic" id="id2">:param:`regex`</span></a> parameter.</li>
-<li><code class="xref py py-func docutils literal"><span class="pre">out_dir()</span></code> will automatically append the Task&#8217;s output directory to the filename.</li>
-<li><code class="xref py py-func docutils literal"><span class="pre">forward()</span></code> will automatically set an output_file to the input_file specified.</li>
+<li><a class="reference internal" href="#cosmos.api.out_dir" title="cosmos.api.out_dir"><code class="xref py py-func docutils literal"><span class="pre">out_dir()</span></code></a> will automatically append the Task&#8217;s output directory to the filename.</li>
+<li><a class="reference internal" href="#cosmos.api.forward" title="cosmos.api.forward"><code class="xref py py-func docutils literal"><span class="pre">forward()</span></code></a> will automatically set an output_file to the input_file specified.</li>
 </ul>
 <div class="section" id="more-on-find">
 <h2>5.1. More on find()<a class="headerlink" href="#more-on-find" title="Permalink to this headline">¶</a></h2>
@@ -225,20 +225,49 @@ for example:</p>
 <h3>5.2.1. Command Function I/O<a class="headerlink" href="#command-function-i-o" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="cosmos.api.find">
-<code class="descclassname">cosmos.api.</code><code class="descname">find</code><span class="sig-paren">(</span><em>regex=None</em>, <em>n=None</em>, <em>tags=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
-<dd><p>FindFromParents(regex, n, tags)</p>
+<code class="descclassname">cosmos.api.</code><code class="descname">find</code><span class="sig-paren">(</span><em>regex</em>, <em>n='==1'</em>, <em>tags=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set an input_file&#8217;s default behavior to finds output_files from a Task&#8217;s parents using a regex</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>regex</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; a regex to match the file path</li>
+<li><strong>n</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (cardinality) the number of files to find</li>
+<li><strong>tags</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; filter parent search space using these tags</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cosmos.api.out_dir">
-<code class="descclassname">cosmos.api.</code><code class="descname">out_dir</code><span class="sig-paren">(</span><em>basename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cosmos.api.out_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>OutputDir(basename)</p>
+<code class="descclassname">cosmos.api.</code><code class="descname">out_dir</code><span class="sig-paren">(</span><em>basename=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#out_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.out_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Essentially will perform os.path.join(Task.output_dir, basename)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the output_file</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="cosmos.api.forward">
-<code class="descclassname">cosmos.api.</code><code class="descname">forward</code><span class="sig-paren">(</span><em>input_parameter_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cosmos.api.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forward(input_parameter_name)</p>
+<code class="descclassname">cosmos.api.</code><code class="descname">forward</code><span class="sig-paren">(</span><em>input_parameter_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forwards a Task&#8217;s input as an output</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_parameter_name</strong> &#8211; The name of this cmd_fxn&#8217;s input parameter to forward</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

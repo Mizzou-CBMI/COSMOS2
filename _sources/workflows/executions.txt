@@ -70,7 +70,7 @@ This is the most common stage dependency.  For each task in StageA, you create a
     draw_task_graph(execution.task_graph(), 'one2one.png')
 
 .. figure:: /_static/imgs/one2one.png
-:align: center
+    :align: center
 
 
 One2many
@@ -89,7 +89,7 @@ For each parent task in StageA, two or more new children are generated in StageB
 
 
 .. figure:: /_static/imgs/one2many.png
-:align: center
+    :align: center
 
 
 
@@ -110,7 +110,7 @@ Two or more parents in StageA produce one task in StageB.
 
 
 .. figure:: /_static/imgs/many2one.png
-:align: center
+    :align: center
 
 Many2many
 +++++++++
@@ -135,7 +135,7 @@ Two or more parents in StageA produce two or more parents in StageB.
 
 
 .. figure:: /_static/imgs/many2many.png
-:align: center
+    :align: center
 
 Helpers
 ++++++++++
@@ -151,15 +151,12 @@ patterns!
 * :meth:`cosmos.util.tool.many2many`
 
 
-
 Notes
 +++++++
 
     The above is **not** exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
     It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
     by a particular set of tags.
-
-
 
 
 API
@@ -169,11 +166,11 @@ Execution
 ++++++++++++++
 
 .. autoclass:: cosmos.Execution
-:members: add_task, run
+    :members: add_task, run
 
 
 Helpers
 +++++++++++
 
 .. automodule:: cosmos.util.relationship_patterns
-:members: one2one, many2one, one2many, many2many
+    :members: one2one, many2one, one2many, many2many
