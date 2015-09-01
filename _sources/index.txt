@@ -12,7 +12,7 @@ we are planning a major publication before the official release.
     2_install
     3_getting_started
     workflows/initializing
-    workflows/command_functions
+    workflows/cmd_fxn
     workflows/executions
     workflows/examples
     shell
