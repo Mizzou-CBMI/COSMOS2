@@ -44,7 +44,7 @@ for example:
 * "<3"
 * ">=4"
 
-``find()`` can also be passed a dict of ``tags``, which will filter the search space of parents to Task's who's ``tags``
+``find()`` can also be passed a dict of ``tags``, which will filter the search space of parents to Task's who's ``tags`` match.
 
 You can always explicitly specify input_files via tags, should find() not work for you.
 

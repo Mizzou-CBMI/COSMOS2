@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cosmos.util.relationship_patterns &mdash; Cosmos 1.3.2 documentation</title>
+  <title>cosmos.util.tool &mdash; Cosmos 1.3.2 documentation</title>
   
 
   
@@ -169,7 +169,7 @@
       
           <li><a href="../../cosmos.html">cosmos</a> &raquo;</li>
       
-    <li>cosmos.util.relationship_patterns</li>
+    <li>cosmos.util.tool</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -180,9 +180,50 @@
 </div>
           <div role="main" class="document">
             
-  <h1>Source code for cosmos.util.relationship_patterns</h1><div class="highlight"><pre>
+  <h1>Source code for cosmos.util.tool</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">THIS ENTIRE MODULE IS DEPRECATED</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
-<span class="kn">from</span> <span class="nn">..models.Task</span> <span class="kn">import</span> <span class="n">Task</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">Tool</span><span class="p">,</span> <span class="n">Task</span>
+
+
+<span class="k">def</span> <span class="nf">make_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param args: a list of dicts, or Tasks (for Tasks, their tags will be used)</span>
+<span class="sd">    :param kwargs: a list of extra key/vals to add to the dict</span>
+<span class="sd">    :return: a merge of all the dicts in args and kwargs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Task</span><span class="p">):</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="n">elem</span><span class="o">.</span><span class="n">tags</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not a dict&#39;</span> <span class="o">%</span> <span class="n">elem</span>
+        <span class="n">r</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span>
+
+
+<span class="k">def</span> <span class="nf">one2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.</span>
+<span class="sd">    :param itrbl(Task) tasks: A child tool will be created for each element in this list.</span>
+<span class="sd">    :param dict tag: Tags to add to the Tools&#39;s dictionary.  The Tool will also inherit the tags of its parent.</span>
+<span class="sd">    :param str out: The directory to output to, will be .formated() with its task&#39;s tags.  ex. &#39;{shape}/{color}&#39;.</span>
+<span class="sd">        Defaults to the output_dir of the parent task.</span>
+<span class="sd">    :yields Tool: New tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tag` must be a dict&#39;</span>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+        <span class="n">new_tags</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span> <span class="ow">or</span> <span class="n">parent</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_group_paths</span><span class="p">(</span><span class="n">list_of_files_tag_tuples</span><span class="p">,</span> <span class="n">by</span><span class="p">):</span>
@@ -237,52 +278,50 @@
         <span class="k">yield</span> <span class="n">group_tags</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="n">parent_group</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="one2one"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.api.one2one">[docs]</a><span class="k">def</span> <span class="nf">one2one</span><span class="p">(</span><span class="n">execution</span><span class="p">,</span> <span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="n">reduce_</span> <span class="o">=</span> <span class="n">group</span>  <span class="c"># deprecated name</span>
+
+
+<span class="k">def</span> <span class="nf">many2one</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    :param func cmd_fxn: the function that runs the command</span>
-<span class="sd">    :param itrbl(Task) parents: A child task will be created for each element in this list.</span>
-<span class="sd">    :param dict tag: Tags to add to the Task&#39;s dictionary.  The Task will also inherit the tags of its parent.</span>
-<span class="sd">    :param str out_dir: The directory to output to, will be .formated() with its task&#39;s tags.  ex. &#39;{shape}/{color}&#39;.</span>
-<span class="sd">        Defaults to the output_dir of the parent task.</span>
-<span class="sd">    :yields Task: Tasks.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">tag</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tag` must be a dict&#39;</span>
-
-    <span class="k">def</span> <span class="nf">g</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-            <span class="n">new_tags</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">parent</span><span class="p">],</span> <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span> <span class="ow">or</span> <span class="n">parent</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">())</span>
-
-</div>
-<div class="viewcode-block" id="many2one"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.api.many2one">[docs]</a><span class="k">def</span> <span class="nf">many2one</span><span class="p">(</span><span class="n">execution</span><span class="p">,</span> <span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    :param func cmd_fxn: the function that runs the command</span>
+<span class="sd">    :param cosmos.Tool tool_class: a subclass of Tool to create new tasks with.</span>
 <span class="sd">    :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in</span>
 <span class="sd">        their tags given by `groupby`.</span>
 <span class="sd">    :param itrbl(Task) parents: An group of parents to groupby</span>
-<span class="sd">    :param dict tag: Tags to add to the Task&#39;s dictionary.  The Task will also inherit the tags of its parent.</span>
-<span class="sd">    :param str|callable out_dir: The directory to output to, will be .formated() with its task&#39;s tags.  ex. &#39;{shape}/{color}&#39;.</span>
+<span class="sd">    :param dict tag: Tags to add to the Tools&#39;s dictionary.  The Tool will also inherit the tags of its parent.</span>
+<span class="sd">    :param str|callable out: The directory to output to, will be .formated() with its task&#39;s tags.  ex. &#39;{shape}/{color}&#39;.</span>
 <span class="sd">        Defaults to the output_dir of the parent task.  Alternatively use a callable who&#39;s parameter are tags and returns</span>
 <span class="sd">        a str.  ie. ``out_dir=lambda tags: &#39;{color}/&#39; if tags[&#39;has_color&#39;] else &#39;square/&#39;``</span>
-<span class="sd">    :yields: Tasks.</span>
+<span class="sd">    :yields: new Tools</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">tag</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tag` must be a dict&#39;</span>
 
-    <span class="k">def</span> <span class="nf">g</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">new_tags</span><span class="p">,</span> <span class="n">parent_group</span> <span class="ow">in</span> <span class="n">group</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">):</span>
-            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parent_group</span><span class="p">,</span>
-                                     <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">(</span><span class="n">new_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out_dir</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">new_tags</span><span class="p">,</span> <span class="n">parent_group</span> <span class="ow">in</span> <span class="n">group</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">):</span>
+        <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parent_group</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">(</span><span class="n">new_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">())</span>
+
+<div class="viewcode-block" id="many2many"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.api.many2many">[docs]</a><span class="k">def</span> <span class="nf">many2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param dict splitby: a dict who&#39;s values are lists, ex: dict(color=[&#39;red&#39;,&#39;blue&#39;], shape=[&#39;square&#39;,&#39;circle&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tag` must be a dict&#39;</span>
+
+    <span class="k">for</span> <span class="n">group_tags</span><span class="p">,</span> <span class="n">parent_group</span> <span class="ow">in</span> <span class="n">group</span><span class="p">(</span><span class="n">parents</span><span class="p">,</span> <span class="n">groupby</span><span class="p">):</span>
+        <span class="n">parent_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">parent_group</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">splitby</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">splitby</span><span class="p">(</span><span class="n">group_tags</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">combinations</span><span class="p">(</span><span class="n">splitby</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">new_tags</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">group_tags</span><span class="p">)</span>
+            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parent_group</span><span class="p">,</span>
+                             <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">(</span><span class="n">group_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span><span class="p">)</span>
 
 </div>
 <span class="k">def</span> <span class="nf">combinations</span><span class="p">(</span><span class="n">splitby</span><span class="p">):</span>
@@ -290,25 +329,21 @@
         <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="one2many"><a class="viewcode-back" href="../../../workflows/executions.html#cosmos.api.one2many">[docs]</a><span class="k">def</span> <span class="nf">one2many</span><span class="p">(</span><span class="n">execution</span><span class="p">,</span> <span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">one2many</span><span class="p">(</span><span class="n">tool_class</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">splitby</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :param dict splitby: a dict who&#39;s values are lists, ex: dict(color=[&#39;red&#39;,&#39;blue&#39;], shape=[&#39;square&#39;,&#39;circle&#39;])</span>
-<span class="sd">    :yields: Tasks.</span>
+<span class="sd">    :return:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">tag</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s">&#39;`tag` must be a dict&#39;</span>
 
-    <span class="k">def</span> <span class="nf">g</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
-            <span class="n">new_tags</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">split_tags</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">splitby</span><span class="p">):</span>
-                <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">split_tags</span><span class="p">)</span>
-                <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-                <span class="k">yield</span> <span class="n">execution</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">cmd_fxn</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">parent</span><span class="p">],</span>
-                                         <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">(</span><span class="n">new_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out_dir</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">())</span></div>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+        <span class="n">new_tags</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">split_tags</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">splitby</span><span class="p">):</span>
+            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">split_tags</span><span class="p">)</span>
+            <span class="n">new_tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">tool_class</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="n">new_tags</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">parent</span><span class="p">],</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">(</span><span class="n">new_tags</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">out</span><span class="p">)</span>
 </pre></div>
 
           </div>
