@@ -42,3 +42,9 @@ a:visited
 .navbar-inverse {
     #background-color: #800000
 }
+
+pre {
+  overflow: auto;
+  word-wrap: normal;
+  white-space: pre;
+}

@@ -193,8 +193,8 @@ class Cosmos(object):
             if check_output_dir:
                 assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
 
-            mkdir(output_dir)  # make it here so we can start logging to logfile
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
+            mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
         ex.max_cpus = max_cpus

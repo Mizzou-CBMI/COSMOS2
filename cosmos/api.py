@@ -9,3 +9,16 @@ from .util.args import add_execution_args
 from .util.tool import one2one, one2many, many2one, many2many, make_dict
 from .graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 from .util.iterstuff import only_one
+
+# from functools import wraps
+# def partial(func, *args, **keywords):
+#     """
+#     Fuctionally the same as functools.partial, but uses functools.wraps to retain the signature of `func`
+#     """
+#     @wraps(func)
+#     def newfunc(*fargs, **fkeywords):
+#         newkeywords = keywords.copy()
+#         newkeywords.update(fkeywords)
+#         return func(*(args + fargs), **newkeywords)
+#
+#     return newfunc
