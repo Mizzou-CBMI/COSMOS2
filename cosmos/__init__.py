@@ -322,6 +322,10 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 # Imports
 ########################################################################################################################
 
+"""
+WARNING! THESE IMPORTS ARE DEPRECATED.  Import from cosmos.api instead!
+"""
+
 from .models.files import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, \
     abstract_output_taskfile_old  # these are all deprecated
 from .models.Task import Task

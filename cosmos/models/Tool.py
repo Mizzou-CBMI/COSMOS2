@@ -79,7 +79,7 @@ class Tool(object):
             and must be unique for any tasks in its stage.  They are also passed as parameters to the cmd() call.  Tag
             values must be basic python types.
         :param parents: (list of Tasks).  A list of parent tasks
-        :param out: an output directory, will be .format()ed with tags
+        :param out: an output directory, will be .format()ed with tags.  Defaults to the cwd of the Execution.
         """
         assert isinstance(tags, dict), '`tags` must be a dict'
         assert isinstance(out, basestring), '`out_dir` must be a str'
@@ -260,7 +260,7 @@ class Tool(object):
                 if arg not in params:
                     raise AttributeError(
                         '%s.cmd() requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                        'method signature, or pass a value for `%s` with a tag' % (self, arg, arg))
+                        'method signature, or pass a value for `%s` parameter using a tag' % (self, arg, arg))
 
         validate_params()
 

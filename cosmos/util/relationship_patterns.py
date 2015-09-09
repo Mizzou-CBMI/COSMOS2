@@ -1,18 +1,47 @@
 import itertools as it
-from ...models.Task import Task
+from ..models.Task import Task
 
 
-def group(tasks, by):
+def _group_paths(list_of_files_tag_tuples, by):
+    """
+    Same as group, but takes as input [(file1, dict), (file2, dict) instead]
+    Useful for grouping together input files
+
+    :param list[(str, dict)] list_of_files_tag_tuples:
+    :param list[str] by: see :func:`group`
+
+    :yields: dict, list[str]: The common tags for this group, a list of file_paths
+    """
+
+    def f((file_path, tags)):
+        try:
+            return {k: tags[k] for k in by}
+        except KeyError as k:
+            raise KeyError('keyword %s is not in the tags of %s' % (k, (file_path, tags)))
+
+
+    for group_tags, tuple_group in it.groupby(sorted(list_of_files_tag_tuples, key=f), f):
+        yield group_tags.copy(), list(tuple_group)
+
+
+def group(tasks_or_tuples, by):
     """
     A way to create common Many2one relationships, works similarly to a SQL GROUP BY
 
-    :param iterable tasks: tasks to divide into groups
+    :param iterable tasks_or_tuples: tasks_or_tuples to divide into groups
     :param list[str] by: the tag keys with which to create the groups.  Tasks with the same tag values of these keys
       will be partitioned into the same group, similar to a groupby.
     :yields dict, list[Tasks]: The common tags for this group, and the list of Tasks with those tags.
     """
-    tasks = list(tasks)
-    assert all(isinstance(t, Task) for t in tasks), '`tasks` must be an iterable of Tasks'
+    tasks_or_tuples = list(tasks_or_tuples)
+    if isinstance(tasks_or_tuples[0], tuple):
+        assert isinstance(tasks_or_tuples[0][0], str) and isinstance(tasks_or_tuples[0][1],
+                                                                     dict), 'Tuple must be of type (str, dict)'
+        for x in _group_paths(tasks_or_tuples, by):
+            yield x
+    elif not isinstance(tasks_or_tuples[0], Task):
+        raise AssertionError('`tasks_or_tuples` must be an iterable of Tasks or tuples')
+
 
     def f(task):
         try:
@@ -20,7 +49,8 @@ def group(tasks, by):
         except KeyError as k:
             raise KeyError('keyword %s is not in the tags of %s' % (k, task))
 
-    for group_tags, parent_group in it.groupby(sorted(tasks, key=f), f):
+
+    for group_tags, parent_group in it.groupby(sorted(tasks_or_tuples, key=f), f):
         yield group_tags.copy(), list(parent_group)
 
 
