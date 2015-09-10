@@ -19,9 +19,9 @@ def get_input_and_output_defaults(fxn):
         # if isinstance(kw, list):
         # # for when user specifies unpacking in a parameter name
         # kw = frozenset(kw)
-        if kw.startswith('in_') or isinstance(default, find):
+        if kw.startswith('in_') or isinstance(default, FindFromParents):
             input_arg_to_default[kw] = default
-        elif kw.startswith('out_') or isinstance(default, out_dir) or isinstance(default, forward):
+        elif kw.startswith('out_') or isinstance(default, OutputDir) or isinstance(default, Forward):
             output_arg_to_default[kw] = default
 
     return input_arg_to_default, output_arg_to_default
@@ -55,11 +55,19 @@ OPS = OrderedDict([("<=", operator.le),
 
 
 def parse_cardinality(n):
-    op, number = re.search('(.*?)(\d+)', str(n)).groups()
+    try:
+        op, number = re.search('(.*?)(\d+)', str(n)).groups()
+    except AttributeError:
+        raise AttributeError('Invalid cardinality: %s' % n)
     if op == '':
         op = '=='
     number = int(number)
     return op, number
+
+
+FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
+OutputDir = recordtype('OutputDir', 'basename', default=None)
+Forward = recordtype('Forward', 'input_parameter_name', default=None)
 
 
 def find(regex, n='==1', tags=None):
@@ -70,7 +78,7 @@ def find(regex, n='==1', tags=None):
     :param str n: (cardinality) the number of files to find
     :param dict tags: filter parent search space using these tags
     """
-    return recordtype('FindFromParents', 'regex n tags', default=None)
+    return FindFromParents(regex, n, tags)
 
 
 def out_dir(basename=''):
@@ -79,7 +87,7 @@ def out_dir(basename=''):
 
     :param str basename: The basename of the output_file
     """
-    return recordtype('OutputDir', 'basename', default=None)
+    return OutputDir(basename)
 
 
 def forward(input_parameter_name):
@@ -88,7 +96,7 @@ def forward(input_parameter_name):
 
     :param input_parameter_name: The name of this cmd_fxn's input parameter to forward
     """
-    return recordtype('Forward', 'input_parameter_name', default=None)
+    return Forward(input_parameter_name)
 
 
 def _validate_input_mapping(cmd_name, find_instance, mapped_input_taskfiles, parents):
@@ -117,17 +125,23 @@ def _get_input_map(cmd_name, input_arg_to_default, tags, parents):
             # user specified explicitly
             input_file = tags[input_name]
             yield input_name, input_file
-        elif isinstance(input_value, find):
+        elif isinstance(input_value, FindFromParents):
             # user used find()
             find_instance = input_value
-            available_files = it.chain(*(p.output_files for p in parents))
+
+            def get_available_files():
+                for p in parents:
+                    if all(p.tags.get(k) == v for k,v in (find_instance.tags or dict()).items()):
+                        yield p.output_files
+
+            available_files = it.chain(*get_available_files())
             input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=False))
             _validate_input_mapping(cmd_name, find_instance, input_taskfiles, parents)
             input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
             yield input_name, input_taskfile_or_input_taskfiles
         else:
-            raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify' \
+            raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
                                   'its value via tags' % (cmd_name, input_name, input_value)
 
 
@@ -137,14 +151,14 @@ def _get_output_map(cmd_name, output_arg_to_default, tags, input_map, output_dir
             output_file = tags[name]
             yield name, output_file
 
-        elif isinstance(value, forward):
+        elif isinstance(value, Forward):
             try:
                 input_value = input_map[value.input_parameter_name]
             except KeyError:
                 raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
                                '%s.cmd()' % (value.input_parameter_name, cmd_name))
             yield name, input_value
-        elif isinstance(value, out_dir):
+        elif isinstance(value, OutputDir):
             if output_dir is not None:
                 output_file = os.path.join(output_dir,
                                            value.basename.format(**tags))
@@ -177,7 +191,7 @@ def unpack_io_map(io_map):
 #
 #
 # def abstract_output_taskfile(basename=None, name=None, format=None):
-#     if not basename:
+# if not basename:
 #         basename = name or '' + '.' + format or ''
 #     return out_dir(basename)
 #

@@ -21,6 +21,7 @@ import itertools as it
 import datetime
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
+import funcsigs
 
 opj = os.path.join
 import signal
@@ -176,6 +177,12 @@ class Execution(Base):
             input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir)
             input_files = io.unpack_io_map(input_map)
             output_files = io.unpack_io_map(output_map)
+
+            sig = funcsigs.signature(cmd_fxn)
+
+            if 'cpu_req' in sig.parameters:
+                attrs['cpu_req'] = sig.parameters['cpu_req'].default
+
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
                         output_files=output_files, output_dir=out_dir,

@@ -1,8 +1,13 @@
 from inspect import getargspec
 import re
+from ... import NOOP
+import funcsigs
 
 
 def call(cmd_fxn, task):
+    sig = funcsigs.signature(cmd_fxn)
+
+    #TODO remoe argspec in favor of funcsigs
     argspec = getargspec(cmd_fxn)
 
     def get_params():
@@ -30,8 +35,7 @@ def call(cmd_fxn, task):
     out = cmd_fxn(**kwargs)
 
     assert isinstance(out, basestring), '%s did not return a str' % cmd_fxn
-    # out = re.sub('<TaskFile\[(.*?)\] .+?:(.+?)>', lambda m: m.group(2), out)
-    return out  # strip_lines(out_dir)
+    return out
 
 
 import decorator
@@ -63,6 +67,10 @@ def default_prepend(task):
 
 def default_cmd_fxn_wrapper(task):
     def real_decorator(fxn, *args, **kwargs):
-        return default_prepend(task) + fxn(*args, **kwargs)
+        r = fxn(*args, **kwargs)
+        if r == NOOP:
+            return NOOP
+        else:
+            return default_prepend(task) + r
 
     return decorator.decorator(real_decorator)
