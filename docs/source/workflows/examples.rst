@@ -30,7 +30,7 @@ is too large for a visualization to be useful:
     :align: center
 
 
-Tool Definitions used by Examples
+Command Functions used by Examples
 ------------------------------------
 
 .. literalinclude:: ../../../examples/tools.py

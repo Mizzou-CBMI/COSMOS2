@@ -36,6 +36,19 @@ Each call to :meth:`Execution.add_task` does the following:
 4) if `2)` is False, then create and return new Task instance
 
 
+Tags
+-----
+
+Every instance of a Task has a ``dict`` of tags.  These tags are used for the following:
+
+* A unique identifier.  No tool/task can have the same set of tags within the *same stage*.
+* Parameters.  If a keyword in a tool's tags matches a parameter in it's ``cmd()`` method, it will be passed into the call to ``cmd()`` as a parameter.
+  For example when ``cmd()`` is called by Cossmos for the tool ``WordCount(tags=dict(lines=True, other='val'))``, it will be called like this:
+  ``cmd(lines=True, other='val',...)``.
+* A way to group similar tasks together when defining the :term:`DAG`.
+* A way to look up particular tasks in the Web Interface or using the API.
+
+
 Creating Your Job Dependency Graph (DAG)
 ---------------------------------------------------
 A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.
@@ -132,11 +145,10 @@ However, it is not
 recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
 patterns!
 
-* :meth:`cosmos.util.tool.one2one`
-* :meth:`cosmos.util.tool.many2one`
-* :meth:`cosmos.util.tool.one2many`
-* :meth:`cosmos.util.tool.many2many`
-
+* :meth:`cosmos.api.one2one`
+* :meth:`cosmos.api.many2one`
+* :meth:`cosmos.api.one2many`
+* :meth:`cosmos.api.many2many`
 
 
 Notes
@@ -145,8 +157,6 @@ Notes
     The above is **not** exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
     It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
     by a particular set of tags.
-
-
 
 
 API
@@ -162,5 +172,5 @@ Execution
 Helpers
 +++++++++++
 
-.. automodule:: cosmos.util.relationship_patterns
+.. automodule:: cosmos.api
     :members: one2one, many2one, one2many, many2many

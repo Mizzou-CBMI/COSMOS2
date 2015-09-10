@@ -57,11 +57,11 @@ def group(tasks_or_tuples, by):
 def one2one(execution, cmd_fxn, parents, tag=None, out_dir=None):
     """
     :param func cmd_fxn: the function that runs the command
-    :param itrbl(Task) parents: A child tool will be created for each element in this list.
-    :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
+    :param itrbl(Task) parents: A child task will be created for each element in this list.
+    :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the tags of its parent.
     :param str out_dir: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
         Defaults to the output_dir of the parent task.
-    :yields Tool: New tools.
+    :yields Task: Tasks.
     """
     if tag is None:
         tag = dict()
@@ -83,11 +83,11 @@ def many2one(execution, cmd_fxn, parents, groupby, tag=None, out_dir=''):
     :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
         their tags given by `groupby`.
     :param itrbl(Task) parents: An group of parents to groupby
-    :param dict tag: Tags to add to the Tools's dictionary.  The Tool will also inherit the tags of its parent.
+    :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the tags of its parent.
     :param str|callable out_dir: The directory to output to, will be .formated() with its task's tags.  ex. '{shape}/{color}'.
         Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are tags and returns
         a str.  ie. ``out_dir=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
-    :yields: new Tools
+    :yields: Tasks.
     """
     if tag is None:
         tag = dict()
@@ -110,7 +110,7 @@ def combinations(splitby):
 def one2many(execution, cmd_fxn, parents, splitby, tag=None, out_dir=''):
     """
     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
-    :return:
+    :yields: Tasks.
     """
     if tag is None:
         tag = dict()
