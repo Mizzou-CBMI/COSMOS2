@@ -14,3 +14,5 @@ from .util.helpers import make_dict
 from .util.iterstuff import only_one
 
 from .graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
+
+from black_magic.decorator import partial

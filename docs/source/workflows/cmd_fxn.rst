@@ -2,7 +2,7 @@
 
 .. py:module:: cosmos.core
 
-Core
+Command Functions
 ==================
 
 A `command_fxn` (or `cmd_fxn`) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
@@ -25,10 +25,10 @@ There are some special things about `cmd_fxn` parameters that Cosmos will recogn
 
 * A function parameter that starts with `in_` is an input_file.
 * A function parameter that starts with `out_` is an output_file.
-* The :func:`find` default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
+* The :func:`~cosmos.api.find` default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
   to search all of the parents of a Task for files that match the find's :param:`regex` parameter.
-* :func:`out_dir` will automatically append the Task's output directory to the filename.
-* :func:`forward` will automatically set an output_file to the input_file specified.
+* :func:`~cosmos.api.out_dir` will automatically append the Task's output directory to the filename.
+* :func:`~cosmos.api.forward` will automatically set an output_file to the input_file specified.
 
 
 More on find()
@@ -44,7 +44,7 @@ for example:
 * "<3"
 * ">=4"
 
-``find()`` can also be passed a dict of ``tags``, which will filter the search space of parents to Task's who's ``tags``
+``find()`` can also be passed a dict of ``tags``, which will filter the search space of parents to Task's who's ``tags`` match.
 
 You can always explicitly specify input_files via tags, should find() not work for you.
 

@@ -127,11 +127,11 @@ class Execution(Base):
     def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
         """
         Adds a Task
-        
-	:param func cmd_fxn: A function that returns a str or NOOP
+
+        :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directy (can be absolute or relative to execution output_dir)
+        :param str out_dir: Output directory (can be absolute or relative to execution output_dir)
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
@@ -264,7 +264,7 @@ class Execution(Base):
     def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper):
         """
-        Renders and executes the :param:`recipe`
+        Runs this Execution's DAG
 
         :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
              It receives one parameter: the task instance.
