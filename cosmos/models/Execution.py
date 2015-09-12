@@ -79,7 +79,7 @@ class Execution(Base):
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
-    stages = relationship("Stage", cascade="all, delete-orphan", order_by="Stage.number", passive_deletes=True,
+    stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='execution')
 
     exclude_from_dict = ['info']
@@ -115,7 +115,8 @@ class Execution(Base):
             # mutable dict column defaults to None
             self.info = dict()
         self.jobmanager = None
-        self.created_on = datetime.datetime.now()
+        if not self.created_on:
+            self.created_on = datetime.datetime.now()
         self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
 
     def __getattr__(self, item):
@@ -125,7 +126,7 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
+    def add_task(self, cmd_fxn, tags, parents=None, out_dir='', stage_name=None):
         """
         Adds a Task
 
@@ -292,8 +293,9 @@ class Execution(Base):
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper)
+        self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper
+                                     )
 
         self.status = ExecutionStatus.running
         self.successful = False
@@ -622,7 +624,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
                 break
 
     # submit in a batch for speed
-    execution.jobmanager.submit_tasks(submittable_tasks)
+    execution.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
         print submittable_tasks
         print ready_tasks

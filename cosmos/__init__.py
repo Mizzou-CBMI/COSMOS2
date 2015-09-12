@@ -8,6 +8,7 @@ import itertools as it
 from .util.helpers import get_logger, mkdir, confirm, str_format
 from .util.args import get_last_cmd_executed
 from .db import Base
+from multiprocessing.pool import ThreadPool
 
 # turn SQLAlchemy warnings into errors
 import warnings
@@ -93,6 +94,7 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
+        self.thread_pool = ThreadPool()  # todo make this a lazy property
         if flask_app:
             self.flask_app = flask_app
         else:
@@ -100,10 +102,21 @@ class Cosmos(object):
             self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
-        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
-        self.sqla = SQLAlchemy(self.flask_app)
-        self.session = self.sqla.session
+        # self.sqla = SQLAlchemy(self.flask_app)
+        # self.session = self.sqla.session
+
+        from sqlalchemy.pool import StaticPool, NullPool
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import scoped_session, sessionmaker
+
+        engine = create_engine(database_url)
+        # connect_args={'check_same_thread':False},
+        # poolclass=StaticPool)
+        Session = scoped_session(sessionmaker(bind=engine))
+        self.Session = Session
+
         self.default_queue = default_queue
         self.default_drm = default_drm
 
@@ -114,6 +127,15 @@ class Cosmos(object):
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
+
+
+    def close(self):
+        self.Session.remove()
+        self.thread_pool.close()
+
+    @property
+    def session(self):
+        return self.Session()
 
     def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
               check_output_dir=True):
@@ -281,7 +303,7 @@ NOOP = '<NO OPERATION>'
 
 class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
-    waiting = 'Waiting to execute',
+    waiting = 'Waiting to execute', # deprecated
     submitted = 'Submitted to the job manager',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'

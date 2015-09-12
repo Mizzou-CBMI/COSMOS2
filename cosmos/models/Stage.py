@@ -66,7 +66,7 @@ class Stage(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    tasks = relationship("Task", backref="stage", cascade="all, delete-orphan", passive_deletes=True)
+    tasks = relationship("Task", backref="stage", cascade="all, merge, delete-orphan", passive_deletes=True)
 
 
     @declared_attr
