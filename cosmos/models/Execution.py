@@ -428,6 +428,7 @@ class Execution(Base):
                 t, t.cpu_req, self.max_cpus)
 
         # Run this thing!
+        session.commit()
         if not dry:
             _run(self, session, task_queue)
 
