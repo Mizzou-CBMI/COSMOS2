@@ -26,7 +26,7 @@ import funcsigs
 
 
 @decorator.decorator
-def call_py_func(func, *args, **kwargs):
+def stringify(func, *args, **kwargs):
     """
     Experimental way to not have to write boiler plate argparse code.  Code is still run under a completely separate process
 
