@@ -37,6 +37,7 @@ setup(
         'gntp',
         "psprofile",
         "decorator",
+        'futures',
         "Flask",
         'blinker',
         "sqlalchemy",

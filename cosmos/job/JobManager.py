@@ -26,7 +26,7 @@ class JobManager(object):
 
     def call_cmd_fxn(self, task):
         """
-        NOTE THIS METHOD MUST ME THREAD SAFE
+        NOTE THIS METHOD MUST BE THREAD SAFE
         :param task:
         :return:
         """
@@ -38,7 +38,9 @@ class JobManager(object):
                 fxn = self.cmd_wrapper(thread_local_task, task.input_map, task.output_map)(task.cmd_fxn)
             else:
                 fxn = task.cmd_fxn
+
             command = call(fxn, thread_local_task, task.input_map, task.output_map)
+
         else:
             command = thread_local_task.tool._generate_command(thread_local_task)
 
@@ -62,7 +64,9 @@ class JobManager(object):
 
         # Run the cmd_fxns in parallel, but do not submit any jobs they return
         # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads (or their sqlalchemy sessions)
-        commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
+        # commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
+        # commands = map(self.call_cmd_fxn, tasks)
+        commands = self.cosmos_app.futures_executor.map(self.call_cmd_fxn, tasks)
 
         # Submit the jobs in serial
         # TODO parallelize this for speed.  Means having all ORM stuff outside Job Submission.

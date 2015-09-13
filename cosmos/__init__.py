@@ -4,11 +4,11 @@ import sys
 import os
 import math
 import itertools as it
+from concurrent import futures
 
 from .util.helpers import get_logger, mkdir, confirm, str_format
 from .util.args import get_last_cmd_executed
 from .db import Base
-from multiprocessing.pool import ThreadPool
 
 # turn SQLAlchemy warnings into errors
 import warnings
@@ -94,7 +94,7 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
-        self.thread_pool = ThreadPool()  # todo make this a lazy property
+        self.futures_executor = futures.ThreadPoolExecutor(10)
         if flask_app:
             self.flask_app = flask_app
         else:
@@ -128,11 +128,16 @@ class Cosmos(object):
         self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
 
-
     def close(self):
-        self.Session.remove()
-        self.thread_pool.close()
+        self.Session.remove()  #TODO is this the right way to close?
+        self.futures_executor.close()
 
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
     @property
     def session(self):
         return self.Session()

@@ -45,7 +45,7 @@ def default_prepend(execution_output_dir, task_output_dir):
     o = '#!/bin/bash\n' \
         'set -e\n' \
         'set -o pipefail\n' \
-        'cd %s\n' % execution_output_dir
+        'EXECUTION_OUTPUT_DIR=%s; cd $EXECUTION_OUTPUT_DIR\n' % execution_output_dir
 
     if task_output_dir:
         o += 'mkdir -p %s\n' % task_output_dir
