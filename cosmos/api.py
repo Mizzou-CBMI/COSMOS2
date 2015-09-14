@@ -14,14 +14,12 @@ from .util.iterstuff import only_one
 
 from .graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 from black_magic.decorator import partial
-import decorator
-
+from decorator import decorator
 
 def load_input(in_file, out_file=forward('in_file')):
     return NOOP
 
 
-import decorator
 import funcsigs
 
 

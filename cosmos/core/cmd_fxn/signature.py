@@ -66,6 +66,14 @@ def default_prepend(execution_output_dir, task_output_dir):
 
 
 def default_cmd_fxn_wrapper(task, input_map, output_map):
+    """
+    WARNING this function signature is not set in stone yet and may change, replace at your own risk.
+
+    :param task:
+    :param input_map:
+    :param output_map:
+    :return:
+    """
     def real_decorator(fxn, *args, **kwargs):
         r = fxn(*args, **kwargs)
         if r == NOOP:

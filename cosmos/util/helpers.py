@@ -4,8 +4,13 @@ import itertools as it
 import subprocess as sp
 import signal
 import os
+import random
+import string
+
 import time
 
+def random_str(n):
+    ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
 def make_dict(*args, **kwargs):
     """
