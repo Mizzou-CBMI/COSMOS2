@@ -34,7 +34,7 @@
                         <td>{{e.status}}</td>
                         <td>{{ e.created_on|datetime_format }}</td>
                         <td>{{ e.finished_on|datetime_format }}</td>
-                        <td>{% if e.finished_on %}{{ (e.finished_on - e.created_on|or_datetime_now)|datetime_format }}{% endif %}</td>
+                        <td>{% if e.finished_on %}{{ (e.finished_on - e.created_on|or_datetime_now) }}{% endif %}</td>
                         <td>
                             <div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-default">

@@ -34,6 +34,12 @@ def call(cmd_fxn, task, input_map, output_map):
 
     out = cmd_fxn(**kwargs)
 
+    for param_name in ['cpu_req','mem_req','drm']:
+        if param_name in sig.parameters:
+            param_val = kwargs.get(param_name, sig.parameters[param_name].default)
+            setattr(task, param_name, param_val)
+
+
     assert isinstance(out, basestring), '%s did not return a str' % cmd_fxn
     return out
 
@@ -65,7 +71,7 @@ def default_prepend(execution_output_dir, task_output_dir):
 #     return ''
 
 
-def default_cmd_fxn_wrapper(task, input_map, output_map):
+def default_cmd_fxn_wrapper(task, input_map, output_map, *args, **kwargs):
     """
     WARNING this function signature is not set in stone yet and may change, replace at your own risk.
 
