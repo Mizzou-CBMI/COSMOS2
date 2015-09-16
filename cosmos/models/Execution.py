@@ -126,7 +126,7 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add_task(self, cmd_fxn, tags, parents=None, out_dir='', stage_name=None):
+    def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
         Adds a Task
 
@@ -138,7 +138,8 @@ class Execution(Base):
         :return: a Task
         """
         from .. import Stage
-
+        if tags is None:
+            tags = dict()
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
@@ -179,10 +180,7 @@ class Execution(Base):
             input_files = io.unpack_io_map(input_map)
             output_files = io.unpack_io_map(output_map)
 
-            sig = funcsigs.signature(cmd_fxn)
 
-            if 'cpu_req' in sig.parameters:
-                attrs['cpu_req'] = sig.parameters['cpu_req'].default
 
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
@@ -545,7 +543,7 @@ class Execution(Base):
         # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
         # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
         #
-        print >> sys.stderr, 'Deleting from SQL...'
+        print >> sys.stderr, '%s Deleting rom SQL...' % self
         self.session.delete(self)
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
