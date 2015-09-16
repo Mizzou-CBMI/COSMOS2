@@ -23,7 +23,7 @@ def load_input(in_file, out_file=forward('in_file')):
 import funcsigs
 
 
-@decorator.decorator
+@decorator
 def stringify(func, *args, **kwargs):
     """
     Experimental way to not have to write boiler plate argparse code.  Code is still run under a completely separate process
