@@ -51,7 +51,7 @@ def gen_bprint(cosmos_app):
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
-        jm = JobManager(cosmos_app.get_submit_args)
+        jm = JobManager(cosmos_app, cosmos_app.get_submit_args)
 
         f = attrgetter('drm')
         drm_statuses = {}

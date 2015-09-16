@@ -32,6 +32,8 @@
             <dl class="dl-horizontal">
                 <dt>status</dt>
                 <dd>{{ task.status }}</dd>
+                <dt>execution.output_dir</dt>
+                <dd>{{ task.execution.output_dir }}</dd>
                 <dt>output_dir</dt>
                 <dd>{{ task.output_dir }}</dd>
                 <dt>cpu_req</dt>
@@ -56,6 +58,8 @@
                 <dd>{{ task.drm_native_specification }}</dd>
                 <dt>drm_job_id</dt>
                 <dd>{{ task.drm_job_id }}</dd>
+                <dt>NOOP</dt>
+                <dd>{{ task.NOOP }}</dd>
 
             </dl>
         </div>

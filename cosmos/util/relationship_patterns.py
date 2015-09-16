@@ -54,7 +54,7 @@ def group(tasks_or_tuples, by):
         yield group_tags.copy(), list(parent_group)
 
 
-def one2one(execution, cmd_fxn, parents, tag=None, out_dir=None):
+def one2one(execution, cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
     """
     :param func cmd_fxn: the function that runs the command
     :param itrbl(Task) parents: A child task will be created for each element in this list.
@@ -72,12 +72,12 @@ def one2one(execution, cmd_fxn, parents, tag=None, out_dir=None):
         for parent in parents:
             new_tags = parent.tags.copy()
             new_tags.update(tag)
-            yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent], out_dir=out_dir or parent.output_dir)
+            yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
 
     return list(g())
 
 
-def many2one(execution, cmd_fxn, parents, groupby, tag=None, out_dir=''):
+def many2one(execution, cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
     """
     :param func cmd_fxn: the function that runs the command
     :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
@@ -97,7 +97,9 @@ def many2one(execution, cmd_fxn, parents, groupby, tag=None, out_dir=''):
         for new_tags, parent_group in group(parents, groupby):
             new_tags.update(tag)
             yield execution.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
-                                     out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir)
+                                     out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
+                                      stage_name=stage_name
+                                     )
 
     return list(g())
 
@@ -107,7 +109,7 @@ def combinations(splitby):
         yield dict(items)
 
 
-def one2many(execution, cmd_fxn, parents, splitby, tag=None, out_dir=''):
+def one2many(execution, cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
     """
     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     :yields: Tasks.
@@ -123,6 +125,7 @@ def one2many(execution, cmd_fxn, parents, splitby, tag=None, out_dir=''):
                 new_tags.update(split_tags)
                 new_tags.update(tag)
                 yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent],
-                                         out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir)
+                                         out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
+                                         stage_name=stage_name)
 
     return list(g())

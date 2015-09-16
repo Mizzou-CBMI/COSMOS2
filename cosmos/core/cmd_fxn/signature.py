@@ -4,7 +4,7 @@ from ... import NOOP
 import funcsigs
 
 
-def call(cmd_fxn, task):
+def call(cmd_fxn, task, input_map, output_map):
     sig = funcsigs.signature(cmd_fxn)
 
     #TODO remoe argspec in favor of funcsigs
@@ -28,11 +28,17 @@ def call(cmd_fxn, task):
     validate_params()
 
     kwargs = dict()
-    kwargs.update(task.input_map)
-    kwargs.update(task.output_map)
+    kwargs.update(input_map)
+    kwargs.update(output_map)
     kwargs.update(params)
 
     out = cmd_fxn(**kwargs)
+
+    for param_name in ['cpu_req','mem_req','drm']:
+        if param_name in sig.parameters:
+            param_val = kwargs.get(param_name, sig.parameters[param_name].default)
+            setattr(task, param_name, param_val)
+
 
     assert isinstance(out, basestring), '%s did not return a str' % cmd_fxn
     return out
@@ -41,14 +47,14 @@ def call(cmd_fxn, task):
 import decorator
 
 
-def default_prepend(task):
+def default_prepend(execution_output_dir, task_output_dir):
     o = '#!/bin/bash\n' \
         'set -e\n' \
         'set -o pipefail\n' \
-        'cd %s\n' % task.execution.output_dir
+        'EXECUTION_OUTPUT_DIR=%s; cd $EXECUTION_OUTPUT_DIR\n' % execution_output_dir
 
-    if task.output_dir:
-        o += 'mkdir -p %s\n' % task.output_dir
+    if task_output_dir:
+        o += 'mkdir -p %s\n' % task_output_dir
 
     # assert task.cmd_fxn == task
 
@@ -65,12 +71,20 @@ def default_prepend(task):
 #     return ''
 
 
-def default_cmd_fxn_wrapper(task):
+def default_cmd_fxn_wrapper(task, input_map, output_map, *args, **kwargs):
+    """
+    WARNING this function signature is not set in stone yet and may change, replace at your own risk.
+
+    :param task:
+    :param input_map:
+    :param output_map:
+    :return:
+    """
     def real_decorator(fxn, *args, **kwargs):
         r = fxn(*args, **kwargs)
         if r == NOOP:
             return NOOP
         else:
-            return default_prepend(task) + r
+            return default_prepend(task.execution.output_dir, task.output_dir) + r
 
     return decorator.decorator(real_decorator)
