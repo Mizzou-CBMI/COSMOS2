@@ -1,5 +1,5 @@
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy_session import flask_scoped_session, current_session
 import sys
 import os
 import math
@@ -109,13 +109,13 @@ class Cosmos(object):
 
         from sqlalchemy.pool import StaticPool, NullPool
         from sqlalchemy import create_engine
-        from sqlalchemy.orm import scoped_session, sessionmaker
+        from sqlalchemy.orm import sessionmaker
 
         engine = create_engine(database_url)
         # connect_args={'check_same_thread':False},
         # poolclass=StaticPool)
-        Session = scoped_session(sessionmaker(bind=engine))
-        self.Session = Session
+        session_factory = sessionmaker(bind=engine)
+        self.session = flask_scoped_session(session_factory, flask_app)
 
         self.default_queue = default_queue
         self.default_drm = default_drm
@@ -129,7 +129,6 @@ class Cosmos(object):
         # add_cosmos_admin(flask_app, self.session)
 
     def close(self):
-        self.Session.remove()  #TODO is this the right way to close?
         self.futures_executor.close()
 
 
@@ -138,9 +137,6 @@ class Cosmos(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-    @property
-    def session(self):
-        return self.Session()
 
     def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
               check_output_dir=True):
