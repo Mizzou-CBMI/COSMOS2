@@ -21,6 +21,7 @@ import itertools as it
 import datetime
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
+import funcsigs
 
 opj = os.path.join
 import signal
@@ -78,7 +79,7 @@ class Execution(Base):
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
-    stages = relationship("Stage", cascade="all, delete-orphan", order_by="Stage.number", passive_deletes=True,
+    stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='execution')
 
     exclude_from_dict = ['info']
@@ -114,7 +115,8 @@ class Execution(Base):
             # mutable dict column defaults to None
             self.info = dict()
         self.jobmanager = None
-        self.created_on = datetime.datetime.now()
+        if not self.created_on:
+            self.created_on = datetime.datetime.now()
         self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
 
     def __getattr__(self, item):
@@ -124,19 +126,20 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
+    def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
         Adds a Task
-        
-	:param func cmd_fxn: A function that returns a str or NOOP
+
+        :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directy (can be absolute or relative to execution output_dir)
+        :param str out_dir: Output directory (can be absolute or relative to execution output_dir)
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
         from .. import Stage
-
+        if tags is None:
+            tags = dict()
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
@@ -176,6 +179,9 @@ class Execution(Base):
             input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir)
             input_files = io.unpack_io_map(input_map)
             output_files = io.unpack_io_map(output_map)
+
+
+
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
                         output_files=output_files, output_dir=out_dir,
@@ -264,7 +270,7 @@ class Execution(Base):
     def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper):
         """
-        Renders and executes the :param:`recipe`
+        Runs this Execution's DAG
 
         :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
              It receives one parameter: the task instance.
@@ -285,8 +291,9 @@ class Execution(Base):
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper)
+        self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper
+                                     )
 
         self.status = ExecutionStatus.running
         self.successful = False
@@ -419,6 +426,7 @@ class Execution(Base):
                 t, t.cpu_req, self.max_cpus)
 
         # Run this thing!
+        session.commit()
         if not dry:
             _run(self, session, task_queue)
 
@@ -535,7 +543,7 @@ class Execution(Base):
         # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
         # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
         #
-        print >> sys.stderr, 'Deleting from SQL...'
+        print >> sys.stderr, '%s Deleting rom SQL...' % self
         self.session.delete(self)
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
@@ -615,7 +623,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
                 break
 
     # submit in a batch for speed
-    execution.jobmanager.submit_tasks(submittable_tasks)
+    execution.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
         print submittable_tasks
         print ready_tasks

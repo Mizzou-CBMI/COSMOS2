@@ -7,12 +7,6 @@ Executions
 Executions consist of a :term:`DAG` of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.
 
-Every task as a set of tags (a python `dict`), which serve two prinmary purposes:
-
-* Uniquely identifies the tag.  All Tasks in a Stage have a unique set of tags.  When resuming an Execution,
-* If you run :meth:`Execution.add_task` and a Task has already been successful with those tags, it will not be run again.  Think memoization.
-* Passed as parameters to the `command_function`.  If a `command_function` does not have a default specified for one of its parameters, the tag will be required.
-
 To create your :term:`DAG`, use :meth:`Execution.add_task`. Python generators
 and comprehensions are a great way to do this in a very readable way.
 
@@ -36,10 +30,23 @@ and comprehensions are a great way to do this in a very readable way.
 
 Each call to :meth:`Execution.add_task` does the following:
 
-1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `command_function`)
+1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
 2) Checks to see if a Task with the same tags already completed successfully in that stage
 3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
 4) if `2)` is False, then create and return new Task instance
+
+
+Tags
+-----
+
+Every instance of a Task has a ``dict`` of tags.  These tags are used for the following:
+
+* A unique identifier.  No tool/task can have the same set of tags within the *same stage*.
+* Parameters.  If a keyword in a tool's tags matches a parameter in it's ``cmd()`` method, it will be passed into the call to ``cmd()`` as a parameter.
+  For example when ``cmd()`` is called by Cossmos for the tool ``WordCount(tags=dict(lines=True, other='val'))``, it will be called like this:
+  ``cmd(lines=True, other='val',...)``.
+* A way to group similar tasks together when defining the :term:`DAG`.
+* A way to look up particular tasks in the Web Interface or using the API.
 
 
 Creating Your Job Dependency Graph (DAG)
@@ -138,20 +145,18 @@ However, it is not
 recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
 patterns!
 
-* :meth:`cosmos.util.tool.one2one`
-* :meth:`cosmos.util.tool.many2one`
-* :meth:`cosmos.util.tool.one2many`
-* :meth:`cosmos.util.tool.many2many`
-
+* :meth:`cosmos.api.one2one`
+* :meth:`cosmos.api.many2one`
+* :meth:`cosmos.api.one2many`
+* :meth:`cosmos.api.many2many`
 
 
 Notes
 +++++++
 
-    The above is **not** exhaustive.  For example, you could have a task who has 3 different parents, each belonging to a different stage.
+    The above is **not** exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
     It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
     by a particular set of tags.
-
 
 
 API
@@ -167,5 +172,5 @@ Execution
 Helpers
 +++++++++++
 
-.. automodule:: cosmos.util.tool
+.. automodule:: cosmos.api
     :members: one2one, many2one, one2many, many2many

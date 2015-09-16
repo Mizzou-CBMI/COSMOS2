@@ -3,7 +3,7 @@ we are planning a major publication before the official release.
 
 
 For more information and the full documentation please visit
-`http://cosmos-wfm.readthedocs.org <http://cosmos-wfm.readthedocs.org>`_.
+`http://lpm-hms.github.io/COSMOS-2.0/ <http://lpm-hms.github.io/COSMOS-2.0/>`_. 
 
 To chat with the author/other users (many of which use COSMOS to make bioinformatics NGS workflows), use gitter:
 

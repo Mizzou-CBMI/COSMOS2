@@ -4,7 +4,29 @@ import itertools as it
 import subprocess as sp
 import signal
 import os
+import random
+import string
+
 import time
+
+def random_str(n):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
+
+def make_dict(*args, **kwargs):
+    """
+    :param args: a list of dicts, or Tasks (for Tasks, their tags will be used)
+    :param kwargs: a list of extra key/vals to add to the dict
+    :return: a merge of all the dicts in args and kwargs
+    """
+    r = dict()
+    for elem in args:
+        if isinstance(elem, Task):
+            elem = elem.tags
+        elif not isinstance(elem, dict):
+            raise '%s is not a dict' % elem
+        r.update(elem)
+    r.update(kwargs)
+    return r
 
 
 def wait_for_file(execution, path, timeout=60, error=True):
@@ -32,7 +54,7 @@ def has_duplicates(alist):
 # :param node: A Task or Stage instance
 # :yields: a list of descendent task or stages
 #
-#     This code is really simple because there are no cycles.
+# This code is really simple because there are no cycles.
 #     """
 #     for c in node.children:
 #         for n in dag_descendants(c):
@@ -92,7 +114,7 @@ def confirm(prompt=None, default=False, timeout=0):
                 return False
         except TimeOutException:
             print "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
-                                                                                         'yes' if default else 'no')
+                                                                                             'yes' if default else 'no')
             return default
 
 

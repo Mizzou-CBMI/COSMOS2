@@ -51,7 +51,7 @@ def gen_bprint(cosmos_app):
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
-        jm = JobManager(cosmos_app.get_submit_args)
+        jm = JobManager(cosmos_app, cosmos_app.get_submit_args)
 
         f = attrgetter('drm')
         drm_statuses = {}
@@ -112,7 +112,7 @@ def gen_bprint(cosmos_app):
             else:
                 svg = Markup(draw_stage_graph(ex.stage_graph(), url=True))
         else:
-            svg = 'Pygraphviz not installed, cannot visualize'
+            svg = 'Pygraphviz not installed, cannot visualize.  (Usually: apt-get install graphviz && pip install pygraphviz)'
 
         return render_template('cosmos/taskgraph.html', execution=ex, type=type,
                                svg=svg)

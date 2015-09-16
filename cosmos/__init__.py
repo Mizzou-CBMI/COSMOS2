@@ -1,9 +1,10 @@
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy_session import flask_scoped_session, current_session
 import sys
 import os
 import math
 import itertools as it
+from concurrent import futures
 
 from .util.helpers import get_logger, mkdir, confirm, str_format
 from .util.args import get_last_cmd_executed
@@ -93,6 +94,7 @@ class Cosmos(object):
         assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
+        self.futures_executor = futures.ThreadPoolExecutor(10)
         if flask_app:
             self.flask_app = flask_app
         else:
@@ -100,10 +102,21 @@ class Cosmos(object):
             self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
-        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
-        self.sqla = SQLAlchemy(self.flask_app)
-        self.session = self.sqla.session
+        # self.sqla = SQLAlchemy(self.flask_app)
+        # self.session = self.sqla.session
+
+        from sqlalchemy.pool import StaticPool, NullPool
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+
+        engine = create_engine(database_url)
+        # connect_args={'check_same_thread':False},
+        # poolclass=StaticPool)
+        session_factory = sessionmaker(bind=engine)
+        self.session = flask_scoped_session(session_factory, flask_app)
+
         self.default_queue = default_queue
         self.default_drm = default_drm
 
@@ -114,6 +127,16 @@ class Cosmos(object):
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
+
+    def close(self):
+        self.futures_executor.close()
+
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
               check_output_dir=True):
@@ -193,8 +216,8 @@ class Cosmos(object):
             if check_output_dir:
                 assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
 
-            mkdir(output_dir)  # make it here so we can start logging to logfile
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
+            mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
         ex.max_cpus = max_cpus
@@ -281,7 +304,7 @@ NOOP = '<NO OPERATION>'
 
 class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
-    waiting = 'Waiting to execute',
+    waiting = 'Waiting to execute', # deprecated
     submitted = 'Submitted to the job manager',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
@@ -321,6 +344,10 @@ ERROR_IF_TAG_IS_NOT_BASIC_TYPE = True
 ########################################################################################################################
 # Imports
 ########################################################################################################################
+
+"""
+WARNING! THESE IMPORTS ARE DEPRECATED.  Import from cosmos.api instead!
+"""
 
 from .models.files import find, out_dir, abstract_input_taskfile, abstract_output_taskfile, forward, \
     abstract_output_taskfile_old  # these are all deprecated

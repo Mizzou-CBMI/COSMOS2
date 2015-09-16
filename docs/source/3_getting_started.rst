@@ -119,7 +119,7 @@ You can use the web interface to explore the history and debug all workflows.  F
 
    python examples/main.py runweb --host 0.0.0.0 --port 8080
 
-Visit `<http://servername:8080>`_ to access it (or`<http://localhost:8080>`_ if you're running cosmos locally.
+Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if you're running cosmos locally.
 
 
 .. figure:: /_static/imgs/web_interface.png

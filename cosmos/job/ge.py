@@ -33,7 +33,8 @@ class DRM_GE(DRM):
                               preexec_fn=preexec_function,
                               shell=True)
 
-        task.drm_jobID = int(re.search('job (\d+) ', out).group(1))
+        drm_jobID = int(re.search('job (\d+) ', out).group(1))
+        return drm_jobID
 
     def filter_is_done(self, tasks):
         if len(tasks):
