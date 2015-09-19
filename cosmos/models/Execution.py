@@ -144,6 +144,8 @@ class Execution(Base):
             parents = list(parents)
         if parents is None:
             parents = []
+        if isinstance(parents,Task):
+            parents = [parents]
 
         if out_dir:
             out_dir = out_dir.format(**tags)

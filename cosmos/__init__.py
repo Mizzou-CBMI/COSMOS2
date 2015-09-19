@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_sqlalchemy_session import flask_scoped_session, current_session
+
 import sys
 import os
 import math
@@ -102,31 +102,41 @@ class Cosmos(object):
             self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
-        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
-        # self.sqla = SQLAlchemy(self.flask_app)
-        # self.session = self.sqla.session
+
+        from flask_sqlalchemy import SQLAlchemy
+        self.sqla = SQLAlchemy(self.flask_app)
+        self.session = self.sqla.session
 
         from sqlalchemy.pool import StaticPool, NullPool
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
 
+
         engine = create_engine(database_url)
         # connect_args={'check_same_thread':False},
         # poolclass=StaticPool)
-        session_factory = sessionmaker(bind=engine)
-        self.session = flask_scoped_session(session_factory, flask_app)
+
+        # from flask_sqlalchemy_session import flask_scoped_session, current_session
+        # session_factory = sessionmaker(bind=engine)
+        # self.Session = flask_scoped_session(session_factory, flask_app)
 
         self.default_queue = default_queue
         self.default_drm = default_drm
 
-        # setup flask views
+    def configure_flask(self):
+                # setup flask views
         from cosmos.web.views import gen_bprint
         # from cosmos.web.admin import add_cosmos_admin
 
         self.cosmos_bprint = gen_bprint(self)
         self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
+
+    # @property
+    # def session(self):
+    #     return self.Session()
 
     def close(self):
         self.futures_executor.close()
@@ -203,18 +213,18 @@ class Cosmos(object):
             failed_tasks = [t for s in ex.stages for t in s.tasks if not t.successful]
             n = len(failed_tasks)
             if n:
-                ex.log.info('Deleting %s failed task(s) from SQL database, delete_files=%s' % (n, False))
+                ex.log.info('Deleting %s unsuccessful task(s) from SQL database, delete_files=%s' % (n, False))
                 for t in failed_tasks:
                     session.delete(t)
 
             for stage in it.ifilter(lambda s: len(s.tasks) == 0, ex.stages):
-                ex.log.info('Deleting stage %s, since it has no successful Tasks' % stage)
+                ex.log.info('Deleting stage %s, since it has 0 successful Tasks' % stage)
                 session.delete(stage)
 
         else:
             # start from scratch
             if check_output_dir:
-                assert not os.path.exists(output_dir), 'Execution output_dir `%s` already exists.' % (output_dir)
+                assert not os.path.exists(output_dir), 'Execution.output_dir `%s` already exists.' % (output_dir)
 
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             mkdir(output_dir)  # make it here so we can start logging to logfile
@@ -269,6 +279,7 @@ class Cosmos(object):
         """
         Starts the web dashboard
         """
+        self.configure_flask()
         return self.flask_app.run(debug=debug, host=host, port=port)
 
 
@@ -299,7 +310,7 @@ class MyEnum(enum.Enum):
         return "%s" % self._value_
 
 
-NOOP = '<NO OPERATION>'
+NOOP = None
 
 
 class TaskStatus(MyEnum):

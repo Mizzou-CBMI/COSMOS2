@@ -7,24 +7,35 @@ import re
 import itertools as it
 import os
 
+import funcsigs
 
-def get_input_and_output_defaults(fxn):
-    argspec = getargspec(fxn)
-    input_arg_to_default = dict()
-    output_arg_to_default = dict()
 
-    # iterate over argspec keywords and their defaults
-    num_no_default = len(argspec.args) - len(argspec.defaults or [])
-    for kw, default in zip(argspec.args, [None] * num_no_default + list(argspec.defaults or [])):
-        # if isinstance(kw, list):
-        # # for when user specifies unpacking in a parameter name
-        # kw = frozenset(kw)
-        if kw.startswith('in_') or isinstance(default, FindFromParents):
-            input_arg_to_default[kw] = default
-        elif kw.startswith('out_') or isinstance(default, OutputDir) or isinstance(default, Forward):
-            output_arg_to_default[kw] = default
+# def get_input_and_output_defaults(fxn):
+#     argspec = getargspec(fxn)
+#     input_arg_to_default = dict()
+#     output_arg_to_default = dict()
+#
+#     # iterate over argspec keywords and their defaults
+#     num_no_default = len(argspec.args) - len(argspec.defaults or [])
+#     for kw, default in zip(argspec.args, [None] * num_no_default + list(argspec.defaults or [])):
+#         # if isinstance(kw, list):
+#         # # for when user specifies unpacking in a parameter name
+#         # kw = frozenset(kw)
+#         if kw.startswith('in_') or isinstance(default, FindFromParents):
+#             input_arg_to_default[kw] = default
+#         elif kw.startswith('out_') or isinstance(default, OutputDir) or isinstance(default, Forward):
+#             output_arg_to_default[kw] = default
+#
+#     return input_arg_to_default, output_arg_to_default
+#
+# def get_input_and_output_defaults(fxn):
+#     sig = funcsigs.signature(fxn)
+#
+#     for param_name, param in sig.parameters.items():
+#         if param.startswith('in_'):
+#             param_name, param.default
 
-    return input_arg_to_default, output_arg_to_default
+
 
 
 def unpack_if_cardinality_1(find_instance, taskfiles):
@@ -104,77 +115,87 @@ def _validate_input_mapping(cmd_name, find_instance, mapped_input_taskfiles, par
     op, number = parse_cardinality(find_instance.n)
 
     if not OPS[op](real_count, int(number)):
-        s = '******ERROR****** \n' \
-            '{cmd_name} does not have right number of inputs: for {find_instance}\n' \
-            '***Parents*** \n' \
-            '{prnts}\n' \
-            '***Inputs Matched ({real_count})*** \n' \
-            '{mit} '.format(mit="\n".join(map(str, mapped_input_taskfiles)),
-                            prnts="\n".join(map(str, parents)), **locals())
         import sys
 
-        print >> sys.stderr, s
+        print >> sys.stderr
+        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for {find_instance}"'.format(**locals())
+        for parent in parents:
+            print >> sys.stderr, '\t<PARENT task="%s">' % parent
+            if len(parent.output_files):
+                for out_file in parent.output_files:
+                    print >> sys.stderr, '\t\t<OUTPUT_FILE path="%s" match=%s />' % (out_file, out_file in mapped_input_taskfiles)
+            print >> sys.stderr, '\t</PARENT>'
+        print >> sys.stderr, '</ERROR>'
+
         raise ValueError('Input files are missing, or their cardinality do not match.')
 
 
-def _get_input_map(cmd_name, input_arg_to_default, tags, parents):
+def _get_input_map(cmd_name, cmd_fxn, tags, parents):
     # todo handle inputs without default
 
-    for input_name, input_value in input_arg_to_default.iteritems():
-        if input_name in tags:
-            # user specified explicitly
-            input_file = tags[input_name]
-            yield input_name, input_file
-        elif isinstance(input_value, FindFromParents):
-            # user used find()
-            find_instance = input_value
+    sig = funcsigs.signature(cmd_fxn)
 
-            def get_available_files():
-                for p in parents:
-                    if all(p.tags.get(k) == v for k,v in (find_instance.tags or dict()).items()):
-                        yield p.output_files
+    # funcsigs._empty
+    for param_name, param in sig.parameters.iteritems():
+        if param_name.startswith('in_'):
+            if param_name in tags:
+                # user specified explicitly
+                input_file = tags[param_name]
+                yield param_name, input_file
+            elif isinstance(param.default, FindFromParents):
+                # user used find()
+                find_instance = param.default
 
-            available_files = it.chain(*get_available_files())
-            input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=False))
-            _validate_input_mapping(cmd_name, find_instance, input_taskfiles, parents)
-            input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
+                def get_available_files():
+                    for p in parents:
+                        if all(p.tags.get(k) == v for k, v in (find_instance.tags or dict()).items()):
+                            yield p.output_files
 
-            yield input_name, input_taskfile_or_input_taskfiles
-        else:
-            raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
-                                  'its value via tags' % (cmd_name, input_name, input_value)
+                available_files = it.chain(*get_available_files())
+                input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=False))
+                _validate_input_mapping(cmd_name, find_instance, input_taskfiles, parents)
+                input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
-
-def _get_output_map(cmd_name, output_arg_to_default, tags, input_map, output_dir):
-    for name, value in output_arg_to_default.iteritems():
-        if name in tags:
-            output_file = tags[name]
-            yield name, output_file
-
-        elif isinstance(value, Forward):
-            try:
-                input_value = input_map[value.input_parameter_name]
-            except KeyError:
-                raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
-                               '%s.cmd()' % (value.input_parameter_name, cmd_name))
-            yield name, input_value
-        elif isinstance(value, OutputDir):
-            if output_dir is not None:
-                output_file = os.path.join(output_dir,
-                                           value.basename.format(**tags))
+                yield param_name, input_taskfile_or_input_taskfiles
             else:
-                output_file = value.basename.format(**tags)
-            # output_file = value.format(**tags)
-            yield name, output_file
-        else:
-            print name, value, tags
-            yield name, value.format(**tags)
+                raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
+                                      'its value via tags' % (cmd_name, param_name, param.default)
+
+
+def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir):
+    sig = funcsigs.signature(cmd_fxn)
+
+    for param_name, param in sig.parameters.iteritems():
+        if param_name.startswith('out_'):
+            if param_name in tags:
+                output_file = tags[param_name]
+                yield param_name, output_file
+
+            elif isinstance(param.default, Forward):
+                forward_instance = param.default
+                try:
+                    input_value = input_map[forward_instance.input_parameter_name]
+                except KeyError:
+                    raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
+                                   '%s in stage %s' % (forward_instance.input_parameter_name, cmd_fxn, stage_name))
+                yield param_name, input_value
+            elif isinstance(param.default, OutputDir):
+                output_dir_instance = param.default
+                if output_dir is not None:
+                    output_file = os.path.join(output_dir,
+                                               output_dir_instance.basename.format(**tags))
+                else:
+                    output_file = output_dir_instance.basename.format(**tags)
+                # output_file = value.format(**tags)
+                yield param_name, output_file
+            else:
+                raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
 
 
 def get_io_map(fxn, tags, parents, cmd_name, output_dir):
-    input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
-    input_map = dict(_get_input_map(cmd_name, input_arg_to_default, tags, parents))
-    output_map = dict(_get_output_map(cmd_name, output_arg_to_default, tags, input_map, output_dir))
+    # input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
+    input_map = dict(_get_input_map(cmd_name, fxn, tags, parents))
+    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, output_dir))
 
     return input_map, output_map
 
