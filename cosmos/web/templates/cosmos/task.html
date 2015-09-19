@@ -31,19 +31,21 @@
             <h3>Attributes</h3>
             <dl class="dl-horizontal">
                 <dt>status</dt>
-                <dd>{{ task.status }}</dd>
+                <dd><strong>{{ task.status }}</strong></dd>
+                <dt>successful</dt>
+                <dd>{{ task.successful }}</dd>
                 <dt>execution.output_dir</dt>
                 <dd>{{ task.execution.output_dir }}</dd>
                 <dt>output_dir</dt>
                 <dd>{{ task.output_dir }}</dd>
+                <dt>log_dir</dt>
+                <dd>{{ task.log_dir }}</dd>
                 <dt>cpu_req</dt>
                 <dd>{{ task.cpu_req }}</dd>
                 <dt>mem_req</dt>
                 <dd>{{ task.mem_req }}</dd>
                 <dt>time_req</dt>
                 <dd>{{ task.time_req }}</dd>
-                <dt>log_dir</dt>
-                <dd>{{ task.log_dir }}</dd>
                 <dt>started_on</dt>
                 <dd>{{ task.started_on|datetime_format }}</dd>
                 <dt>finished_on</dt>
