@@ -9,33 +9,9 @@ import os
 
 import funcsigs
 
-
-# def get_input_and_output_defaults(fxn):
-#     argspec = getargspec(fxn)
-#     input_arg_to_default = dict()
-#     output_arg_to_default = dict()
-#
-#     # iterate over argspec keywords and their defaults
-#     num_no_default = len(argspec.args) - len(argspec.defaults or [])
-#     for kw, default in zip(argspec.args, [None] * num_no_default + list(argspec.defaults or [])):
-#         # if isinstance(kw, list):
-#         # # for when user specifies unpacking in a parameter name
-#         # kw = frozenset(kw)
-#         if kw.startswith('in_') or isinstance(default, FindFromParents):
-#             input_arg_to_default[kw] = default
-#         elif kw.startswith('out_') or isinstance(default, OutputDir) or isinstance(default, Forward):
-#             output_arg_to_default[kw] = default
-#
-#     return input_arg_to_default, output_arg_to_default
-#
-# def get_input_and_output_defaults(fxn):
-#     sig = funcsigs.signature(fxn)
-#
-#     for param_name, param in sig.parameters.items():
-#         if param.startswith('in_'):
-#             param_name, param.default
-
-
+FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
+OutputDir = recordtype('OutputDir', 'basename', default=None)
+Forward = recordtype('Forward', 'input_parameter_name', default=None)
 
 
 def unpack_if_cardinality_1(find_instance, taskfiles):
@@ -74,11 +50,6 @@ def parse_cardinality(n):
         op = '=='
     number = int(number)
     return op, number
-
-
-FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
-OutputDir = recordtype('OutputDir', 'basename', default=None)
-Forward = recordtype('Forward', 'input_parameter_name', default=None)
 
 
 def find(regex, n='==1', tags=None):

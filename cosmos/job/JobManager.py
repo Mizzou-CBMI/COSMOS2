@@ -10,6 +10,7 @@ import itertools as it
 from operator import attrgetter
 from ..core.cmd_fxn.signature import call
 
+
 class JobManager(object):
     def __init__(self, cosmos_app, get_submit_args, default_queue=None, cmd_wrapper=None):
         self.cosmos_app = cosmos_app
@@ -40,9 +41,6 @@ class JobManager(object):
                 fxn = task.cmd_fxn
 
             command = call(fxn, thread_local_task, task.input_map, task.output_map)
-
-
-
         else:
             command = thread_local_task.tool._generate_command(thread_local_task)
 

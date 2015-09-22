@@ -23,6 +23,10 @@ class DRM_GE(DRM):
     name = 'ge'
 
     def submit_job(self, task):
+        for p in [task.output_stdout_path, task.output_stderr_path]:
+            if os.path.exists(p):
+                os.unlink(p)
+
         ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
                                                                                     stderr=task.output_stderr_path,

@@ -3,9 +3,9 @@ from . import *
 from .core.cmd_fxn.io import find, out_dir, forward
 from . import Cosmos
 
-from .models.Task import Task
-from .models.Stage import Stage
-from .models.Execution import Execution
+from .models.Task import Task, TaskStatus
+from .models.Stage import Stage, StageStatus
+from .models.Execution import Execution, ExecutionStatus
 
 from .util.args import add_execution_args
 from .util.relationship_patterns import one2one, one2many, many2one, group
@@ -19,9 +19,9 @@ from black_magic.decorator import partial
 from decorator import decorator
 
 
-
-
 def load_input(in_file, out_file=forward('in_file')): pass
+
+
 def load_inputs(in_files, out_files=forward('in_file')): pass
 
 
@@ -54,6 +54,7 @@ def bash_call(func, *args, **kwargs):
     # decorator.decorator passes everything as *args, use function signature to turn it into kwargs which is more explicit
     import pprint
     from collections import OrderedDict
+
     sig = funcsigs.signature(func)
     kwargs = OrderedDict(zip(sig.parameters.keys(), args))
 
