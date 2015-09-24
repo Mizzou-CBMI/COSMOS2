@@ -28,8 +28,10 @@ notifications:
       - yassinesouilmi@gmail.com
       - egafni@gmail.com
 
+  # Gitter notifications
   webhooks:
     urls:
+      - https://webhooks.gitter.im/e/69b116e4116196985f1b
       - https://webhooks.gitter.im/e/d633832f63a4e7c2ad7f
 
     on_success: always  # options: [always|never|change] default: always
