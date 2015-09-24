@@ -22,4 +22,8 @@ install:
 # command to run tests
 script: python  examples/ex1.py 
 
-
+notifications:
+  email:
+    recipients:
+      - yassinesouilmi@gmail.com
+      - egafni@gmail.com
