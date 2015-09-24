@@ -1,0 +1,24 @@
+language: python
+
+# whitelist
+branches:
+  only:
+    - master
+    - TravisCI
+
+python:
+  - "2.7"
+
+# Befor installation
+before_install:
+
+  - sudo apt-get update -qq
+
+# command to install dependencies
+install:
+  - pip install .
+
+# command to run tests
+script: python  examples/ex1.py 
+
+
