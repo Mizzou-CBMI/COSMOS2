@@ -66,7 +66,7 @@ def default_get_submit_args(task, default_queue=None):
 
         resource_str = ','.join(g())
 
-        return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
+        return '-notify -l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
     elif drm == 'local':
         return None
     else:

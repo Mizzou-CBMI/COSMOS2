@@ -164,6 +164,7 @@ class Execution(Base):
 
         # Check if task is already in stage
         task = stage.get_task(tags, None)
+
         if task is not None:
             # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
             # were already removed on execution load
