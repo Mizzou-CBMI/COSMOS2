@@ -43,8 +43,9 @@ setup(
         "sqlalchemy",
         "black_magic==0.0.10", # to get a signature preserving partial() in cosmos.api
         'Flask-Admin',
-        'flask_sqlalchemy_session',
+        'flask-sqlalchemy',
         'funcsigs',
+        'flask_sqlalchemy_session',
         'networkx',
         'configparser',
         "enum34",

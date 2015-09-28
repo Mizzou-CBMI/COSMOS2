@@ -2,13 +2,15 @@ import os
 
 opj = os.path.join
 from ..util.helpers import mkdir
-from .local import DRM_Local
-from .lsf import DRM_LSF
-from .ge import DRM_GE
+from .drm.drm_local import DRM_Local
+from .drm.drm_lsf import DRM_LSF
+from .drm.drm_ge import DRM_GE
+from .drm.drm_drmaa import DRM_DRMAA
 from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
 from ..core.cmd_fxn.signature import call
+
 
 class JobManager(object):
     def __init__(self, cosmos_app, get_submit_args, default_queue=None, cmd_wrapper=None):
@@ -16,6 +18,7 @@ class JobManager(object):
         self.drms = dict(local=DRM_Local(self))  # always support local execution
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
+        self.drms['drmaa'] = DRM_DRMAA(self)
 
         self.local_drm = DRM_Local(self)
         self.running_tasks = []
@@ -40,9 +43,6 @@ class JobManager(object):
                 fxn = task.cmd_fxn
 
             command = call(fxn, thread_local_task, task.input_map, task.output_map)
-
-
-
         else:
             command = thread_local_task.tool._generate_command(thread_local_task)
 
@@ -96,9 +96,9 @@ class JobManager(object):
         # For the rest, ask its DRM if it is done
         f = attrgetter('drm')
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
-            for task in self.drms[drm].filter_is_done(list(tasks)):
+            for task, job_info_dict in self.drms[drm].filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
-                for k, v in self.drms[drm].get_task_return_data(task).items():
+                for k, v in job_info_dict.items():
                     setattr(task, k, v)
                 yield task
 

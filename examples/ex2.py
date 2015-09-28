@@ -28,7 +28,7 @@ def run_ex2(execution):
 
     # Count the words in the previous stage.  An example of a one2one relationship,
     # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
-    word_counts = one2one(execution, cmd_fxn=word_count, parents=cats, tag=dict(chars=True))
+    word_counts = one2one(cmd_fxn=word_count, parents=cats, tag=dict(chars=True))
 
     # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).

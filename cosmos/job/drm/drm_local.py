@@ -2,8 +2,9 @@ import os
 
 import psutil
 
-from .drm import DRM
-from .. import TaskStatus
+from .DRM_Base import DRM
+
+from ...api import TaskStatus
 import time
 
 
@@ -42,7 +43,9 @@ class DRM_Local(DRM):
         return False
 
     def filter_is_done(self, tasks):
-        return filter(self._is_done, tasks)
+        for t in tasks:
+            if self._is_done(t):
+                yield t, self._get_task_return_data(t)
 
     def drm_statuses(self, tasks):
         """
@@ -59,7 +62,7 @@ class DRM_Local(DRM):
 
         return {task.drm_jobID: f(task) for task in tasks}
 
-    def get_task_return_data(self, task):
+    def _get_task_return_data(self, task):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
