@@ -115,7 +115,7 @@ class DRM_GE(DRM):
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
-def qacct(task, timeout=60):
+def qacct(task, timeout=600):
     start = time.time()
     with open(os.devnull, 'w') as DEVNULL:
         while True:

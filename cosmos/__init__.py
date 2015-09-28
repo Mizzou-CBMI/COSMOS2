@@ -1,7 +1,5 @@
-
 import os
 import math
-
 
 # turn SQLAlchemy warnings into errors
 import warnings
@@ -18,8 +16,6 @@ opj = os.path.join
 library_path = os.path.dirname(os.path.realpath(__file__))
 with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
-
-
 
 
 #########################################################################################################################
@@ -54,7 +50,7 @@ NOOP = None
 
 class TaskStatus(MyEnum):
     no_attempt = 'Has not been attempted',
-    waiting = 'Waiting to execute', # deprecated
+    waiting = 'Waiting to execute',  # deprecated
     submitted = 'Submitted to the job manager',
     successful = 'Finished successfully',
     failed = 'Finished, but failed'
