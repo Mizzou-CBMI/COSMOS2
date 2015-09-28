@@ -35,6 +35,7 @@ setup(
     license="GPLv3",
     install_requires=[
         'gntp',
+        'futures',
         "psprofile",
         "decorator",
         'futures',

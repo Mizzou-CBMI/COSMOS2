@@ -8,7 +8,7 @@ from ..util.args import get_last_cmd_executed
 from ..db import Base
 from .. import __version__
 import math
-import futures
+from concurrent import futures
 
 def default_get_submit_args(task, default_queue=None):
     """
