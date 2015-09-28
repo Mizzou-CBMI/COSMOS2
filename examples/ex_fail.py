@@ -2,7 +2,7 @@
 If a Task fails, all of it's descendants will not be executed, however, the rest of the DAG will be.
 """
 
-from cosmos import Cosmos, Input
+from cosmos.api import Cosmos, Input
 import tools
 from cosmos.util.helpers import mkdir
 

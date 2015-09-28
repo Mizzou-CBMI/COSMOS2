@@ -122,12 +122,14 @@ def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
     assert isinstance(tag, dict), '`tag` must be a dict'
 
     def g():
-        for parent in parents:
-            new_tags = parent.tags.copy()
-            for split_tags in combinations(splitby):
+        for parent_task in parents:
+            new_tags = parent_task.tags.copy()
+            tag_itrbl = splitby(parent_task) if hasattr(splitby,'__call__') else combinations(splitby)
+
+            for split_tags in tag_itrbl:
                 new_tags.update(split_tags)
                 new_tags.update(tag)
-                yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent],
+                yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent_task],
                                          out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                          stage_name=stage_name)
 

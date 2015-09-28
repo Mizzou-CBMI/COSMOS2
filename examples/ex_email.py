@@ -1,4 +1,4 @@
-from cosmos import Cosmos, signal_execution_status_change, ExecutionStatus
+from cosmos.api import Cosmos, signal_execution_status_change, ExecutionStatus
 from ex1 import run_ex1
 import os
 from cosmos.util.helpers import mkdir

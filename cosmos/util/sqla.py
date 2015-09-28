@@ -2,6 +2,7 @@ import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 import six
 
+
 class Enum34_ColumnType(types.TypeDecorator):
     """
     Enum compatible with enum34 package
@@ -68,7 +69,11 @@ class JSONEncodedDict(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         if value is not None:
-            value = six.text_type(json.dumps(value))
+            # TODO this is a way to pass parameters through tags that cannot be converted to JSON.  I probably should emit a warning.
+            # TODO I'm filtering out any values that are not a base type
+            value = six.text_type(json.dumps({k: v for k, v in value.items()
+                                              if isinstance(v, (basestring, int, float, bool))}))
+
         return value
 
     def process_result_value(self, value, dialect):
@@ -105,6 +110,7 @@ class MutableDict(Mutable, dict):
 
         dict.__delitem__(self, key)
         self.changed()
+
 
 class MutableList(Mutable, list):
     @classmethod

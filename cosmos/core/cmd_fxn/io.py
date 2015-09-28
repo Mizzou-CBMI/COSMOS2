@@ -10,7 +10,7 @@ import os
 import funcsigs
 
 FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
-OutputDir = recordtype('OutputDir', 'basename', default=None)
+OutputDir = recordtype('OutputDir', 'basename prepend_execution_output_dir', default=None)
 Forward = recordtype('Forward', 'input_parameter_name', default=None)
 
 
@@ -63,13 +63,14 @@ def find(regex, n='==1', tags=None):
     return FindFromParents(regex, n, tags)
 
 
-def out_dir(basename=''):
+def out_dir(basename='', peo=True):
     """
     Essentially will perform os.path.join(Task.output_dir, basename)
 
     :param str basename: The basename of the output_file
+    :param bool peo: Prepend execution.output_dir to the output
     """
-    return OutputDir(basename)
+    return OutputDir(basename, peo)
 
 
 def forward(input_parameter_name):
@@ -133,40 +134,43 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                                       'its value via tags' % (cmd_name, param_name, param.default)
 
 
-def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir):
+def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_output_dir):
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
-        if param_name.startswith('out_'):
-            if param_name in tags:
-                output_file = tags[param_name]
-                yield param_name, output_file
 
-            elif isinstance(param.default, Forward):
-                forward_instance = param.default
-                try:
-                    input_value = input_map[forward_instance.input_parameter_name]
-                except KeyError:
-                    raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
-                                   '%s in stage %s' % (forward_instance.input_parameter_name, cmd_fxn, stage_name))
-                yield param_name, input_value
-            elif isinstance(param.default, OutputDir):
-                output_dir_instance = param.default
-                if output_dir is not None:
-                    output_file = os.path.join(output_dir,
-                                               output_dir_instance.basename.format(**tags))
-                else:
-                    output_file = output_dir_instance.basename.format(**tags)
-                # output_file = value.format(**tags)
-                yield param_name, output_file
+        if param_name not in tags and param.default is funcsigs._empty:
+            raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
+
+        value = tags.get(param_name, param.default)
+
+        if isinstance(value, Forward):
+            forward_instance = value
+            try:
+                input_value = input_map[forward_instance.input_parameter_name]
+            except KeyError:
+                raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
+                               '%s in stage %s' % (forward_instance.input_parameter_name, cmd_fxn, stage_name))
+            yield param_name, input_value
+        elif isinstance(value, OutputDir):
+            output_dir_instance = value
+            if output_dir is not None:
+                if output_dir_instance.prepend_execution_output_dir:
+                    output_dir = os.path.join(execution_output_dir, output_dir)
+                output_file = os.path.join(output_dir, output_dir_instance.basename.format(**tags))
             else:
-                raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
+                output_file = output_dir_instance.basename.format(**tags)
+            # output_file = value.format(**tags)
+            yield param_name, output_file
+        elif param_name.startswith('out_'):
+            yield param_name, value
 
 
-def get_io_map(fxn, tags, parents, cmd_name, output_dir):
+
+def get_io_map(fxn, tags, parents, cmd_name, output_dir, execution_output_dir):
     # input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
     input_map = dict(_get_input_map(cmd_name, fxn, tags, parents))
-    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, output_dir))
+    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, output_dir, execution_output_dir))
 
     return input_map, output_map
 

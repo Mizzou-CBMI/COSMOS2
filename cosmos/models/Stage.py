@@ -96,7 +96,7 @@ class Stage(Base):
 
     @property
     def tasksq(self):
-        from .. import Task
+        from .Task import Task
 
         return self.session.query(Task)
 

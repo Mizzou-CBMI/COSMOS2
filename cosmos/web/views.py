@@ -4,7 +4,7 @@ from operator import attrgetter
 from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request
 from sqlalchemy import desc
 
-from .. import Execution, Stage, Task, TaskStatus
+from cosmos.api import Execution, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph

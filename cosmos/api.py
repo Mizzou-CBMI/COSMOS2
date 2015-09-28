@@ -1,11 +1,9 @@
-from . import *
-
 from .core.cmd_fxn.io import find, out_dir, forward
-from . import Cosmos
-
-from .models.Task import Task, TaskStatus
-from .models.Stage import Stage, StageStatus
-from .models.Execution import Execution, ExecutionStatus
+from .models.Cosmos import Cosmos, default_get_submit_args
+from .models.Task import Task
+from .models.Stage import Stage
+from .models.Execution import Execution
+from . import ExecutionStatus, StageStatus, TaskStatus, NOOP
 
 from .util.args import add_execution_args
 from .util.relationship_patterns import one2one, one2many, many2one, group
@@ -53,10 +51,11 @@ def bash_call(func, *args, **kwargs):
 
     # decorator.decorator passes everything as *args, use function signature to turn it into kwargs which is more explicit
     import pprint
+    import json
     from collections import OrderedDict
 
     sig = funcsigs.signature(func)
-    kwargs = OrderedDict(zip(sig.parameters.keys(), args))
+    kwargs = dict(zip(sig.parameters.keys(), args))
 
     return r"""
 
