@@ -2,7 +2,7 @@ from inspect import getargspec
 import re
 from ... import NOOP
 import funcsigs
-
+import os
 
 def call(cmd_fxn, task, input_map, output_map):
     sig = funcsigs.signature(cmd_fxn)
@@ -47,24 +47,21 @@ import decorator
 
 
 def default_prepend(execution_output_dir, task_output_dir):
-    o = '#!/bin/bash\n' \
-        'set -e\n' \
-        'set -o pipefail\n' \
-        'EXECUTION_OUTPUT_DIR=%s\n' \
-        'cd $EXECUTION_OUTPUT_DIR\n' % execution_output_dir
-
     if task_output_dir and task_output_dir != '':
-        o += 'mkdir -p %s\n' % task_output_dir
+        task_output_dir = os.path.join(execution_output_dir, task_output_dir)
+        mkdir = 'mkdir -p %s\n' % task_output_dir
+    else:
+        task_output_dir = execution_output_dir
+        mkdir = ''
 
-    # assert task.cmd_fxn == task
-
-    # o += '\n#' + str(task.cmd_fxn.input_map)
-    # o += '\n#' + str(task.cmd_fxn.output_map)
-    # o += '\n# cmd fxn ' + str(task.cmd_fxn)
-    # o += '\n# tags ' + str(task.tags)
-    # o += '\n'
-    o += "\n"
-    return o
+    return '#!/bin/bash\n' \
+           'set -e\n' \
+           'set -o pipefail\n' \
+           'EXECUTION_OUTPUT_DIR={ex_out}\n' \
+           '{mkdir}' \
+           'cd {cd_to}\n\n'.format(ex_out=execution_output_dir,
+                                   mkdir=mkdir,
+                                   cd_to=task_output_dir)
 
 
 # def default_cmd_append(task):
