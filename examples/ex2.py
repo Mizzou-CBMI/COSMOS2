@@ -8,7 +8,6 @@ import os
 from cosmos.api import Cosmos, one2one
 from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
-import subprocess as sp
 
 
 def run_ex2(execution):
@@ -28,7 +27,7 @@ def run_ex2(execution):
 
     # Count the words in the previous stage.  An example of a one2one relationship,
     # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
-    word_counts = one2one(execution, cmd_fxn=word_count, parents=cats, tag=dict(chars=True))
+    word_counts = one2one(cmd_fxn=word_count, parents=cats, tag=dict(chars=True))
 
     # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).
@@ -40,8 +39,8 @@ def run_ex2(execution):
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
-        draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
-        draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
+        draw_stage_graph(execution.stage_graph(), '/tmp/ex2_task_graph.png', format='png')
+        draw_task_graph(execution.task_graph(), '/tmp/ex2_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
 
@@ -51,8 +50,7 @@ def run_ex2(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
-    sp.check_call(['mkdir', '-p', 'analysis_output'])
 
-    execution = cosmos.start('Example1', 'analysis_output/ex1', max_attempts=1, restart=True, skip_confirm=True,
+    execution = cosmos.start('Example2', 'analysis_output/ex2', max_attempts=1, restart=True, skip_confirm=True,
                              max_cpus=10)
     run_ex2(execution)

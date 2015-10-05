@@ -2,8 +2,7 @@ import subprocess as sp
 import re
 import os
 
-from .drm import DRM
-
+from .DRM_Base import DRM
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
@@ -31,13 +30,14 @@ class DRM_LSF(DRM):
                               preexec_fn=preexec_function(),
                               shell=True)
 
-        task.drm_jobID = int(re.search('Job <(\d+)>', out).group(1))
+        drm_jobID = int(re.search('Job <(\d+)>', out).group(1))
+        return drm_jobID
 
     def filter_is_done(self, tasks):
         if len(tasks):
             bjobs = bjobs_all()
 
-            def f(task):
+            def is_done(task):
                 jid = str(task.drm_jobID)
                 if jid not in bjobs:
                     # prob in history
@@ -46,7 +46,7 @@ class DRM_LSF(DRM):
                 else:
                     return bjobs[jid]['STAT'] in ['DONE', 'EXIT', 'UNKWN', 'ZOMBI']
 
-            return filter(f, tasks)
+            return filter(is_done, tasks)
         else:
             return []
 
@@ -64,7 +64,6 @@ class DRM_LSF(DRM):
             return {task.drm_jobID: f(task) for task in tasks}
         else:
             return {}
-
 
     def kill(self, task):
         "Terminates a task"

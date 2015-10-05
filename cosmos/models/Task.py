@@ -212,26 +212,26 @@ class Task(Base):
 
     extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
 
-    @staticmethod
-    def create_task(cmd_fxn, tags, stage, parents, output_dir, attrs):
-        # Validation
-        # f = lambda ifa: ifa.taskfile
-        # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
-        # group_of_ifas = list(group_of_ifas)
-        #     if len(group_of_ifas) > 1:
-        #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
-        #             TaskFiles=tf
-        #         ))
-
-        cmd_fxn.input_map, cmd_fxn.output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, output_dir)
-        input_files = io.unpack_io_map(cmd_fxn.input_map)
-        output_files = io.unpack_io_map(cmd_fxn.output_map)
-
-        task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
-                    output_files=output_files,output_dir=output_dir,
-                    **attrs)
-
-        return task
+    # @staticmethod
+    # def create_task(cmd_fxn, tags, stage, parents, output_dir, attrs):
+    #     # Validation
+    #     # f = lambda ifa: ifa.taskfile
+    #     # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
+    #     # group_of_ifas = list(group_of_ifas)
+    #     #     if len(group_of_ifas) > 1:
+    #     #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
+    #     #             TaskFiles=tf
+    #     #         ))
+    #
+    #     cmd_fxn.input_map, cmd_fxn.output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, output_dir)
+    #     input_files = io.unpack_io_map(cmd_fxn.input_map)
+    #     output_files = io.unpack_io_map(cmd_fxn.output_map)
+    #
+    #     task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
+    #                 output_files=output_files,output_dir=output_dir,
+    #                 **attrs)
+    #
+    #     return task
 
     @declared_attr
     def status(cls):
@@ -353,7 +353,7 @@ class Task(Base):
 
     @property
     def tags_pretty(self):
-        return '%s' % ', '.join('%s=%s' % (k, v) for k, v in self.tags.items())
+        return '%s' % ', '.join('%s=%s' % (k, "'%s'"%v if isinstance(v, basestring) else v) for k, v in self.tags.items())
 
     def __repr__(self):
         return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),

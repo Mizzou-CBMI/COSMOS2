@@ -4,7 +4,7 @@ An example of how to setup a project of multiple workflows
 """
 import os
 
-from cosmos import Execution, add_execution_args, Cosmos
+from cosmos.api import Execution, add_execution_args, Cosmos
 from configparser import ConfigParser
 from cosmos.util.helpers import mkdir
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     debug = kwargs.pop('debug')
     if growl:
         from cosmos.util import growl
-        from cosmos import signal_execution_status_change, ExecutionStatus
+        from cosmos.api import signal_execution_status_change, ExecutionStatus
 
         @signal_execution_status_change.connect
         def growl_signal(execution):

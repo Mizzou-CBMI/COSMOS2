@@ -4,23 +4,26 @@ import itertools as it
 import subprocess as sp
 import signal
 import os
+import random
+import string
+
 import time
 
+def random_str(n):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
-def make_dict(*args, **kwargs):
+def make_dict(*list_of_dicts, **additional_kwargs):
     """
-    :param args: a list of dicts, or Tasks (for Tasks, their tags will be used)
-    :param kwargs: a list of extra key/vals to add to the dict
+    :param list_of_dicts: a list of dicts, or Tasks (for Tasks, their tags will be used)
+    :param additional_kwargs: extra key/vals to add to the dict
     :return: a merge of all the dicts in args and kwargs
     """
     r = dict()
-    for elem in args:
-        if isinstance(elem, Task):
-            elem = elem.tags
-        elif not isinstance(elem, dict):
+    for elem in list_of_dicts:
+        if not isinstance(elem, dict):
             raise '%s is not a dict' % elem
         r.update(elem)
-    r.update(kwargs)
+    r.update(additional_kwargs)
     return r
 
 

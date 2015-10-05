@@ -4,7 +4,7 @@ from operator import attrgetter
 from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request
 from sqlalchemy import desc
 
-from .. import Execution, Stage, Task, TaskStatus
+from cosmos.api import Execution, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph
@@ -51,7 +51,7 @@ def gen_bprint(cosmos_app):
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
-        jm = JobManager(cosmos_app.get_submit_args)
+        jm = JobManager(cosmos_app, cosmos_app.get_submit_args)
 
         f = attrgetter('drm')
         drm_statuses = {}

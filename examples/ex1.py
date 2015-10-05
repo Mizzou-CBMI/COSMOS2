@@ -1,7 +1,6 @@
 import os
 from cosmos.api import Cosmos, draw_stage_graph, draw_task_graph, pygraphviz_available
 from tools import echo, cat, word_count
-import subprocess as sp
 
 
 def run_ex1(execution):
@@ -38,7 +37,7 @@ def run_ex1(execution):
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
         draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
-        draw_task_graph(execution.task_graph(), '/tmp//ex1_stage_graph.png', format='png')
+        draw_task_graph(execution.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
 
@@ -48,7 +47,6 @@ def run_ex1(execution):
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
-    sp.check_call(['mkdir', '-p', 'analysis_output'])
 
     execution = cosmos.start('Example1', 'analysis_output/ex1', max_attempts=1, restart=True, skip_confirm=True,
                              max_cpus=10)

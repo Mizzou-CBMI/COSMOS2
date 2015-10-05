@@ -21,11 +21,14 @@ import itertools as it
 import datetime
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
+import funcsigs
 
 opj = os.path.join
 import signal
 
-from .. import TaskStatus, StageStatus, Task, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, StageStatus, ExecutionStatus, signal_execution_status_change
+from .Task import Task
+
 
 from ..util.helpers import get_logger
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, get_or_create
@@ -78,7 +81,7 @@ class Execution(Base):
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
-    stages = relationship("Stage", cascade="all, delete-orphan", order_by="Stage.number", passive_deletes=True,
+    stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='execution')
 
     exclude_from_dict = ['info']
@@ -114,7 +117,8 @@ class Execution(Base):
             # mutable dict column defaults to None
             self.info = dict()
         self.jobmanager = None
-        self.created_on = datetime.datetime.now()
+        if not self.created_on:
+            self.created_on = datetime.datetime.now()
         self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
 
     def __getattr__(self, item):
@@ -124,7 +128,7 @@ class Execution(Base):
         else:
             raise AttributeError('%s is not an attribute of %s' % (item, self))
 
-    def add_task(self, cmd_fxn, tags, parents=None, out_dir=None, stage_name=None):
+    def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
         Adds a Task
 
@@ -135,12 +139,16 @@ class Execution(Base):
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
-        from .. import Stage
+        from .Stage import Stage
 
+        if tags is None:
+            tags = dict()
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
             parents = []
+        if isinstance(parents, Task):
+            parents = [parents]
 
         if out_dir:
             out_dir = out_dir.format(**tags)
@@ -159,6 +167,7 @@ class Execution(Base):
 
         # Check if task is already in stage
         task = stage.get_task(tags, None)
+
         if task is not None:
             # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
             # were already removed on execution load
@@ -173,7 +182,7 @@ class Execution(Base):
             if 'drm' not in attrs:
                 attrs['drm'] = self.cosmos_app.default_drm
 
-            input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir)
+            input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir, self.output_dir)
             input_files = io.unpack_io_map(input_map)
             output_files = io.unpack_io_map(output_map)
 
@@ -194,72 +203,7 @@ class Execution(Base):
 
         return task
 
-    def add(self, tools, name=None):
-        """
-        DEPRECATED
 
-        Add tools to the Stage with `name`.  If a Stage with `name` does not exist, create it.
-
-        :param itrbl(tool) tools: For each tool in `tools`, new task will be added to the stage with stage `name`.
-        :param str name: Default is to the class name of the first tool in tools.
-        :rtype: list(Task)
-        :return: New tasks that were created.
-        """
-        from .. import Tool, Stage
-
-        if hasattr(tools, '__class__') and issubclass(tools.__class__, Tool):
-            tools = [tools]
-        tools = list(tools)
-        assert isinstance(tools, list) and all(issubclass(t.__class__, Tool) for t in tools), \
-            '`tools` must be a list of Tools, a Tool instance, or a generator of Tools'
-        assert len(tools) > 0, '`tools` cannot be an empty list'
-        tools = filter(bool, tools)
-
-        for t in tools:
-            for p in t.task_parents:
-                assert p.execution == self, "cannot add a tool who's parent tasks belong to a different execution"
-
-        if name is None:
-            name = tools[0].__class__.__name__
-
-        for tags, tool_group in groupby2(tools, lambda tool: tool.tags):
-            tool_group = list(tool_group)
-            if len(tool_group) > 1:
-                s = 'Duplicate tags detected: {tags}.  \n' \
-                    'In tasks: {tool_group}  \n' \
-                    'Tags within a stage must be unique.'.format(**locals())
-
-                self.log.error(s)
-                raise ValueError('Duplicate tags detected')
-
-
-        # stage, created = get_or_create(session=self.session, model=Stage, execution=self, name=name)
-        try:
-            stage = only_one(s for s in self.stages if s.name == name)
-        except ValueError:
-            stage = Stage(execution=self, name=name)
-        self.session.add(stage)
-
-        # successful because failed jobs have been deleted.
-        successful_tasks = {frozenset(t.tags.items()): t for t in stage.tasks}
-
-        new_parent_stages = set()
-        new_tasks = list()
-        for tool in tools:
-            new_parent_stages = new_parent_stages.union(p.stage for p in tool.task_parents)
-            task = get_or_create_task(tool, successful_tasks, tool.tags, stage, parents=tool.task_parents,
-                                      default_drm=self.cosmos_app.default_drm)
-            tool.task = task
-            new_tasks.append(task)
-        stage.parents += list(new_parent_stages.difference(stage.parents))
-
-        # todo temporary
-        for t in new_tasks:
-            assert hasattr(t, 'tool')
-
-        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute += new_tasks
-
-        return new_tasks
 
     def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper):
@@ -285,8 +229,9 @@ class Execution(Base):
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper)
+        self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper
+                                     )
 
         self.status = ExecutionStatus.running
         self.successful = False
@@ -401,7 +346,8 @@ class Execution(Base):
 
         def reset_stage_attrs():
             """Update stage attributes if new tasks were added to them"""
-            from .. import Stage, StageStatus
+            from .Stage import Stage
+            from .. import StageStatus
             # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
             # there shouldn't be that many stages to update.
             for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id,
@@ -412,13 +358,16 @@ class Execution(Base):
 
         reset_stage_attrs()
 
-        self.log.info('Ensuring there are enough cores...')
-        # make sure we've got enough cores
-        for t in task_queue:
-            assert t.cpu_req <= self.max_cpus or self.max_cpus is None, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
-                t, t.cpu_req, self.max_cpus)
+
+        if self.max_cpus is not None:
+            self.log.info('Ensuring there are enough cores...')
+            # make sure we've got enough cores
+            for t in task_queue:
+                assert t.cpu_req <= self.max_cpus, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
+                    t, t.cpu_req, self.max_cpus)
 
         # Run this thing!
+        session.commit()
         if not dry:
             _run(self, session, task_queue)
 
@@ -535,7 +484,7 @@ class Execution(Base):
         # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
         # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
         #
-        print >> sys.stderr, 'Deleting from SQL...'
+        print >> sys.stderr, '%s Deleting rom SQL...' % self
         self.session.delete(self)
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
@@ -615,10 +564,8 @@ def _run_queued_and_ready_tasks(task_queue, execution):
                 break
 
     # submit in a batch for speed
-    execution.jobmanager.submit_tasks(submittable_tasks)
+    execution.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
-        print submittable_tasks
-        print ready_tasks
         execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
 
     # only commit submitted Tasks after submitting a batch

@@ -2,9 +2,11 @@ import os
 
 import psutil
 
-from .drm import DRM
-from .. import TaskStatus
+from .DRM_Base import DRM
+
+from ...api import TaskStatus
 import time
+
 
 class DRM_Local(DRM):
     name = 'local'
@@ -19,11 +21,12 @@ class DRM_Local(DRM):
                          stdout=open(task.output_stderr_path, 'w'),
                          stderr=open(task.output_stdout_path, 'w'),
                          preexec_fn=preexec_function(),
-                         shell=False,env=os.environ
-        )
+                         shell=False, env=os.environ
+                         )
         p.start_time = time.time()
-        task.drm_jobID = p.pid
-        self.procs[task.drm_jobID] = p
+        drm_jobID = p.pid
+        self.procs[drm_jobID] = p
+        return drm_jobID
 
     def _is_done(self, task):
         try:
@@ -40,8 +43,9 @@ class DRM_Local(DRM):
         return False
 
     def filter_is_done(self, tasks):
-        return filter(self._is_done, tasks)
-
+        for t in tasks:
+            if self._is_done(t):
+                yield t, self._get_task_return_data(t)
 
     def drm_statuses(self, tasks):
         """
@@ -58,7 +62,7 @@ class DRM_Local(DRM):
 
         return {task.drm_jobID: f(task) for task in tasks}
 
-    def get_task_return_data(self, task):
+    def _get_task_return_data(self, task):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
@@ -69,7 +73,6 @@ class DRM_Local(DRM):
             psutil.Process(task.drm_jobID).kill()
         except psutil.NoSuchProcess:
             pass
-
 
     def kill_tasks(self, tasks):
         for t in tasks:

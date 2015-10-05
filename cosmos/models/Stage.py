@@ -66,7 +66,7 @@ class Stage(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    tasks = relationship("Task", backref="stage", cascade="all, delete-orphan", passive_deletes=True)
+    tasks = relationship("Task", backref="stage", cascade="all, merge, delete-orphan", passive_deletes=True)
 
 
     @declared_attr
@@ -96,7 +96,7 @@ class Stage(Base):
 
     @property
     def tasksq(self):
-        from .. import Task
+        from .Task import Task
 
         return self.session.query(Task)
 
@@ -143,9 +143,8 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
     def get_task(self, tags, default='ERROR'):
-        tags = frozenset(tags.items())
         for task in self.tasks:
-            if frozenset(task.tags.items()) == tags:
+            if task.tags == tags:
                 return task
         if default == 'ERROR':
             raise KeyError('Task with tags %s does not exist' % tags)

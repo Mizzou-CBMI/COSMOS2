@@ -23,7 +23,6 @@
                     <th>created_on</th>
                     <th>finished_on</th>
                     <th>wall time</th>
-                    <th>testcases</th>
                     <th>action</th>
                 </tr>
                 </thead>
@@ -33,10 +32,9 @@
                         <td><a href="{{ e.url }}">{{ e }}</a></td>
                         <td>{{e.successful|to_thumb}}</td>
                         <td>{{e.status}}</td>
-                        <td>{{ e.created_on }}</td>
-                        <td>{{ e.finished_on }}</td>
-                        <td>{% if e.finished_on %}{{ e.finished_on - e.created_on|or_datetime_now }}{% endif %}</td>
-                        <td>{{ e.info['testcases']|join(', ') }}</td>
+                        <td>{{ e.created_on|datetime_format }}</td>
+                        <td>{{ e.finished_on|datetime_format }}</td>
+                        <td>{% if e.finished_on %}{{ (e.finished_on - e.created_on|or_datetime_now) }}{% endif %}</td>
                         <td>
                             <div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-default">

@@ -4,8 +4,8 @@ import os
 from collections import OrderedDict
 import time
 
-from ..util.iterstuff import grouper
-from .drm import DRM
+from ...util.iterstuff import grouper
+from .DRM_Base import DRM
 
 
 def convert_size_to_kb(size_str):
@@ -23,6 +23,10 @@ class DRM_GE(DRM):
     name = 'ge'
 
     def submit_job(self, task):
+        for p in [task.output_stdout_path, task.output_stderr_path]:
+            if os.path.exists(p):
+                os.unlink(p)
+
         ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
                                                                                     stderr=task.output_stderr_path,
@@ -33,24 +37,20 @@ class DRM_GE(DRM):
                               preexec_fn=preexec_function,
                               shell=True)
 
-        task.drm_jobID = int(re.search('job (\d+) ', out).group(1))
+        drm_jobID = int(re.search('job (\d+) ', out).group(1))
+        return drm_jobID
 
     def filter_is_done(self, tasks):
         if len(tasks):
             qjobs = qstat_all()
-
-            def f(task):
-                jid = str(task.drm_jobID)
-                if jid not in qjobs:
-                    # print 'missing %s %s' % (task, task.drm_jobID)
-                    return True
-                else:
-                    if any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
-                        return True
-
-            return filter(f, tasks)
-        else:
-            return []
+        for task in tasks:
+            jid = str(task.drm_jobID)
+            if jid not in qjobs:
+                # print 'missing %s %s' % (task, task.drm_jobID)
+                yield task, self._get_task_return_data(task)
+            else:
+                if any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
+                    yield task, self._get_task_return_data(task)
 
     def drm_statuses(self, tasks):
         """
@@ -67,7 +67,7 @@ class DRM_GE(DRM):
         else:
             return {}
 
-    def get_task_return_data(self, task):
+    def _get_task_return_data(self, task):
         d = qacct(task)
         failed = d['failed'][0] != '0'
         return dict(
@@ -115,7 +115,7 @@ class DRM_GE(DRM):
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
-def qacct(task, timeout=60):
+def qacct(task, timeout=600):
     start = time.time()
     with open(os.devnull, 'w') as DEVNULL:
         while True:
@@ -160,8 +160,9 @@ def preexec_function():
     os.setpgrp()
     return os.setsid
 
-def div(n,d):
+
+def div(n, d):
     if d == 0.:
         return 1
     else:
-        return n/d
+        return n / d
