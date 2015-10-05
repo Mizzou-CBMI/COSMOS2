@@ -8,10 +8,17 @@ class DRM_DRMAA(DRM):
     name = 'drmaa'
 
     def __init__(self, *args, **kwargs):
-        import drmaa
-        self.session = drmaa.Session()
-
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
+
+    @property
+    def session(self):
+        if self._session is None:
+            import drmaa
+            self._session = drmaa.Session()
+        else:
+            return self._session
+
+
 
     def submit_job(self, task):
 
