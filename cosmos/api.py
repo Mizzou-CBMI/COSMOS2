@@ -20,7 +20,7 @@ from decorator import decorator
 def load_input(in_file, out_file=forward('in_file')): pass
 
 
-def load_inputs(in_files, out_files=forward('in_file')): pass
+def load_inputs(in_files, out_files=forward('in_files')): pass
 
 
 def arg(name, value):

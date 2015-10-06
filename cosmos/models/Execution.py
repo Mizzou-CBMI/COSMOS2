@@ -241,28 +241,9 @@ class Execution(Base):
 
             self.started_on = datetime.datetime.now()
 
-        # Render task graph and to session
-        # import ipdb
-        # with ipdb.launch_ipdb_on_exception():
-        #     print self.tasks
+
         task_g = self.task_graph()
         stage_g = self.stage_graph()
-
-        # Set output_dirs of new tasks
-        # for task in nx.topological_sort(task_g):
-        # if not task.successful:
-        # task.output_dir = task_output_dir(task)
-        #         assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
-        #         for tf in task.output_files:
-        #             if tf.path is None:
-        #                 tf.path = opj(task.output_dir, tf.basename)
-        #                 assert tf.path is not None, 'computed an output_dir for %s of None' % task
-        #                 # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
-
-        # set commands of new tasks
-        # for task in topological_sort(task_g):
-        #     if not task.successful: # and not task.NOOP:
-        #         task.command = task.tool._generate_command(task)
 
         import itertools as it
 
