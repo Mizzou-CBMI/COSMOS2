@@ -3,6 +3,7 @@ import operator
 from collections import OrderedDict
 import re
 from inspect import getargspec
+import funcsigs
 import re
 import itertools as it
 import os
@@ -82,7 +83,7 @@ def forward(input_parameter_name):
     return Forward(input_parameter_name)
 
 
-def _validate_input_mapping(cmd_name, find_instance, mapped_input_taskfiles, parents):
+def _validate_input_mapping(cmd_name, param_name, find_instance, mapped_input_taskfiles, parents):
     real_count = len(mapped_input_taskfiles)
     op, number = parse_cardinality(find_instance.n)
 
@@ -90,7 +91,7 @@ def _validate_input_mapping(cmd_name, find_instance, mapped_input_taskfiles, par
         import sys
 
         print >> sys.stderr
-        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for {find_instance}"'.format(**locals())
+        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter `{param_name}` with default: {find_instance}"'.format(**locals())
         for parent in parents:
             print >> sys.stderr, '\t<PARENT task="%s">' % parent
             if len(parent.output_files):
@@ -109,14 +110,12 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
 
     # funcsigs._empty
     for param_name, param in sig.parameters.iteritems():
+        value = tags.get(param_name, param.default)
+
         if param_name.startswith('in_'):
-            if param_name in tags:
-                # user specified explicitly
-                input_file = tags[param_name]
-                yield param_name, input_file
-            elif isinstance(param.default, FindFromParents):
+            if isinstance(value, FindFromParents):
                 # user used find()
-                find_instance = param.default
+                find_instance = value
 
                 def get_available_files():
                     for p in parents:
@@ -125,13 +124,16 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
 
                 available_files = it.chain(*get_available_files())
                 input_taskfiles = list(_find(available_files, find_instance.regex, error_if_missing=False))
-                _validate_input_mapping(cmd_name, find_instance, input_taskfiles, parents)
+                _validate_input_mapping(cmd_name, param_name, find_instance, input_taskfiles, parents)
                 input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
                 yield param_name, input_taskfile_or_input_taskfiles
-            else:
+            elif value == funcsigs._empty:
                 raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
                                       'its value via tags' % (cmd_name, param_name, param.default)
+            else:
+                if isinstance(value, str):
+                    yield param_name, value
 
 
 def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_output_dir):
@@ -163,8 +165,8 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_
             # output_file = value.format(**tags)
             yield param_name, output_file
         elif param_name.startswith('out_'):
-            yield param_name, value
-
+            if isinstance(value, str):
+                yield param_name, value
 
 
 def get_io_map(fxn, tags, parents, cmd_name, output_dir, execution_output_dir):
