@@ -1,24 +1,34 @@
-from .DRM_Base import DRM
-
 import os
+
+from .DRM_Base import DRM
 from cosmos.api import only_one
 
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
+    _session = None
 
     def __init__(self, *args, **kwargs):
+<<<<<<< HEAD
+=======
+
+>>>>>>> c4a710bf93179ee23fe413f59ec9cbfcc6a24960
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
     @property
     def session(self):
         if self._session is None:
             import drmaa
+<<<<<<< HEAD
             self._session = drmaa.Session()
         else:
             return self._session
 
 
+=======
+            self.session = drmaa.Session()
+        return self._session
+>>>>>>> c4a710bf93179ee23fe413f59ec9cbfcc6a24960
 
     def submit_job(self, task):
 
