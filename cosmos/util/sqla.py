@@ -2,6 +2,7 @@ import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 import six
 
+from cosmos import ACCEPTABLE_TAG_TYPES
 
 class Enum34_ColumnType(types.TypeDecorator):
     """
@@ -72,7 +73,7 @@ class JSONEncodedDict(TypeDecorator):
             # TODO this is a way to pass parameters through tags that cannot be converted to JSON.  I probably should emit a warning.
             # TODO I'm filtering out any values that are not a base type
             value = six.text_type(json.dumps({k: v for k, v in value.items()
-                                              if isinstance(v, (basestring, int, float, bool))}))
+                                              if isinstance(v, ACCEPTABLE_TAG_TYPES)}))
 
         return value
 

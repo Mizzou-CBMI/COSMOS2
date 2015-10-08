@@ -36,15 +36,12 @@ class JobManager(object):
         # thread_local_task = session.merge(task)
         thread_local_task = task
 
-        if hasattr(task, 'cmd_fxn'):
-            if self.cmd_wrapper:
-                fxn = self.cmd_wrapper(thread_local_task, task.stage.name, task.input_map, task.output_map)(task.cmd_fxn)
-            else:
-                fxn = task.cmd_fxn
-
-            command = call(fxn, thread_local_task, task.input_map, task.output_map)
+        if self.cmd_wrapper:
+            fxn = self.cmd_wrapper(thread_local_task, task.stage.name, task.input_map, task.output_map)(task.cmd_fxn)
         else:
-            command = thread_local_task.tool._generate_command(thread_local_task)
+            fxn = task.cmd_fxn
+
+        command = call(fxn, thread_local_task, task.input_map, task.output_map)
 
         return command
 

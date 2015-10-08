@@ -4,10 +4,11 @@ import math
 # turn SQLAlchemy warnings into errors
 import warnings
 from sqlalchemy.exc import SAWarning
-
 warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
+
+ACCEPTABLE_TAG_TYPES = (basestring, int, float, bool)
 
 #########################################################################################################################
 # Settings
