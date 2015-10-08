@@ -10,6 +10,7 @@ from ..util.sqla import Enum34_ColumnType
 from .. import StageStatus, signal_stage_status_change, RelationshipType, TaskStatus
 import networkx as nx
 import datetime
+from cosmos import ACCEPTABLE_TAG_TYPES
 
 
 @signal_stage_status_change.connect
@@ -143,6 +144,7 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
     def get_task(self, tags, default='ERROR'):
+        tags = {k: v for k, v in tags.items() if isinstance(v, ACCEPTABLE_TAG_TYPES)}  # These are the only tags that actually get saved to the DB
         for task in self.tasks:
             if task.tags == tags:
                 return task
