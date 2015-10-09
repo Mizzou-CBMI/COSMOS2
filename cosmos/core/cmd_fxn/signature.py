@@ -68,7 +68,7 @@ def default_prepend(execution_output_dir, task_output_dir):
 #     return ''
 
 
-def default_cmd_fxn_wrapper(task, input_map, output_map, *args, **kwargs):
+def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, *args, **kwargs):
     """
     WARNING this function signature is not set in stone yet and may change, replace at your own risk.
 
