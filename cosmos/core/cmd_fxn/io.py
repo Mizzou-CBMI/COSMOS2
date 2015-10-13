@@ -136,7 +136,7 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                     yield param_name, value
 
 
-def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_output_dir):
+def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execution_output_dir):
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
@@ -156,10 +156,11 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_
             yield param_name, input_value
         elif isinstance(value, OutputDir):
             output_dir_instance = value
-            if output_dir is not None:
+            if task_output_dir is not None:
                 if output_dir_instance.prepend_execution_output_dir:
-                    output_dir = os.path.join(execution_output_dir, output_dir)
-                output_file = os.path.join(output_dir, output_dir_instance.basename.format(**tags))
+                    task_output_dir = os.path.join(execution_output_dir, task_output_dir)
+                output_file = os.path.join(task_output_dir, output_dir_instance.basename.format(**tags))
+
             else:
                 output_file = output_dir_instance.basename.format(**tags)
             # output_file = value.format(**tags)
@@ -169,10 +170,10 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, output_dir, execution_
                 yield param_name, value
 
 
-def get_io_map(fxn, tags, parents, cmd_name, output_dir, execution_output_dir):
+def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, execution_output_dir):
     # input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
     input_map = dict(_get_input_map(cmd_name, fxn, tags, parents))
-    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, output_dir, execution_output_dir))
+    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, task_output_dir, execution_output_dir))
 
     return input_map, output_map
 
