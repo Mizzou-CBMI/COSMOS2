@@ -37,13 +37,13 @@ class GetOutputError(Exception): pass
 
 
 task_failed_printout = u"""Failure Info:
-<COMMAND root_path={0.output_command_script_path} drm_jobID={0.drm_jobID}>
+<COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
 {0.command_script_text}
 </COMMAND>
-<STDOUT root_path={0.output_stdout_path}>
+<STDOUT path="{0.output_stdout_path}">
 {0.stdout_text}
 </STDOUT>
-<STDERR root_path={0.output_stderr_path}>
+<STDERR path="{0.output_stderr_path}">
 {0.stderr_text}
 </STDERR>
 Failed Task.output_dir: {0.output_dir}"""

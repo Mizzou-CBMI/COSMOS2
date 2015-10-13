@@ -1,27 +1,26 @@
+import shutil
+from sqlalchemy import orm
+import atexit
+import sys
+import time
+import datetime
+
 import os
 import re
-import shutil
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
-from sqlalchemy import orm
-from sqlalchemy.sql.expression import func
-from sqlalchemy.orm import validates, synonym, relationship, backref
+from sqlalchemy.orm import validates, synonym, relationship
 from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
-import atexit
-from ..util.iterstuff import only_one
-import sys
 import types
-from ..util.helpers import duplicates, groupby2
+
+from ..util.iterstuff import only_one
+from ..util.helpers import duplicates
 from ..db import Base
-import time
-import itertools as it
-import datetime
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
-import funcsigs
 
 opj = os.path.join
 import signal
@@ -31,7 +30,7 @@ from .Task import Task
 
 
 from ..util.helpers import get_logger
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, get_or_create
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 
 
 def _default_task_log_output_dir(task):
@@ -85,6 +84,7 @@ class Execution(Base):
                           backref='execution')
 
     exclude_from_dict = ['info']
+    dont_garbage_collect = []
 
     @declared_attr
     def status(cls):
@@ -149,17 +149,14 @@ class Execution(Base):
             parents = []
         if isinstance(parents, Task):
             parents = [parents]
+        if stage_name is None:
+            stage_name = str(cmd_fxn.__name__).replace('_', ' ').title().replace(' ', '_')
 
         if out_dir:
             out_dir = out_dir.format(**tags)
 
-        # for k, v in tags.items():
-        #     if isinstance(v, basestring):
-        #         tags[k] = v.format(**tags)
 
         # Get the right Stage
-        if stage_name is None:
-            stage_name = str(cmd_fxn.__name__).replace('_', ' ').title().replace(' ', '_')
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
         if stage is None:
             stage = Stage(execution=self, name=stage_name)
@@ -199,7 +196,7 @@ class Execution(Base):
             if p.stage not in stage.parents:
                 stage.parents.append(p.stage)
 
-        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute.append(task)
+        self.dont_garbage_collect.append(task)
 
         return task
 
@@ -241,30 +238,9 @@ class Execution(Base):
 
             self.started_on = datetime.datetime.now()
 
-        # Render task graph and to session
-        # import ipdb
-        # with ipdb.launch_ipdb_on_exception():
-        #     print self.tasks
+
         task_g = self.task_graph()
         stage_g = self.stage_graph()
-
-        # Set output_dirs of new tasks
-        # for task in nx.topological_sort(task_g):
-        # if not task.successful:
-        # task.output_dir = task_output_dir(task)
-        #         assert task.output_dir not in ['', None], "Computed an output file root_path of None or '' for %s" % task
-        #         for tf in task.output_files:
-        #             if tf.path is None:
-        #                 tf.path = opj(task.output_dir, tf.basename)
-        #                 assert tf.path is not None, 'computed an output_dir for %s of None' % task
-        #                 # recipe_stage2stageprint task, tf.root_path, 'basename:',tf.basename
-
-        # set commands of new tasks
-        # for task in topological_sort(task_g):
-        #     if not task.successful: # and not task.NOOP:
-        #         task.command = task.tool._generate_command(task)
-
-        import itertools as it
 
         # def assert_no_duplicate_taskfiles():
         #     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
@@ -484,22 +460,11 @@ class Execution(Base):
         # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
         # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
         #
-        print >> sys.stderr, '%s Deleting rom SQL...' % self
+        print >> sys.stderr, '%s Deleting from SQL...' % self
         self.session.delete(self)
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
-        # def yield_outputs(self, name):
-        # for task in self.tasks:
-        # tf = task.get_output(name, error_if_missing=False)
-        # if tf is not None:
-        #             yield tf
-        #
-        # def get_output(self, name):
-        #     r = next(self.yield_outputs(name), None)
-        #     if r is None:
-        #         raise ValueError('Output named `{0}` does not exist in {1}'.format(name, self))
-        #     return r
 
 
 # @event.listens_for(Execution, 'before_delete')
