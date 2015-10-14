@@ -26,6 +26,10 @@ class JobManager(object):
         self.default_queue = default_queue
         self.cmd_wrapper = cmd_wrapper
 
+    def get_drm(self, drm_name):
+        """This allows support for drmaa:ge type syntax"""
+        return self.drms[drm_name.split(':')[0]]
+
     def call_cmd_fxn(self, task):
         """
         NOTE THIS METHOD MUST BE THREAD SAFE
@@ -53,7 +57,7 @@ class JobManager(object):
             _create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)
             assert task.drm is not None, 'task has no drm set'
-            drm_jobID = self.drms[task.drm].submit_job(task)
+            drm_jobID = self.get_drm(task.drm).submit_job(task)
             task.drm_jobID = drm_jobID
 
         task.status = TaskStatus.submitted
@@ -75,7 +79,7 @@ class JobManager(object):
         f = lambda t: t.drm
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             tasks = list(tasks)
-            self.drms[drm].kill_tasks(tasks)
+            self.get_drm(drm).kill_tasks(tasks)
             for task in tasks:
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
@@ -93,7 +97,7 @@ class JobManager(object):
         # For the rest, ask its DRM if it is done
         f = attrgetter('drm')
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
-            for task, job_info_dict in self.drms[drm].filter_is_done(list(tasks)):
+            for task, job_info_dict in self.get_drm(drm).filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
                 for k, v in job_info_dict.items():
                     setattr(task, k, v)
