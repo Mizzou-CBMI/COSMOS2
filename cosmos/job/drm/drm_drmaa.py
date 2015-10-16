@@ -41,6 +41,7 @@ class DRM_DRMAA(DRM):
 
     def filter_is_done(self, tasks):
         import drmaa
+
         jobid_to_task = {t.drm_jobID: t for t in tasks}
         # Keep yielding jobs until timeout > 1s occurs or there are no jobs
         while len(jobid_to_task):
@@ -56,8 +57,9 @@ class DRM_DRMAA(DRM):
                 # enable_stderr()
                 break
 
-            extra_jobinfo['successful'] = extra_jobinfo is not None and extra_jobinfo['exitStatus'] == 0 and extra_jobinfo['wasAborted'] == False and \
+            extra_jobinfo['successful'] = extra_jobinfo is not None and int(extra_jobinfo['exitStatus']) == 0 and extra_jobinfo['wasAborted'] == False and \
                                           extra_jobinfo['hasExited']
+            print extra_jobinfo
             yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), extra_jobinfo
 
     def drm_statuses(self, tasks):
