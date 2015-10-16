@@ -13,7 +13,7 @@ from ..core.cmd_fxn.signature import call
 
 
 class JobManager(object):
-    def __init__(self, cosmos_app, get_submit_args, default_queue=None, cmd_wrapper=None):
+    def __init__(self, cosmos_app, get_submit_args, log_out_dir_func, default_queue=None, cmd_wrapper=None):
         self.cosmos_app = cosmos_app
         self.drms = dict(local=DRM_Local(self))  # always support local execution
         self.drms['lsf'] = DRM_LSF(self)
@@ -25,6 +25,7 @@ class JobManager(object):
         self.get_submit_args = get_submit_args
         self.default_queue = default_queue
         self.cmd_wrapper = cmd_wrapper
+        self.log_out_dir_func = log_out_dir_func
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
@@ -53,6 +54,7 @@ class JobManager(object):
         if command == NOOP:
             task.NOOP = True
         else:
+            task.log_dir = self.log_out_dir_func(task)
             mkdir(task.log_dir)
             _create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task, default_queue=self.default_queue)
