@@ -3,20 +3,10 @@ import re
 import os
 from collections import OrderedDict
 import time
+from .util import div, convert_size_to_kb
 
 from ...util.iterstuff import grouper
 from .DRM_Base import DRM
-
-
-def convert_size_to_kb(size_str):
-    if size_str.endswith('G'):
-        return float(size_str[:-1]) * 1024 * 1024
-    elif size_str.endswith('M'):
-        return float(size_str[:-1]) * 1024
-    elif size_str.endswith('K'):
-        return float(size_str[:-1])
-    else:
-        return float(size_str)
 
 
 class DRM_GE(DRM):
@@ -159,10 +149,3 @@ def preexec_function():
     # terminate jobs when there is a ctrl+c event
     os.setpgrp()
     return os.setsid
-
-
-def div(n, d):
-    if d == 0.:
-        return 1
-    else:
-        return n / d

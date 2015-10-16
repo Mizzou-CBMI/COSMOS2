@@ -1,7 +1,8 @@
 import os
-
+import re
 from .DRM_Base import DRM
 from cosmos.api import only_one
+from .util import div, convert_size_to_kb
 
 
 class DRM_DRMAA(DRM):
@@ -59,8 +60,7 @@ class DRM_DRMAA(DRM):
 
             extra_jobinfo['successful'] = extra_jobinfo is not None and int(extra_jobinfo['exitStatus']) == 0 and extra_jobinfo['wasAborted'] == False and \
                                           extra_jobinfo['hasExited']
-            print extra_jobinfo
-            yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), extra_jobinfo
+            yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
 
     def drm_statuses(self, tasks):
         return {task.drm_jobID: self.decodestatus[self.session.jobStatus(str(task.drm_jobID))] for task in tasks}
@@ -69,7 +69,7 @@ class DRM_DRMAA(DRM):
         "Terminates a task"
         import drmaa
 
-        self.session.control(str(task.drmaa_jobID), drmaa.JobControlAction.TERMINATE)
+        self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
 
     def kill_tasks(self, tasks):
         for t in tasks:
@@ -89,3 +89,47 @@ class DRM_DRMAA(DRM):
                 drmaa.JobState.USER_SUSPENDED: 'job is user suspended',
                 drmaa.JobState.DONE: 'job finished normally',
                 drmaa.JobState.FAILED: 'job finished, but failed'}
+
+
+def div(n, d):
+    if d == 0.:
+        return 1
+    else:
+        return n / d
+
+
+def parse_extra_jobinfo(extra_jobinfo):
+    d = extra_jobinfo['resourceUsage']
+    return dict(
+        exit_status=int(extra_jobinfo['exitStatus']),
+
+        percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
+        wall_time=float(d['ru_wallclock']),
+
+        cpu_time=float(d['cpu']),
+        user_time=float(d['ru_utime']),
+        system_time=float(d['ru_stime']),
+
+        avg_rss_mem=d['ru_ixrss'],
+        max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+        avg_vms_mem_kb=None,
+        max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
+
+        io_read_count=int(float(d['ru_inblock'])),
+        io_write_count=int(float(d['ru_oublock'])),
+        io_wait=float(d['iow']),
+        io_read_kb=float(d['io']),
+        io_write_kb=float(d['io']),
+
+        ctx_switch_voluntary=int(float(d['ru_nvcsw'])),
+        ctx_switch_involuntary=int(float(d['ru_nivcsw'])),
+
+        avg_num_threads=None,
+        max_num_threads=None,
+
+        avg_num_fds=None,
+        max_num_fds=None,
+
+        memory=float(d['mem']),
+
+    )
