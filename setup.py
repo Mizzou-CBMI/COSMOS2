@@ -34,28 +34,23 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPLv3",
     install_requires=[
-        'gntp',
-        'futures',
-        "psprofile",
         "decorator",
         'futures',
-        "Flask",
+        "flask",
         'blinker',
         "sqlalchemy",
         "black_magic==0.0.10", # to get a signature preserving partial() in cosmos.api
         'flask-sqlalchemy',
         'funcsigs',
-        'flask_sqlalchemy_session',
         'networkx',
         'configparser',
         "enum34",
-        "Flask-Failsafe",
         "six",
         "SQLAlchemy-Utils",
         "pyparsing==1.5.7",
-        "recordtype"
+        "recordtype",
+        "drmaa"
     ],
-    extras_require=['drmaa','pygraphviz'],
     packages=find_packages(),
     include_package_data=True,
     package_data={'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
