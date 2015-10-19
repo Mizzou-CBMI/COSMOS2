@@ -28,7 +28,6 @@ import signal
 from .. import TaskStatus, StageStatus, ExecutionStatus, signal_execution_status_change
 from .Task import Task
 
-
 from ..util.helpers import get_logger
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 
@@ -63,7 +62,7 @@ def _execution_status_changed(ex):
 
 class Execution(Base):
     """
-    The primary object.  An Execution is an instantiation of a recipe being run.
+    An collection Stages and Tasks encoded as a DAG
     """
     __tablename__ = 'execution'
 
@@ -155,7 +154,6 @@ class Execution(Base):
         if out_dir:
             out_dir = out_dir.format(**tags)
 
-
         # Get the right Stage
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
         if stage is None:
@@ -200,10 +198,7 @@ class Execution(Base):
 
         return task
 
-
-
-    def run(self, log_out_dir_func=_default_task_log_output_dir, dry=False, set_successful=True,
-            cmd_wrapper=signature.default_cmd_fxn_wrapper):
+    def run(self, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper, log_out_dir_func=_default_task_log_output_dir):
         """
         Runs this Execution's DAG
 
@@ -227,7 +222,7 @@ class Execution(Base):
         from ..job.JobManager import JobManager
 
         self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper
+                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
                                      )
 
         self.status = ExecutionStatus.running
@@ -237,7 +232,6 @@ class Execution(Base):
             import datetime
 
             self.started_on = datetime.datetime.now()
-
 
         task_g = self.task_graph()
         stage_g = self.stage_graph()
@@ -291,10 +285,6 @@ class Execution(Base):
         # session.add_all(task_g.nodes())
         successful = filter(lambda t: t.successful, task_g.nodes())
 
-        # commit so task.id is set for log dir
-        self.log.info('Committing %s Tasks to the SQL database...' % (len(task_g.nodes()) - len(successful)))
-        session.commit()
-
         # print stages
         for s in topological_sort(stage_g):
             self.log.info('%s %s' % (s, s.status))
@@ -306,43 +296,27 @@ class Execution(Base):
 
         handle_exits(self)
 
-        self.log.info('Setting log output directories...')
+        # self.log.info('Checking stage status...')
 
-        def set_log_dirs():
-            log_dirs = {t.log_dir: t for t in successful}
-            for task in task_queue.nodes():
-                log_dir = log_out_dir_func(task)
-                assert log_dir not in log_dirs, 'Duplicate log_dir detected for %s and %s' % (task, log_dirs[log_dir])
-                log_dirs[log_dir] = task
-                task.log_dir = log_dir
-
-        set_log_dirs()
-
-        self.log.info('Checking stage attributes...')
-
-        def reset_stage_attrs():
-            """Update stage attributes if new tasks were added to them"""
-            from .Stage import Stage
-            from .. import StageStatus
-            # using .update() threw an error, so have to do it the slow way. It's not too bad though, since
-            # there shouldn't be that many stages to update.
-            for s in session.query(Stage).join(Task).filter(~Task.successful, Stage.execution_id == self.id,
-                                                            Stage.status != StageStatus.no_attempt):
-                s.successful = False
-                s.finished_on = None
-                s.status = StageStatus.running
-
-        reset_stage_attrs()
-
+        # def check_stage_status():
+        #     """Update stage attributes if new tasks were added to them"""
+        #     from .. import StageStatus
+        #     for stage in self.stages:
+        #         if stage.status != StageStatus.no_attempt and any(not task.successful for task in stage.tasks):
+        #             stage.successful = False
+        #             stage.finished_on = None
+        #             stage.status = StageStatus.running
+        #
+        # check_stage_status()
 
         if self.max_cpus is not None:
             self.log.info('Ensuring there are enough cores...')
             # make sure we've got enough cores
             for t in task_queue:
-                assert t.cpu_req <= self.max_cpus, '%s requires more cpus (%s) than `max_cpus` (%s)' % (
-                    t, t.cpu_req, self.max_cpus)
+                assert t.cpu_req <= self.max_cpus, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
 
         # Run this thing!
+        self.log.info('Committing to SQL db...')
         session.commit()
         if not dry:
             _run(self, session, task_queue)
@@ -369,8 +343,7 @@ class Execution(Base):
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
-            self.log.info(
-                'Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            self.log.info('Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
             _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
 
@@ -449,7 +422,7 @@ class Execution(Base):
         if delete_files and os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
 
-        ### Faster deleting can be done with explicit sql queries
+        ### Faster deleting can be done with explicit sql queries?
         # from .TaskFile import InputFileAssociation
         # from .Task import TaskEdge
         # from .. import Stage, TaskFile
@@ -464,7 +437,6 @@ class Execution(Base):
         self.session.delete(self)
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
-
 
 
 # @event.listens_for(Execution, 'before_delete')
@@ -557,7 +529,7 @@ def handle_exits(execution, do_atexit=True):
 
     signal.signal(signal.SIGINT, ctrl_c)
 
-    if atexit:
+    if do_atexit:
         @atexit.register
         def cleanup_check():
             if execution.status == ExecutionStatus.running:

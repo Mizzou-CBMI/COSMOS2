@@ -70,7 +70,7 @@ def one2one(cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
     def g():
         for parent in parents:
             new_tags = parent.tags.copy()
-            new_tags.update(tag)
+            new_tags.update({k:v.format(**new_tags) if isinstance(v,basestring) else v for k,v in tag.items()})
             yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
 
     return list(g())
@@ -96,7 +96,8 @@ def many2one(cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
 
     def g():
         for new_tags, parent_group in group(parents, groupby):
-            new_tags.update(tag)
+            new_tags.update({k:v.format(**new_tags) if isinstance(v,basestring) else v for k,v in tag.items()})
+
             yield execution.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
                                      out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                      stage_name=stage_name
@@ -124,13 +125,16 @@ def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
     def g():
         for parent_task in parents:
             new_tags = parent_task.tags.copy()
-            tag_itrbl = splitby(parent_task) if hasattr(splitby,'__call__') else combinations(splitby)
+            tag_itrbl = splitby(parent_task) if hasattr(splitby, '__call__') else combinations(splitby)
 
             for split_tags in tag_itrbl:
                 new_tags.update(split_tags)
-                new_tags.update(tag)
+                new_tags.update({k:v.format(**new_tags) if isinstance(v,basestring) else v for k,v in tag.items()})
                 yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent_task],
                                          out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                          stage_name=stage_name)
 
     return list(g())
+
+def make_tags(new_tags, tag):
+    return new_tags.update({k:v.format(**new_tags) if isinstance(v,basestring) else v for k,v in tag.items()})

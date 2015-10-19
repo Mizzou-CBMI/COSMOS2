@@ -1,7 +1,8 @@
 import os
-
+import re
 from .DRM_Base import DRM
 from cosmos.api import only_one
+from .util import div, convert_size_to_kb
 
 
 class DRM_DRMAA(DRM):
@@ -15,12 +16,12 @@ class DRM_DRMAA(DRM):
     def session(self):
         if self._session is None:
             import drmaa
+
             self._session = drmaa.Session()
-        else:
-            return self._session
+            self._session.initialize()
+        return self._session
 
     def submit_job(self, task):
-
         jt = self.session.createJobTemplate()
         # jt.workingDirectory = settings['working_directory']
         jt.remoteCommand = task.output_command_script_path
@@ -41,27 +42,25 @@ class DRM_DRMAA(DRM):
 
     def filter_is_done(self, tasks):
         import drmaa
+
+        jobid_to_task = {t.drm_jobID: t for t in tasks}
         # Keep yielding jobs until timeout > 1s occurs or there are no jobs
-        while True:
+        while len(jobid_to_task):
             try:
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
-                extra_jobinfo = self.session.wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)
+                extra_jobinfo = self.session.wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
             except drmaa.errors.InvalidJobException as e:
-                # There are no jobs to wait on.
-                # This should never happen since I check for num_queued_jobs in yield_all_queued_jobs
-                # enable_stderr()
-                break
-                # raise AssertionError('This should never happen since I check for num_queued_jobs in yield_all_queued_jobs')
+                # There are no jobs left to wait on!
+                raise AssertionError('Should not be waiting on non-existant jobs.')
             except drmaa.errors.ExitTimeoutException:
-                # jobs are queued, but none are done yet
+                # Kobs are queued, but none are done yet.  Exit loop.
                 # enable_stderr()
                 break
 
-            extra_jobinfo = extra_jobinfo._asdict()
-            extra_jobinfo['successful'] = extra_jobinfo is not None and extra_jobinfo['exitStatus'] == 0 and extra_jobinfo['wasAborted'] == False and \
+            extra_jobinfo['successful'] = extra_jobinfo is not None and int(extra_jobinfo['exitStatus']) == 0 and extra_jobinfo['wasAborted'] == False and \
                                           extra_jobinfo['hasExited']
-            yield only_one(t for t in tasks if t.drm_jobID == extra_jobinfo['jobId']), extra_jobinfo
+            yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
 
     def drm_statuses(self, tasks):
         return {task.drm_jobID: self.decodestatus[self.session.jobStatus(str(task.drm_jobID))] for task in tasks}
@@ -69,7 +68,8 @@ class DRM_DRMAA(DRM):
     def kill(self, task):
         "Terminates a task"
         import drmaa
-        self.session.control(str(task.drmaa_jobID), drmaa.JobControlAction.TERMINATE)
+
+        self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
 
     def kill_tasks(self, tasks):
         for t in tasks:
@@ -78,6 +78,7 @@ class DRM_DRMAA(DRM):
     @property
     def decodestatus(self):
         import drmaa
+
         return {drmaa.JobState.UNDETERMINED: 'process status cannot be determined',
                 drmaa.JobState.QUEUED_ACTIVE: 'job is queued and active',
                 drmaa.JobState.SYSTEM_ON_HOLD: 'job is queued and in system hold',
@@ -88,3 +89,47 @@ class DRM_DRMAA(DRM):
                 drmaa.JobState.USER_SUSPENDED: 'job is user suspended',
                 drmaa.JobState.DONE: 'job finished normally',
                 drmaa.JobState.FAILED: 'job finished, but failed'}
+
+
+def div(n, d):
+    if d == 0.:
+        return 1
+    else:
+        return n / d
+
+
+def parse_extra_jobinfo(extra_jobinfo):
+    d = extra_jobinfo['resourceUsage']
+    return dict(
+        exit_status=int(extra_jobinfo['exitStatus']),
+
+        percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
+        wall_time=float(d['ru_wallclock']),
+
+        cpu_time=float(d['cpu']),
+        user_time=float(d['ru_utime']),
+        system_time=float(d['ru_stime']),
+
+        avg_rss_mem=d['ru_ixrss'],
+        max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+        avg_vms_mem_kb=None,
+        max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
+
+        io_read_count=int(float(d['ru_inblock'])),
+        io_write_count=int(float(d['ru_oublock'])),
+        io_wait=float(d['iow']),
+        io_read_kb=float(d['io']),
+        io_write_kb=float(d['io']),
+
+        ctx_switch_voluntary=int(float(d['ru_nvcsw'])),
+        ctx_switch_involuntary=int(float(d['ru_nivcsw'])),
+
+        avg_num_threads=None,
+        max_num_threads=None,
+
+        avg_num_fds=None,
+        max_num_fds=None,
+
+        memory=float(d['mem']),
+
+    )

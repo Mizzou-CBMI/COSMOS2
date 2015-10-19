@@ -10,6 +10,7 @@ from .. import __version__
 import math
 from concurrent import futures
 
+
 def default_get_submit_args(task, default_queue=None):
     """
     Default method for determining the extra arguments to pass to the DRM.
@@ -33,23 +34,25 @@ def default_get_submit_args(task, default_queue=None):
     queue = ' -q %s' % default_queue if default_queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
-    if drm == 'lsf':
+    assert queue != 'prod-long'
+
+    if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
         return '-R "{rusage}span[hosts=1]" -n {task.cpu_req}{time}{queue} -J "{jobname}"'.format(**locals())
 
-    elif drm == 'ge':
+    elif drm in ['ge', 'drmaa:ge']:
         h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
 
         def g():
-            resource_reqs = dict(h_vmem=h_vmem, num_proc=cpu_req, time_req=time_req)
+            resource_reqs = dict(h_vmem=h_vmem, slots=cpu_req, time_req=time_req)
             for k, v in resource_reqs.items():
                 if v is not None:
                     yield '%s=%s' % (k, v)
 
         resource_str = ','.join(g())
 
-        return '-l "{resource_str}"{priority} -N "{jobname}"'.format(**locals())
+        return '-pe smp {cpu_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority, jobname=jobname, cpu_req=cpu_req)
     elif drm == 'local':
         return None
     else:
@@ -70,7 +73,7 @@ class Cosmos(object):
         :param Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
-        assert default_drm in ['local', 'lsf', 'ge'], 'unsupported drm: %s' % default_drm
+        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa'], 'unsupported drm: %s' % default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
         self.futures_executor = futures.ThreadPoolExecutor(10)
