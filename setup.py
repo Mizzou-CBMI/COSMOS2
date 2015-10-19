@@ -49,6 +49,7 @@ setup(
         "SQLAlchemy-Utils",
         "pyparsing==1.5.7",
         "recordtype",
+        'psutil',
         "drmaa"
     ],
     packages=find_packages(),
