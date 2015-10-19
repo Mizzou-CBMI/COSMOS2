@@ -11,7 +11,7 @@ import math
 from concurrent import futures
 
 
-def default_get_submit_args(task, default_queue=None):
+def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
@@ -34,7 +34,6 @@ def default_get_submit_args(task, default_queue=None):
     queue = ' -q %s' % default_queue if default_queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
-    assert queue != 'prod-long'
 
     if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
@@ -52,7 +51,8 @@ def default_get_submit_args(task, default_queue=None):
 
         resource_str = ','.join(g())
 
-        return '-pe smp {cpu_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority, jobname=jobname, cpu_req=cpu_req)
+        return '-pe {parallel_env} {cpu_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority,
+                                                                               jobname=jobname, cpu_req=cpu_req, parallel_env=parallel_env)
     elif drm == 'local':
         return None
     else:

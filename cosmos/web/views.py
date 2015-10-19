@@ -56,7 +56,7 @@ def gen_bprint(cosmos_app):
         f = attrgetter('drm')
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(submitted, key=f), f):
-            drm_statuses.update(jm.drms[drm].drm_statuses(list(tasks)))
+            drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
         return render_template('cosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))

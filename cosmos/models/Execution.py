@@ -32,7 +32,7 @@ from ..util.helpers import get_logger
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 
 
-def _default_task_log_output_dir(task):
+def default_task_log_output_dir(task):
     """The default function for computing Task.log_output_dir"""
     return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
 
@@ -198,7 +198,7 @@ class Execution(Base):
 
         return task
 
-    def run(self, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper, log_out_dir_func=_default_task_log_output_dir):
+    def run(self, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper, log_out_dir_func=default_task_log_output_dir):
         """
         Runs this Execution's DAG
 
