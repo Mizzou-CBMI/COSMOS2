@@ -111,3 +111,8 @@ def _create_command_sh(task, command):
     with open(task.output_command_script_path, 'wb') as f:
         f.write(command)
     os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
+
+    for p in [task.output_stdout_path, task.output_stderr_path]:
+        if os.path.exists(p):
+            os.unlink(p)
+
