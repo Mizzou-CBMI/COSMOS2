@@ -165,7 +165,7 @@ API
 Execution
 ++++++++++++++
 
-.. autoclass:: cosmos.Execution
+.. autoclass:: cosmos.api.Execution
     :members: add_task, run
 
 
@@ -173,4 +173,4 @@ Helpers
 +++++++++++
 
 .. automodule:: cosmos.api
-    :members: one2one, many2one, one2many, many2many
+    :members: one2one, many2one, one2many
