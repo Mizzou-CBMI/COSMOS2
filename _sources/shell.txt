@@ -5,7 +5,7 @@ The Cosmos shell is an interactive python session with useful modules already im
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
 
 
-To launch the shell, create a script like this (Take a look at the :meth:`cosmos.Cosmos.shell` source code, it is very simple):
+To launch the shell, create a script like this (Take a look at the :meth:`cosmos.api.Cosmos.shell` source code, it is very simple):
 
 .. code-block:: python
 
@@ -62,4 +62,4 @@ Manually Altering Attributes
 API
 -----------
 
-.. automethod:: cosmos.Cosmos.shell
+.. automethod:: cosmos.api.Cosmos.shell

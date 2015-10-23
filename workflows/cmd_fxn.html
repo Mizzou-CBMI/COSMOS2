@@ -5,16 +5,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Command Functions &mdash; Cosmos 1.3.2 documentation</title>
+  <title>5. Command Functions &mdash; Cosmos 1.5.13 documentation</title>
   
 
   
   
 
   
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -28,14 +28,12 @@
   
 
   
-
-  
-    <link rel="top" title="Cosmos 1.3.2 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 1.5.13 documentation" href="../index.html"/>
         <link rel="next" title="6. Executions" href="executions.html"/>
         <link rel="prev" title="4. Initializing" href="initializing.html"/> 
 
   
-  <script src="_static/js/modernizr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
 </head>
 
@@ -46,39 +44,24 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        
-
-        
-          <a href="../index.html" class="icon icon-home"> Cosmos
-        
-
-        
-        </a>
-
-        
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        <a href="../index.html" class="fa fa-home"> Cosmos</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-          
-          
-              <ul class="current">
+        
+            <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#cite-cosmos">1.1. Cite COSMOS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#history">1.2. History</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#features">1.3. Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../1_introduction.html#multi-platform-support">1.3.1. Multi-platform Support</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../1_introduction.html#features">1.3. Features</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
@@ -91,46 +74,22 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="initializing.html">4. Initializing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="initializing.html#api">4.1. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="initializing.html#cosmos">4.1.1. Cosmos</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#api">4.1. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">5. Command Functions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#more-on-find">5.1. More on find()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api">5.2. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#command-function-i-o">5.2.1. Command Function I/O</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#api">5.2. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="executions.html">6. Executions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="executions.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="executions.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#one2one-aka-a-map-operation">6.2.1. One2one (aka a map() operation)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#one2many">6.2.2. One2many</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#many2one">6.2.3. Many2one</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#many2many">6.2.4. Many2many</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#helpers">6.2.5. Helpers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#notes">6.2.6. Notes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="executions.html#api">6.3. API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#execution">6.3.1. Execution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="executions.html#id1">6.3.2. Helpers</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="executions.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="executions.html#api">6.3. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">7. Workflow Code Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples.html#hello-world">7.1.1. Hello World</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="examples.html#tool-definitions-used-by-examples">7.1.1.1. Tool Definitions used by Examples</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../shell.html">8. Cosmos Shell</a><ul>
@@ -144,7 +103,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">10. Cosmos FAQ</a></li>
 </ul>
 
-          
         
       </div>
       &nbsp;
@@ -169,15 +127,13 @@
     <li>5. Command Functions</li>
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="../_sources/workflows/cmd_fxn.txt" rel="nofollow"> View page source</a>
-          
+          <a href="../_sources/workflows/cmd_fxn.txt" rel="nofollow"> View page source</a>
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main" class="document">
+          <div role="main">
             
   <span class="target" id="module-cosmos.core"><span id="tools"></span></span><div class="section" id="command-functions">
 <h1>5. Command Functions<a class="headerlink" href="#command-functions" title="Permalink to this headline">¶</a></h1>
@@ -199,16 +155,16 @@ which gets written to the filesystem as a shell-script and submitted as a job.  
 <ul class="simple">
 <li>A function parameter that starts with <cite>in_</cite> is an input_file.</li>
 <li>A function parameter that starts with <cite>out_</cite> is an output_file.</li>
-<li>The <a class="reference internal" href="#cosmos.api.find" title="cosmos.api.find"><code class="xref py py-func docutils literal"><span class="pre">find()</span></code></a> default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
+<li>The <a class="reference internal" href="#cosmos.api.find" title="cosmos.api.find"><tt class="xref py py-func docutils literal"><span class="pre">find()</span></tt></a> default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
 to search all of the parents of a Task for files that match the find&#8217;s <a href="#id1"><span class="problematic" id="id2">:param:`regex`</span></a> parameter.</li>
-<li><a class="reference internal" href="#cosmos.api.out_dir" title="cosmos.api.out_dir"><code class="xref py py-func docutils literal"><span class="pre">out_dir()</span></code></a> will automatically append the Task&#8217;s output directory to the filename.</li>
-<li><a class="reference internal" href="#cosmos.api.forward" title="cosmos.api.forward"><code class="xref py py-func docutils literal"><span class="pre">forward()</span></code></a> will automatically set an output_file to the input_file specified.</li>
+<li><a class="reference internal" href="#cosmos.api.out_dir" title="cosmos.api.out_dir"><tt class="xref py py-func docutils literal"><span class="pre">out_dir()</span></tt></a> will automatically append the Task&#8217;s output directory to the filename.</li>
+<li><a class="reference internal" href="#cosmos.api.forward" title="cosmos.api.forward"><tt class="xref py py-func docutils literal"><span class="pre">forward()</span></tt></a> will automatically set an output_file to the input_file specified.</li>
 </ul>
 <div class="section" id="more-on-find">
 <h2>5.1. More on find()<a class="headerlink" href="#more-on-find" title="Permalink to this headline">¶</a></h2>
-<p>The cardinality (The <cite>n</cite> parameter), is enforced such that <code class="docutils literal"><span class="pre">n</span></code> number of input_files should match.  By default,
-the cardinality of each abstract_input_file is <code class="docutils literal"><span class="pre">==1</span></code>, but this can be changed using the <code class="docutils literal"><span class="pre">n</span></code> parameter: ie <code class="docutils literal"><span class="pre">find(format='txt',</span> <span class="pre">n='&gt;=1')</span></code>.
-If you specify a cardinality where there may be more than 1, for example <code class="docutils literal"><span class="pre">n='&gt;=1'</span></code>, the value passed into this input_file
+<p>The cardinality (The <cite>n</cite> parameter), is enforced such that <tt class="docutils literal"><span class="pre">n</span></tt> number of input_files should match.  By default,
+the cardinality of each abstract_input_file is <tt class="docutils literal"><span class="pre">==1</span></tt>, but this can be changed using the <tt class="docutils literal"><span class="pre">n</span></tt> parameter: ie <tt class="docutils literal"><span class="pre">find(format='txt',</span> <span class="pre">n='&gt;=1')</span></tt>.
+If you specify a cardinality where there may be more than 1, for example <tt class="docutils literal"><span class="pre">n='&gt;=1'</span></tt>, the value passed into this input_file
 will be a list of file paths, rather than a string (even if only 1 match was found).  All basic operations work,
 for example:</p>
 <ul class="simple">
@@ -216,7 +172,7 @@ for example:</p>
 <li>&#8220;&lt;3&#8221;</li>
 <li>&#8220;&gt;=4&#8221;</li>
 </ul>
-<p><code class="docutils literal"><span class="pre">find()</span></code> can also be passed a dict of <code class="docutils literal"><span class="pre">tags</span></code>, which will filter the search space of parents to Task&#8217;s who&#8217;s <code class="docutils literal"><span class="pre">tags</span></code> match.</p>
+<p><tt class="docutils literal"><span class="pre">find()</span></tt> can also be passed a dict of <tt class="docutils literal"><span class="pre">tags</span></tt>, which will filter the search space of parents to Task&#8217;s who&#8217;s <tt class="docutils literal"><span class="pre">tags</span></tt> match.</p>
 <p>You can always explicitly specify input_files via tags, should find() not work for you.</p>
 </div>
 <div class="section" id="api">
@@ -225,7 +181,7 @@ for example:</p>
 <h3>5.2.1. Command Function I/O<a class="headerlink" href="#command-function-i-o" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="cosmos.api.find">
-<code class="descclassname">cosmos.api.</code><code class="descname">find</code><span class="sig-paren">(</span><em>regex</em>, <em>n='==1'</em>, <em>tags=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">cosmos.api.</tt><tt class="descname">find</tt><big>(</big><em>regex</em>, <em>n='==1'</em>, <em>tags=None</em><big>)</big><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to set an input_file&#8217;s default behavior to finds output_files from a Task&#8217;s parents using a regex</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -244,13 +200,17 @@ for example:</p>
 
 <dl class="function">
 <dt id="cosmos.api.out_dir">
-<code class="descclassname">cosmos.api.</code><code class="descname">out_dir</code><span class="sig-paren">(</span><em>basename=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#out_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.out_dir" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">cosmos.api.</tt><tt class="descname">out_dir</tt><big>(</big><em>basename=''</em>, <em>peo=True</em><big>)</big><a class="headerlink" href="#cosmos.api.out_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Essentially will perform os.path.join(Task.output_dir, basename)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the output_file</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the output_file</li>
+<li><strong>peo</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Prepend execution.output_dir to the output</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -258,7 +218,7 @@ for example:</p>
 
 <dl class="function">
 <dt id="cosmos.api.forward">
-<code class="descclassname">cosmos.api.</code><code class="descname">forward</code><span class="sig-paren">(</span><em>input_parameter_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/core/cmd_fxn/io.html#forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.forward" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">cosmos.api.</tt><tt class="descname">forward</tt><big>(</big><em>input_parameter_name</em><big>)</big><a class="headerlink" href="#cosmos.api.forward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forwards a Task&#8217;s input as an output</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -280,10 +240,10 @@ for example:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="executions.html" class="btn btn-neutral float-right" title="6. Executions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="executions.html" class="btn btn-neutral float-right" title="6. Executions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="initializing.html" class="btn btn-neutral" title="4. Initializing" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="initializing.html" class="btn btn-neutral" title="4. Initializing"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -295,10 +255,9 @@ for example:</p>
         &copy; Copyright 2013, Harvard Medical School.
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
-
         </div>
       </div>
 
@@ -313,7 +272,7 @@ for example:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.3.2',
+            VERSION:'1.5.13',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -322,7 +281,7 @@ for example:</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
