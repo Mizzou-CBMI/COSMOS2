@@ -457,7 +457,7 @@ def _run(execution, session, task_queue):
 
         for task in _process_finished_tasks(execution.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
-                # pop all descendents when a task fails
+                # pop all descendents when a task fails; the rest of the graph can still execute
                 task_queue.remove_nodes_from(descendants(task_queue, task))
                 task_queue.remove_node(task)
                 execution.status = ExecutionStatus.failed_but_running
