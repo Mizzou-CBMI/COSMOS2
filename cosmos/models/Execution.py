@@ -83,7 +83,7 @@ class Execution(Base):
                           backref='execution')
 
     exclude_from_dict = ['info']
-    dont_garbage_collect = []
+    dont_garbage_collect = None
 
     @declared_attr
     def status(cls):
@@ -118,14 +118,12 @@ class Execution(Base):
         self.jobmanager = None
         if not self.created_on:
             self.created_on = datetime.datetime.now()
-        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
+        self.dont_garbage_collect = []
 
-    def __getattr__(self, item):
-        if item == 'log':
-            self.log = get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
-            return self.log
-        else:
-            raise AttributeError('%s is not an attribute of %s' % (item, self))
+
+    @property
+    def log(self):
+        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
 
     def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
