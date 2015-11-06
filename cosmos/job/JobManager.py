@@ -10,10 +10,10 @@ from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
 from ..core.cmd_fxn.signature import call
-
+from cosmos.models.Execution import default_task_log_output_dir
 
 class JobManager(object):
-    def __init__(self, cosmos_app, get_submit_args, log_out_dir_func, default_queue=None, cmd_wrapper=None):
+    def __init__(self, cosmos_app, get_submit_args, log_out_dir_func=default_task_log_output_dir, default_queue=None, cmd_wrapper=None):
         self.cosmos_app = cosmos_app
         self.drms = dict(local=DRM_Local(self))  # always support local execution
         self.drms['lsf'] = DRM_LSF(self)
@@ -111,3 +111,8 @@ def _create_command_sh(task, command):
     with open(task.output_command_script_path, 'wb') as f:
         f.write(command)
     os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
+
+    for p in [task.output_stdout_path, task.output_stderr_path]:
+        if os.path.exists(p):
+            os.unlink(p)
+

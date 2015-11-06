@@ -34,7 +34,7 @@ def arg(name, value):
 
 
 def args(*args):
-    return " \\\n".join(arg(k, v) for k, v in args)
+    return " \\\n".join(arg(k, v) for k, v in args if arg(k, v) != '')
 
 
 @decorator

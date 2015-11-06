@@ -25,7 +25,7 @@ Cosmos
 _______
 
 
-.. autoclass:: cosmos.Cosmos
+.. autoclass:: cosmos.api.Cosmos
     :members: __init__, initdb, resetdb, runweb
 
-.. autofunction:: cosmos.default_get_submit_args
+.. autofunction:: cosmos.api.default_get_submit_args

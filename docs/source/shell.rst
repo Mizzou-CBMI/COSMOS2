@@ -62,4 +62,4 @@ Manually Altering Attributes
 API
 -----------
 
-.. automethod:: cosmos.Cosmos.shell
+.. automethod:: cosmos.api.Cosmos.shell

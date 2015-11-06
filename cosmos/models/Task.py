@@ -7,7 +7,6 @@ from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
-from sqlalchemy.ext.associationproxy import association_proxy
 from flask import url_for
 from networkx.algorithms import breadth_first_search
 
@@ -15,11 +14,7 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
-# from .TaskFile import InputFileAssociation
 import datetime
-from sqlalchemy_utils import ScalarListType, JSONType
-from ..core.cmd_fxn import io
-from functools import partial
 
 opj = os.path.join
 
@@ -184,54 +179,33 @@ class Task(Base):
     exit_status = Column(Integer)
 
     percent_cpu = Column(Integer)
-    wall_time = Column(BigInteger)
+    wall_time = Column(Integer)
 
-    cpu_time = Column(BigInteger)
-    user_time = Column(BigInteger)
-    system_time = Column(BigInteger)
+    cpu_time = Column(Integer)
+    user_time = Column(Integer)
+    system_time = Column(Integer)
 
-    avg_rss_mem_kb = Column(BigInteger)
-    max_rss_mem_kb = Column(BigInteger)
-    avg_vms_mem_kb = Column(BigInteger)
-    max_vms_mem_kb = Column(BigInteger)
+    avg_rss_mem_kb = Column(Integer)
+    max_rss_mem_kb = Column(Integer)
+    avg_vms_mem_kb = Column(Integer)
+    max_vms_mem_kb = Column(Integer)
 
-    io_read_count = Column(BigInteger)
-    io_write_count = Column(BigInteger)
-    io_wait = Column(BigInteger)
-    io_read_kb = Column(BigInteger)
-    io_write_kb = Column(BigInteger)
+    io_read_count = Column(Integer)
+    io_write_count = Column(Integer)
+    io_wait = Column(Integer)
+    io_read_kb = Column(Integer)
+    io_write_kb = Column(Integer)
 
-    ctx_switch_voluntary = Column(BigInteger)
-    ctx_switch_involuntary = Column(BigInteger)
+    ctx_switch_voluntary = Column(Integer)
+    ctx_switch_involuntary = Column(Integer)
 
-    avg_num_threads = Column(BigInteger)
-    max_num_threads = Column(BigInteger)
+    avg_num_threads = Column(Integer)
+    max_num_threads = Column(Integer)
 
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
 
     extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
-
-    # @staticmethod
-    # def create_task(cmd_fxn, tags, stage, parents, output_dir, attrs):
-    #     # Validation
-    #     # f = lambda ifa: ifa.taskfile
-    #     # for tf, group_of_ifas in it.groupby(sorted(ifas, key=f), f):
-    #     # group_of_ifas = list(group_of_ifas)
-    #     #     if len(group_of_ifas) > 1:
-    #     #         error('An input file mapped to multiple AbstractInputFiles for %s' % self, dict(
-    #     #             TaskFiles=tf
-    #     #         ))
-    #
-    #     cmd_fxn.input_map, cmd_fxn.output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, output_dir)
-    #     input_files = io.unpack_io_map(cmd_fxn.input_map)
-    #     output_files = io.unpack_io_map(cmd_fxn.output_map)
-    #
-    #     task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
-    #                 output_files=output_files,output_dir=output_dir,
-    #                 **attrs)
-    #
-    #     return task
 
     @declared_attr
     def status(cls):
@@ -285,29 +259,6 @@ class Task(Base):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
-    # @property
-    # def all_output_files(self):
-    #     """
-    #     :return: all output taskfiles, including any being forwarded
-    #     """
-    #     return self.output_files + self.forwarded_inputs
-
-    # @property
-    # def profile(self):
-    #     if self.NOOP:
-    #         return {}
-    #     if self._cache_profile is None:
-    #         if wait_for_file(self.execution, self.output_profile_path, 60, error=False):
-    #             with open(self.output_profile_path, 'r') as fh:
-    #                 self._cache_profile = json.load(fh)
-    #         else:
-    #             raise IOError('%s does not exist on the filesystem' % self.output_profile_path)
-    #     return self._cache_profile
-
-    # def update_from_profile_output(self):
-    #     for k, v in self.profile.items():
-    #         setattr(self, k, v)
-
     def all_predecessors(self, as_dict=False):
         """
         :return: (list) all tasks that descend from this task in the task_graph
@@ -353,7 +304,7 @@ class Task(Base):
 
     @property
     def tags_pretty(self):
-        return '%s' % ', '.join('%s=%s' % (k, "'%s'"%v if isinstance(v, basestring) else v) for k, v in self.tags.items())
+        return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.tags.items())
 
     def __repr__(self):
         return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),

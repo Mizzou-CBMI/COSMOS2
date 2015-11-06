@@ -1,4 +1,4 @@
-from recordtype import recordtype
+from collections import namedtuple
 import operator
 from collections import OrderedDict
 import re
@@ -10,9 +10,9 @@ import os
 
 import funcsigs
 
-FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
-OutputDir = recordtype('OutputDir', 'basename prepend_execution_output_dir', default=None)
-Forward = recordtype('Forward', 'input_parameter_name', default=None)
+FindFromParents = namedtuple('FindFromParents', 'regex n tags')
+OutputDir = namedtuple('OutputDir', 'basename prepend_execution_output_dir')
+Forward = namedtuple('Forward', 'input_parameter_name')
 
 
 def unpack_if_cardinality_1(find_instance, taskfiles):
