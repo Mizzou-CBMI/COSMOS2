@@ -1,4 +1,4 @@
-from itertools import zip_longest, tee
+from itertools import izip_longest, tee
 
 from .helpers import groupby2
 
@@ -38,7 +38,7 @@ def chunked(iterable, n):
     If the length of ``iterable`` is not evenly divisible by ``n``, the last
     returned list will be shorter.
     """
-    for group in zip_longest(*[iter(iterable)] * n, fillvalue=_nothing):
+    for group in izip_longest(*[iter(iterable)] * n, fillvalue=_nothing):
         if group[-1] is _nothing:
             # If this is the last group, shuck off the padding:
             group = group[:group.index(_nothing)]

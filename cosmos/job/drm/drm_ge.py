@@ -5,7 +5,7 @@ from collections import OrderedDict
 import time
 from .util import div, convert_size_to_kb
 
-from ...util.iterstuff import grouper
+from more_itertools import grouper
 from .DRM_Base import DRM
 
 
