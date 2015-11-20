@@ -80,6 +80,7 @@ def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, *args, **kw
 
     def real_decorator(fxn, *args, **kwargs):
         r = fxn(*args, **kwargs)
+        assert isinstance(r, basestring) or r is None, '%s must return a String or None'
         if r is None:
             return NOOP
         else:
