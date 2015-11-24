@@ -41,7 +41,7 @@ def args(*args):
 def bash_call(func, *args, **kwargs):
     """
     A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task. Converts any function call to a bash script
-    that imports the function and calls it with the same arguments.
+    that uses python to import the function and call it with the same arguments.
 
     Current Limitations:
        * function must be importable from anywhere in the VE

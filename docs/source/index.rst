@@ -15,6 +15,7 @@ we are planning a major publication before the official release.
     workflows/cmd_fxn
     workflows/executions
     workflows/examples
+    workflows/advanced
     shell
     glossary
     faq

@@ -132,7 +132,7 @@ class Execution(Base):
         :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directory (can be absolute or relative to execution output_dir)
+        :param str out_dir: Output directory (can be absolute or relative to execution output_dir).  Will be .format()ed with this task's `tags`.
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
