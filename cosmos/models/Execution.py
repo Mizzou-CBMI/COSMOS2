@@ -83,7 +83,7 @@ class Execution(Base):
                           backref='execution')
 
     exclude_from_dict = ['info']
-    dont_garbage_collect = []
+    dont_garbage_collect = None
 
     @declared_attr
     def status(cls):
@@ -118,14 +118,12 @@ class Execution(Base):
         self.jobmanager = None
         if not self.created_on:
             self.created_on = datetime.datetime.now()
-        self._task_references_to_stop_garbage_collection_which_destroys_tool_attribute = []
+        self.dont_garbage_collect = []
 
-    def __getattr__(self, item):
-        if item == 'log':
-            self.log = get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
-            return self.log
-        else:
-            raise AttributeError('%s is not an attribute of %s' % (item, self))
+
+    @property
+    def log(self):
+        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
 
     def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
@@ -134,7 +132,7 @@ class Execution(Base):
         :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directory (can be absolute or relative to execution output_dir)
+        :param str out_dir: Output directory (can be absolute or relative to execution output_dir).  Will be .format()ed with this task's `tags`.
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
@@ -457,7 +455,7 @@ def _run(execution, session, task_queue):
 
         for task in _process_finished_tasks(execution.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
-                # pop all descendents when a task fails
+                # pop all descendents when a task fails; the rest of the graph can still execute
                 task_queue.remove_nodes_from(descendants(task_queue, task))
                 task_queue.remove_node(task)
                 execution.status = ExecutionStatus.failed_but_running

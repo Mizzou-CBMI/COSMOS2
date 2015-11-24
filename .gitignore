@@ -1,3 +1,4 @@
+ve/
 *.db
 *.egg-info
 test/out

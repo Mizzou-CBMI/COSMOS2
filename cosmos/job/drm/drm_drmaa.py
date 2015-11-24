@@ -63,13 +63,21 @@ class DRM_DRMAA(DRM):
             yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
 
     def drm_statuses(self, tasks):
-        return {task.drm_jobID: self.decodestatus[self.session.jobStatus(str(task.drm_jobID))] for task in tasks}
+        import drmaa
+
+        def get_status(task):
+            try:
+                return self.decodestatus[self.session.jobStatus(str(task.drm_jobID))] if task.drm_jobID is not None else '?'
+            except drmaa.errors.InvalidJobException:
+                return '?'
+
+        return {task.drm_jobID: get_status(task) for task in tasks}
 
     def kill(self, task):
         "Terminates a task"
         import drmaa
-
-        self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+        if task.drm_jobID is not None:
+            self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
 
     def kill_tasks(self, tasks):
         for t in tasks:

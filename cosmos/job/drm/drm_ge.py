@@ -5,7 +5,7 @@ from collections import OrderedDict
 import time
 from .util import div, convert_size_to_kb
 
-from ...util.iterstuff import grouper
+from more_itertools import grouper
 from .DRM_Base import DRM
 
 
@@ -23,9 +23,7 @@ class DRM_GE(DRM):
                                                                                     ns=ns)
 
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                              env=os.environ,
-                              preexec_fn=preexec_function,
-                              shell=True)
+                              env=os.environ, preexec_fn=preexec_function, shell=True)
 
         drm_jobID = int(re.search('job (\d+) ', out).group(1))
         return drm_jobID

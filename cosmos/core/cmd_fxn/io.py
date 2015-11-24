@@ -1,4 +1,4 @@
-from recordtype import recordtype
+from collections import namedtuple
 import operator
 from collections import OrderedDict
 import re
@@ -10,9 +10,9 @@ import os
 
 import funcsigs
 
-FindFromParents = recordtype('FindFromParents', 'regex n tags', default=None)
-OutputDir = recordtype('OutputDir', 'basename prepend_execution_output_dir', default=None)
-Forward = recordtype('Forward', 'input_parameter_name', default=None)
+FindFromParents = namedtuple('FindFromParents', 'regex n tags')
+OutputDir = namedtuple('OutputDir', 'basename prepend_execution_output_dir')
+Forward = namedtuple('Forward', 'input_parameter_name')
 
 
 def unpack_if_cardinality_1(find_instance, taskfiles):
@@ -132,8 +132,8 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                 raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
                                       'its value via tags' % (cmd_name, param_name, param.default)
             else:
-                if isinstance(value, str):
-                    yield param_name, value
+                yield param_name, value
+
 
 
 def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execution_output_dir):
