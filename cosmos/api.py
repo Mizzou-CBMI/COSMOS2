@@ -40,19 +40,31 @@ def args(*args):
 @decorator
 def bash_call(func, *args, **kwargs):
     """
-    Experimental way to not have to write boiler plate argparse code.  Converts the function call to a bash script, when will be subsequently submitted
-    like a normal command.
+    A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task. Converts any function call to a bash script
+    that uses python to import the function and call it with the same arguments.
 
     Current Limitations:
        * function must be importable from anywhere in the VE
-       * This means no partials!!! Parameters must all be passed as tags :(
+       * This means no partials! So parameters must all be passed as tags.
+
+
+    >>> def echo(arg1, out_file=out_dir('out.txt')):
+    >>>     with open(out_file) as fp:
+    >>>         print >> fp, arg1
+
+    >>> bash_call(echo)(arg1='hello world')
+    python - <<EOF
+
+    from my_module import echo
+
+    echo(** {'arg1': 'hello world',
+             'out_file': OutputDir(basename='out.txt', prepend_execution_output_dir=True)}
+
+    EOF
+
     """
 
-
-    # decorator.decorator passes everything as *args, use function signature to turn it into kwargs which is more explicit
     import pprint
-    import json
-    from collections import OrderedDict
 
     sig = funcsigs.signature(func)
     kwargs = dict(zip(sig.parameters.keys(), args))

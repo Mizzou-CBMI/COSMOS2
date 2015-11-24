@@ -4,13 +4,13 @@ from tools import echo, cat, word_count
 
 
 def run_ex1(execution):
-    # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
+    # Create two Tasks that echo "hello" and "world" respectively (these are source nodes in the dag).
     echos = [execution.add_task(echo,
                                 tags=dict(word=word),
                                 out_dir='{word}')
              for word in ['hello', 'world']]
 
-    # Split each echo into two jobs (a one2many relationship).
+    # Split each echo into two dependent Tasks (a one2many relationship).
     cats = [execution.add_task(cat,
                                tags=dict(n=n, **echo_task.tags),
                                parents=[echo_task],
@@ -19,20 +19,20 @@ def run_ex1(execution):
             for n in [1, 2]]
 
     # Count the words in the previous stage.  An example of a one2one relationship,
-    # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
+    # the most common stage dependency pattern.  For each task in StageA, there is a single dependent task in StageB.
     word_counts = [execution.add_task(word_count,
-                                      dict(chars=True, **cat_task.tags),
-                                      [cat_task],
-                                      '{word}/{n}')
+                                      tags=dict(chars=True, **cat_task.tags),
+                                      parents=[cat_task],
+                                      out_dir='{word}/{n}')
                    for cat_task in cats]
 
-    # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
+    # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).
     summarize = execution.add_task(cat,
-                                   dict(),
-                                   word_counts,
-                                   '',
-                                   'Summary_Analysis')
+                                   tags=dict(),
+                                   parents=word_counts,
+                                   out_dir='',
+                                   stage_name='Summary_Analysis')
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface

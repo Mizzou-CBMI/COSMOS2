@@ -132,8 +132,8 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                 raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
                                       'its value via tags' % (cmd_name, param_name, param.default)
             else:
-                if isinstance(value, str):
-                    yield param_name, value
+                yield param_name, value
+
 
 
 def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execution_output_dir):
