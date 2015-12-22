@@ -9,6 +9,7 @@ from ..db import Base
 from .. import __version__
 import math
 from concurrent import futures
+from datetime import datetime
 
 
 def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
@@ -85,6 +86,7 @@ class Cosmos(object):
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        self.flask_app.jinja_env.globals['time_now'] = datetime.now()
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
 
         from flask_sqlalchemy import SQLAlchemy

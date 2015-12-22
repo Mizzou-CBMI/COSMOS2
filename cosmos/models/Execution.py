@@ -108,6 +108,8 @@ class Execution(Base):
         self.__init__(manual_instantiation=False)
 
     def __init__(self, manual_instantiation=True, *args, **kwargs):
+        # FIXME provide the cosmos_app instance?
+
         if manual_instantiation:
             raise TypeError, 'Do not instantiate an Execution manually.  Use the Cosmos.start method.'
         super(Execution, self).__init__(*args, **kwargs)
@@ -119,7 +121,6 @@ class Execution(Base):
         if not self.created_on:
             self.created_on = datetime.datetime.now()
         self.dont_garbage_collect = []
-
 
     @property
     def log(self):
@@ -219,9 +220,10 @@ class Execution(Base):
 
         from ..job.JobManager import JobManager
 
-        self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
-                                     default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
-                                     )
+        if self.jobmanager is None:
+            self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
+                                         default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
+                                         )
 
         self.status = ExecutionStatus.running
         self.successful = False
