@@ -37,7 +37,7 @@
             <a class="navbar-brand" href="/">{% block brand %}Cosmos{% endblock %}</a>
         </div>
         <div class="navbar-collapse collapse">
-            <p class="navbar-text navbar-right">{% block navtext %}Workflow Management System{%endblock%}</p>
+            <p class="navbar-text navbar-right">{% block navtext %}Workflow Management System | {{ time_now|datetime_format }}{%endblock%}</p>
             {% block navmenu %}
             <ul class="nav navbar-nav">
                 <li class="active"><a href="http://cosmos-workflow.rtfd.org/" target="_blank">Documentation</a></li>
@@ -68,6 +68,7 @@
 
 {% endif %}
 <div class="col-md-12">
+{{ timenow }}
     {% block content %}
 
     {% endblock %}

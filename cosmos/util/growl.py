@@ -7,7 +7,7 @@ def send(message, hostname=None, sticky=True):
         import os
 
         if hostname == None:
-            hostname = os.environ.get('SSH_CONNECTION', 'localhost').split(' ')[0]
+            hostname = os.environ.get('SSH_CLIENT', '').split(' ')[0]
         growl = notifier.GrowlNotifier(
             applicationName="Cosmos",
             notifications=["New Updates", "New Messages"],

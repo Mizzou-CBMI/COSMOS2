@@ -81,3 +81,31 @@ from {func.__module__} import {func.__name__}
 
 EOF""".format(func=func,
               param_str=pprint.pformat(kwargs, width=1, indent=1))  # todo assert values are basetypes
+
+
+@decorator
+def run(func, *args, **kwargs):
+    """
+    Similar to bash_call, but actually just returns a string that is the source code of this function instead of importing it.
+    """
+    import inspect
+    import pprint
+
+    source = inspect.getsource(func)
+
+    sig = funcsigs.signature(func)
+    kwargs = dict(zip(sig.parameters.keys(), args))
+
+    return r"""
+
+python - <<EOF
+
+{soource}
+
+{func.__name__}(**
+{param_str}
+)
+
+EOF""".format(func=func,
+              source=source,
+              param_str=pprint.pformat(kwargs, width=1, indent=1))

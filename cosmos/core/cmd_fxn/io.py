@@ -140,34 +140,34 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
+        if param_name.startswith('out_'):
+            if param_name not in tags and param.default is funcsigs._empty:
+                raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
 
-        if param_name not in tags and param.default is funcsigs._empty:
-            raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
+            value = tags.get(param_name, param.default)
 
-        value = tags.get(param_name, param.default)
+            if isinstance(value, Forward):
+                forward_instance = value
+                try:
+                    input_value = input_map[forward_instance.input_parameter_name]
+                except KeyError:
+                    raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
+                                   '%s in stage %s' % (forward_instance.input_parameter_name, cmd_fxn, stage_name))
+                yield param_name, input_value
+            elif isinstance(value, OutputDir):
+                output_dir_instance = value
+                if task_output_dir is not None:
+                    if output_dir_instance.prepend_execution_output_dir:
+                        task_output_dir = os.path.join(execution_output_dir, task_output_dir)
+                    output_file = os.path.join(task_output_dir, output_dir_instance.basename.format(**tags))
 
-        if isinstance(value, Forward):
-            forward_instance = value
-            try:
-                input_value = input_map[forward_instance.input_parameter_name]
-            except KeyError:
-                raise KeyError('Cannot forward name `%s`,it is not a valid input parameter of '
-                               '%s in stage %s' % (forward_instance.input_parameter_name, cmd_fxn, stage_name))
-            yield param_name, input_value
-        elif isinstance(value, OutputDir):
-            output_dir_instance = value
-            if task_output_dir is not None:
-                if output_dir_instance.prepend_execution_output_dir:
-                    task_output_dir = os.path.join(execution_output_dir, task_output_dir)
-                output_file = os.path.join(task_output_dir, output_dir_instance.basename.format(**tags))
-
-            else:
-                output_file = output_dir_instance.basename.format(**tags)
-            # output_file = value.format(**tags)
-            yield param_name, output_file
-        elif param_name.startswith('out_'):
-            if isinstance(value, str):
-                yield param_name, value
+                else:
+                    output_file = output_dir_instance.basename.format(**tags)
+                # output_file = value.format(**tags)
+                yield param_name, output_file
+            elif param_name.startswith('out_'):
+                if isinstance(value, str):
+                    yield param_name, value
 
 
 def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, execution_output_dir):
