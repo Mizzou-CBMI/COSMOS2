@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+from cosmos.api import Cosmos
+import argparse
+
+def runweb(db_url_or_path_to_sqlite, default_drm, host, port):
+    database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
+
+    cosmos_app = Cosmos(database_url=database_url, default_drm=default_drm, default_queue='')
+
+    cosmos_app.runweb(host, port)
+
+if __name__ == '__main__':
+    p = argparse.ArgumentParser()
+    sps = p.add_subparsers(title="Commands")
+
+    sp = sps.add_parser('runweb')
+    sp.add_argument('db_url_or_path_to_sqlite')
+    sp.add_argument('default_drm')
+    sp.add_argument('--host', '-H', default='0.0.0.0')
+    sp.add_argument('--port', '-p')
+    sp.set_defaults(func=runweb)
+
+    args = p.parse_args()
+    kwargs = dict(args._get_kwargs())
+    command_func = kwargs.pop('func')
+
+    command_func(**kwargs)
