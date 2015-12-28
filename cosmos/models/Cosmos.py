@@ -86,6 +86,7 @@ class Cosmos(object):
 
         self.get_submit_args = get_submit_args
         self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        self.flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.flask_app.jinja_env.globals['time_now'] = datetime.now()
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
 
