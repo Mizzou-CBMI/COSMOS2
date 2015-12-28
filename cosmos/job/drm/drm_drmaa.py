@@ -4,6 +4,8 @@ from .DRM_Base import DRM
 from cosmos.api import only_one
 from .util import div, convert_size_to_kb
 
+drmaa_session = None
+
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
@@ -14,11 +16,15 @@ class DRM_DRMAA(DRM):
 
     @property
     def session(self):
+        global drmaa_session
         if self._session is None:
             import drmaa
 
-            self._session = drmaa.Session()
+            drmaa_session = drmaa.Session()
+            self._session = drmaa_session
             self._session.initialize()
+
+        assert self._session is not None
         return self._session
 
     def submit_job(self, task):
@@ -76,6 +82,7 @@ class DRM_DRMAA(DRM):
     def kill(self, task):
         "Terminates a task"
         import drmaa
+
         if task.drm_jobID is not None:
             self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
 
