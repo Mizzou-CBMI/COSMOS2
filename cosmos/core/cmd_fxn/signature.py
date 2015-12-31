@@ -1,36 +1,32 @@
-from inspect import getargspec
 import re
 from ... import NOOP
 import funcsigs
 import os
 
+
 def call(cmd_fxn, task, input_map, output_map):
     sig = funcsigs.signature(cmd_fxn)
 
-    # TODO remoe argspec in favor of funcsigs
-    argspec = getargspec(cmd_fxn)
+    def gen_params():
+        for param_name, param in sig.parameters.iteritems():
+            if param_name in input_map:
+                yield param_name, input_map[param_name]
+            elif param_name in output_map:
+                yield param_name, output_map[param_name]
+            elif param_name in task.tags:
+                yield param_name, task.tags[param_name]
+            elif param.default != funcsigs._empty:
+                yield param_name, param.default
+            else:
+                raise AttributeError('%s requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
+                                     'method signature, or pass a value for `%s` with a tag' % (cmd_fxn, param_name, param_name))
 
-    def get_params():
-        for k in argspec.args:
-            if k in task.tags:
-                yield k, task.tags[k]
+    kwargs = dict(gen_params())
 
-    params = dict(get_params())
+    if 'out_ploidy' in kwargs:
+        import IPython;
 
-    def validate_params():
-        ndefaults = len(argspec.defaults) if argspec.defaults else 0
-        for arg in argspec.args[1:-1 * ndefaults]:
-            if arg not in params:
-                raise AttributeError(
-                    '%s requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
-                    'method signature, or pass a value for `%s` with a tag' % (cmd_fxn, arg, arg))
-
-    validate_params()
-
-    kwargs = dict()
-    kwargs.update(input_map)
-    kwargs.update(output_map)
-    kwargs.update(params)
+        IPython.embed()
 
     out = cmd_fxn(**kwargs)
 
@@ -39,7 +35,7 @@ def call(cmd_fxn, task, input_map, output_map):
             param_val = kwargs.get(param_name, sig.parameters[param_name].default)
             setattr(task, param_name, param_val)
 
-    assert isinstance(out, basestring) or out is None, 'cmd_fxn %s did not return a str or None' % cmd_fxn
+    assert isinstance(out, str) or out is None, 'cmd_fxn %s did not return a str or None' % cmd_fxn
     return out
 
 
@@ -80,7 +76,6 @@ def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, *args, **kw
 
     def real_decorator(fxn, *args, **kwargs):
         r = fxn(*args, **kwargs)
-        assert isinstance(r, basestring) or r is None, '%s must return a String or None'
         if r is None:
             return NOOP
         else:

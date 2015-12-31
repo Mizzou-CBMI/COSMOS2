@@ -8,7 +8,7 @@ warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
-ACCEPTABLE_TAG_TYPES = (basestring, int, float, bool)
+ACCEPTABLE_TAG_TYPES = (basestring, int, float, bool, type(None))
 
 #########################################################################################################################
 # Settings

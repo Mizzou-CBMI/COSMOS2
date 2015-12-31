@@ -91,7 +91,8 @@ def _validate_input_mapping(cmd_name, param_name, find_instance, mapped_input_ta
         import sys
 
         print >> sys.stderr
-        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter `{param_name}` with default: {find_instance}"'.format(**locals())
+        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter `{param_name}` with default: {find_instance}"'.format(
+            **locals())
         for parent in parents:
             print >> sys.stderr, '\t<PARENT task="%s">' % parent
             if len(parent.output_files):
@@ -110,10 +111,12 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
 
     # funcsigs._empty
     for param_name, param in sig.parameters.iteritems():
-        value = tags.get(param_name, param.default)
-
         if param_name.startswith('in_'):
-            if isinstance(value, FindFromParents):
+            value = tags.get(param_name, param.default)
+            if value == funcsigs._empty:
+                raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
+                                      'its value via tags' % (cmd_name, param_name, param.default)
+            elif isinstance(value, FindFromParents):
                 # user used find()
                 find_instance = value
 
@@ -128,12 +131,9 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                 input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
                 yield param_name, input_taskfile_or_input_taskfiles
-            elif value == funcsigs._empty:
-                raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
-                                      'its value via tags' % (cmd_name, param_name, param.default)
-            else:
+            elif isinstance(value, str):
+                # allows a user to remove an input_file by passing None for its value
                 yield param_name, value
-
 
 
 def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execution_output_dir):
@@ -141,12 +141,11 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
 
     for param_name, param in sig.parameters.iteritems():
         if param_name.startswith('out_'):
-            if param_name not in tags and param.default is funcsigs._empty:
-                raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
-
             value = tags.get(param_name, param.default)
 
-            if isinstance(value, Forward):
+            if value == funcsigs._empty:
+                raise ValueError('Required output file parameter `%s` not specified for %s.' % (param_name, stage_name))
+            elif isinstance(value, Forward):
                 forward_instance = value
                 try:
                     input_value = input_map[forward_instance.input_parameter_name]
@@ -165,9 +164,9 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
                     output_file = output_dir_instance.basename.format(**tags)
                 # output_file = value.format(**tags)
                 yield param_name, output_file
-            elif param_name.startswith('out_'):
-                if isinstance(value, str):
-                    yield param_name, value
+            elif isinstance(value, str):
+                # allows a user to remove an output_file by passing None for its value
+                yield param_name, value
 
 
 def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, execution_output_dir):
