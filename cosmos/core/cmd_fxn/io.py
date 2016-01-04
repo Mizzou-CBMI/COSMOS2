@@ -131,7 +131,7 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                 input_taskfile_or_input_taskfiles = unpack_if_cardinality_1(find_instance, input_taskfiles)
 
                 yield param_name, input_taskfile_or_input_taskfiles
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 # allows a user to remove an input_file by passing None for its value
                 yield param_name, value
 
@@ -164,7 +164,7 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
                     output_file = output_dir_instance.basename.format(**tags)
                 # output_file = value.format(**tags)
                 yield param_name, output_file
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 # allows a user to remove an output_file by passing None for its value
                 yield param_name, value
 
