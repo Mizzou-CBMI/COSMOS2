@@ -23,11 +23,6 @@ def call(cmd_fxn, task, input_map, output_map):
 
     kwargs = dict(gen_params())
 
-    if 'out_ploidy' in kwargs:
-        import IPython;
-
-        IPython.embed()
-
     out = cmd_fxn(**kwargs)
 
     for param_name in ['cpu_req', 'mem_req', 'drm']:
