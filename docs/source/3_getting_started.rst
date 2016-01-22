@@ -81,7 +81,7 @@ see examples/main.py for a way to organize multiple workflows into a single acce
         ex3       Example3: Twilio SMS (note you must edit the file)
 
     $ python main.py ex1 -h
-    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c MAX_CPUS]
+    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c max_cores]
                    [-m MAX_ATTEMPTS] [-r] [-y]
 
     optional arguments:
@@ -90,8 +90,8 @@ see examples/main.py for a way to organize multiple workflows into a single acce
       -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                             The directory to output files to. Path should not
                             exist if this is a new execution.
-      -c MAX_CPUS, --max_cpus MAX_CPUS
-                            Maximum number (based on the sum of cpu_requirement)
+      -c max_cores, --max_cores max_cores
+                            Maximum number (based on the sum of core_requirement)
                             of cores to use at once. 0 means unlimited
       -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
                             Maximum number of times to try running a Task that

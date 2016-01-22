@@ -1,4 +1,5 @@
 from .core.cmd_fxn.io import find, out_dir, forward
+from .core.cmd_fxn.signature import default_cmd_fxn_wrapper
 from .models.Cosmos import Cosmos, default_get_submit_args
 from .models.Task import Task
 from .models.Stage import Stage
@@ -6,7 +7,7 @@ from .models.Execution import Execution
 from . import ExecutionStatus, StageStatus, TaskStatus, NOOP
 
 from .util.args import add_execution_args, pop_execution_args
-from .util.relationship_patterns import one2one, one2many, many2one, group
+from .util.relationship_patterns import one2one, one2many, many2one, many2many, group
 from .util.helpers import make_dict
 from .util.iterstuff import only_one
 

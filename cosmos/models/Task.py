@@ -137,7 +137,7 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True)
     mem_req = Column(Integer, default=None)
-    cpu_req = Column(Integer, default=1)
+    core_req = Column(Integer, default=1)
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
     tags = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')

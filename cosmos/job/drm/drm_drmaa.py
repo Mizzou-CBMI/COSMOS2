@@ -20,6 +20,8 @@ class DRM_DRMAA(DRM):
         if self._session is None:
             import drmaa
 
+            assert drmaa_session is None
+
             drmaa_session = drmaa.Session()
             self._session = drmaa_session
             self._session.initialize()

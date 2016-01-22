@@ -16,9 +16,9 @@ if __name__ == '__main__':
 
     sp = sps.add_parser('runweb')
     sp.add_argument('db_url_or_path_to_sqlite')
-    sp.add_argument('default_drm')
+    sp.add_argument('-d','--default_drm', default='local')
     sp.add_argument('--host', '-H', default='0.0.0.0')
-    sp.add_argument('--port', '-p')
+    sp.add_argument('--port', '-p', type=int)
     sp.set_defaults(func=runweb)
 
     args = p.parse_args()

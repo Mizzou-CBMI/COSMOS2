@@ -37,15 +37,6 @@ def default_task_log_output_dir(task):
     return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
 
 
-def get_or_create_task(tool, successful_tasks, tags, stage, parents, default_drm):
-    existing_task = successful_tasks.get(frozenset(tags.items()), None)
-    if existing_task:
-        existing_task.tool = tool
-        return existing_task
-    else:
-        return tool._generate_task(stage=stage, parents=parents, default_drm=default_drm)
-
-
 @signal_execution_status_change.connect
 def _execution_status_changed(ex):
     if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
@@ -74,7 +65,7 @@ class Execution(Base):
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    max_cpus = Column(Integer)
+    max_cores = Column(Integer)
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
@@ -169,24 +160,23 @@ class Execution(Base):
                 return task
             else:
                 # TODO check for duplicate tags here?  would be a lot faster at Execution.run
-                raise ValueError('Duplicate tags, you have added a job to %s with tags %s twice' % (stage_name, tags))
+                raise ValueError('Duplicate tags, you have added a Task to Stage %s with tags `%s` twice' % (stage_name, tags))
         else:
             # Create Task
-            attrs = {k: tags[k] for k in ['drm', 'mem_req', 'time_req', 'cpu_req', 'must_succeed'] if k in tags}
-            if 'drm' not in attrs:
-                attrs['drm'] = self.cosmos_app.default_drm
 
             input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir, self.output_dir)
             input_files = io.unpack_io_map(input_map)
             output_files = io.unpack_io_map(output_map)
+            call_kwargs = signature.get_call_kwargs(cmd_fxn, tags, input_map, output_map)
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
-                        output_files=output_files, output_dir=out_dir,
-                        **attrs)
+                        output_files=output_files, output_dir=out_dir, drm=call_kwargs.get('drm', self.cosmos_app.default_drm),
+                        **{k: call_kwargs[k] for k in ['drm', 'mem_req', 'time_req', 'core_req', 'must_succeed'] if k in call_kwargs})
 
             task.cmd_fxn = cmd_fxn
             task.input_map = input_map
             task.output_map = output_map
+            task.call_kwargs = call_kwargs
 
         # Add Stage Dependencies
         for p in parents:
@@ -309,11 +299,11 @@ class Execution(Base):
         #
         # check_stage_status()
 
-        if self.max_cpus is not None:
+        if self.max_cores is not None:
             self.log.info('Ensuring there are enough cores...')
             # make sure we've got enough cores
             for t in task_queue:
-                assert t.cpu_req <= self.max_cpus, '%s requires more cpus (%s) than `max_cpus` (%s)' % (t, t.cpu_req, self.max_cpus)
+                assert int(t.core_req) <= self.max_cores, '%s requires more cpus (%s) than `max_cores` (%s)' % (t, t.core_req, self.max_cores)
 
         # Run this thing!
         self.log.info('Committing to SQL db...')
@@ -478,23 +468,23 @@ def _run(execution, session, task_queue):
 
 
 def _run_queued_and_ready_tasks(task_queue, execution):
-    max_cpus = execution.max_cpus
+    max_cores = execution.max_cores
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
-    if max_cpus is None:
+    if max_cores is None:
         submittable_tasks = ready_tasks
     else:
-        cores_used = sum([t.cpu_req for t in execution.jobmanager.running_tasks])
-        cores_left = max_cpus - cores_used
+        cores_used = sum([t.core_req for t in execution.jobmanager.running_tasks])
+        cores_left = max_cores - cores_used
 
         submittable_tasks = []
-        ready_tasks = sorted(ready_tasks, key=lambda t: t.cpu_req)
+        ready_tasks = sorted(ready_tasks, key=lambda t: t.core_req)
         while len(ready_tasks) > 0:
             task = ready_tasks[0]
-            there_are_cpus_left = task.cpu_req <= cores_left
-            if there_are_cpus_left:
-                cores_left -= task.cpu_req
+            there_are_cores_left = task.core_req <= cores_left
+            if there_are_cores_left:
+                cores_left -= task.core_req
                 submittable_tasks.append(task)
                 ready_tasks.pop(0)
             else:
@@ -503,7 +493,7 @@ def _run_queued_and_ready_tasks(task_queue, execution):
     # submit in a batch for speed
     execution.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
-        execution.log.info('Reached max_cpus limit of %s, waiting for a task to finish...' % max_cpus)
+        execution.log.info('Reached max_cores limit of %s, waiting for a task to finish...' % max_cores)
 
     # only commit submitted Tasks after submitting a batch
     execution.session.commit()

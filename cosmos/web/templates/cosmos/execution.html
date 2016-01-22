@@ -25,8 +25,8 @@
             <dd>{{ execution.started_on|datetime_format }}</dd>
             <dt>finished_on</dt>
             <dd>{{ execution.finished_on|datetime_format }}</dd>
-            <dt>max_cpus</dt>
-            <dd>{{ execution.max_cpus }}</dd>
+            <dt>max_cores</dt>
+            <dd>{{ execution.max_cores }}</dd>
             <dt>max_attempts</dt>
             <dd>{{ execution.max_attempts }}</dd>
 
@@ -73,7 +73,7 @@
                 <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                 <th>failed</th>
                 <th>avg(%_cpu)</th>
-                <th>avg(cpu_req)</th>
+                <th>avg(core_req)</th>
                 <th>avg(rss_mem)</th>
                 <th>avg(mem_req)</th>
                 <th>avg(wall_time)</th>
@@ -113,7 +113,7 @@
                 </td>
                 <td>{{ s.num_failed_tasks() }}</td>
                 <td>{{s|stage_stat('percent_cpu', 'avg')}}</td>
-                <td>{{s|stage_stat('cpu_req', 'avg')}}</td>
+                <td>{{s|stage_stat('core_req', 'avg')}}</td>
                 <td>{{s|stage_stat('avg_rss_mem_kb', 'avg')}}</td>
                 <td>{{s|stage_stat('mem_req', 'avg')}}</td>
                 <td>{{s|stage_stat('wall_time', 'avg')}}</td>

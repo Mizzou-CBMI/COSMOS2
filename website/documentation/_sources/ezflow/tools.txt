@@ -17,7 +17,7 @@ A tool is a class that overrides :py:class:`~tool.Tool`, and defines :py:meth:`~
         inputs = ['txt']
         outputs = ['txt']
         mem_req = 1*1024
-        cpu_req = 1
+        core_req = 1
 
         def cmd(self,i,s,p):
             return r"""

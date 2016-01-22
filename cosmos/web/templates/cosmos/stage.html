@@ -56,8 +56,8 @@
             <dd>{{ s.num_failed_tasks() }}</dd>
             <dt>avg(%_cpu)</dt>
             <dd>{{ s|stage_stat('percent_cpu', 'avg') }}</dd>
-            <dt>avg(cpu_req)</dt>
-            <dd>{{ s|stage_stat('cpu_req', 'avg') }}</dd>
+            <dt>avg(core_req)</dt>
+            <dd>{{ s|stage_stat('core_req', 'avg') }}</dd>
             <dt>avg(rss_mem)</dt>
             <dd>{{ s|stage_stat('avg_rss_mem_kb', 'avg') }}</dd>
             <dt>avg(mem_req)</dt>

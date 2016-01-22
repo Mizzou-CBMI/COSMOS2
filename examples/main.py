@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     if func.__module__.startswith('ex'):
         execution_params = {n: kwargs.pop(n, None) for n in
-                            ['name', 'restart', 'skip_confirm', 'max_cpus', 'max_attempts', 'output_dir']}
+                            ['name', 'restart', 'skip_confirm', 'max_cores', 'max_attempts', 'output_dir']}
         if not execution_params['output_dir']:
             mkdir(os.path.join(root_path, 'out_dir'))
             execution_params['output_dir'] = os.path.join(root_path, 'out_dir', execution_params['name'])

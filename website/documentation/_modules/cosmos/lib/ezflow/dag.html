@@ -193,15 +193,15 @@
 <span class="sd">A Representation of a workflow as a :term:`DAG` of jobs.</span>
 <span class="sd">&quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu_req_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">ignore_stage_name_collisions</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">mem_req_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">core_req_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">ignore_stage_name_collisions</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">mem_req_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">:param cpu_req_override: set to an integer to override all task cpu_requirements. Useful when a :term:`DRM` does not support requesting multiple cpus</span>
+<span class="sd">:param core_req_override: set to an integer to override all task core_requirements. Useful when a :term:`DRM` does not support requesting multiple cpus</span>
 <span class="sd">:param mem_req_factor: multiply all task mem_reqs by this number.</span>
 <span class="sd">:param dag.ignore_stage_name_collisions: Allows the flowfxns to add to stages that already exists.</span>
 <span class="sd">&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_tools</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span> <span class="o">=</span> <span class="n">cpu_req_override</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_req_override</span> <span class="o">=</span> <span class="n">core_req_override</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mem_req_factor</span> <span class="o">=</span> <span class="n">mem_req_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stage_names_used</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ignore_stage_name_collisions</span> <span class="o">=</span> <span class="n">ignore_stage_name_collisions</span>
@@ -417,7 +417,7 @@
                       <span class="c"># input_files = tool.input_files,</span>
                       <span class="c"># output_files = tool.output_files,</span>
                       <span class="n">memory_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">mem_req</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem_req_factor</span><span class="p">,</span>
-                      <span class="n">cpu_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">cpu_req</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cpu_req_override</span><span class="p">,</span>
+                      <span class="n">core_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">core_req</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_req_override</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_req_override</span><span class="p">,</span>
                       <span class="n">time_requirement</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">time_req</span><span class="p">,</span>
                       <span class="n">NOOP</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">NOOP</span><span class="p">,</span>
                       <span class="n">succeed_on_failure</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">succeed_on_failure</span><span class="p">)</span>

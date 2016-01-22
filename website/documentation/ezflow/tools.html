@@ -159,7 +159,7 @@ A tool is a class that overrides <tt class="xref py py-class docutils literal"><
     <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;txt&#39;</span><span class="p">]</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;txt&#39;</span><span class="p">]</span>
     <span class="n">mem_req</span> <span class="o">=</span> <span class="mi">1</span><span class="o">*</span><span class="mi">1024</span>
-    <span class="n">cpu_req</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">core_req</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">r&quot;&quot;&quot;</span>
@@ -245,8 +245,8 @@ define the resources that are required.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cosmos.lib.ezflow.tool.Tool.cpu_req">
-<tt class="descname">cpu_req</tt><em class="property"> = 1</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.cpu_req" title="Permalink to this definition">¶</a></dt>
+<dt id="cosmos.lib.ezflow.tool.Tool.core_req">
+<tt class="descname">core_req</tt><em class="property"> = 1</em><a class="headerlink" href="#cosmos.lib.ezflow.tool.Tool.core_req" title="Permalink to this definition">¶</a></dt>
 <dd><p>(int) Number of cores to request. Default is 1.</p>
 </dd></dl>
 
