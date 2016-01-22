@@ -27,7 +27,7 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     use_mem_req = False
     use_time_req = False
 
-    cpu_req = task.cpu_req
+    core_req = task.core_req
     mem_req = task.mem_req if use_mem_req else None
     time_req = task.time_req if use_time_req else None
 
@@ -39,21 +39,21 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
-        return '-R "{rusage}span[hosts=1]" -n {task.cpu_req}{time}{queue} -J "{jobname}"'.format(**locals())
+        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
 
     elif drm in ['ge', 'drmaa:ge']:
-        h_vmem = int(math.ceil(mem_req / float(cpu_req))) if mem_req else None
+        h_vmem = int(math.ceil(mem_req / float(core_req))) if mem_req else None
 
         def g():
-            resource_reqs = dict(h_vmem=h_vmem, slots=cpu_req, time_req=time_req)
+            resource_reqs = dict(h_vmem=h_vmem, slots=core_req, time_req=time_req)
             for k, v in resource_reqs.items():
                 if v is not None:
                     yield '%s=%s' % (k, v)
 
         resource_str = ','.join(g())
 
-        return '-pe {parallel_env} {cpu_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority,
-                                                                               jobname=jobname, cpu_req=cpu_req, parallel_env=parallel_env)
+        return '-pe {parallel_env} {core_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority,
+                                                                               jobname=jobname, core_req=core_req, parallel_env=parallel_env)
     elif drm == 'local':
         return None
     else:
@@ -132,7 +132,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cpus=None, max_attempts=1,
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cores=None, max_attempts=1,
               check_output_dir=True):
         from .Execution import Execution
 
@@ -143,7 +143,7 @@ class Cosmos(object):
         :param str output_dir: The directory to write files to.  Defaults to the current working directory.
         :param bool restart: If True and the execution exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
-        :param int max_cpus: The maximum number of CPUs to use at once.
+        :param int max_cores: The maximum number of CPUs to use at once.
         :param int max_attempts: The maximum number of times to retry a failed job.
         :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir already exists.
 
@@ -170,7 +170,7 @@ class Cosmos(object):
                 if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
-                ex.delete(delete_files=True)
+                ex.delete(delete_files=False)
             else:
                 if not skip_confirm and not confirm('Execution with name %s does not exist, '
                                                     'but `restart` is set to True.  '
@@ -216,7 +216,7 @@ class Cosmos(object):
             mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
-        ex.max_cpus = max_cpus
+        ex.max_cores = max_cores
         ex.max_attempts = max_attempts
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         ex.info['cwd'] = os.getcwd()
@@ -239,6 +239,7 @@ class Cosmos(object):
         meta = MetaData(initdb_library_version=__version__)
         self.session.add(meta)
         self.session.commit()
+        return self
 
     def resetdb(self):
         """
@@ -247,6 +248,7 @@ class Cosmos(object):
         print >> sys.stderr, 'Dropping tables in db...'
         Base.metadata.drop_all(bind=self.session.bind)
         self.initdb()
+        return self
 
     def shell(self):
         """

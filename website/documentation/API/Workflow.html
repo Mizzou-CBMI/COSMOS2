@@ -488,9 +488,9 @@ finished_on datetimestamp and resetting it&#8217;s order_in_workflow</p>
 <dt id="cosmos.Workflow.models.Stage.get_task_stat">
 <tt class="descname">get_task_stat</tt><big>(</big><em>field</em>, <em>statistic</em><big>)</big><a class="reference internal" href="../_modules/cosmos/Workflow/models.html#Stage.get_task_stat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.Workflow.models.Stage.get_task_stat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Aggregates a task&#8217;s field using a statistic
-:param field: (str) name of a tasks&#8217;s field.  ex: cpu_req, mem_req
+:param field: (str) name of a tasks&#8217;s field.  ex: core_req, mem_req
 :param statistic: (str) choose from [&#8216;Avg&#8217;,&#8217;Sum&#8217;,&#8217;Max&#8217;,&#8217;Min&#8217;,&#8217;Count&#8217;]</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span><span class="o">.</span><span class="n">get_stat</span><span class="p">(</span><span class="s">&#39;cpu_requirement&#39;</span><span class="p">,</span><span class="s">&#39;Avg&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span><span class="o">.</span><span class="n">get_stat</span><span class="p">(</span><span class="s">&#39;core_requirement&#39;</span><span class="p">,</span><span class="s">&#39;Avg&#39;</span><span class="p">)</span>
 <span class="go">120</span>
 </pre></div>
 </div>

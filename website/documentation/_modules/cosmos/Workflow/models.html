@@ -1153,10 +1153,10 @@
 <div class="viewcode-block" id="Stage.get_task_stat"><a class="viewcode-back" href="../../../API/Workflow.html#cosmos.Workflow.models.Stage.get_task_stat">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">field</span><span class="p">,</span><span class="n">statistic</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Aggregates a task&#39;s field using a statistic</span>
-<span class="sd">        :param field: (str) name of a tasks&#39;s field.  ex: cpu_req, mem_req</span>
+<span class="sd">        :param field: (str) name of a tasks&#39;s field.  ex: core_req, mem_req</span>
 <span class="sd">        :param statistic: (str) choose from [&#39;Avg&#39;,&#39;Sum&#39;,&#39;Max&#39;,&#39;Min&#39;,&#39;Count&#39;]</span>
 <span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; stage.get_stat(&#39;cpu_requirement&#39;,&#39;Avg&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; stage.get_stat(&#39;core_requirement&#39;,&#39;Avg&#39;)</span>
 <span class="sd">        120</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1375,7 +1375,7 @@
     <span class="n">exec_command</span>       <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&#39;The actual command that is executed&#39;</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="n">memory_requirement</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;Memory to reserve for jobs in MB&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">cpu_requirement</span>    <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">SmallIntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;Number of CPUs to reserve for this job&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">core_requirement</span>    <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">SmallIntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;Number of CPUs to reserve for this job&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">time_requirement</span>   <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;Time required to run in minutes.  If a job runs longer it may be automatically killed.&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="n">successful</span>         <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;True if the task has been executed successfully, else False&quot;</span><span class="p">)</span>
@@ -1419,7 +1419,7 @@
 <span class="sd">        :param tags: (dict) A dictionary keys and values to tag the task with. These tags can later be used by methods such as :py:meth:`~Workflow.models.stage.group_tasks_by` and :py:meth:`~Workflow.models.stage.get_tasks_by` Optional.</span>
 <span class="sd">        :param on_success: (method) A method to run when this task succeeds.  Method is called with one parameter named &#39;task&#39;, the successful task.</span>
 <span class="sd">        :param memory_requirement: (int) How much memory to reserve for this task in MB. Optional.</span>
-<span class="sd">        :param cpu_requirement: (int) How many CPUs to reserve for this task. Optional.</span>
+<span class="sd">        :param core_requirement: (int) How many CPUs to reserve for this task. Optional.</span>
 <span class="sd">        :param time_requirement: (int) Time required in miinutes.  If a job exceeds this requirement, it will likely be killed.</span>
 <span class="sd">        :param NOOP: (booean) No Operation, this task does not get executed.</span>
 <span class="sd">        :param succeed_on_failure: (booean) Succeed even if JobAttempts fails.</span>

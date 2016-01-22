@@ -52,5 +52,5 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     execution = cosmos.start('Example2', 'analysis_output/ex2', max_attempts=1, restart=True, skip_confirm=True,
-                             max_cpus=10)
+                             max_cores=10)
     run_ex2(execution)

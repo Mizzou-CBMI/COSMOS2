@@ -171,7 +171,7 @@
     <span class="n">task</span> <span class="o">=</span> <span class="n">jobAttempt</span><span class="o">.</span><span class="n">task</span>
     <span class="n">drm</span>  <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s">&#39;DRM&#39;</span><span class="p">]</span>
 
-    <span class="n">cpu_req</span>  <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">cpu_requirement</span>
+    <span class="n">core_req</span>  <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">core_requirement</span>
     <span class="n">mem_req</span>  <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">memory_requirement</span>
     <span class="n">time_req</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">time_requirement</span>
     <span class="n">queue</span>    <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">default_queue</span>
@@ -180,10 +180,10 @@
         <span class="k">if</span> <span class="n">time_req</span> <span class="o">&lt;=</span> <span class="mi">12</span><span class="o">*</span><span class="mi">60</span><span class="p">:</span> <span class="n">queue</span> <span class="o">=</span> <span class="s">&#39;short&#39;</span>
         <span class="k">else</span><span class="p">:</span>                 <span class="n">queue</span> <span class="o">=</span> <span class="s">&#39;long&#39;</span>
                 
-        <span class="k">return</span> <span class="s">&#39;-R &quot;rusage[mem={0}] span[hosts=1]&quot; -n {1} -W 0:{2} -q {3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">cpu_req</span><span class="p">,</span> <span class="n">time_req</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;-R &quot;rusage[mem={0}] span[hosts=1]&quot; -n {1} -W 0:{2} -q {3}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">core_req</span><span class="p">,</span> <span class="n">time_req</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">drm</span> <span class="o">==</span> <span class="s">&#39;GE&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;-l spock_mem={mem_req}M,num_proc={cpu_req}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="o">=</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">cpu_req</span><span class="o">=</span><span class="n">cpu_req</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;-l spock_mem={mem_req}M,num_proc={core_req}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mem_req</span><span class="o">=</span><span class="n">mem_req</span><span class="p">,</span> <span class="n">core_req</span><span class="o">=</span><span class="n">core_req</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;DRM not supported&#39;</span><span class="p">)</span>

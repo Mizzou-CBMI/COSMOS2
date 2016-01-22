@@ -7,7 +7,7 @@ import funcsigs
 import re
 import itertools as it
 import os
-
+from ...util.helpers import make_dict
 import funcsigs
 
 FindFromParents = namedtuple('FindFromParents', 'regex n tags')
@@ -55,11 +55,11 @@ def parse_cardinality(n):
 
 def find(regex, n='==1', tags=None):
     """
-    Used to set an input_file's default behavior to finds output_files from a Task's parents using a regex
+    Used to set an input_file's default behavior to finds output_files from a Task's parents using a regex.
 
-    :param str regex: a regex to match the file path
-    :param str n: (cardinality) the number of files to find
-    :param dict tags: filter parent search space using these tags
+    :param str regex: a regex to match the file path.
+    :param str n: (cardinality) the number of files to find.
+    :param dict tags: filter parent search space using these tags.
     """
     return FindFromParents(regex, n, tags)
 
@@ -68,17 +68,17 @@ def out_dir(basename='', peo=True):
     """
     Essentially will perform os.path.join(Task.output_dir, basename)
 
-    :param str basename: The basename of the output_file
-    :param bool peo: Prepend execution.output_dir to the output
+    :param str basename: The basename of the output_file.
+    :param bool peo: Prepend execution.output_dir to the output path.
     """
     return OutputDir(basename, peo)
 
 
 def forward(input_parameter_name):
     """
-    Forwards a Task's input as an output
+    Forwards a Task's input as an output.
 
-    :param input_parameter_name: The name of this cmd_fxn's input parameter to forward
+    :param input_parameter_name: The name of this cmd_fxn's input parameter to forward.
     """
     return Forward(input_parameter_name)
 
@@ -92,7 +92,7 @@ def _validate_input_mapping(cmd_name, param_name, find_instance, mapped_input_ta
 
         print >> sys.stderr
         print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter `{param_name}` with default: {find_instance}"'.format(
-            **locals())
+                **locals())
         for parent in parents:
             print >> sys.stderr, '\t<PARENT task="%s">' % parent
             if len(parent.output_files):
@@ -158,15 +158,15 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
                 if task_output_dir is not None:
                     if output_dir_instance.prepend_execution_output_dir:
                         task_output_dir = os.path.join(execution_output_dir, task_output_dir)
-                    output_file = os.path.join(task_output_dir, output_dir_instance.basename.format(**tags))
+                    output_file = os.path.join(task_output_dir, output_dir_instance.basename)
 
                 else:
-                    output_file = output_dir_instance.basename.format(**tags)
+                    output_file = output_dir_instance.basename
                 # output_file = value.format(**tags)
-                yield param_name, output_file
+                yield param_name, output_file.format(**make_dict(input_map, tags))
             elif isinstance(value, basestring):
                 # allows a user to remove an output_file by passing None for its value
-                yield param_name, value
+                yield param_name, value.format(**tags)
 
 
 def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, execution_output_dir):

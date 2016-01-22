@@ -9,7 +9,6 @@ from .drm.drm_drmaa import DRM_DRMAA
 from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
-from ..core.cmd_fxn.signature import call
 from cosmos.models.Execution import default_task_log_output_dir
 
 class JobManager(object):
@@ -46,7 +45,7 @@ class JobManager(object):
         else:
             fxn = task.cmd_fxn
 
-        command = call(fxn, thread_local_task, task.input_map, task.output_map)
+        command = fxn(**task.call_kwargs)
 
         return command
 
@@ -110,7 +109,7 @@ def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""
     with open(task.output_command_script_path, 'wb') as f:
         f.write(command)
-    os.system('chmod 700 "{0}"'.format(task.output_command_script_path))
+    os.system('chmod 755 "{0}"'.format(task.output_command_script_path))
 
     for p in [task.output_stdout_path, task.output_stderr_path]:
         if os.path.exists(p):

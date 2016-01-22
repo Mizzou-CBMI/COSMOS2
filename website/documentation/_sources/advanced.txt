@@ -25,7 +25,7 @@ For example, to submit to a queue depending on the task's time_requirement:
     task = jobAttempt.task
     DRM = settings['DRM']
 
-    cpu_req = task.cpu_requirement
+    core_req = task.core_requirement
     mem_req = task.memory_requirement
     time_req = task.time_requirement
     queue = task.workflow.default_queue
@@ -38,7 +38,7 @@ For example, to submit to a queue depending on the task's time_requirement:
         queue = 'i2b2_unlimited'
 
     if DRM == 'LSF':
-        s = '-R "rusage[mem={0}] span[hosts=1]" -n {1}'.format(mem_req,cpu_req)
+        s = '-R "rusage[mem={0}] span[hosts=1]" -n {1}'.format(mem_req,core_req)
         if time_req:
             s += ' -W 0:{0}'.format(time_req)
         if queue:
