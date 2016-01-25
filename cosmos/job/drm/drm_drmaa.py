@@ -4,8 +4,15 @@ from .DRM_Base import DRM
 from cosmos.api import only_one
 from .util import div, convert_size_to_kb
 
-drmaa_session = None
+_drmaa_session = None
 
+def get_drmaa_session():
+    global _drmaa_session
+    if _drmaa_session is None:
+        import drmaa
+        _drmaa_session = drmaa.Session()
+        _drmaa_session.initialize()
+    return _drmaa_session
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
@@ -14,21 +21,8 @@ class DRM_DRMAA(DRM):
     def __init__(self, *args, **kwargs):
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
-    @property
-    def session(self):
-        global drmaa_session
-        if self._session is None:
-            import drmaa
-
-            drmaa_session = drmaa.Session()
-            self._session = drmaa_session
-            self._session.initialize()
-
-        assert self._session is not None
-        return self._session
-
     def submit_job(self, task):
-        jt = self.session.createJobTemplate()
+        jt = get_drmaa_session().createJobTemplate()
         # jt.workingDirectory = settings['working_directory']
         jt.remoteCommand = task.output_command_script_path
         # jt.args             = cmd.split(' ')[1:]
@@ -39,10 +33,10 @@ class DRM_DRMAA(DRM):
 
         jt.nativeSpecification = task.drm_native_specification or ''
 
-        drm_jobID = self.session.runJob(jt)
+        drm_jobID = get_drmaa_session().runJob(jt)
 
         # prevents memory leak
-        self.session.deleteJobTemplate(jt)
+        get_drmaa_session().deleteJobTemplate(jt)
 
         return drm_jobID
 
@@ -54,7 +48,7 @@ class DRM_DRMAA(DRM):
         while len(jobid_to_task):
             try:
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
-                extra_jobinfo = self.session.wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
+                extra_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
             except drmaa.errors.InvalidJobException as e:
                 # There are no jobs left to wait on!
@@ -73,9 +67,11 @@ class DRM_DRMAA(DRM):
 
         def get_status(task):
             try:
-                return self.decodestatus[self.session.jobStatus(str(task.drm_jobID))] if task.drm_jobID is not None else '?'
+                return self.decodestatus[get_drmaa_session().jobStatus(str(task.drm_jobID))] if task.drm_jobID is not None else '?'
             except drmaa.errors.InvalidJobException:
                 return '?'
+            except:
+                return '??'
 
         return {task.drm_jobID: get_status(task) for task in tasks}
 
@@ -84,7 +80,7 @@ class DRM_DRMAA(DRM):
         import drmaa
 
         if task.drm_jobID is not None:
-            self.session.control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+            get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
 
     def kill_tasks(self, tasks):
         for t in tasks:
