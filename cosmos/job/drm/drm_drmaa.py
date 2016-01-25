@@ -7,12 +7,15 @@ from .util import div, convert_size_to_kb
 _drmaa_session = None
 
 def get_drmaa_session():
-    global _drmaa_session
-    if _drmaa_session is None:
-        import drmaa
-        _drmaa_session = drmaa.Session()
-        _drmaa_Session.initialize()
-    return _drmaa_session
+    try:
+        global _drmaa_session
+        if _drmaa_session is None:
+            import drmaa
+            _drmaa_session = drmaa.Session()
+            _drmaa_Session.initialize()
+        return _drmaa_session
+    except:
+        return None
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
