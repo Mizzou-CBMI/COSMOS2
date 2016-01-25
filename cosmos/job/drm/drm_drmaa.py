@@ -73,7 +73,7 @@ class DRM_DRMAA(DRM):
                 return self.decodestatus[get_drmaa_session().jobStatus(str(task.drm_jobID))] if task.drm_jobID is not None else '?'
             except drmaa.errors.InvalidJobException:
                 return '?'
-            except AttributeError:
+            except:
                 return '??'
 
         return {task.drm_jobID: get_status(task) for task in tasks}
