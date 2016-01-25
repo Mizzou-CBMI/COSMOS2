@@ -11,7 +11,7 @@ def get_drmaa_session():
     if _drmaa_session is None:
         import drmaa
         _drmaa_session = drmaa.Session()
-        _drmaa_Session.initialize()
+        _drmaa_session.initialize()
     return _drmaa_session
 
 class DRM_DRMAA(DRM):
