@@ -132,8 +132,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cores=None, max_attempts=1,
-              check_output_dir=True):
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cores=None, max_attempts=1):
         from .Execution import Execution
 
         """
@@ -145,7 +144,6 @@ class Cosmos(object):
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
         :param int max_cores: The maximum number of CPUs to use at once.
         :param int max_attempts: The maximum number of times to retry a failed job.
-        :param bool check_output_dir: Raise an error if this is a new workflow, and output_dir already exists.
 
         :returns: An Execution instance.
         """
@@ -209,8 +207,8 @@ class Cosmos(object):
 
         else:
             # start from scratch
-            if check_output_dir:
-                assert not os.path.exists(output_dir), 'Execution.output_dir `%s` already exists.' % (output_dir)
+            # if check_output_dir:
+            #     assert not os.path.exists(output_dir), 'Execution.output_dir `%s` already exists.' % (output_dir)
 
             ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
             mkdir(output_dir)  # make it here so we can start logging to logfile
