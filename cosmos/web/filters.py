@@ -62,8 +62,8 @@ def add_filters(bprint_or_app, type_='bprint'):
         if 'time' in attribute:
             return format_time(a)
         if 'percent' in attribute:
-            return '{0:.0%}'.format(a)
-        return a
+            return '{0:.0%}'.format(float(a))
+        return int(a)
 
     @add_filter
     def datetime_format(value, format='%Y-%m-%d %I:%M %p'):
