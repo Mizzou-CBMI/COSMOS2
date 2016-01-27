@@ -76,6 +76,8 @@ class Execution(Base):
     exclude_from_dict = ['info']
     dont_garbage_collect = None
 
+    cpu_req = synonym('core_req')
+
     @declared_attr
     def status(cls):
         def get_status(self):
