@@ -24,7 +24,7 @@ def add_filters(bprint_or_app, type_='bprint'):
         if re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
         elif field_name == 'percent_cpu':
-            return "{0}%".format(val*100)
+            return '{0:.0%}'.format(val)
         elif 'mem' in field_name:
             return format_memory_kb(val)
         elif type(val) in [int, long]:
@@ -54,7 +54,7 @@ def add_filters(bprint_or_app, type_='bprint'):
         a = session.query(f(getattr(Task, attribute))).join(Stage).filter(Stage.id == stage.id).scalar()
         if a is None:
             return ''
-        a = int(a)
+        a = float(a)
         if 'rss' in attribute:
             return format_memory_kb(a)
         if 'mem_req' in attribute:
@@ -62,8 +62,8 @@ def add_filters(bprint_or_app, type_='bprint'):
         if 'time' in attribute:
             return format_time(a)
         if 'percent' in attribute:
-            return '{}%'.format(a)
-        return a
+            return '{0:.0%}'.format(float(a))
+        return int(a)
 
     @add_filter
     def datetime_format(value, format='%Y-%m-%d %I:%M %p'):

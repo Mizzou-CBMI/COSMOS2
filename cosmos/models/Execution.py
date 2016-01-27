@@ -65,7 +65,8 @@ class Execution(Base):
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    max_cores = Column(Integer)
+    max_cores = Column(Integer) 
+
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
@@ -75,6 +76,7 @@ class Execution(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
+
 
     @declared_attr
     def status(cls):
