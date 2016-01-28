@@ -46,7 +46,6 @@ def add_filters(bprint_or_app, type_='bprint'):
     def or_datetime_now(x):
         return x or datetime.datetime.now()
 
-
     @add_filter
     def stage_stat(stage, attribute, func_name):
         f = getattr(func, func_name)
@@ -55,7 +54,7 @@ def add_filters(bprint_or_app, type_='bprint'):
         if a is None:
             return ''
         a = float(a)
-        if 'rss' in attribute:
+        if 'kb' in attribute:
             return format_memory_kb(a)
         if 'mem_req' in attribute:
             return format_memory_mb(a)
