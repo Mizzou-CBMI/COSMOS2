@@ -132,7 +132,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, max_cores=None, max_attempts=1):
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False):
         from .Execution import Execution
 
         """
@@ -142,8 +142,6 @@ class Cosmos(object):
         :param str output_dir: The directory to write files to.  Defaults to the current working directory.
         :param bool restart: If True and the execution exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
-        :param int max_cores: The maximum number of CPUs to use at once.
-        :param int max_attempts: The maximum number of times to retry a failed job.
 
         :returns: An Execution instance.
         """
@@ -214,8 +212,6 @@ class Cosmos(object):
             mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
-        ex.max_cores = max_cores
-        ex.max_attempts = max_attempts
         ex.info['last_cmd_executed'] = get_last_cmd_executed()
         ex.info['cwd'] = os.getcwd()
         session.commit()
