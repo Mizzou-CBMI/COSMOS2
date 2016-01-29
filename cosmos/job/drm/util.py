@@ -7,7 +7,7 @@ def convert_size_to_kb(size_str):
     elif size_str.endswith('K'):
         return float(size_str[:-1])
     else:
-        return float(size_str)
+        return float(size_str) / 1024
 
 
 

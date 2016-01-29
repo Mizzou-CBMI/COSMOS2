@@ -74,10 +74,13 @@
                 <th>failed</th>
                 <th>avg(%_cpu)</th>
                 <th>avg(core_req)</th>
-                <th>avg(rss_mem)</th>
+                <th>avg(max_rss_mem_kb)</th>
+                <th>avg(max_vms_mem_kb)</th>
                 <th>avg(mem_req)</th>
                 <th>avg(wall_time)</th>
                 <th>avg(cpu_time)</th>
+                <th>avg(io_wait)</th>
+                <th>avg(io)</th>
 
 
                 <th>action</th>
@@ -114,10 +117,13 @@
                 <td>{{ s.num_failed_tasks() }}</td>
                 <td>{{s|stage_stat('percent_cpu', 'avg')}}</td>
                 <td>{{s|stage_stat('core_req', 'avg')}}</td>
-                <td>{{s|stage_stat('avg_rss_mem_kb', 'avg')}}</td>
+                <td>{{s|stage_stat('max_rss_mem_kb', 'avg')}}</td>
+                <td>{{s|stage_stat('max_vms_mem_kb', 'avg')}}</td>
                 <td>{{s|stage_stat('mem_req', 'avg')}}</td>
                 <td>{{s|stage_stat('wall_time', 'avg')}}</td>
                 <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
+                <td>{{s|stage_stat('io_wait', 'avg')}}</td>
+                <td>{{s|stage_stat('io_write_kb', 'avg')}}</td>
 
                 <td>
                     <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"

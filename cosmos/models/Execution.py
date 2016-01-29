@@ -66,6 +66,7 @@ class Execution(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
+
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
@@ -187,10 +188,13 @@ class Execution(Base):
 
         return task
 
-    def run(self, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper, log_out_dir_func=default_task_log_output_dir):
+    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper,
+            log_out_dir_func=default_task_log_output_dir):
         """
         Runs this Execution's DAG
 
+        :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
+        :param int max_attempts: The maximum number of times to retry a failed job.
         :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
              It receives one parameter: the task instance.
              By default task log output is stored in output_dir/log/stage_name/task_id.
@@ -198,6 +202,7 @@ class Execution(Base):
         :param dry: (bool) if True, do not actually run any jobs.
         :param set_successful: (bool) sets this execution as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this execution later.
+
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
@@ -207,6 +212,9 @@ class Execution(Base):
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
             self, self.cosmos_app.default_drm, self.output_dir))
+
+        self.max_cores = max_cores
+        self.max_attempts = max_attempts
 
         from ..job.JobManager import JobManager
 
