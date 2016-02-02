@@ -41,7 +41,8 @@ def default_prepend(execution_output_dir, task_output_dir, cd_to_task_output_dir
            'set -e\n' \
            'set -o pipefail\n' \
            'EXECUTION_OUTPUT_DIR={ex_out}\n' \
-           '{mkdir}' \
+           '{mkdir}\n' \
+           '{cd_to}' \
            '\n\n'.format(ex_out=execution_output_dir,
                          mkdir=mkdir,
                          cd_to='cd %s' % task_output_dir if cd_to_task_output_dir else '')
