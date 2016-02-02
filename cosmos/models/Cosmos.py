@@ -35,7 +35,6 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
     queue = ' -q %s' % queue if queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
-
     if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
@@ -52,8 +51,8 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
 
         resource_str = ','.join(g())
 
-        return '-pe {parallel_env} {core_req} {priority} -N "{jobname}"'.format(resource_str=resource_str, priority=priority,
-                                                                               jobname=jobname, core_req=core_req, parallel_env=parallel_env)
+        return '-pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority, queue=queue,
+                                                                                       jobname=jobname, core_req=core_req, parallel_env=parallel_env)
     elif drm == 'local':
         return None
     else:
@@ -146,7 +145,7 @@ class Cosmos(object):
         :returns: An Execution instance.
         """
         assert os.path.exists(
-            os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
+                os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         output_dir = os.path.abspath(output_dir)
         output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         prefix_dir = os.path.split(output_dir)[0]
