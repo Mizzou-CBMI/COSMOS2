@@ -220,7 +220,7 @@ class Execution(Base):
 
         if self.jobmanager is None:
             self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
-                                         default_queue=self.cosmos_app.default_queue, cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
+                                         cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
                                          )
 
         self.status = ExecutionStatus.running

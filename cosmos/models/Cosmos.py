@@ -12,17 +12,17 @@ from concurrent import futures
 from datetime import datetime
 
 
-def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
+def default_get_submit_args(task, queue=None, parallel_env='orte'):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
     to be submitted with `bsub -n 3`.
 
     :param cosmos.Task task: The Task being submitted.
-    :param default_queue: The default queue.
+    :param queue: The default queue.
     :rtype: str
     """
-    drm = task.drm or default_queue
+    drm = task.drm or queue
     default_job_priority = None
     use_mem_req = False
     use_time_req = False
@@ -32,7 +32,7 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     time_req = task.time_req if use_time_req else None
 
     jobname = '%s_task(%s)' % (task.stage.name, task.id)
-    queue = ' -q %s' % default_queue if default_queue else ''
+    queue = ' -q %s' % queue if queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
 
@@ -64,7 +64,7 @@ class Cosmos(object):
     def __init__(self,
                  database_url='sqlite:///:memory:',
                  get_submit_args=default_get_submit_args,
-                 default_drm='local', default_queue=None,
+                 default_drm='local',
                  flask_app=None):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
@@ -107,7 +107,7 @@ class Cosmos(object):
         # session_factory = sessionmaker(bind=engine)
         # self.Session = flask_scoped_session(session_factory, flask_app)
 
-        self.default_queue = default_queue
+        # self.default_queue = default_queue
         self.default_drm = default_drm
 
     def configure_flask(self):
