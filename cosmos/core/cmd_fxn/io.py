@@ -91,7 +91,8 @@ def _validate_input_mapping(cmd_name, param_name, find_instance, mapped_input_ta
         import sys
 
         print >> sys.stderr
-        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter `{param_name}` with default: {find_instance}"'.format(
+        print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter ' \
+                             '`{param_name}` with default: {find_instance}, num_parents={num_parents}"'.format(num_parents=len(parents),
                 **locals())
         for parent in parents:
             print >> sys.stderr, '\t<PARENT task="%s">' % parent

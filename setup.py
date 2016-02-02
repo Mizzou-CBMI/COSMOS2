@@ -52,6 +52,7 @@ else:
 setup(
     name="cosmos-wfm",
     version=__version__,
+    scripts=['bin/cosmos'],
     description="Workflow Management System",
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
