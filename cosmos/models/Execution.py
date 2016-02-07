@@ -170,9 +170,15 @@ class Execution(Base):
             output_files = io.unpack_io_map(output_map)
             call_kwargs = signature.get_call_kwargs(cmd_fxn, tags, input_map, output_map)
 
+            f = lambda (name, default): tags.get(name) or call_kwargs.get(name) or default
+
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
-                        output_files=output_files, output_dir=out_dir, drm=call_kwargs.get('drm', self.cosmos_app.default_drm),
-                        **{k: call_kwargs[k] for k in ['mem_req', 'time_req', 'core_req', 'must_succeed'] if k in call_kwargs})
+                        output_files=output_files, output_dir=out_dir,
+                        drm=f('drm', self.cosmos_app.default_drm),
+                        core_req=f('core_req', 1),
+                        must_succeed=f('must_succeed', True),
+                        mem_req=f('mem_req', None),
+                        time_req=f('time_req', None))
 
             task.cmd_fxn = cmd_fxn
             task.input_map = input_map
