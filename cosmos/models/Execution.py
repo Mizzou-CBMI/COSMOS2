@@ -172,7 +172,7 @@ class Execution(Base):
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
                         output_files=output_files, output_dir=out_dir, drm=call_kwargs.get('drm', self.cosmos_app.default_drm),
-                        **{k: call_kwargs[k] for k in ['drm', 'mem_req', 'time_req', 'core_req', 'must_succeed'] if k in call_kwargs})
+                        **{k: call_kwargs[k] for k in ['mem_req', 'time_req', 'core_req', 'must_succeed'] if k in call_kwargs})
 
             task.cmd_fxn = cmd_fxn
             task.input_map = input_map
