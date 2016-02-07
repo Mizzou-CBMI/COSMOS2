@@ -170,7 +170,7 @@ class Execution(Base):
             output_files = io.unpack_io_map(output_map)
             call_kwargs = signature.get_call_kwargs(cmd_fxn, tags, input_map, output_map)
 
-            f = lambda (name, default): tags.get(name) or call_kwargs.get(name) or default
+            f = lambda name, default: tags.get(name) or call_kwargs.get(name) or default
 
             task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
                         output_files=output_files, output_dir=out_dir,
