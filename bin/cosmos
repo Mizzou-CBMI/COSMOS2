@@ -9,7 +9,7 @@ def runweb(db_url_or_path_to_sqlite, default_drm, host, port):
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
 
-    cosmos_app = Cosmos(database_url=database_url, default_drm=default_drm, default_queue='')
+    cosmos_app = Cosmos(database_url=database_url, default_drm=default_drm)
 
     cosmos_app.runweb(host, port)
 
