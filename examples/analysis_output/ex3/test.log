@@ -1,0 +1,10 @@
+INFO: 2016-02-16 09:17:37: Preparing to run <Execution[1] Example1> using DRM `local`, output_dir: `/Users/egafni/projects/Cosmos/examples/analysis_output/ex3`
+INFO: 2016-02-16 09:17:37: <Stage[1] Cmd> Has not been attempted
+INFO: 2016-02-16 09:17:37: Skipping 0 successful tasks...
+INFO: 2016-02-16 09:17:37: Committing to SQL db...
+INFO: 2016-02-16 09:17:37: Executing TaskGraph
+INFO: 2016-02-16 09:17:37: <Stage[1] Cmd> Running 1/1 tasks
+INFO: 2016-02-16 09:17:37: <Task[1] Cmd(out_file='test.txt', in_files=[[u'a', u'b', u'in_file']])> Submitted to the job manager. drm=local; drm_jobid=27273
+INFO: 2016-02-16 09:17:37: <Task[1] Cmd(out_file='test.txt', in_files=[[u'a', u'b', u'in_file']])> Finished successfully
+INFO: 2016-02-16 09:17:37: <Stage[1] Cmd> Finished successfully (1/1 tasks were successful)
+INFO: 2016-02-16 09:17:37: <Execution[1] Example1> Successfully Finished, output_dir: /Users/egafni/projects/Cosmos/examples/analysis_output/ex3
