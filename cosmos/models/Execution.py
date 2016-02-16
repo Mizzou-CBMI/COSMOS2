@@ -4,9 +4,11 @@ import atexit
 import sys
 import time
 import datetime
-
 import os
 import re
+import signal
+import types
+
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
@@ -14,22 +16,20 @@ from sqlalchemy.orm import validates, synonym, relationship
 from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
-import types
 
 from ..util.iterstuff import only_one
 from ..util.helpers import duplicates
+from ..util.helpers import get_logger
+from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
 
 opj = os.path.join
-import signal
 
 from .. import TaskStatus, StageStatus, ExecutionStatus, signal_execution_status_change
 from .Task import Task
 
-from ..util.helpers import get_logger
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 
 
 def default_task_log_output_dir(task):
@@ -66,6 +66,7 @@ class Execution(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
+    primary_log_path = Column(String(255))
 
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
@@ -116,7 +117,7 @@ class Execution(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, 'execution.log'))
+        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, self.primary_log_path))
 
     def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """

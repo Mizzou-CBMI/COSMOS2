@@ -41,13 +41,12 @@ def run_ex1(execution):
     else:
         print 'Pygraphviz is not available :('
 
-    execution.run()
+    execution.run(max_attempts=1, max_cores=10)
 
 
 if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
 
-    execution = cosmos.start('Example1', 'analysis_output/ex1', max_attempts=1, restart=True, skip_confirm=True,
-                             max_cores=10)
+    execution = cosmos.start('Example1', 'analysis_output/ex1',restart=True, skip_confirm=True)
     run_ex1(execution)

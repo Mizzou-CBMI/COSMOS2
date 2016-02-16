@@ -4,23 +4,25 @@ from cosmos.api import Cosmos
 import argparse
 import os
 
-def runweb(db_url_or_path_to_sqlite, default_drm, host, port):
+
+def runweb(db_url_or_path_to_sqlite,host, port):
     if '://' not in db_url_or_path_to_sqlite:
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
 
-    cosmos_app = Cosmos(database_url=database_url, default_drm=default_drm, default_queue='')
+    cosmos_app = Cosmos(database_url=database_url)
 
     cosmos_app.runweb(host, port)
+
 
 def shell(db_url_or_path_to_sqlite):
     if '://' not in db_url_or_path_to_sqlite:
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
 
-
     cosmos_app = Cosmos(database_url=database_url)
     cosmos_app.shell()
+
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
@@ -28,7 +30,6 @@ if __name__ == '__main__':
 
     sp = sps.add_parser('runweb')
     sp.add_argument('db_url_or_path_to_sqlite')
-    sp.add_argument('-d','--default_drm', default='local')
     sp.add_argument('--host', '-H', default='0.0.0.0')
     sp.add_argument('--port', '-p', type=int)
     sp.set_defaults(func=runweb)
