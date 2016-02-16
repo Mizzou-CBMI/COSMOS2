@@ -18,4 +18,4 @@ print 'task.tags', t.tags
 print 'task.input_files', t.input_files
 print 'task.output_files', t.output_files
 
-# execution.run()
+execution.run()

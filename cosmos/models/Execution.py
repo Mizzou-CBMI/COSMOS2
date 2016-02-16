@@ -66,7 +66,7 @@ class Execution(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
-    primary_log_path = Column(String(255), default='execution.log')
+    primary_log_path = Column(String(255))
 
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))

@@ -135,7 +135,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, ):
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, primary_log_path='execution.log'):
         from .Execution import Execution
 
         """
@@ -145,6 +145,7 @@ class Cosmos(object):
         :param str output_dir: The directory to write files to.  Defaults to the current working directory.
         :param bool restart: If True and the execution exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
+        :param primary_log_path: The name of the primary log to write to.
 
         :returns: An Execution instance.
         """
@@ -211,7 +212,7 @@ class Cosmos(object):
             # if check_output_dir:
             #     assert not os.path.exists(output_dir), 'Execution.output_dir `%s` already exists.' % (output_dir)
 
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, manual_instantiation=False)
+            ex = Execution(id=old_id, name=name, output_dir=output_dir, primary_log_path=primary_log_path, manual_instantiation=False)
             mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
