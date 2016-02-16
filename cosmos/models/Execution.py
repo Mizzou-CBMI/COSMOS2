@@ -66,7 +66,7 @@ class Execution(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
-    log_output_path = Column(String(255), default='execution.log')
+    primary_log_path = Column(String(255), default='execution.log')
 
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
@@ -117,7 +117,7 @@ class Execution(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, self.log_output_path))
+        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, self.primary_log_path))
 
     def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
