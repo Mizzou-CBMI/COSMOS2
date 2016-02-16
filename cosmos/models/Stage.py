@@ -15,7 +15,11 @@ from cosmos import ACCEPTABLE_TAG_TYPES
 
 @signal_stage_status_change.connect
 def task_status_changed(stage):
-    stage.log.info('%s %s (%s tasks)' % (stage, stage.status, len(stage.tasks)))
+    if stage.status == StageStatus.running:
+        stage.log.info('%s %s %s/%s tasks' % (stage, stage.status, sum(not t.successful for t in stage.tasks), len(stage.tasks)))
+    else:
+        stage.log.info('%s %s (%s/%s tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
+
     if stage.status == StageStatus.successful:
         stage.successful = True
 
@@ -121,14 +125,14 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self, delete_files=False, delete_descendants=False):
+    def delete(self, delete_files=False, descendants=False):
         """
         Deletes this stage
         :param delete_files: Delete all files (will be slow if there are a lot of files)
-        :param delete_descendants: Also delete all descendants of this stage
+        :param descendants: Also delete all descendants of this stage
         :return: None
         """
-        if delete_descendants:
+        if descendants:
             self.log.info('Deleting all descendants of %s' % self)
             for stage in reversed(list(self.descendants())):
                 stage.delete(delete_files)
@@ -143,12 +147,12 @@ class Stage(Base):
     def filter_tasks(self, **filter_by):
         return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
-    def get_task(self, tags, default='ERROR'):
+    def get_task(self, tags, default='ERROR@#$'):
         tags = {k: v for k, v in tags.items() if isinstance(v, ACCEPTABLE_TAG_TYPES)}  # These are the only tags that actually get saved to the DB
         for task in self.tasks:
             if task.tags == tags:
                 return task
-        if default == 'ERROR':
+        if default == 'ERROR@#$':
             raise KeyError('Task with tags %s does not exist' % tags)
         else:
             return default

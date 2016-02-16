@@ -84,29 +84,33 @@ class Cosmos(object):
             self.flask_app.secret_key = os.urandom(24)
 
         self.get_submit_args = get_submit_args
-        self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-        self.flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # self.flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.flask_app.jinja_env.globals['time_now'] = datetime.now()
         # self.flask_app.config['SQLALCHEMY_ECHO'] = True
 
-        from flask_sqlalchemy import SQLAlchemy
-
-        self.sqla = SQLAlchemy(self.flask_app)
-        self.session = self.sqla.session
+        # from flask_sqlalchemy import SQLAlchemy
+        #
+        #
+        # self.sqla = SQLAlchemy(self.flask_app)
+        # self.session = self.sqla.session
 
         from sqlalchemy.pool import StaticPool, NullPool
         from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
+        from sqlalchemy.orm import sessionmaker, scoped_session
+        from sqlalchemy.ext.declarative import declarative_base
 
-        engine = create_engine(database_url)
-        # connect_args={'check_same_thread':False},
-        # poolclass=StaticPool)
+        engine = create_engine(database_url, convert_unicode=True)
+        self.session = scoped_session(sessionmaker(autocommit=False,
+                                                   autoflush=False,
+                                                   bind=engine))
+        Base = declarative_base()
+        Base.query = self.session.query_property()
 
-        # from flask_sqlalchemy_session import flask_scoped_session, current_session
-        # session_factory = sessionmaker(bind=engine)
-        # self.Session = flask_scoped_session(session_factory, flask_app)
+        @self.flask_app.teardown_appcontext
+        def shutdown_session(exception=None):
+            self.session.remove()
 
-        # self.default_queue = default_queue
         self.default_drm = default_drm
 
     def configure_flask(self):
@@ -131,7 +135,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False):
+    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, ):
         from .Execution import Execution
 
         """
