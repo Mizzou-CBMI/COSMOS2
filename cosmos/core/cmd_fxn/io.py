@@ -112,6 +112,9 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
 
     # funcsigs._empty
     for param_name, param in sig.parameters.iteritems():
+        if isinstance(param.default, FindFromParents):
+            assert param_name.startswith('in_'), 'Input parameter names must start with out_'
+
         if param_name.startswith('in_'):
             value = tags.get(param_name, param.default)
             if value == funcsigs._empty:
@@ -141,6 +144,9 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
+        if isinstance(param.default, OutputDir):
+            assert param_name.startswith('out_'), 'Output parameter names must start with out_'
+
         if param_name.startswith('out_'):
             value = tags.get(param_name, param.default)
 
