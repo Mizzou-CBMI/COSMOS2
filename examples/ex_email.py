@@ -1,7 +1,6 @@
 from cosmos.api import Cosmos, signal_execution_status_change, ExecutionStatus
 from ex1 import run_ex1
 import os
-from cosmos.util.helpers import mkdir
 
 def run_ex3(execution):
     @signal_execution_status_change.connect
