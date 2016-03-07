@@ -4,7 +4,7 @@ from .models.Cosmos import Cosmos, default_get_submit_args
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Execution import Execution
-from . import ExecutionStatus, StageStatus, TaskStatus, NOOP
+from . import ExecutionStatus, StageStatus, TaskStatus, NOOP, signal_execution_status_change, signal_stage_status_change, signal_task_status_change
 
 from .util.args import add_execution_args, pop_execution_args
 from .util.relationship_patterns import one2one, one2many, many2one, many2many, group

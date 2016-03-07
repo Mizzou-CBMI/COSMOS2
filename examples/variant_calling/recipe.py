@@ -11,12 +11,13 @@ def variant_call(execution, bam_path, target_bed_path, max_complex_gap):
     """
     contigs = sp.check_output("cat %s |cut -f1|uniq" % target_bed_path, shell=True).strip().split("\n")
 
-    bed_tasks = [execution.add_task(tools.filter_bed_by_contig, tags=dict(in_bam=bam_path, in_bed=target_bed_path, contig=contig), out_dir='work/{contig}')
-                 for contig in contigs ]
+    freebayes_tasks = []
+    for contig in contigs:
+        bed_task = execution.add_task(tools.filter_bed_by_contig, tags=dict(in_bam=bam_path, in_bed=target_bed_path, contig=contig), out_dir='work/{contig}')
+        freebayes_task = execution.add_task(tools.freebayes, tags=dict(max_complex_gap=max_complex_gap), parents=bed_task, out_dir='work/{contig}')
+        freebayes_tasks.append(freebayes_task)
 
-    freebayes_tasks = one2one(tools.freebayes, bed_tasks, dict(max_complex_gap=max_complex_gap))
-
-    merge_vcf_tasks = many2one(tools.vcf_concat_parts, freebayes_tasks)
+    merge_vcf_tasks = many2one(tools.vcf_concat_parts, parents=freebayes_tasks)
 
     execution.run()
 
