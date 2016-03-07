@@ -76,7 +76,7 @@ class Cosmos(object):
         assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa'], 'unsupported drm: %s' % default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
-        self.futures_executor = futures.ThreadPoolExecutor(10)
+        # self.futures_executor = futures.ThreadPoolExecutor(10)
         if flask_app:
             self.flask_app = flask_app
         else:
@@ -95,7 +95,6 @@ class Cosmos(object):
         # self.sqla = SQLAlchemy(self.flask_app)
         # self.session = self.sqla.session
 
-        from sqlalchemy.pool import StaticPool, NullPool
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker, scoped_session
         from sqlalchemy.ext.declarative import declarative_base
@@ -135,7 +134,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir=os.getcwd(), restart=False, skip_confirm=False, primary_log_path='execution.log'):
+    def start(self, name, output_dir, restart=False, skip_confirm=False, primary_log_path='execution.log'):
         from .Execution import Execution
 
         """

@@ -16,9 +16,9 @@ from cosmos import ACCEPTABLE_TAG_TYPES
 @signal_stage_status_change.connect
 def task_status_changed(stage):
     if stage.status == StageStatus.running:
-        stage.log.info('%s %s %s/%s tasks' % (stage, stage.status, sum(not t.successful for t in stage.tasks), len(stage.tasks)))
+        stage.log.info('%s %s (%s/%s tasks)' % (stage, stage.status, sum(not t.successful for t in stage.tasks), len(stage.tasks)))
     else:
-        stage.log.info('%s %s (%s/%s tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
+        stage.log.info('%s %s (%s/%s successful tasks)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
 
     if stage.status == StageStatus.successful:
         stage.successful = True
