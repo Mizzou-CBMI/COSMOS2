@@ -164,6 +164,9 @@ class Task(Base):
     input_files = Column(MutableList.as_mutable(ListOfStrings))
     output_files = Column(MutableList.as_mutable(ListOfStrings))
 
+    # in_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    # out_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+
     # command = Column(Text)
 
     drm_native_specification = Column(String(255))

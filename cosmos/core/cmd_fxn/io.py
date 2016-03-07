@@ -93,7 +93,7 @@ def _validate_input_mapping(cmd_name, param_name, find_instance, mapped_input_ta
         print >> sys.stderr
         print >> sys.stderr, '<ERROR msg="{cmd_name}() does not have right number of inputs for parameter ' \
                              '`{param_name}` with default: {find_instance}, num_parents={num_parents}"'.format(num_parents=len(parents),
-                **locals())
+                                                                                                               **locals())
         for parent in parents:
             print >> sys.stderr, '\t<PARENT task="%s">' % parent
             if len(parent.output_files):
@@ -112,11 +112,13 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
 
     # funcsigs._empty
     for param_name, param in sig.parameters.iteritems():
+        if isinstance(param.default, FindFromParents):
+            assert param_name.startswith('in_'), 'Input parameter names must start with out_'
+
         if param_name.startswith('in_'):
             value = tags.get(param_name, param.default)
             if value == funcsigs._empty:
-                raise AssertionError, '%s Bad input `%s`, with default `%s`.  Set its default to find(), or specify ' \
-                                      'its value via tags' % (cmd_name, param_name, param.default)
+                raise ValueError, 'Required input file parameter `%s` not specified for `%s`' % (param_name, cmd_name)
             elif isinstance(value, FindFromParents):
                 # user used find()
                 find_instance = value
@@ -141,6 +143,9 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
+        if isinstance(param.default, OutputDir):
+            assert param_name.startswith('out_'), 'Output parameter names must start with out_'
+
         if param_name.startswith('out_'):
             value = tags.get(param_name, param.default)
 

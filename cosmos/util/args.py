@@ -8,16 +8,19 @@ def get_last_cmd_executed():
 
 
 def add_execution_args(parser):
-    parser.add_argument('-n', '--name', help="A name for this execution", required=True)
+    p = parser
+    p.add_argument('-n', '--name', help="A name for this execution", required=True)
     # parser.add_argument('-o', '--output_dir', type=str, help="The directory to output files to.  Path should not exist if this is a new execution.")
-    parser.add_argument('-c', '--max_cores', type=int,
-                        help="Maximum number (based on the sum of core_requirement) of cores to use at once.  0 means unlimited", default=None)
-    parser.add_argument('-a', '--max_attempts', type=int,
-                        help="Maximum number of times to try running a Task that must succeed before the execution fails", default=1)
-    parser.add_argument('-r', '--restart', action='store_true',
-                        help="Completely restart the execution.  Note this will delete all record of the execution in the database")
-    parser.add_argument('-y', '--skip_confirm', action='store_true',
-                        help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
+
+    p.add_argument('--name', '-n', help="A name for this execution", required=True)
+    p.add_argument('--max_cores', '-c', type=int,
+                   help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means unlimited", default=None)
+    p.add_argument('--max_attempts', '-a', type=int,
+                   help="Maximum number of times to try running a Task that must succeed before the execution fails", default=1)
+    p.add_argument('--restart', '-r', action='store_true',
+                   help="Completely restart the execution.  Note this will delete all record of the execution in the database")
+    p.add_argument('--skip_confirm', '-y', action='store_true',
+                   help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
 
 
 def pop_execution_args(kwargs):

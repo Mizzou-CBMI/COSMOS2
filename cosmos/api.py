@@ -29,7 +29,7 @@ def arg(name, value):
         if value == True:
             return name
         else:
-            return ' %s %s' % (name, value)
+            return '%s %s' % (name, value)
     else:
         return ''
 
