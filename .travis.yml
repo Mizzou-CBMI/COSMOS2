@@ -1,0 +1,49 @@
+language: python
+
+# whitelist
+branches:
+  only:
+    - master
+    - Travis
+    - develop
+
+python:
+  - "2.7"
+
+# Befor installation
+before_install:
+
+  - sudo apt-get update -qq
+
+# command to install dependencies
+install:
+  - pip install .
+
+# command to run tests
+script: python  examples/ex1.py 
+
+notifications:
+  email:
+    recipients:
+      - yassinesouilmi@gmail.com
+      - egafni@gmail.com
+
+  # Gitter notifications
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/69b116e4116196985f1b
+      - https://webhooks.gitter.im/e/d633832f63a4e7c2ad7f
+
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
+
+  slack: 
+
+    rooms:
+      - biostandards:sWYxFbqTh8MdyTeZkC7ZisgN#travis-ci
+      - enterprisegenomics:Z5VoMKtrbyGNdWXW9Ovf06d4#travis-ci
+    
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
