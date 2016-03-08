@@ -1,3 +1,11 @@
+.. image:: https://travis-ci.org/yassineS/COSMOS-2.0.svg?branch=master
+    :target: https://travis-ci.org/yassineS/COSMOS-2.0
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/LPM-HMS/Cosmos2
+   :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+
 COSMOS is currently BETA.  Although the code is considered stable,
 we are planning a major publication before the official release.
 
@@ -5,11 +13,10 @@ we are planning a major publication before the official release.
 For more information and the full documentation please visit
 `http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
 
-To chat with the author/other users (many of which use COSMOS to make bioinformatics NGS workflows), use gitter:
+To chat with the author/other users (many of which use COSMOS to make bioinformatics NGS workflows), join the chat on gitter at:
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/LPM-HMS/Cosmos2
-   :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+`https://gitter.im/LPM-HMS/Cosmos2/ <https://gitter.im/LPM-HMS/Cosmos2/>`_.
+
 
 Install
 ==========
