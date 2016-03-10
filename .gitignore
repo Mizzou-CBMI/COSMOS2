@@ -1,3 +1,4 @@
+examples/analysis_output
 ve/
 *.db
 *.egg-info
