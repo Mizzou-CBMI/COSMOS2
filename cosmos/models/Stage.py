@@ -40,7 +40,6 @@ class StageEdge(Base):
         self.parent = parent
         self.child = child
 
-
     def __str__(self):
         return '<StageEdge: %s -> %s>' % (self.parent, self.child)
 
@@ -73,7 +72,6 @@ class Stage(Base):
                            )
     tasks = relationship("Task", backref="stage", cascade="all, merge, delete-orphan", passive_deletes=True)
 
-
     @declared_attr
     def status(cls):
         def get_status(self):
@@ -105,17 +103,17 @@ class Stage(Base):
 
         return self.session.query(Task)
 
-    def num_tasks(self):
-        return self.tasksq.count()
+    #
+    # def num_tasks(self):
+    #     return self.tasksq.count()
 
     def num_successful_tasks(self):
-        return self.tasksq.filter_by(stage=self, successful=True).count()
-        # return len(filter(lambda t: t.successful, self.tasks))
+        # return self.tasksq.filter_by(stage=self, successful=True).count()
+        return len(filter(lambda t: t.successful, self.tasks))
 
     def num_failed_tasks(self):
-        return self.tasksq.filter_by(stage=self, status=TaskStatus.failed).count()
-        # return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
-
+        # return self.tasksq.filter_by(stage=self, status=TaskStatus.failed).count()
+        return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
 
     @property
     def url(self):
@@ -157,7 +155,6 @@ class Stage(Base):
         else:
             return default
 
-
     # def get_task(self, **filter_by):
     #     tasks = self.filter_tasks(**filter_by)
     #     assert len(tasks) > 0, 'no task found with tags %s' % filter_by
@@ -191,4 +188,3 @@ class Stage(Base):
 
     def __repr__(self):
         return '<Stage[%s] %s>' % (self.id or '', self.name)
-
