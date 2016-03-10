@@ -16,7 +16,7 @@ def cmd(in_files, out_file):
     """.format(**locals())
 
 
-t = execution.add_task(cmd, tags=dict(in_files=[('a', 'b', 'in_file')], out_file='test.txt'))
+t = execution.add_task(cmd, tags=dict(in_files=[('a', 'b', 'in_file')], out_file='out.txt'))
 
 print 'Task:', t
 print 'task.tags', t.tags

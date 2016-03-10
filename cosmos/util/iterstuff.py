@@ -32,8 +32,8 @@ def only_one(iterable, default=_nothing, sentinel=_nothing):
 def chunked(iterable, n):
     """Break an iterable into lists of a given length::
 
-        >>> list(chunked([1, 2, 3, 4, 5, 6, 7], 3))
-        [[1, 2, 3], [4, 5, 6], [7]]
+    >>> list(chunked([1, 2, 3, 4, 5, 6, 7], 3))
+    [(1, 2, 3), (4, 5, 6), (7,)]
 
     If the length of ``iterable`` is not evenly divisible by ``n``, the last
     returned list will be shorter.

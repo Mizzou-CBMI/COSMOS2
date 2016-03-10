@@ -3,11 +3,11 @@ import os
 import getpass
 from collections import OrderedDict
 
-import pandas as pd
 from xml import etree
 import xml.etree.ElementTree as ET
 
 def qstat(user=getpass.getuser()):
+    import pandas as pd
     """
     returns a dict keyed by lsf job ids, who's values are a dict of bjob
     information about the job

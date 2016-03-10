@@ -68,15 +68,6 @@ def confirm(prompt=None, default=False, timeout=0):
 
     :param timeout: (int) If set, prompt will return default.
 
-    >>> confirm(prompt='Create Directory?', default=True)
-    Create Directory? [y]|n:
-    True
-    >>> confirm(prompt='Create Directory?', default=False)
-    Create Directory? [n]|y:
-    False
-    >>> confirm(prompt='Create Directory?', default=False)
-    Create Directory? [n]|y: y
-    True
     """
 
     class TimeOutException(Exception):

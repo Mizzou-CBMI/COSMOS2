@@ -61,6 +61,8 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="MIT",
     install_requires=install_requires,
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     packages=find_packages(),
     # package_dir=package_dir,
     include_package_data=True,

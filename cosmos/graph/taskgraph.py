@@ -5,7 +5,7 @@ import networkx as nx
 
 from ..util.helpers import duplicates, str_format
 from ..util.sqla import get_or_create
-from .. import Stage
+from cosmos.api import Stage
 
 def get_or_create_task(successful_tasks, tags, stage, parents, default_drm, output_dir_pre_interpolation, tool=None):
     output_dir = str_format(output_dir_pre_interpolation, tags)

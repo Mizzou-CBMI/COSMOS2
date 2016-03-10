@@ -49,11 +49,11 @@ def bash_call(func, *args, **kwargs):
        * This means no partials! So parameters must all be passed as tags.
 
 
-    >>> def echo(arg1, out_file=out_dir('out.txt')):
-    >>>     with open(out_file) as fp:
-    >>>         print >> fp, arg1
+    def echo(arg1, out_file=out_dir('out.txt')):
+        with open(out_file) as fp:
+            print >> fp, arg1
 
-    >>> bash_call(echo)(arg1='hello world')
+    bash_call(echo)(arg1='hello world')
     python - <<EOF
 
     from my_module import echo
