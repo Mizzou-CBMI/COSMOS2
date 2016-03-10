@@ -1,5 +1,7 @@
 examples/analysis_output
 ve/
+*.egg
+.cache
 *.db
 *.egg-info
 test/out
