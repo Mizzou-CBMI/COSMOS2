@@ -22,6 +22,3 @@ def add_execution_args(parser):
                    help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
 
 
-def pop_execution_args(kwargs):
-    args = ['name', 'max_cores', 'max_attempts', 'restart', 'skip_confirm']
-    return {k: kwargs[k] for k in args}, {k: kwargs[k] for k in kwargs if k not in args}

@@ -119,7 +119,7 @@ class Execution(Base):
     def log(self):
         return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, self.primary_log_path or 'execution.log'))
 
-    def add_task2(self, cmd_fxn, in_map, out_map, tags, parents, uid, stage_name):
+    def add_task2(self, cmd_fxn, params, parents, uid, stage_name):
         """
 
         :param cmd_fxn:
