@@ -5,6 +5,7 @@ code, and make your own functions for similar patterns.
 """
 
 import os
+import subprocess as sp
 from cosmos.api import Cosmos, one2one
 from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
@@ -51,5 +52,6 @@ if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
 
+    sp.check_call('mkdir -p analysis_output/ex1', shell=True)
     execution = cosmos.start('Example2', 'analysis_output/ex2', restart=True, skip_confirm=True)
     run_ex2(execution)

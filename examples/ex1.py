@@ -1,4 +1,5 @@
 import os
+import subprocess as sp
 from cosmos.api import Cosmos, draw_stage_graph, draw_task_graph, pygraphviz_available
 from tools import echo, cat, word_count
 
@@ -48,5 +49,6 @@ if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
 
+    sp.check_call('mkdir -p analysis_output/ex1', shell=True)
     execution = cosmos.start('Example1', 'analysis_output/ex1',restart=True, skip_confirm=True)
     run_ex1(execution)

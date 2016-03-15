@@ -1,4 +1,4 @@
-examples/analysis_output
+examples/analysis_output/*
 ve/
 *.egg
 .cache
