@@ -31,7 +31,7 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
     mem_req = task.mem_req if use_mem_req else None
     time_req = task.time_req if use_time_req else None
 
-    jobname = '%s_task(%s)' % (task.stage.name, task.id)
+    jobname = '%s[%s]' % (task.stage.name, task.id)
     queue = ' -q %s' % queue if queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 

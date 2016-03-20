@@ -1,14 +1,14 @@
 .. image:: https://travis-ci.org/LPM-HMS/Cosmos2.svg?branch=master
     :target: https://travis-ci.org/LPM-HMS/Cosmos2
 
-COSMOS is currently BETA.  Although the code is considered stable,
+Cosmos is currently BETA.  Although the code is considered stable,
 we are planning a major publication before the official release.
 
 
 For more information and the full documentation please visit
-`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
+`http://lpm-hms.github.io/Cosmos2/ <http://lpm-hms.github.io/Cosmos2/>`_. 
 
-To chat with the author/other users (many of which use COSMOS to make bioinformatics NGS workflows), use gitter:
+To chat with the author/other users (many of which use Cosmos to make bioinformatics NGS workflows), use gitter:
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/LPM-HMS/Cosmos2
@@ -35,8 +35,8 @@ powerful when combined with spot instances on `Amazon Web Services <aws.amazon.c
 History
 ___________
 
-COSMOS was published as an Application Note in the journal `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_,
-but has evolved a lot since it's original inception.  If you use COSMOS
+Cosmos was published as an Application Note in the journal `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_,
+but has evolved a lot since it's original inception.  If you use Cosmos
 for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
