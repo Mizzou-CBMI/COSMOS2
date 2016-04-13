@@ -123,15 +123,15 @@ class Stage(Base):
     def log(self):
         return self.execution.log
 
-    def delete(self, delete_files=False, descendants=False):
+    def delete(self, delete_files=False, delete_descendants=False):
         """
         Deletes this stage
         :param delete_files: Delete all files (will be slow if there are a lot of files)
-        :param descendants: Also delete all descendants of this stage
+        :param delete_descendants: Also delete all delete_descendants of this stage
         :return: None
         """
-        if descendants:
-            self.log.info('Deleting all descendants of %s' % self)
+        if delete_descendants:
+            self.log.info('Deleting all delete_descendants of %s' % self)
             for stage in reversed(list(self.descendants())):
                 stage.delete(delete_files)
 
@@ -146,7 +146,8 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
 
     def get_task(self, tags, default='ERROR@#$'):
-        tags = {k: v for k, v in tags.items() if isinstance(v, ACCEPTABLE_TAG_TYPES)}  # These are the only tags that actually get saved to the DB
+        tags = {k: v for k, v in tags.items() if
+                any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}  # These are the only tags that actually get saved to the DB
         for task in self.tasks:
             if task.tags == tags:
                 return task

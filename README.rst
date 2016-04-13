@@ -31,6 +31,9 @@ able to scale on a traditional cluster such as LSF or GridEngine with a shared f
 powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and
 `StarCluster <http://star.mit.edu/cluster/>`_.
 
+Cosmos was designed to solve the problem of compute-intensive and complex scientific data pipelines.  It's primary objective is to provide a simple but
+flexible api to specify complex job DAGs, a way to resume modified or failed workflows, and make debugging and provenance as easy as possible.
+
 
 History
 ___________

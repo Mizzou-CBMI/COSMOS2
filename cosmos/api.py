@@ -13,9 +13,11 @@ from .util.iterstuff import only_one
 
 from .graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 import funcsigs
+import re
 
 from black_magic.decorator import partial
 from decorator import decorator
+from cosmos.core.cmd_fxn.io import _validate_input_mapping, unpack_if_cardinality_1
 
 
 def load_input(in_file, out_file=forward('in_file')): pass
@@ -36,6 +38,16 @@ def arg(name, value):
 
 def args(*args):
     return " \\\n".join(arg(k, v) for k, v in args if arg(k, v) != '')
+
+
+def find2(regex, parents, n='==1'):
+    if isinstance(parents, Task):
+        parents = [parents]
+    g = (file_path for p in parents for file_path in p.output_files)
+    files = [file_path for file_path in g if re.search(regex, file_path)]
+    # validate cardinality and unpack...
+    _validate_input_mapping('cmd?', 'param?', find(regex,n), files, parents)
+    return unpack_if_cardinality_1(find(regex, n), files)
 
 
 @decorator

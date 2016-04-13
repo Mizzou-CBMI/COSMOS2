@@ -71,7 +71,7 @@ class JSONEncodedDict(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         value = six.text_type(json.dumps({k: v for k, v in value.items()
-                                          if isinstance(v, ACCEPTABLE_TAG_TYPES)}))
+                                          if any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}))
 
         return value
 

@@ -1,145 +1,152 @@
 {% extends "cosmos/layout.html" %}
 
 {% block title %}
-{{ execution.name }}
+    {{ execution.name }}
 {% endblock %}
 
 {% block content %}
 
-<ul class="breadcrumb">
-    <li><a href="{{ url_for('.index') }}">Home</a></li>
-    <li class="active">{{execution}}</li>
-</ul>
+    <ul class="breadcrumb">
+        <li><a href="{{ url_for('.index') }}">Home</a></li>
+        <li class="active">{{ execution }}</li>
+    </ul>
 
-<dl class="dl-horizontal">
+    <dl class="dl-horizontal">
 
-            <dt>name</dt>
-            <dd>{{ execution.name }}</dd>
-            <dt>output_dir</dt>
-            <dd>{{ execution.output_dir }}</dd>
-            <dt>status</dt>
-            <dd>{{ execution.status }}</dd>
-            <dt>successful</dt>
-            <dd>{{ execution.successful }}</dd>
-            <dt>started_on</dt>
-            <dd>{{ execution.started_on|datetime_format }}</dd>
-            <dt>finished_on</dt>
-            <dd>{{ execution.finished_on|datetime_format }}</dd>
-            <dt>max_cores</dt>
-            <dd>{{ execution.max_cores }}</dd>
-            <dt>max_attempts</dt>
-            <dd>{{ execution.max_attempts }}</dd>
+        <dt>name</dt>
+        <dd>{{ execution.name }}</dd>
+        <dt>output_dir</dt>
+        <dd>{{ execution.output_dir }}</dd>
+        <dt>status</dt>
+        <dd>{{ execution.status }}</dd>
+        <dt>successful</dt>
+        <dd>{{ execution.successful }}</dd>
+        <dt>started_on</dt>
+        <dd>{{ execution.started_on|datetime_format }}</dd>
+        <dt>finished_on</dt>
+        <dd>{{ execution.finished_on|datetime_format }}</dd>
+        <dt>max_cores</dt>
+        <dd>{{ execution.max_cores }}</dd>
+        <dt>max_attempts</dt>
+        <dd>{{ execution.max_attempts }}</dd>
 
-    {% for k,v in execution.info.items() %}
-    <dt>info.{{k}}</dt>
-    <dd>{{v}}</dd>
-    {% endfor %}
+        {% for k,v in execution.info.items() %}
+            <dt>info.{{ k }}</dt>
+            <dd>{{ v }}</dd>
+        {% endfor %}
 
-    <dt>output_dir</dt>
-    <dd>{{execution.output_dir}}</dd>
-    <dt>Visualize</dt>
-    <dd>
-        <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}">
-            <button type="button" class="btn btn-info btn-sm">
-                <span class="glyphicon glyphicon-eye-open"></span> StageGraph
-            </button></a>
-        <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}">
-            <button type="button" class="btn btn-info btn-sm">
-                <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
-            </button>
-        </a>
+        <dt>output_dir</dt>
+        <dd>{{ execution.output_dir }}</dd>
+        <dt>Visualize</dt>
+        <dd>
+            <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}">
+                <button type="button" class="btn btn-info btn-sm">
+                    <span class="glyphicon glyphicon-eye-open"></span> StageGraph
+                </button>
+            </a>
+            <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}">
+                <button type="button" class="btn btn-info btn-sm">
+                    <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
+                </button>
+            </a>
 
-    </dd>
-</dl>
+        </dd>
+    </dl>
 
 
-<div class="panel panel-primary">
-    <div class="panel-heading">
-        <span class="pull-right"></span>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <span class="pull-right"></span>
 
-        <h3 class="panel-title">{{execution}}.stages</h3>
+            <h3 class="panel-title">{{ execution }}.stages</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table table-condensed table-striped datatable" id="table_expected">
+                <thead>
+                <tr class="info">
+                    <th>#</th>
+                    <th>stage</th>
+                    <th>successful</th>
+                    <th>status</th>
+
+
+                    <th>tasks</th>
+                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>failed</th>
+                    <th style="text-align:center">avg<br>(% cpu)</th>
+                    <th style="text-align:center">avg<br>(core req)</th>
+                    <th style="text-align:center">avg<br>(max rss mem kb)</th>
+                    <th style="text-align:center">avg<br>(max vms mem kb)</th>
+                    <th style="text-align:center">avg<br>(mem req)</th>
+                    <th style="text-align:center">avg<br>(wall time)</th>
+                    <th style="text-align:center">avg<br>(cpu time)</th>
+                    <th style="text-align:center">avg<br>(io wait)</th>
+                    <th style="text-align:center">avg<br>(io)</th>
+
+
+                    <th>action</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for s in execution.stages %}
+                    <tr>
+                        <td>{{ s.number }}</td>
+                        <td><b><a href="{{ s.url }}">{{ s.name }}</a></b></td>
+                        <td>{{ s.successful|to_thumb }}</td>
+                        <td>{{ s.status }}</td>
+
+
+                        <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
+                        <td>
+                            {% with %}
+                                {% set successful = s.percent_successful() %}
+                                {% set running = s.percent_running() %}
+                                {% set failed = s.percent_failed() %}
+                                <div class="progress progress-striped">
+                                    <div class="progress-bar progress-bar-success progress-striped" style="width: {{ successful }}%">
+                                        <span class="sr-only">{{ successful }}% Complete (success)</span>
+                                    </div>
+                                    <div class="progress-bar progress-bar-warning progress-bar-striped" style="width: {{ running }}%">
+                                        <span class="sr-only">{{ running }}% Complete (running)</span>
+                                    </div>
+                                    <div class="progress-bar progress-bar-danger progress-striped" style="width: {{ failed }}%">
+                                        <span class="sr-only">{{ failed }}% Complete (failed)</span>
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        </td>
+                        <td>{{ s.num_failed_tasks() }}</td>
+                        <td>{{ s|stage_stat('percent_cpu', 'avg') }}</td>
+                        <td>{{ s|stage_stat('core_req', 'avg') }}</td>
+                        <td>{{ s|stage_stat('max_rss_mem_kb', 'avg') }}</td>
+                        <td>{{ s|stage_stat('max_vms_mem_kb', 'avg') }}</td>
+                        <td>{{ s|stage_stat('mem_req', 'avg') }}</td>
+                        <td>{{ s|stage_stat('wall_time', 'avg') }}</td>
+                        <td>{{ s|stage_stat('cpu_time', 'avg') }}</td>
+                        <td>{{ s|stage_stat('io_wait', 'avg') }}</td>
+                        <td>{{ s|stage_stat('io_write_kb', 'avg') }}</td>
+
+                        <td>
+                            <div class="btn-group btn-grou-xs" role="group" aria-label="button group">
+                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name, delete_descendants=0) }}"
+                                   onclick="return confirm('Are you sure? This will delete all Tasks in this stage.')" class="btn btn-warning btn-secondary">
+                                    <span class="glyphicon glyphicon-remove"> </span>
+                                </a>
+                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name, delete_descendants=1) }}"
+                                   onclick="return confirm('Are you sure? This will also delete all descendant/dependent tasks')"
+                                   class="btn btn-danger btn-secondary">
+                                    <span class="glyphicon glyphicon-remove-sign"> </span>
+                                </a>
+                            </div>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
     </div>
-    <div class="panel-body">
-        <table class="table table-condensed table-striped datatable" id="table_expected">
-            <thead>
-            <tr class="info">
-                <th>#</th>
-                <th>stage</th>
-                <th>successful</th>
-                <th>status</th>
-
-
-                <th>tasks</th>
-                <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                <th>failed</th>
-                <th style="text-align:center">avg<br>(%_cpu)</th>
-                <th style="text-align:center">avg<br>(core_req)</th>
-                <th style="text-align:center">avg<br>(max_rss_mem_kb)</th>
-                <th style="text-align:center">avg<br>(max_vms_mem_kb)</th>
-                <th style="text-align:center">avg<br>(mem_req)</th>
-                <th style="text-align:center">avg<br>(wall_time)</th>
-                <th style="text-align:center">avg<br>(cpu_time)</th>
-                <th style="text-align:center">avg<br>(io_wait)</th>
-                <th style="text-align:center">avg<br>(io)</th>
-
-
-                <th>action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for s in execution.stages %}
-            <tr>
-                <td>{{s.number}}</td>
-                <td><b><a href="{{ s.url  }}">{{ s.name }}</a></b></td>
-                <td>{{s.successful|to_thumb}}</td>
-                <td>{{ s.status }}</td>
-
-
-                <td>{{ s.num_successful_tasks() }}/{{ s.tasks|length }}</td>
-                <td>
-                    {% with %}
-                    {% set successful = s.percent_successful() %}
-                    {% set running = s.percent_running() %}
-                    {% set failed = s.percent_failed() %}
-                    <div class="progress progress-striped">
-                        <div class="progress-bar progress-bar-success progress-striped" style="width: {{successful}}%">
-                            <span class="sr-only">{{successful}}% Complete (success)</span>
-                        </div>
-                        <div class="progress-bar progress-bar-warning progress-bar-striped" style="width: {{running}}%">
-                            <span class="sr-only">{{running}}% Complete (running)</span>
-                        </div>
-                        <div class="progress-bar progress-bar-danger progress-striped" style="width: {{failed}}%">
-                            <span class="sr-only">{{failed}}% Complete (failed)</span>
-                        </div>
-                    </div>
-                    {%endwith%}
-                </td>
-                <td>{{ s.num_failed_tasks() }}</td>
-                <td>{{s|stage_stat('percent_cpu', 'avg')}}</td>
-                <td>{{s|stage_stat('core_req', 'avg')}}</td>
-                <td>{{s|stage_stat('max_rss_mem_kb', 'avg')}}</td>
-                <td>{{s|stage_stat('max_vms_mem_kb', 'avg')}}</td>
-                <td>{{s|stage_stat('mem_req', 'avg')}}</td>
-                <td>{{s|stage_stat('wall_time', 'avg')}}</td>
-                <td>{{s|stage_stat('cpu_time', 'avg')}}</td>
-                <td>{{s|stage_stat('io_wait', 'avg')}}</td>
-                <td>{{s|stage_stat('io_write_kb', 'avg')}}</td>
-
-                <td>
-                    <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name) }}"
-                       onclick="return confirm('Are you sure?')">
-                        <button type="button" class="btn btn-danger btn-xs">
-                            <span class="glyphicon glyphicon-remove"></span> delete
-                        </button>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-    </div>
-</div>
 
 
 {% endblock %}

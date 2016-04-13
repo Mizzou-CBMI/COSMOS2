@@ -24,12 +24,12 @@ from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
 from ..core.cmd_fxn import io
+from cosmos import ACCEPTABLE_TAG_TYPES
 
 opj = os.path.join
 
 from .. import TaskStatus, StageStatus, ExecutionStatus, signal_execution_status_change
 from .Task import Task
-
 
 
 def default_task_log_output_dir(task):
@@ -129,9 +129,8 @@ class Execution(Base):
         :param stage_name:
         :return:
         """
+
     pass
-
-
 
     def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
         """
@@ -148,6 +147,11 @@ class Execution(Base):
 
         if tags is None:
             tags = dict()
+        # for k, v in tags.iteritems():
+        #     if not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
+        #         raise ValueError('Error adding %s.  Tag type must be one of %s so that it can be persisted to the SQL database.  '
+        #                          'Offending tag: %s: %s, which is type %s' % (cmd_fxn, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
+
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
