@@ -1,50 +1,50 @@
 {% extends "cosmos/layout.html" %}
 
 {% block title %}
-    {{ execution.name }}
+    {{ workflow.name }}
 {% endblock %}
 
 {% block content %}
 
     <ul class="breadcrumb">
         <li><a href="{{ url_for('.index') }}">Home</a></li>
-        <li class="active">{{ execution }}</li>
+        <li class="active">{{ workflow }}</li>
     </ul>
 
     <dl class="dl-horizontal">
 
         <dt>name</dt>
-        <dd>{{ execution.name }}</dd>
+        <dd>{{ workflow.name }}</dd>
         <dt>output_dir</dt>
-        <dd>{{ execution.output_dir }}</dd>
+        <dd>{{ workflow.output_dir }}</dd>
         <dt>status</dt>
-        <dd>{{ execution.status }}</dd>
+        <dd>{{ workflow.status }}</dd>
         <dt>successful</dt>
-        <dd>{{ execution.successful }}</dd>
+        <dd>{{ workflow.successful }}</dd>
         <dt>started_on</dt>
-        <dd>{{ execution.started_on|datetime_format }}</dd>
+        <dd>{{ workflow.started_on|datetime_format }}</dd>
         <dt>finished_on</dt>
-        <dd>{{ execution.finished_on|datetime_format }}</dd>
+        <dd>{{ workflow.finished_on|datetime_format }}</dd>
         <dt>max_cores</dt>
-        <dd>{{ execution.max_cores }}</dd>
+        <dd>{{ workflow.max_cores }}</dd>
         <dt>max_attempts</dt>
-        <dd>{{ execution.max_attempts }}</dd>
+        <dd>{{ workflow.max_attempts }}</dd>
 
-        {% for k,v in execution.info.items() %}
+        {% for k,v in workflow.info.items() %}
             <dt>info.{{ k }}</dt>
             <dd>{{ v }}</dd>
         {% endfor %}
 
         <dt>output_dir</dt>
-        <dd>{{ execution.output_dir }}</dd>
+        <dd>{{ workflow.output_dir }}</dd>
         <dt>Visualize</dt>
         <dd>
-            <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}">
+            <a href="{{ url_for('.taskgraph', id=workflow.id, type='recipe') }}">
                 <button type="button" class="btn btn-info btn-sm">
                     <span class="glyphicon glyphicon-eye-open"></span> StageGraph
                 </button>
             </a>
-            <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}">
+            <a href="{{ url_for('.taskgraph', id=workflow.id, type='task') }}">
                 <button type="button" class="btn btn-info btn-sm">
                     <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
                 </button>
@@ -58,7 +58,7 @@
         <div class="panel-heading">
             <span class="pull-right"></span>
 
-            <h3 class="panel-title">{{ execution }}.stages</h3>
+            <h3 class="panel-title">{{ workflow }}.stages</h3>
         </div>
         <div class="panel-body">
             <table class="table table-condensed table-striped datatable" id="table_expected">
@@ -88,7 +88,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for s in execution.stages %}
+                {% for s in workflow.stages %}
                     <tr>
                         <td>{{ s.number }}</td>
                         <td><b><a href="{{ s.url }}">{{ s.name }}</a></b></td>
@@ -128,11 +128,11 @@
 
                         <td>
                             <div class="btn-group btn-group-xs" role="group" aria-label="button group">
-                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name, delete_descendants=0) }}"
+                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.workflow_id, stage_name=s.name, delete_descendants=0) }}"
                                    onclick="return confirm('Are you sure? This will delete all Tasks in this stage.')" class="btn btn-warning btn-secondary">
                                     <span class="glyphicon glyphicon-remove"> </span>
                                 </a>
-                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.execution_id, stage_name=s.name, delete_descendants=1) }}"
+                                <a href="{{ url_for('cosmos.stage_delete', ex_id=s.workflow_id, stage_name=s.name, delete_descendants=1) }}"
                                    onclick="return confirm('Are you sure? This will also delete all descendant/dependent tasks')"
                                    class="btn btn-danger btn-secondary">
                                     <span class="glyphicon glyphicon-remove-sign"> </span>

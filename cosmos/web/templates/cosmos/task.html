@@ -22,7 +22,7 @@
 {% block content %}
     <ul class="breadcrumb">
         <li><a href="{{ url_for('.index') }}">Home</a></li>
-        <li><a href="{{ task.execution.url }}">{{ task.execution }}</a></li>
+        <li><a href="{{ task.workflow.url }}">{{ task.workflow }}</a></li>
         <li><a href="{{ task.stage.url }}">{{ task.stage }}</a></li>
         <li class="active">&lt;Task[{{ task.id }}]&gt;</li>
     </ul>
@@ -34,8 +34,8 @@
                 <dd><strong>{{ task.status }}</strong></dd>
                 <dt>successful</dt>
                 <dd>{{ task.successful }}</dd>
-                <dt>execution.output_dir</dt>
-                <dd>{{ task.execution.output_dir }}</dd>
+                <dt>workflow.output_dir</dt>
+                <dd>{{ task.workflow.output_dir }}</dd>
                 <dt>output_dir</dt>
                 <dd>{{ task.output_dir }}</dd>
                 <dt>log_dir</dt>

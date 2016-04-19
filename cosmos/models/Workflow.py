@@ -28,34 +28,34 @@ from cosmos import ACCEPTABLE_TAG_TYPES
 
 opj = os.path.join
 
-from .. import TaskStatus, StageStatus, ExecutionStatus, signal_execution_status_change
+from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
 from .Task import Task
 
 
 def default_task_log_output_dir(task):
     """The default function for computing Task.log_output_dir"""
-    return opj(task.execution.output_dir, 'log', task.stage.name, str(task.id))
+    return opj(task.workflow.output_dir, 'log', task.stage.name, str(task.id))
 
 
-@signal_execution_status_change.connect
-def _execution_status_changed(ex):
-    if ex.status in [ExecutionStatus.successful, ExecutionStatus.failed, ExecutionStatus.killed]:
-        logfunc = ex.log.warning if ex.status in [ExecutionStatus.failed, ExecutionStatus.killed] else ex.log.info
+@signal_workflow_status_change.connect
+def _workflow_status_changed(ex):
+    if ex.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
+        logfunc = ex.log.warning if ex.status in [WorkflowStatus.failed, WorkflowStatus.killed] else ex.log.info
         logfunc('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
         ex.finished_on = datetime.datetime.now()
 
-    if ex.status == ExecutionStatus.successful:
+    if ex.status == WorkflowStatus.successful:
         ex.successful = True
         ex.finished_on = datetime.datetime.now()
 
     ex.session.commit()
 
 
-class Execution(Base):
+class Workflow(Base):
     """
     An collection Stages and Tasks encoded as a DAG
     """
-    __tablename__ = 'execution'
+    __tablename__ = 'workflow'
 
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(200), unique=True)
@@ -71,9 +71,9 @@ class Execution(Base):
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     # recipe_graph = Column(PickleType)
-    _status = Column(Enum34_ColumnType(ExecutionStatus), default=ExecutionStatus.no_attempt)
+    _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
-                          backref='execution')
+                          backref='workflow')
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
@@ -86,13 +86,13 @@ class Execution(Base):
         def set_status(self, value):
             if self._status != value:
                 self._status = value
-                signal_execution_status_change.send(self)
+                signal_workflow_status_change.send(self)
 
         return synonym('_status', descriptor=property(get_status, set_status))
 
     @validates('name')
     def validate_name(self, key, name):
-        assert re.match(r"^[\w-]+$", name), 'Invalid execution name, characters are limited to letters, numbers, ' \
+        assert re.match(r"^[\w-]+$", name), 'Invalid workflow name, characters are limited to letters, numbers, ' \
                                             'hyphens and underscores'
         return name
 
@@ -104,8 +104,8 @@ class Execution(Base):
         # FIXME provide the cosmos_app instance?
 
         if manual_instantiation:
-            raise TypeError, 'Do not instantiate an Execution manually.  Use the Cosmos.start method.'
-        super(Execution, self).__init__(*args, **kwargs)
+            raise TypeError, 'Do not instantiate an Workflow manually.  Use the Cosmos.start method.'
+        super(Workflow, self).__init__(*args, **kwargs)
         assert self.output_dir is not None, 'output_dir cannot be None'
         if self.info is None:
             # mutable dict column defaults to None
@@ -117,7 +117,7 @@ class Execution(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Execution.name, opj(self.output_dir, self.primary_log_path or 'execution.log'))
+        return get_logger('cosmos-%s' % Workflow.name, opj(self.output_dir, self.primary_log_path or 'workflow.log'))
 
     def add_task2(self, cmd_fxn, params, parents, uid, stage_name):
         """
@@ -139,7 +139,7 @@ class Execution(Base):
         :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
         :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
         :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directory (can be absolute or relative to execution output_dir).  Will be .format()ed with this task's `tags`.
+        :param str out_dir: Output directory (can be absolute or relative to workflow output_dir).  Will be .format()ed with this task's `tags`.
         :param str stage_name: Name of the stage to add this task to
         :return: a Task
         """
@@ -167,7 +167,7 @@ class Execution(Base):
         # Get the right Stage
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
         if stage is None:
-            stage = Stage(execution=self, name=stage_name)
+            stage = Stage(workflow=self, name=stage_name)
             self.session.add(stage)
 
         # Check if task is already in stage
@@ -175,11 +175,11 @@ class Execution(Base):
 
         if task is not None:
             # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
-            # were already removed on execution load
+            # were already removed on workflow load
             if task.successful:
                 return task
             else:
-                # TODO check for duplicate tags here?  would be a lot faster at Execution.run
+                # TODO check for duplicate tags here?  would be a lot faster at Workflow.run
                 raise ValueError('Duplicate tags, you have added a Task to Stage %s with tags `%s` twice' % (stage_name, tags))
         else:
             # Create Task
@@ -216,7 +216,7 @@ class Execution(Base):
     def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir):
         """
-        Runs this Execution's DAG
+        Runs this Workflow's DAG
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
         :param int max_attempts: The maximum number of times to retry a failed job.
@@ -225,15 +225,15 @@ class Execution(Base):
              By default task log output is stored in output_dir/log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
         :param dry: (bool) if True, do not actually run any jobs.
-        :param set_successful: (bool) sets this execution as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
-            run more tasks in this execution later.
+        :param set_successful: (bool) sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+            run more tasks in this workflow later.
 
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
-        assert hasattr(self, 'cosmos_app'), 'Execution was not initialized using the Execution.start method'
+        assert hasattr(self, 'cosmos_app'), 'Workflow was not initialized using the Workflow.start method'
         assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
-        assert self.session, 'Execution must be part of a sqlalchemy session'
+        assert self.session, 'Workflow must be part of a sqlalchemy session'
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
             self, self.cosmos_app.default_drm, self.output_dir))
@@ -248,7 +248,7 @@ class Execution(Base):
                                          cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
                                          )
 
-        self.status = ExecutionStatus.running
+        self.status = WorkflowStatus.running
         self.successful = False
 
         if self.started_on is None:
@@ -345,23 +345,23 @@ class Execution(Base):
             _run(self, session, task_queue)
 
             # set status
-            if self.status == ExecutionStatus.failed_but_running:
-                self.status = ExecutionStatus.failed
+            if self.status == WorkflowStatus.failed_but_running:
+                self.status = WorkflowStatus.failed
                 # set stage status to failed
                 for s in self.stages:
                     if s.status == StageStatus.running_but_failed:
                         s.status = StageStatus.failed
                 session.commit()
                 return False
-            elif self.status == ExecutionStatus.running:
+            elif self.status == WorkflowStatus.running:
                 if set_successful:
-                    self.status = ExecutionStatus.successful
+                    self.status = WorkflowStatus.successful
                 session.commit()
                 return True
             else:
-                raise AssertionError('Bad execution status %s' % self.status)
+                raise AssertionError('Bad workflow status %s' % self.status)
 
-        self.log.info('Execution complete')
+        self.log.info('Workflow complete')
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -371,9 +371,9 @@ class Execution(Base):
             self.jobmanager.terminate()
 
         if due_to_failure:
-            self.status = ExecutionStatus.failed
+            self.status = WorkflowStatus.failed
         else:
-            self.status = ExecutionStatus.killed
+            self.status = WorkflowStatus.killed
 
     # @property
     # def tasksq(self):
@@ -387,7 +387,7 @@ class Execution(Base):
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
-        # return session.query(Task).join(Stage).filter(Stage.execution == ex).all()
+        # return session.query(Task).join(Stage).filter(Stage.workflow == ex).all()
 
     def stage_graph(self):
         """
@@ -421,10 +421,10 @@ class Execution(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.execution', name=self.name)
+        return url_for('cosmos.workflow', name=self.name)
 
     def __repr__(self):
-        return '<Execution[%s] %s>' % (self.id or '', self.name)
+        return '<Workflow[%s] %s>' % (self.id or '', self.name)
 
     def __unicode__(self):
         return self.__repr__()
@@ -449,12 +449,12 @@ class Execution(Base):
         # from .TaskFile import InputFileAssociation
         # from .Task import TaskEdge
         # from .. import Stage, TaskFile
-        # self.session.query(InputFileAssociation).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
-        # self.session.query(TaskFile).join(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(InputFileAssociation).join(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
+        # self.session.query(TaskFile).join(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
         #
-        # self.session.query(TaskEdge).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
-        # self.session.query(Task).join(Stage).join(Execution).filter(Execution.id == self.id).delete()
-        # self.session.query(Stage).join(Execution).filter(Execution.id == self.id).delete()
+        # self.session.query(TaskEdge).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
+        # self.session.query(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
+        # self.session.query(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
         #
         print >> sys.stderr, '%s Deleting from SQL...' % self
         self.session.delete(self)
@@ -462,29 +462,29 @@ class Execution(Base):
         print >> sys.stderr, '%s Deleted' % self
 
 
-# @event.listens_for(Execution, 'before_delete')
+# @event.listens_for(Workflow, 'before_delete')
 # def before_delete(mapper, connection, target):
 # print 'before_delete %s ' % target
 
-def _run(execution, session, task_queue):
+def _run(workflow, session, task_queue):
     """
-    Do the execution!
+    Do the workflow!
     """
-    execution.log.info('Executing TaskGraph')
+    workflow.log.info('Executing TaskGraph')
 
     available_cores = True
     while len(task_queue) > 0:
         if available_cores:
-            _run_queued_and_ready_tasks(task_queue, execution)
+            _run_queued_and_ready_tasks(task_queue, workflow)
             available_cores = False
 
-        for task in _process_finished_tasks(execution.jobmanager):
+        for task in _process_finished_tasks(workflow.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
                 # pop all descendents when a task fails; the rest of the graph can still execute
                 task_queue.remove_nodes_from(descendants(task_queue, task))
                 task_queue.remove_node(task)
-                execution.status = ExecutionStatus.failed_but_running
-                execution.log.info('%s tasks left in the queue' % len(task_queue))
+                workflow.status = WorkflowStatus.failed_but_running
+                workflow.log.info('%s tasks left in the queue' % len(task_queue))
             elif task.status == TaskStatus.successful:
                 # just pop this task
                 task_queue.remove_node(task)
@@ -500,15 +500,15 @@ def _run(execution, session, task_queue):
         time.sleep(.3)
 
 
-def _run_queued_and_ready_tasks(task_queue, execution):
-    max_cores = execution.max_cores
+def _run_queued_and_ready_tasks(task_queue, workflow):
+    max_cores = workflow.max_cores
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
     if max_cores is None:
         submittable_tasks = ready_tasks
     else:
-        cores_used = sum([t.core_req for t in execution.jobmanager.running_tasks])
+        cores_used = sum([t.core_req for t in workflow.jobmanager.running_tasks])
         cores_left = max_cores - cores_used
 
         submittable_tasks = []
@@ -524,12 +524,12 @@ def _run_queued_and_ready_tasks(task_queue, execution):
                 break
 
     # submit in a batch for speed
-    execution.jobmanager.run_tasks(submittable_tasks)
+    workflow.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
-        execution.log.info('Reached max_cores limit of %s, waiting for a task to finish...' % max_cores)
+        workflow.log.info('Reached max_cores limit of %s, waiting for a task to finish...' % max_cores)
 
     # only commit submitted Tasks after submitting a batch
-    execution.session.commit()
+    workflow.session.commit()
 
 
 def _process_finished_tasks(jobmanager):
@@ -542,23 +542,23 @@ def _process_finished_tasks(jobmanager):
             yield task
 
 
-def handle_exits(execution, do_atexit=True):
+def handle_exits(workflow, do_atexit=True):
     # terminate on ctrl+c
     def ctrl_c(signal, frame):
-        if not execution.successful:
-            execution.log.info('Caught SIGINT (ctrl+c)')
-            execution.terminate(due_to_failure=False)
-            raise SystemExit('Execution terminated with a SIGINT (ctrl+c) event')
+        if not workflow.successful:
+            workflow.log.info('Caught SIGINT (ctrl+c)')
+            workflow.terminate(due_to_failure=False)
+            raise SystemExit('Workflow terminated with a SIGINT (ctrl+c) event')
 
     signal.signal(signal.SIGINT, ctrl_c)
 
     if do_atexit:
         @atexit.register
         def cleanup_check():
-            if execution.status == ExecutionStatus.running:
-                execution.log.error('Execution %s has a status of running atexit!' % execution)
-                execution.terminate(due_to_failure=True)
-                # raise SystemExit('Execution terminated due to the python interpreter exiting')
+            if workflow.status == WorkflowStatus.running:
+                workflow.log.error('Workflow %s has a status of running atexit!' % workflow)
+                workflow.terminate(due_to_failure=True)
+                # raise SystemExit('Workflow terminated due to the python interpreter exiting')
 
 
 def _copy_graph(graph):

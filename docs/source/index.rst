@@ -13,7 +13,7 @@ we are planning a major publication before the official release.
     3_getting_started
     workflows/initializing
     workflows/cmd_fxn
-    workflows/executions
+    workflows/workflows
     workflows/examples
     workflows/advanced
     shell

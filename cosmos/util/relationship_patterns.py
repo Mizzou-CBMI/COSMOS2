@@ -61,7 +61,7 @@ def one2one(cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
         Defaults to the output_dir of the parent task.
     :yields Task: Tasks.
     """
-    execution = parents[0].execution
+    workflow = parents[0].workflow
 
     if tag is None:
         tag = dict()
@@ -72,7 +72,7 @@ def one2one(cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
         for parent in parents:
             new_tags = parent.tags.copy()
             new_tags.update({k: v.format(**new_tags) if isinstance(v, str) else v for k, v in tag.items()})
-            yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
+            yield workflow.add_task(cmd_fxn, tags=new_tags, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
 
     return list(g())
 
@@ -89,7 +89,7 @@ def many2one(cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
         a str.  ie. ``out_dir=lambda tags: '{color}/' if tags['has_color'] else 'square/'``
     :yields: Tasks.
     """
-    execution = parents[0].execution
+    workflow = parents[0].workflow
 
     if tag is None:
         tag = dict()
@@ -99,7 +99,7 @@ def many2one(cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
         for new_tags, parent_group in group(parents, groupby):
             new_tags.update({k: v.format(**new_tags) if isinstance(v, str) else v for k, v in tag.items()})
 
-            yield execution.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
+            yield workflow.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
                                      out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                      stage_name=stage_name
                                      )
@@ -117,7 +117,7 @@ def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
     :yields: Tasks.
     """
-    execution = parents[0].execution
+    workflow = parents[0].workflow
 
     if tag is None:
         tag = dict()
@@ -131,7 +131,7 @@ def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
             for split_tags in tag_itrbl:
                 new_tags.update(split_tags)
                 new_tags.update({k: v.format(**new_tags) if isinstance(v, str) else v for k, v in tag.items()})
-                yield execution.add_task(cmd_fxn, tags=new_tags, parents=[parent_task],
+                yield workflow.add_task(cmd_fxn, tags=new_tags, parents=[parent_task],
                                          out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                          stage_name=stage_name)
 
@@ -139,7 +139,7 @@ def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
 
 
 def many2many(cmd_fxn, parents, groupby, splitby, tag=None, out_dir='', stage_name=None):
-    execution = parents[0].execution
+    workflow = parents[0].workflow
 
     if tag is None:
         tag = dict()
@@ -151,7 +151,7 @@ def many2many(cmd_fxn, parents, groupby, splitby, tag=None, out_dir='', stage_na
             for split_tags in tag_itrbl:
                 new_tags.update(split_tags)
                 new_tags.update({k: v.format(**new_tags) if isinstance(v, str) else v for k, v in tag.items()})
-                yield execution.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
+                yield workflow.add_task(cmd_fxn, tags=new_tags, parents=parent_group,
                                          out_dir=out_dir(new_tags) if hasattr(out_dir, '__call__') else out_dir,
                                          stage_name=stage_name)
 

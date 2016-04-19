@@ -49,14 +49,14 @@ class StageEdge(Base):
 
 class Stage(Base):
     __tablename__ = 'stage'
-    __table_args__ = (UniqueConstraint('execution_id', 'name', name='_uc_execution_name'),)
+    __table_args__ = (UniqueConstraint('workflow_id', 'name', name='_uc_workflow_name'),)
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
     name = Column(String(255))
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    execution_id = Column(ForeignKey('execution.id', ondelete="CASCADE"), nullable=False, index=True)
+    workflow_id = Column(ForeignKey('workflow.id', ondelete="CASCADE"), nullable=False, index=True)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     # relationship_type = Column(Enum34_ColumnType(RelationshipType))
@@ -117,11 +117,11 @@ class Stage(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.stage', execution_name=self.execution.name, stage_name=self.name)
+        return url_for('cosmos.stage', workflow_name=self.workflow.name, stage_name=self.name)
 
     @property
     def log(self):
-        return self.execution.log
+        return self.workflow.log
 
     def delete(self, delete_files=False, delete_descendants=False):
         """
@@ -177,7 +177,7 @@ class Stage(Base):
         :return: (list) all stages that descend from this stage in the stage_graph
         """
         # return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
-        x = nx.descendants(self.execution.stage_graph(), self)
+        x = nx.descendants(self.workflow.stage_graph(), self)
         if include_self:
             return sorted({self}.union(x), key=lambda stage: stage.number)
         else:

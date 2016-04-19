@@ -37,7 +37,7 @@ Workflow Structure
 There are 4 objects that get used in Cosmos.  The first is the `:class:~cosmos.api.Cosmos` class, which represents a Cosmos session.  It is initialized
 with a SQL database, which is used for recording all the objects in a workflow.  Among other things, this allows workflows to be resumed and monitored.
 
-The object hierarchy of a workflow is: *Execution -> Stage -> Task*.  Executions have a one2many relationship to Stages, and Stages have a
+The object hierarchy of a workflow is: *Workflow -> Stage -> Task*.  Workflows have a one2many relationship to Stages, and Stages have a
 one2many relationship to Tasks.
 
 Tasks contain parent/child relationships to other Tasks (directed edges) which define dependencies, and this makes up the DAG.

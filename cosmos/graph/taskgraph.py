@@ -9,7 +9,7 @@ from cosmos.api import Stage
 
 def get_or_create_task(successful_tasks, tags, stage, parents, default_drm, output_dir_pre_interpolation, tool=None):
     output_dir = str_format(output_dir_pre_interpolation, tags)
-    output_dir = os.path.join(stage.execution.output_dir, output_dir)
+    output_dir = os.path.join(stage.workflow.output_dir, output_dir)
 
     existing_task = successful_tasks.get(frozenset(tags.items()), None)
     if existing_task:
@@ -23,7 +23,7 @@ def get_or_create_task(successful_tasks, tags, stage, parents, default_drm, outp
         return tool._generate_task(stage=stage, parents=parents, default_drm=default_drm)
 
 
-def render_recipe(execution, recipe, default_drm):
+def render_recipe(workflow, recipe, default_drm):
     """
     Generates a stagegraph and taskgraph described by a Recipe
     :returns: (nx.DiGraph taskgraph, nx.DiGraph stagegraph)
@@ -31,7 +31,7 @@ def render_recipe(execution, recipe, default_drm):
     task_g = nx.DiGraph()
 
     # This replicates the recipe_stage_G, a graph of RecipeStage objects, into a a graph of Stage objects
-    f = functools.partial(recipe_stage2stage, execution=execution)
+    f = functools.partial(recipe_stage2stage, workflow=workflow)
     # want to add stages in the correct order
     convert = {recipe_stage: f(recipe_stage) for recipe_stage in nx.topological_sort(recipe.recipe_stage_G)}
     stage_g = nx.relabel_nodes(recipe.recipe_stage_G, convert, copy=True)
@@ -62,17 +62,17 @@ def render_recipe(execution, recipe, default_drm):
     return task_g, stage_g
 
 
-def recipe_stage2stage(recipe_stage, execution):
+def recipe_stage2stage(recipe_stage, workflow):
     """
     Creates a Stage object from a RecipeStage object
     """
-    session = execution.session
-    stage, created = get_or_create(session=session, execution=execution, model=Stage, name=recipe_stage.name)
+    session = workflow.session
+    stage, created = get_or_create(session=session, workflow=workflow, model=Stage, name=recipe_stage.name)
 
     # if not created:
-    # execution.log.info('Loaded Stage %s' % stage.name)
+    # workflow.log.info('Loaded Stage %s' % stage.name)
     # else:
-    # execution.log.info('Created Stage %s' % stage.name)
+    # workflow.log.info('Created Stage %s' % stage.name)
 
     for k, v in recipe_stage.properties.items():
         if k != 'tasks':

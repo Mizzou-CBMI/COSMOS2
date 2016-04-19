@@ -871,7 +871,7 @@
             <span class="k">return</span> <span class="bp">self</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;An exception was raised during workflow execution, terminating workflow and then re-raising exception.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;An exception was raised during workflow workflow, terminating workflow and then re-raising exception.&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">(</span><span class="nb">exit</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="k">raise</span>
 </div>
@@ -1371,7 +1371,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">stage</span>              <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Stage</span><span class="p">,</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;The stage this task belongs to.&quot;</span><span class="p">)</span>
 
-    <span class="n">pcmd</span>               <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&#39;Preformatted command.  almost always will contain special strings for TaskFiles which will later be replaced by their proper system path at execution&#39;</span><span class="p">)</span>
+    <span class="n">pcmd</span>               <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&#39;Preformatted command.  almost always will contain special strings for TaskFiles which will later be replaced by their proper system path at workflow&#39;</span><span class="p">)</span>
     <span class="n">exec_command</span>       <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&#39;The actual command that is executed&#39;</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="n">memory_requirement</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">help_text</span><span class="o">=</span><span class="s">&quot;Memory to reserve for jobs in MB&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>

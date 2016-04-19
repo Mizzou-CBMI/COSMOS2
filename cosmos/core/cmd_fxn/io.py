@@ -11,7 +11,7 @@ from ...util.helpers import make_dict
 import funcsigs
 
 FindFromParents = namedtuple('FindFromParents', 'regex n tags')
-OutputDir = namedtuple('OutputDir', 'basename prepend_execution_output_dir')
+OutputDir = namedtuple('OutputDir', 'basename prepend_workflow_output_dir')
 Forward = namedtuple('Forward', 'input_parameter_name')
 
 
@@ -69,7 +69,7 @@ def out_dir(basename='', peo=True):
     Essentially will perform os.path.join(Task.output_dir, basename)
 
     :param str basename: The basename of the output_file.
-    :param bool peo: Prepend execution.output_dir to the output path.
+    :param bool peo: Prepend workflow.output_dir to the output path.
     """
     return OutputDir(basename, peo)
 
@@ -139,7 +139,7 @@ def _get_input_map(cmd_name, cmd_fxn, tags, parents):
                 yield param_name, value
 
 
-def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execution_output_dir):
+def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, workflow_output_dir):
     sig = funcsigs.signature(cmd_fxn)
 
     for param_name, param in sig.parameters.iteritems():
@@ -162,8 +162,8 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
             elif isinstance(value, OutputDir):
                 output_dir_instance = value
                 if task_output_dir is not None:
-                    if output_dir_instance.prepend_execution_output_dir:
-                        task_output_dir = os.path.join(execution_output_dir, task_output_dir)
+                    if output_dir_instance.prepend_workflow_output_dir:
+                        task_output_dir = os.path.join(workflow_output_dir, task_output_dir)
                     output_file = os.path.join(task_output_dir, output_dir_instance.basename)
 
                 else:
@@ -175,10 +175,10 @@ def _get_output_map(stage_name, cmd_fxn, tags, input_map, task_output_dir, execu
                 yield param_name, value.format(**tags)
 
 
-def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, execution_output_dir):
+def get_io_map(fxn, tags, parents, cmd_name, task_output_dir, workflow_output_dir):
     # input_arg_to_default, output_arg_to_default = get_input_and_output_defaults(fxn)
     input_map = dict(_get_input_map(cmd_name, fxn, tags, parents))
-    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, task_output_dir, execution_output_dir))
+    output_map = dict(_get_output_map(cmd_name, fxn, tags, input_map, task_output_dir, workflow_output_dir))
 
     return input_map, output_map
 

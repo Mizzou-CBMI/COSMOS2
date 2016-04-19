@@ -1,13 +1,13 @@
 .. _recipes:
 
 
-Executions
+Workflows
 =================================
 
-Executions consist of a :term:`DAG` of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
+Workflows consist of a :term:`DAG` of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.
 
-To create your :term:`DAG`, use :meth:`Execution.add_task`. Python generators
+To create your :term:`DAG`, use :meth:`Workflow.add_task`. Python generators
 and comprehensions are a great way to do this in a very readable way.
 
 .. code-block:: python
@@ -22,13 +22,13 @@ and comprehensions are a great way to do this in a very readable way.
 
     cosmos = Cosmos()
     cosmos.initdb()
-    execution = cosmos.start('My_Workflow', 'out_dir)
+    workflow = cosmos.start('My_Workflow', 'out_dir)
 
     # note in_txt is specified, so find() will not be used.
-    wc_tasks = [ execution.add_task(word_count, tags=dict(in_txt='a.txt')) ]
+    wc_tasks = [ workflow.add_task(word_count, tags=dict(in_txt='a.txt')) ]
 
 
-Each call to :meth:`Execution.add_task` does the following:
+Each call to :meth:`Workflow.add_task` does the following:
 
 1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
 2) Checks to see if a Task with the same tags already completed successfully in that stage
@@ -62,12 +62,12 @@ This is the most common stage dependency.  For each task in StageA, you create a
 
     cosmos = Cosmos()
     cosmos.initdb()
-    execution = cosmos.start('One2One', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i))
+    workflow = cosmos.start('One2One', '/tmp', check_output_dir=False)
+    stageA_tasks = workflow.add_task(tool_a, tags=dict(i=i))
                                  for i in [1, 2])
-    stageB_tasks = execution.add_task(tool_b, ags=task.tags, parents=[task])
+    stageB_tasks = workflow.add_task(tool_b, ags=task.tags, parents=[task])
                                  for task in stageA_tasks)
-    draw_task_graph(execution.task_graph(), 'one2one.png')
+    draw_task_graph(workflow.task_graph(), 'one2one.png')
 
 .. figure:: /_static/imgs/one2one.png
     :align: center
@@ -79,13 +79,13 @@ For each parent task in StageA, two or more new children are generated in StageB
 
 .. code-block:: python
 
-    execution = cosmos.start('One2Many', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i))
+    workflow = cosmos.start('One2Many', '/tmp', check_output_dir=False)
+    stageA_tasks = workflow.add_task(tool_a, tags=dict(i=i))
                                       for i in [1, 2])
-    stageB_tasks = execution.add_task(tool_b, tags=dict(j=j, **task.tags), parents=[task])
+    stageB_tasks = workflow.add_task(tool_b, tags=dict(j=j, **task.tags), parents=[task])
                                       for task in stageA_tasks
                                       for j in ['a','b'])
-    draw_task_graph(execution.task_graph(), 'one2many.png')
+    draw_task_graph(workflow.task_graph(), 'one2many.png')
 
 
 .. figure:: /_static/imgs/one2many.png
@@ -99,14 +99,14 @@ Two or more parents in StageA produce one task in StageB.
 
 .. code-block:: python
 
-    execution = cosmos.start('Many2One', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i, j=j))
+    workflow = cosmos.start('Many2One', '/tmp', check_output_dir=False)
+    stageA_tasks = workflow.add_task(tool_a, tags=dict(i=i, j=j))
                                       for i in [1, 2]
                                       for j in ['a','b'])
     get_i = lambda task: task.tags['i']
-    stageB_tasks = execution.add_task(tool_b, tags=dict(i=i), parents=list(tasks))
+    stageB_tasks = workflow.add_task(tool_b, tags=dict(i=i), parents=list(tasks))
                                       for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
-    draw_task_graph(execution.task_graph(), 'many2one.png')
+    draw_task_graph(workflow.task_graph(), 'many2one.png')
 
 
 .. figure:: /_static/imgs/many2one.png
@@ -118,8 +118,8 @@ Two or more parents in StageA produce two or more parents in StageB.
 
 .. code-block:: python
 
-    execution = cosmos.start('many2many', '/tmp', check_output_dir=False)
-    stageA_tasks = execution.add_task(tool_a, tags=dict(i=i, j=j))
+    workflow = cosmos.start('many2many', '/tmp', check_output_dir=False)
+    stageA_tasks = workflow.add_task(tool_a, tags=dict(i=i, j=j))
                                       for i in [1, 2]
                                       for j in ['a','b'])
     def B_generator(stageA_tasks):
@@ -130,8 +130,8 @@ Two or more parents in StageA produce two or more parents in StageB.
             for k in ['x', 'y']:
                 yield tool_b, tags=dict(i=i, k=k), parents=parents)
 
-    stageB_tasks = execution.add_task(B_generator(stageA_tasks))
-    draw_task_graph(execution.task_graph(), 'many2many.png')
+    stageB_tasks = workflow.add_task(B_generator(stageA_tasks))
+    draw_task_graph(workflow.task_graph(), 'many2many.png')
 
 
 .. figure:: /_static/imgs/many2many.png
@@ -162,10 +162,10 @@ Notes
 API
 -----------
 
-Execution
+Workflow
 ++++++++++++++
 
-.. autoclass:: cosmos.api.Execution
+.. autoclass:: cosmos.api.Workflow
     :members: add_task, run
 
 

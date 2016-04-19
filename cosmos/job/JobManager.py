@@ -9,12 +9,12 @@ from .drm.drm_drmaa import DRM_DRMAA
 from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
-from cosmos.models.Execution import default_task_log_output_dir
+from cosmos.models.Workflow import default_task_log_output_dir
 
 class JobManager(object):
     def __init__(self, cosmos_app, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
         self.cosmos_app = cosmos_app
-        self.drms = dict(local=DRM_Local(self))  # always support local execution
+        self.drms = dict(local=DRM_Local(self))  # always support local workflow
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
         self.drms['drmaa'] = DRM_DRMAA(self)

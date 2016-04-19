@@ -4,7 +4,7 @@ An example of how to setup a project of multiple workflows
 """
 import os
 
-from cosmos.api import Execution, add_execution_args, Cosmos
+from cosmos.api import Workflow, add_workflow_args, Cosmos
 from configparser import ConfigParser
 from cosmos.util.helpers import mkdir
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--growl', action='store_true',
-                        help='sends a growl notification on execution status changes')
+                        help='sends a growl notification on workflow status changes')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='launch ipdb on exception')
     sps = parser.add_subparsers(title="Commands", metavar="<command>")
@@ -46,15 +46,15 @@ if __name__ == '__main__':
 
     sp = sps.add_parser('ex1', help='Example1')
     sp.set_defaults(func=ex1.run_ex1)
-    add_execution_args(sp)
+    add_workflow_args(sp)
 
     sp = sps.add_parser('ex2', help='Example2: A failed task')
     sp.set_defaults(func=ex_fail.run_ex2)
-    add_execution_args(sp)
+    add_workflow_args(sp)
 
     sp = sps.add_parser('ex3', help='Example3: Twitter (note you must edit the file)')
     sp.set_defaults(func=ex_email.run_ex3)
-    add_execution_args(sp)
+    add_workflow_args(sp)
 
     args = parser.parse_args()
     kwargs = dict(args._get_kwargs())
@@ -63,22 +63,22 @@ if __name__ == '__main__':
     debug = kwargs.pop('debug')
     if growl:
         from cosmos.util import growl
-        from cosmos.api import signal_execution_status_change, ExecutionStatus
+        from cosmos.api import signal_workflow_status_change, WorkflowStatus
 
-        @signal_execution_status_change.connect
-        def growl_signal(execution):
-            if execution.status != ExecutionStatus.running:
-                growl.send('%s %s' % (execution, execution.status))
+        @signal_workflow_status_change.connect
+        def growl_signal(workflow):
+            if workflow.status != WorkflowStatus.running:
+                growl.send('%s %s' % (workflow, workflow.status))
 
     if func.__module__.startswith('ex'):
-        execution_params = {n: kwargs.pop(n, None) for n in
+        workflow_params = {n: kwargs.pop(n, None) for n in
                             ['name', 'restart', 'skip_confirm', 'max_cores', 'max_attempts', 'output_dir']}
-        if not execution_params['output_dir']:
+        if not workflow_params['output_dir']:
             mkdir(os.path.join(root_path, 'out_dir'))
-            execution_params['output_dir'] = os.path.join(root_path, 'out_dir', execution_params['name'])
+            workflow_params['output_dir'] = os.path.join(root_path, 'out_dir', workflow_params['name'])
 
-        ex = cosmos.start(**execution_params)
-        kwargs['execution'] = ex
+        ex = cosmos.start(**workflow_params)
+        kwargs['workflow'] = ex
 
     if debug:
         import ipdb

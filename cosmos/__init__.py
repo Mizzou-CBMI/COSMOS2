@@ -23,7 +23,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
 # Misc
 #########################################################################################################################
 
-class ExecutionFailed(Exception): pass
+class WorkflowFailed(Exception): pass
 
 #########################################################################################################################
 # Signals
@@ -32,7 +32,7 @@ import blinker
 
 signal_task_status_change = blinker.Signal()
 signal_stage_status_change = blinker.Signal()
-signal_execution_status_change = blinker.Signal()
+signal_workflow_status_change = blinker.Signal()
 
 
 ########################################################################################################################
@@ -67,7 +67,7 @@ class StageStatus(MyEnum):
     killed = 'Manually killed'
 
 
-class ExecutionStatus(MyEnum):
+class WorkflowStatus(MyEnum):
     no_attempt = 'No Attempt yet',
     running = 'Running',
     successful = 'Successfully Finished',

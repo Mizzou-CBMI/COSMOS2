@@ -65,13 +65,13 @@ def task_status_changed(task):
             task.log.warn(task_failed_printout.format(task))
             task.finished_on = datetime.datetime.now()
         else:
-            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.execution.max_attempts))
-            if task.attempt < task.execution.max_attempts:
+            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.workflow.max_attempts))
+            if task.attempt < task.workflow.max_attempts:
                 task.log.warn(task_failed_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
-                wait_for_file(task.execution, task.output_stderr_path, 60)
+                wait_for_file(task.workflow, task.output_stderr_path, 60)
 
                 task.log.warn(task_failed_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
@@ -224,12 +224,12 @@ class Task(Base):
         return synonym('_status', descriptor=property(get_status, set_status))
 
     @property
-    def execution(self):
-        return self.stage.execution
+    def workflow(self):
+        return self.stage.workflow
 
     @property
     def log(self):
-        return self.execution.log
+        return self.workflow.log
 
     @property
     def finished(self):
@@ -267,7 +267,7 @@ class Task(Base):
         """
         :return: (list) all tasks that descend from this task in the task_graph
         """
-        d = breadth_first_search.bfs_predecessors(self.execution.task_graph().reverse(copy=False), self)
+        d = breadth_first_search.bfs_predecessors(self.workflow.task_graph().reverse(copy=False), self)
         if as_dict:
             return d
         return set(d.values())
@@ -276,7 +276,7 @@ class Task(Base):
         """
         :return: (list) all tasks that descend from this task in the task_graph
         """
-        return set(breadth_first_search.bfs_successors(self.execution.task_graph(), self).values())
+        return set(breadth_first_search.bfs_successors(self.workflow.task_graph(), self).values())
 
     @property
     def label(self):
@@ -304,7 +304,7 @@ class Task(Base):
 
     @property
     def url(self):
-        return url_for('cosmos.task', ex_name=self.execution.name, stage_name=self.stage.name, task_id=self.id)
+        return url_for('cosmos.task', ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id)
 
     @property
     def tags_pretty(self):

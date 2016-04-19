@@ -134,19 +134,19 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, output_dir, restart=False, skip_confirm=False, primary_log_path='execution.log'):
-        from .Execution import Execution
+    def start(self, name, output_dir, restart=False, skip_confirm=False, primary_log_path='workflow.log'):
+        from .Workflow import Workflow
 
         """
-        Start, resume, or restart an execution based on its name.  If resuming, deletes failed tasks.
+        Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
         :param str name: A name for the workflow.  Must be unique for this Cosmos session.
         :param str output_dir: The directory to write files to.  Defaults to the current working directory.
-        :param bool restart: If True and the execution exists, delete it first.
-        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting executions or files.
+        :param bool restart: If True and the workflow exists, delete it first.
+        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
         :param primary_log_path: The name of the primary log to write to.
 
-        :returns: An Execution instance.
+        :returns: An Workflow instance.
         """
         assert os.path.exists(
                 os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
@@ -160,32 +160,32 @@ class Cosmos(object):
 
         old_id = None
         if restart:
-            ex = session.query(Execution).filter_by(name=name).first()
+            ex = session.query(Workflow).filter_by(name=name).first()
             if ex:
                 old_id = ex.id
                 msg = 'Restarting %s.  Are you sure you want to delete the contents of output_dir `%s` ' \
-                      'and all sql records for this execution?' % (
+                      'and all sql records for this workflow?' % (
                           ex.output_dir, ex)
                 if not skip_confirm and not confirm(msg):
                     raise SystemExit('Quitting')
 
                 ex.delete(delete_files=False)
             else:
-                if not skip_confirm and not confirm('Execution with name %s does not exist, '
+                if not skip_confirm and not confirm('Workflow with name %s does not exist, '
                                                     'but `restart` is set to True.  '
-                                                    'Continue by starting a new Execution?' % name):
+                                                    'Continue by starting a new Workflow?' % name):
                     raise SystemExit('Quitting')
 
         # resuming?
-        ex = session.query(Execution).filter_by(name=name).first()
-        # msg = 'Execution started, Cosmos v%s' % __version__
+        ex = session.query(Workflow).filter_by(name=name).first()
+        # msg = 'Workflow started, Cosmos v%s' % __version__
         if ex:
             # resuming.
             if not skip_confirm and not confirm('Resuming %s.  All non-successful jobs will be deleted, '
                                                 'then any new tasks in the graph will be added and executed.  '
                                                 'Are you sure?' % ex):
                 raise SystemExit('Quitting')
-            assert ex.output_dir == output_dir, 'cannot change the output_dir of an execution being resumed.'
+            assert ex.output_dir == output_dir, 'cannot change the output_dir of an workflow being resumed.'
 
             ex.successful = False
             ex.finished_on = None
@@ -209,9 +209,9 @@ class Cosmos(object):
         else:
             # start from scratch
             # if check_output_dir:
-            #     assert not os.path.exists(output_dir), 'Execution.output_dir `%s` already exists.' % (output_dir)
+            #     assert not os.path.exists(output_dir), 'Workflow.output_dir `%s` already exists.' % (output_dir)
 
-            ex = Execution(id=old_id, name=name, output_dir=output_dir, primary_log_path=primary_log_path, manual_instantiation=False)
+            ex = Workflow(id=old_id, name=name, output_dir=output_dir, primary_log_path=primary_log_path, manual_instantiation=False)
             mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(ex)
 
@@ -251,12 +251,12 @@ class Cosmos(object):
         """
         Launch an IPython shell with useful variables already imported.
         """
-        from .Execution import Execution
+        from .Workflow import Workflow
 
         cosmos_app = self
         session = self.session
-        executions = self.session.query(Execution).order_by('id').all()
-        ex = executions[-1] if len(executions) else None
+        workflows = self.session.query(Workflow).order_by('id').all()
+        ex = workflows[-1] if len(workflows) else None
 
         import IPython
 

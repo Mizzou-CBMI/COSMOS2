@@ -11,15 +11,15 @@ from tools import echo, cat, word_count
 from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
 
 
-def run_ex2(execution):
+def run_ex2(workflow):
     # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
-    echos = [execution.add_task(echo,
+    echos = [workflow.add_task(echo,
                                 tags=dict(word=word),
                                 out_dir='{word}')
              for word in ['hello', 'world']]
 
     # Split each echo into two jobs (a one2many relationship).
-    cats = [execution.add_task(cat,
+    cats = [workflow.add_task(cat,
                                tags=dict(n=n, **echo_task.tags),
                                parents=[echo_task],
                                out_dir='{word}/{n}')
@@ -32,7 +32,7 @@ def run_ex2(execution):
 
     # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).
-    summarize = execution.add_task(cat,
+    summarize = workflow.add_task(cat,
                                    dict(),
                                    word_counts,
                                    '',
@@ -40,12 +40,12 @@ def run_ex2(execution):
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
-        draw_stage_graph(execution.stage_graph(), '/tmp/ex2_task_graph.png', format='png')
-        draw_task_graph(execution.task_graph(), '/tmp/ex2_stage_graph.png', format='png')
+        draw_stage_graph(workflow.stage_graph(), '/tmp/ex2_task_graph.png', format='png')
+        draw_task_graph(workflow.task_graph(), '/tmp/ex2_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
 
-    execution.run(max_attempts=1, max_cores=10)
+    workflow.run(max_attempts=1, max_cores=10)
 
 
 if __name__ == '__main__':
@@ -53,5 +53,5 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     sp.check_call('mkdir -p analysis_output/ex1', shell=True)
-    execution = cosmos.start('Example2', 'analysis_output/ex2', restart=True, skip_confirm=True)
-    run_ex2(execution)
+    workflow = cosmos.start('Example2', 'analysis_output/ex2', restart=True, skip_confirm=True)
+    run_ex2(workflow)

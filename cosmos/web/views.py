@@ -4,7 +4,7 @@ from operator import attrgetter
 from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request
 from sqlalchemy import desc
 
-from cosmos.api import Execution, Stage, Task, TaskStatus
+from cosmos.api import Workflow, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph
@@ -13,41 +13,41 @@ from ..graph.draw import draw_task_graph, draw_stage_graph
 def gen_bprint(cosmos_app):
     session = cosmos_app.session
 
-    def get_execution(id):
-        return session.query(Execution).filter_by(id=id).one()
+    def get_workflow(id):
+        return session.query(Workflow).filter_by(id=id).one()
 
     bprint = Blueprint('cosmos', __name__, template_folder='templates', static_folder='static',
                        static_url_path='/cosmos/static')
     filters.add_filters(bprint)
 
-    @bprint.route('/execution/delete/<int:id>')
-    def execution_delete(id):
-        e = get_execution(id)
+    @bprint.route('/workflow/delete/<int:id>')
+    def workflow_delete(id):
+        e = get_workflow(id)
         e.delete(delete_files=True)
         flash('Deleted %s' % e)
         return redirect(url_for('cosmos.index'))
 
     @bprint.route('/')
     def index():
-        executions = session.query(Execution).order_by(desc(Execution.created_on)).all()
+        workflows = session.query(Workflow).order_by(desc(Workflow.created_on)).all()
         session.expire_all()
-        return render_template('cosmos/index.html', executions=executions)
+        return render_template('cosmos/index.html', workflows=workflows)
 
     @bprint.route('/')
     def home():
         return index()
 
-    @bprint.route('/execution/<name>/')
-    # @bprint.route('/execution/<int:id>/')
-    def execution(name):
-        execution = session.query(Execution).filter_by(name=name).one()
-        return render_template('cosmos/execution.html', execution=execution)
+    @bprint.route('/workflow/<name>/')
+    # @bprint.route('/workflow/<int:id>/')
+    def workflow(name):
+        workflow = session.query(Workflow).filter_by(name=name).one()
+        return render_template('cosmos/workflow.html', workflow=workflow)
 
 
-    @bprint.route('/execution/<execution_name>/<stage_name>/')
-    def stage(execution_name, stage_name):
-        ex = session.query(Execution).filter_by(name=execution_name).one()
-        stage = session.query(Stage).filter_by(execution_id=ex.id, name=stage_name).one()
+    @bprint.route('/workflow/<workflow_name>/<stage_name>/')
+    def stage(workflow_name, stage_name):
+        ex = session.query(Workflow).filter_by(name=workflow_name).one()
+        stage = session.query(Stage).filter_by(workflow_id=ex.id, name=stage_name).one()
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
@@ -62,13 +62,13 @@ def gen_bprint(cosmos_app):
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
 
-    @bprint.route('/execution/<int:ex_id>/stage/<stage_name>/delete/<int:delete_descendants>')
+    @bprint.route('/workflow/<int:ex_id>/stage/<stage_name>/delete/<int:delete_descendants>')
     def stage_delete(ex_id, stage_name, delete_descendants):
         assert delete_descendants in [0, 1]
         delete_descendants = bool(delete_descendants)
-        s = session.query(Stage).filter(Stage.execution_id == ex_id, Stage.name == stage_name).one()
+        s = session.query(Stage).filter(Stage.workflow_id == ex_id, Stage.name == stage_name).one()
         flash('Deleted %s' % s)
-        ex_url = s.execution.url
+        ex_url = s.workflow.url
         s.delete(delete_files=False, delete_descendants=delete_descendants)
         return redirect(ex_url)
 
@@ -77,23 +77,23 @@ def gen_bprint(cosmos_app):
     # task = session.query(Task).get(id)
     # if task is None:
     #         return abort(404)
-    #     return redirect(url_for('cosmos.task_friendly', ex_name=task.execution.name, stage_name=task.stage.name, task_id=task.id))
+    #     return redirect(url_for('cosmos.task_friendly', ex_name=task.workflow.name, stage_name=task.stage.name, task_id=task.id))
 
-    # @bprint.route('/execution/<ex_name>/<stage_name>/task/')
+    # @bprint.route('/workflow/<ex_name>/<stage_name>/task/')
     # def task(ex_name, stage_name):
     #     # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
     #     #                   task.profile_fields for field in fields]
     #     assert request.method == 'GET'
     #     tags = request.args
-    #     ex = session.query(Execution).filter_by(name=ex_name).one()
-    #     stage = session.query(Stage).filter_by(execution=ex, name=stage_name).one()
+    #     ex = session.query(Workflow).filter_by(name=ex_name).one()
+    #     stage = session.query(Stage).filter_by(workflow=ex, name=stage_name).one()
     #     task = session.query(Task).filter_by(stage=stage, tags=tags).one()
     #     if task is None:
     #         return abort(404)
     #     resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
     #     return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
 
-    @bprint.route('/execution/<ex_name>/<stage_name>/task/<task_id>')
+    @bprint.route('/workflow/<ex_name>/<stage_name>/task/<task_id>')
     def task(ex_name, stage_name, task_id):
         # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
         #                   task.profile_fields for field in fields]
@@ -103,10 +103,10 @@ def gen_bprint(cosmos_app):
         resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
         return render_template('cosmos/task.html', task=task, resource_usage=resource_usage)
 
-    @bprint.route('/execution/<int:id>/taskgraph/<type>/')
+    @bprint.route('/workflow/<int:id>/taskgraph/<type>/')
     def taskgraph(id, type):
         from ..graph.draw import pygraphviz_available
-        ex = get_execution(id)
+        ex = get_workflow(id)
 
         if pygraphviz_available:
             if type == 'task':
@@ -116,12 +116,12 @@ def gen_bprint(cosmos_app):
         else:
             svg = 'Pygraphviz not installed, cannot visualize.  (Usually: apt-get install graphviz && pip install pygraphviz)'
 
-        return render_template('cosmos/taskgraph.html', execution=ex, type=type,
+        return render_template('cosmos/taskgraph.html', workflow=ex, type=type,
                                svg=svg)
 
-    # @bprint.route('/execution/<int:id>/taskgraph/svg/<type>/')
+    # @bprint.route('/workflow/<int:id>/taskgraph/svg/<type>/')
     # def taskgraph_svg(id, type, ):
-    #     e = get_execution(id)
+    #     e = get_workflow(id)
     #
     #     if type == 'task':
     #         return send_file(io.BytesIO(taskgraph_.tasks_to_image(e.tasks)), mimetype='image/svg+xml')

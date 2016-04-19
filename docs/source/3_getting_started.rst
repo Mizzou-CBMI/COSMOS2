@@ -19,7 +19,7 @@ git repository so that you have access to the examples code:
     $ cd Cosmos/examples
     $ python ex1.py
 
-    INFO: 2014-09-02 19:30:48: Rendering taskgraph for <Execution[1] test> using DRM `local`, output_dir: `/locus/home/egafni/projects/Cosmos/examples/out/test`
+    INFO: 2014-09-02 19:30:48: Rendering taskgraph for <Workflow[1] test> using DRM `local`, output_dir: `/locus/home/egafni/projects/Cosmos/examples/out/test`
     INFO: 2014-09-02 19:30:48: Committing 10 Tasks to the SQL database...
     INFO: 2014-09-02 19:30:48: <Stage[1] Echo> Has not been attempted
     INFO: 2014-09-02 19:30:48: <Stage[2] Cat> Has not been attempted
@@ -52,7 +52,7 @@ git repository so that you have access to the examples code:
     INFO: 2014-09-02 19:30:52: <Task[7] WordCount {'word': 'world', 'n': 2}> Finished successfully
     INFO: 2014-09-02 19:30:52: <Task[6] WordCount {'word': 'world', 'n': 1}> Finished successfully
     INFO: 2014-09-02 19:30:52: <Stage[3] WordCount> Finished successfully
-    INFO: 2014-09-02 19:30:52: <Execution[1] test> Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
+    INFO: 2014-09-02 19:30:52: <Workflow[1] test> Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
 
 Organizing your project
 ________________________
@@ -86,18 +86,18 @@ see examples/main.py for a way to organize multiple workflows into a single acce
 
     optional arguments:
       -h, --help            show this help message and exit
-      -n NAME, --name NAME  A name for this execution
+      -n NAME, --name NAME  A name for this workflow
       -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                             The directory to output files to. Path should not
-                            exist if this is a new execution.
+                            exist if this is a new workflow.
       -c max_cores, --max_cores max_cores
                             Maximum number (based on the sum of core_requirement)
                             of cores to use at once. 0 means unlimited
       -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
                             Maximum number of times to try running a Task that
-                            must succeed before the execution fails
-      -r, --restart         Completely restart the execution. Note this will
-                            delete all record of the execution in the database
+                            must succeed before the workflow fails
+      -r, --restart         Completely restart the workflow. Note this will
+                            delete all record of the workflow in the database
       -y, --skip_confirm    Do not use confirmation prompts before restarting or
                             deleting, and assume answer is always yes
 

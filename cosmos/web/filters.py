@@ -2,7 +2,7 @@ import datetime, re
 from .. import StageStatus, TaskStatus
 from flask import Markup
 from sqlalchemy import func
-from cosmos.api import Task, Stage, Execution
+from cosmos.api import Task, Stage, Workflow
 
 
 def add_filters(bprint_or_app, type_='bprint'):

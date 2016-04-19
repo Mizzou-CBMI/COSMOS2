@@ -29,12 +29,12 @@ def get_call_kwargs(cmd_fxn, tags, input_map, output_map):
 import decorator
 
 
-def default_prepend(execution_output_dir, task_output_dir, cd_to_task_output_dir=True):
+def default_prepend(workflow_output_dir, task_output_dir, cd_to_task_output_dir=True):
     if task_output_dir and task_output_dir != '':
-        task_output_dir = os.path.join(execution_output_dir, task_output_dir)
+        task_output_dir = os.path.join(workflow_output_dir, task_output_dir)
         mkdir = 'mkdir -p %s\n' % task_output_dir
     else:
-        task_output_dir = execution_output_dir
+        task_output_dir = workflow_output_dir
         mkdir = ''
 
     return '#!/bin/bash\n' \
@@ -43,7 +43,7 @@ def default_prepend(execution_output_dir, task_output_dir, cd_to_task_output_dir
            'EXECUTION_OUTPUT_DIR={ex_out}\n' \
            'cd $EXECUTION_OUTPUT_DIR\n' \
            '{mkdir}\n' \
-           '\n\n'.format(ex_out=execution_output_dir,
+           '\n\n'.format(ex_out=workflow_output_dir,
                          mkdir=mkdir)
 
 
@@ -67,6 +67,6 @@ def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, cd_to_task_
         if r is None:
             return None
         else:
-            return default_prepend(task.execution.output_dir, task.output_dir, cd_to_task_output_dir=cd_to_task_output_dir) + r
+            return default_prepend(task.workflow.output_dir, task.output_dir, cd_to_task_output_dir=cd_to_task_output_dir) + r
 
     return decorator.decorator(real_decorator)

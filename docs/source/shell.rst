@@ -17,18 +17,18 @@ To launch the shell, create a script like this (Take a look at the :meth:`cosmos
 
 .. note::
 
-    The list of the `executions` list will become stale if another process runs a new Execution.  Either restart the shell, or re-run
+    The list of the `workflows` list will become stale if another process runs a new Workflow.  Either restart the shell, or re-run
     the :term:`SQLALchemy` query:
 
     .. code-block:: python
 
-        >>> executions = list(session.query(Execution).all())
+        >>> workflows = list(session.query(Workflow).all())
 
 
 
 Delete a Stage and all of it's Descendants
 ------------------------------------------
-When you're developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Execution
+When you're developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Workflow
 from there.  This avoids a lot of unnecessary re-computation of Stages that weren't affected by your code fix.
 
 .. code-block:: python
@@ -54,9 +54,9 @@ Manually Altering Attributes
 
 .. code-block:: python
 
-    >>> ex.name='My_New_Execution_Name'
+    >>> ex.name='My_New_Workflow_Name'
     >>> ex.stages[0].name='My_New_Stage_Name'
-    >>> for ex in executions[-6:]: ex.status = ExecutionStatus.successful
+    >>> for ex in workflows[-6:]: ex.status = WorkflowStatus.successful
     >>> session.commit() # write all changes to database so that they persist.  Always do this after you're done modifying objects.
 
 API

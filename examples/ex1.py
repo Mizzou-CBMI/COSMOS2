@@ -4,15 +4,15 @@ from cosmos.api import Cosmos, draw_stage_graph, draw_task_graph, pygraphviz_ava
 from tools import echo, cat, word_count
 
 
-def run_ex1(execution):
+def run_ex1(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (these are source nodes in the dag).
-    echos = [execution.add_task(echo,
+    echos = [workflow.add_task(echo,
                                 tags=dict(word=word),
                                 out_dir='{word}')
              for word in ['hello', 'world']]
 
     # Split each echo into two dependent Tasks (a one2many relationship).
-    cats = [execution.add_task(cat,
+    cats = [workflow.add_task(cat,
                                tags=dict(n=n, **echo_task.tags),
                                parents=[echo_task],
                                out_dir='{word}/{n}')
@@ -21,7 +21,7 @@ def run_ex1(execution):
 
     # Count the words in the previous stage.  An example of a one2one relationship,
     # the most common stage dependency pattern.  For each task in StageA, there is a single dependent task in StageB.
-    word_counts = [execution.add_task(word_count,
+    word_counts = [workflow.add_task(word_count,
                                       tags=dict(chars=True, **cat_task.tags),
                                       parents=[cat_task],
                                       out_dir='{word}/{n}')
@@ -29,7 +29,7 @@ def run_ex1(execution):
 
     # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).
-    summarize = execution.add_task(cat,
+    summarize = workflow.add_task(cat,
                                    tags=dict(),
                                    parents=word_counts,
                                    out_dir='',
@@ -37,12 +37,12 @@ def run_ex1(execution):
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
-        draw_stage_graph(execution.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
-        draw_task_graph(execution.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
+        draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
+        draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
 
-    execution.run(max_attempts=1, max_cores=10)
+    workflow.run(max_attempts=1, max_cores=10)
 
 
 if __name__ == '__main__':
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     sp.check_call('mkdir -p analysis_output/ex1', shell=True)
-    execution = cosmos.start('Example1', 'analysis_output/ex1',restart=True, skip_confirm=True)
-    run_ex1(execution)
+    workflow = cosmos.start('Example1', 'analysis_output/ex1',restart=True, skip_confirm=True)
+    run_ex1(workflow)

@@ -3,18 +3,18 @@
 {% block content %}
 <ul class="breadcrumb">
     <li><a href="{{ url_for('.index') }}">Home</a></li>
-    <li><a href="{{ execution.url }}">{{execution}}</a></li>
+    <li><a href="{{ workflow.url }}">{{workflow}}</a></li>
     <li class="active">taskgraph</li>
 </ul>
 <p>
 {% if type == 'task' %}
-    <a href="{{ url_for('.taskgraph', id=execution.id, type='recipe') }}">
+    <a href="{{ url_for('.taskgraph', id=workflow.id, type='recipe') }}">
         <button type="button" class="btn btn-primary btn-sm">
             <span class="glyphicon glyphicon-eye-open"></span> StageGraph
         </button>
     </a>
 {% else %}
-    <a href="{{ url_for('.taskgraph', id=execution.id, type='task') }}">
+    <a href="{{ url_for('.taskgraph', id=workflow.id, type='task') }}">
         <button type="button" class="btn btn-primary btn-sm">
             <span class="glyphicon glyphicon-eye-open"></span> TaskGraph
         </button>
@@ -25,7 +25,7 @@
 
 {#
     <div class="center-block">
-        <object type="image/svg+xml" data="{{ url_for('.taskgraph_svg', id=execution.id, type=type) }}"></object>
+        <object type="image/svg+xml" data="{{ url_for('.taskgraph_svg', id=workflow.id, type=type) }}"></object>
     </div>
 #}
 

@@ -27,14 +27,14 @@ def make_dict(*list_of_dicts, **additional_kwargs):
     return r
 
 
-def wait_for_file(execution, path, timeout=60, error=True):
+def wait_for_file(workflow, path, timeout=60, error=True):
     # Sometimes on a shared filesystem it can take a while for a file to propagate (i.e. eventual consistency)
     start = time.time()
     while not os.path.exists(path):
         time.sleep(.1)
         if time.time() - start > timeout:
             if error:
-                execution.terminate(due_to_failure=True)
+                workflow.terminate(due_to_failure=True)
                 raise IOError('giving up on %s existing' % path)
             else:
                 return False

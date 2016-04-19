@@ -10,14 +10,14 @@
         <div class="panel-heading">
             <span class="pull-right"></span>
 
-            <h3 class="panel-title">Executions</h3>
+            <h3 class="panel-title">Workflows</h3>
         </div>
         <div class="panel-body">
 
             <table class="table table-condensed table-striped datatable" id="table_expected">
                 <thead>
                 <tr>
-                    <th>execution</th>
+                    <th>workflow</th>
                     <th>successful</th>
                     <th>status</th>
                     <th>created_on</th>
@@ -27,7 +27,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for e in executions %}
+                {% for e in workflows %}
                     <tr>
                         <td><a href="{{ e.url }}">{{ e }}</a></td>
                         <td>{{e.successful|to_thumb}}</td>
@@ -38,7 +38,7 @@
                         <td>
                             <div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-default">
-                                    <a href="{{ url_for('cosmos.execution_delete', id=e.id) }}"
+                                    <a href="{{ url_for('cosmos.workflow_delete', id=e.id) }}"
                                        onclick="return confirm('This will delete all files associated with {{ e }}.  Are you sure?')">
                                         <span class="glyphicon glyphicon-remove"></span> delete
                                     </a></button>
