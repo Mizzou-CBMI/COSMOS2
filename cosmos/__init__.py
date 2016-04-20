@@ -9,7 +9,7 @@ warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
-ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
+# ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
 Dependency = namedtuple('Dependency', 'task param metadata')
 

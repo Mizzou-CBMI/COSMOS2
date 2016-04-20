@@ -2,9 +2,6 @@ import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
 import six
 
-from cosmos import ACCEPTABLE_TAG_TYPES
-
-
 class Enum34_ColumnType(types.TypeDecorator):
     """
     Enum compatible with enum34 package
@@ -71,7 +68,6 @@ class JSONEncodedDict(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         value = six.text_type(json.dumps({k: v for k, v in value.items()}))
-
         return value
 
     def process_result_value(self, value, dialect):
