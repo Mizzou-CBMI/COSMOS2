@@ -15,11 +15,11 @@ from datetime import datetime
 def default_get_submit_args(task, queue=None, parallel_env='orte'):
     """
     Default method for determining the extra arguments to pass to the DRM.
-    For example, returning `"-n 3" if` `task.drm == "lsf"` would caused all jobs
+    For example, returning `"-n 3" if` `task.drm == "lsf"` would cause all jobs
     to be submitted with `bsub -n 3`.
 
-    :param cosmos.Task task: The Task being submitted.
-    :param queue: The default queue.
+    :param cosmos.api.Task task: The Task being submitted.
+    :param str queue: The queue to submit to
     :rtype: str
     """
     drm = task.drm or queue
@@ -31,7 +31,7 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
     mem_req = task.mem_req if use_mem_req else None
     time_req = task.time_req if use_time_req else None
 
-    jobname = '%s[%s]' % (task.stage.name, task.id)
+    jobname = '%s[%s]' % (task.stage.name, task.uid)
     queue = ' -q %s' % queue if queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 

@@ -25,7 +25,7 @@ class DRM_DRMAA(DRM):
         jt = get_drmaa_session().createJobTemplate()
         # jt.workingDirectory = settings['working_directory']
         jt.remoteCommand = task.output_command_script_path
-        # jt.args             = cmd.split(' ')[1:]
+        # jt.params             = cmd.split(' ')[1:]
         # jt.jobName          = jobAttempt.task.stage.name
         jt.outputPath = ':' + task.output_stdout_path
         jt.errorPath = ':' + task.output_stderr_path

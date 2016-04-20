@@ -84,10 +84,10 @@ def gen_bprint(cosmos_app):
     #     # resource_usage = [(category, field, getattr(task, field), profile_help[field]) for category, fields in
     #     #                   task.profile_fields for field in fields]
     #     assert request.method == 'GET'
-    #     tags = request.args
+    #     params = request.params
     #     ex = session.query(Workflow).filter_by(name=ex_name).one()
     #     stage = session.query(Stage).filter_by(workflow=ex, name=stage_name).one()
-    #     task = session.query(Task).filter_by(stage=stage, tags=tags).one()
+    #     task = session.query(Task).filter_by(stage=stage, params=params).one()
     #     if task is None:
     #         return abort(404)
     #     resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]

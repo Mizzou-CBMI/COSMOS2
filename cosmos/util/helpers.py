@@ -14,9 +14,9 @@ def random_str(n):
 
 def make_dict(*list_of_dicts, **additional_kwargs):
     """
-    :param list_of_dicts: a list of dicts, or Tasks (for Tasks, their tags will be used)
+    :param list_of_dicts: a list of dicts, or Tasks (for Tasks, their params will be used)
     :param additional_kwargs: extra key/vals to add to the dict
-    :return: a merge of all the dicts in args and kwargs
+    :return: a merge of all the dicts in params and kwargs
     """
     r = dict()
     for elem in list_of_dicts:

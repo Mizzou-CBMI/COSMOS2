@@ -8,6 +8,8 @@ import os
 import re
 import signal
 import types
+import funcsigs
+import subprocess as sp
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
@@ -34,7 +36,7 @@ from .Task import Task
 
 def default_task_log_output_dir(task):
     """The default function for computing Task.log_output_dir"""
-    return opj(task.workflow.output_dir, 'log', task.stage.name, str(task.id))
+    return opj(task.workflow.output_dir, 'log', task.stage.name, str(task.uid))
 
 
 @signal_workflow_status_change.connect
@@ -119,38 +121,30 @@ class Workflow(Base):
     def log(self):
         return get_logger('cosmos-%s' % Workflow.name, opj(self.output_dir, self.primary_log_path or 'workflow.log'))
 
-    def add_task2(self, cmd_fxn, params, parents, uid, stage_name):
-        """
+    def make_output_dirs(self):
+        dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values()}
+        for dir in dirs:
+            sp.check_call(['mkdir', '-p', dir])
 
-        :param cmd_fxn:
-        :param kwargs:
-        :param parents:
-        :param uid:
-        :param stage_name:
+    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None):
+        """
+        Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
+
+        :param func func:
+        :param dict params:
+        :param list[Tasks] parents:
+        :param str uid:
+        :param str stage_name:
         :return:
-        """
-
-    pass
-
-    def add_task(self, cmd_fxn, tags=None, parents=None, out_dir='', stage_name=None):
-        """
-        Adds a Task
-
-        :param func cmd_fxn: A function that returns a str or NOOP.  It will be called when this Node is executed in the DAG.
-        :param dict tags: A dictionary of key/value pairs to identify this Task, and to be passed as parameters to `cmd_fxn`
-        :param list[Task] parents: List of dependencies
-        :param str out_dir: Output directory (can be absolute or relative to workflow output_dir).  Will be .format()ed with this task's `tags`.
-        :param str stage_name: Name of the stage to add this task to
-        :return: a Task
         """
         from .Stage import Stage
 
-        if tags is None:
-            tags = dict()
-        # for k, v in tags.iteritems():
-        #     if not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
-        #         raise ValueError('Error adding %s.  Tag type must be one of %s so that it can be persisted to the SQL database.  '
-        #                          'Offending tag: %s: %s, which is type %s' % (cmd_fxn, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
+        if params is None:
+            params = dict()
+        for k, v in params.iteritems():
+            if not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
+                raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
+                                 'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
 
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
@@ -158,11 +152,14 @@ class Workflow(Base):
             parents = []
         if isinstance(parents, Task):
             parents = [parents]
-        if stage_name is None:
-            stage_name = str(cmd_fxn.__name__).replace('_', ' ').title().replace(' ', '_')
+        if uid is None:
+            # Fix me assert params are all JSONable
+            uid = str(params)
+        else:
+            assert isinstance(uid, basestring), 'uid must be a string'
 
-        if out_dir:
-            out_dir = out_dir.format(**tags)
+        if stage_name is None:
+            stage_name = str(func.__name__).replace('_', ' ').title().replace(' ', '_')
 
         # Get the right Stage
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
@@ -171,38 +168,50 @@ class Workflow(Base):
             self.session.add(stage)
 
         # Check if task is already in stage
-        task = stage.get_task(tags, None)
+        task = stage.get_task(params, None)
 
         if task is not None:
-            # if task is already in stage, but unsuccessful, raise an error (duplicate tags) since unsuccessful tasks
+            # if task is already in stage, but unsuccessful, raise an error (duplicate params) since unsuccessful tasks
             # were already removed on workflow load
             if task.successful:
                 return task
             else:
-                # TODO check for duplicate tags here?  would be a lot faster at Workflow.run
-                raise ValueError('Duplicate tags, you have added a Task to Stage %s with tags `%s` twice' % (stage_name, tags))
+                # TODO check for duplicate params here?  would be a lot faster at Workflow.run
+                raise ValueError('Duplicate uid, you have added a Task to Stage %s with uid `%s` twice' % (stage_name, uid))
         else:
             # Create Task
 
-            input_map, output_map = io.get_io_map(cmd_fxn, tags, parents, stage.name, out_dir, self.output_dir)
-            input_files = io.unpack_io_map(input_map)
-            output_files = io.unpack_io_map(output_map)
-            call_kwargs = signature.get_call_kwargs(cmd_fxn, tags, input_map, output_map)
+            # input_map, output_map = io.get_io_map(task_func, task_params, parents, stage.name, out_dir, self.output_dir)
+            # input_files = io.unpack_io_map(input_map)
+            # output_files = io.unpack_io_map(output_map)
+            sig = funcsigs.signature(func)
 
-            f = lambda name, default: tags.get(name) or call_kwargs.get(name) or default
+            # Check required parameters are specified
+            # for keyword, parameter in sig.parameters.iteritems():
+            #     if parameter.default is funcsigs._empty and keyword not in params:
+            #         raise AssertionError, 'Parameter %s is required for %s' % (keyword, func)
 
-            task = Task(stage=stage, tags=tags, parents=parents, input_files=input_files,
-                        output_files=output_files, output_dir=out_dir,
-                        drm=f('drm', self.cosmos_app.default_drm),
-                        core_req=f('core_req', 1),
-                        must_succeed=f('must_succeed', True),
-                        mem_req=f('mem_req', None),
-                        time_req=f('time_req', None))
+            params_or_signature_default_or = lambda name, default: params.get(name) or sig.parameters.get(name).default or default
 
-            task.cmd_fxn = cmd_fxn
-            task.input_map = input_map
-            task.output_map = output_map
-            task.call_kwargs = call_kwargs
+            input_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('in_')}
+            output_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('out_')}
+
+            task = Task(stage=stage,
+                        params=params,
+                        parents=parents,
+                        input_map=input_map,
+                        output_map=output_map,
+                        uid=uid,
+                        drm=params_or_signature_default_or('drm', self.cosmos_app.default_drm),
+                        core_req=params_or_signature_default_or('core_req', 1),
+                        must_succeed=params_or_signature_default_or('must_succeed', True),
+                        mem_req=params_or_signature_default_or('mem_req', None),
+                        time_req=params_or_signature_default_or('time_req', None))
+
+            task.cmd_fxn = func
+            # task.input_map = input_map
+            # task.output_map = output_map
+            # task.call_kwargs = call_kwargs
 
         # Add Stage Dependencies
         for p in parents:
@@ -213,18 +222,19 @@ class Workflow(Base):
 
         return task
 
-    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True, cmd_wrapper=signature.default_cmd_fxn_wrapper,
+    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True,
+            cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir):
         """
         Runs this Workflow's DAG
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
         :param int max_attempts: The maximum number of times to retry a failed job.
-        :param log_out_dir_func: (function) a function that computes a task's log_out_dir_func.
+        :param func log_out_dir_func: A function that returns a Task's logging directory (must be unique).
              It receives one parameter: the task instance.
-             By default task log output is stored in output_dir/log/stage_name/task_id.
+             By default a Task's log output is stored in output_dir/log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
-        :param dry: (bool) if True, do not actually run any jobs.
+        :param bool dry: If True, do not actually run any jobs.
         :param set_successful: (bool) sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
 
@@ -234,6 +244,7 @@ class Workflow(Base):
         assert hasattr(self, 'cosmos_app'), 'Workflow was not initialized using the Workflow.start method'
         assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
         assert self.session, 'Workflow must be part of a sqlalchemy session'
+
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
             self, self.cosmos_app.default_drm, self.output_dir))

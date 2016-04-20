@@ -41,7 +41,7 @@ def taskgraph_to_agraph(task_graph, url=True):
                 v = v if len(v) < 10 else v[1:8] + '..'
                 return "{0}: {1}".format(kv[0], v)
 
-            label = " \\n".join(map(truncate_val, task.tags.items()))
+            label = " \\n".join(map(truncate_val, task.params.items()))
             status2color = {TaskStatus.no_attempt: 'black',
                             TaskStatus.waiting: 'gold1',
                             TaskStatus.submitted: 'navy',

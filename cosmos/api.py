@@ -1,4 +1,4 @@
-from .core.cmd_fxn.io import find, out_dir, forward
+# from .core.cmd_fxn.io import find, out_dir, forward
 from .core.cmd_fxn.signature import default_cmd_fxn_wrapper
 from .models.Cosmos import Cosmos, default_get_submit_args
 from .models.Task import Task
@@ -17,13 +17,11 @@ import re
 
 from black_magic.decorator import partial
 from decorator import decorator
-from cosmos.core.cmd_fxn.io import _validate_input_mapping, unpack_if_cardinality_1
+# from cosmos.core.cmd_fxn.io import _validate_input_mapping, unpack_if_cardinality_1
 
 
-def load_input(in_file, out_file=forward('in_file')): pass
-
-
-def load_inputs(in_files, out_files=forward('in_files')): pass
+# def load_input(in_file, out_file=forward('in_file')): pass
+# def load_inputs(in_files, out_files=forward('in_files')): pass
 
 
 def arg(name, value):
@@ -40,14 +38,14 @@ def args(*args):
     return " \\\n".join(arg(k, v) for k, v in args if arg(k, v) != '')
 
 
-def find2(regex, parents, n='==1'):
-    if isinstance(parents, Task):
-        parents = [parents]
-    g = (file_path for p in parents for file_path in p.output_files)
-    files = [file_path for file_path in g if re.search(regex, file_path)]
-    # validate cardinality and unpack...
-    _validate_input_mapping('cmd?', 'param?', find(regex,n), files, parents)
-    return unpack_if_cardinality_1(find(regex, n), files)
+# def find2(regex, parents, n='==1'):
+#     if isinstance(parents, Task):
+#         parents = [parents]
+#     g = (file_path for p in parents for file_path in p.output_files)
+#     files = [file_path for file_path in g if re.search(regex, file_path)]
+#     # validate cardinality and unpack...
+#     _validate_input_mapping('cmd?', 'param?', find(regex,n), files, parents)
+#     return unpack_if_cardinality_1(find(regex, n), files)
 
 
 @decorator
@@ -58,7 +56,7 @@ def bash_call(func, *args, **kwargs):
 
     Current Limitations:
        * function must be importable from anywhere in the VE
-       * This means no partials! So parameters must all be passed as tags.
+       * This means no partials! So parameters must all be passed as params.
 
 
     def echo(arg1, out_file=out_dir('out.txt')):

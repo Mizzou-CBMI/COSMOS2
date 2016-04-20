@@ -23,7 +23,7 @@ def freebayes(reference_fasta=settings['ref']['reference_fasta'],
         {s[opt][freebayes]} -f {reference_fasta} \
         --vcf {out_vcf} \
         --targets {in_target_bed} \
-        {args} \
+        {params} \
         -m 30 -q 10 -R 0 -S 0 -F 0.1 \
         {in_bam}
     """.format(s=settings,

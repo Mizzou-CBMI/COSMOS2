@@ -111,7 +111,7 @@ You can use the web interface to explore the history and debug all workflows.  F
 
 * Visualizing all jobs as a dependency graph (not useful if there are too many jobs)
 * Visualizing the stages as a dependency graph (high level overview)
-* Search for particular tasks based on their tags or other attributes
+* Search for particular tasks based on their params or other attributes
 * See resource usage statistics
 * For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.
 
@@ -157,15 +157,15 @@ algorithm for resuming is as follows:
 
 2) Add any new Tasks
 
-* A Task is "new" if a Task with the same stage and set of tags does not exist.
+* A Task is "new" if a Task with the same stage and set of params does not exist.
 
 3) Run the workflow
 
 * Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.
 
 .. warning::
-    If a task in a stage with the same tags and has already been executed successfully, it
+    If a task in a stage with the same params and has already been executed successfully, it
     will not be re-executed or altered, *even if the actual command has changed because
     you modified the script*.  If you look at the algorithm above, the successful task was never deleted in 1), so it
     did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
-    This can be especially tricky when you try to change a successful task that has no tags.
+    This can be especially tricky when you try to change a successful task that has no params.

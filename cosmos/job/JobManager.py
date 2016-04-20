@@ -44,7 +44,7 @@ class JobManager(object):
         else:
             fxn = task.cmd_fxn
 
-        command = fxn(**task.call_kwargs)
+        command = fxn(**task.params)
 
         return command
 

@@ -13,8 +13,8 @@ def variant_call(workflow, max_attempts, max_cores, bam_path, target_bed_path, m
 
     freebayes_tasks = []
     for contig in contigs:
-        bed_task = workflow.add_task(tools.filter_bed_by_contig, tags=dict(in_bam=bam_path, in_bed=target_bed_path, contig=contig), out_dir='work/{contig}')
-        freebayes_task = workflow.add_task(tools.freebayes, tags=dict(max_complex_gap=max_complex_gap), parents=bed_task, out_dir='work/{contig}')
+        bed_task = workflow.add_task(tools.filter_bed_by_contig, params=dict(in_bam=bam_path, in_bed=target_bed_path, contig=contig), out_dir='work/{contig}')
+        freebayes_task = workflow.add_task(tools.freebayes, params=dict(max_complex_gap=max_complex_gap), parents=bed_task, out_dir='work/{contig}')
         freebayes_tasks.append(freebayes_task)
 
     merge_vcf_tasks = many2one(tools.vcf_concat_parts, parents=freebayes_tasks)

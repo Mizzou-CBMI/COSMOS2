@@ -143,23 +143,24 @@ class Stage(Base):
         self.session.commit()
 
     def filter_tasks(self, **filter_by):
-        return (t for t in self.tasks if all(t.tags.get(k, None) == v for k, v in filter_by.items()))
+        return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in filter_by.items()))
 
-    def get_task(self, tags, default='ERROR@#$'):
-        tags = {k: v for k, v in tags.items() if
-                any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}  # These are the only tags that actually get saved to the DB
+    def get_task(self, uid, default='ERROR@#$'):
+        # params = {k: v for k, v in params.items() if
+        #         any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}  # These are the only params that actually get saved to the DB
         for task in self.tasks:
-            if task.tags == tags:
+            if task.uid == uid:
                 return task
+
         if default == 'ERROR@#$':
-            raise KeyError('Task with tags %s does not exist' % tags)
+            raise KeyError('Task with uid %s does not exist' % uid)
         else:
             return default
 
     # def get_task(self, **filter_by):
     #     tasks = self.filter_tasks(**filter_by)
-    #     assert len(tasks) > 0, 'no task found with tags %s' % filter_by
-    #     assert len(tasks) == 1, 'more than one task with tags %s' % filter_by
+    #     assert len(tasks) > 0, 'no task found with params %s' % filter_by
+    #     assert len(tasks) == 1, 'more than one task with params %s' % filter_by
     #     return tasks[0]
 
     def percent_successful(self):

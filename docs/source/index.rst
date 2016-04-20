@@ -12,7 +12,7 @@ we are planning a major publication before the official release.
     2_install
     3_getting_started
     workflows/initializing
-    workflows/cmd_fxn
+    workflows/task_func
     workflows/workflows
     workflows/examples
     workflows/advanced

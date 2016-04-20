@@ -1,47 +1,46 @@
-"""
-This is equivalent to example1, but using a helper function :meth:`one2one` for simple relationship patterns between
-stages. The one2one, many2one, etc functions are simple and it is highly recommended that you read through their
-code, and make your own functions for similar patterns.
-"""
-
 import os
 import subprocess as sp
-from cosmos.api import Cosmos, one2one
+from cosmos.api import Cosmos, draw_stage_graph, draw_task_graph, pygraphviz_available
 from tools import echo, cat, word_count
-from cosmos.graph.draw import draw_stage_graph, draw_task_graph, pygraphviz_available
 
 
-def run_ex2(workflow):
-    # Create two jobs that echo "hello" and "world" respectively (source nodes in the graph).
-    echos = [workflow.add_task(echo,
-                                tags=dict(word=word),
-                                out_dir='{word}')
-             for word in ['hello', 'world']]
+def run_ex1(workflow):
+    # Create two Tasks that echo "hello" and "world" respectively (these are source nodes in the dag).
+    echo_tasks = [workflow.add_task(func=echo,
+                                    params=dict(word=word, out_txt='%s.txt' % word))
+                  for word in ['hello', 'world']]
 
-    # Split each echo into two jobs (a one2many relationship).
-    cats = [workflow.add_task(cat,
-                               tags=dict(n=n, **echo_task.tags),
-                               parents=[echo_task],
-                               out_dir='{word}/{n}')
-            for echo_task in echos
-            for n in [1, 2]]
+    # Split each echo into two dependent Tasks (a one2many relationship).
+    word_count_tasks = []
+    for echo_task in echo_tasks:
+        word = echo_task.params['word']
+        for n in [1, 2]:
+            cat_task = workflow.add_task(cat,
+                                         params=dict(in_txts=[echo_task.params['out_txt']],
+                                                     out_txt='%s/%s/cat.txt' % (word, n)),
+                                         parents=[echo_task])
 
-    # Count the words in the previous stage.  An example of a one2one relationship,
-    # the most common stage dependency pattern.  For each task in StageA, you create a single dependent task in StageB.
-    word_counts = one2one(cmd_fxn=word_count, parents=cats, tag=dict(chars=True))
+            # Count the words in the previous stage.  An example of a one2one relationship,
+            # the most common stage dependency pattern.  For each task in StageA, there is a single dependent task in StageB.
+            word_count_task = workflow.add_task(func=word_count,
+                                                params=dict(in_txts=[cat_task.params['out_txt']],
+                                                            out_txt='%s/%s/wc.txt' % (word, n),
+                                                            chars=True),
+                                                parents=[cat_task])
+            word_count_tasks.append(word_count_task)
 
-    # Cat the contents of all word_counts into one file.  Note only one node is being created who's parents are
+    # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
     # all of the WordCounts (a many2one relationship).
-    summarize = workflow.add_task(cat,
-                                   dict(),
-                                   word_counts,
-                                   '',
-                                   'Summary_Analysis')
+    summarize_task = workflow.add_task(func=cat,
+                                       params=dict(in_txts=[t.params['out_txt'] for t in word_count_tasks],
+                                                   out_txt='summary.txt'),
+                                       parents=word_count_tasks,
+                                       stage_name='Summary_Analysis')
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
-        draw_stage_graph(workflow.stage_graph(), '/tmp/ex2_task_graph.png', format='png')
-        draw_task_graph(workflow.task_graph(), '/tmp/ex2_stage_graph.png', format='png')
+        draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
+        draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
 
@@ -53,5 +52,5 @@ if __name__ == '__main__':
     cosmos.initdb()
 
     sp.check_call('mkdir -p analysis_output/ex1', shell=True)
-    workflow = cosmos.start('Example2', 'analysis_output/ex2', restart=True, skip_confirm=True)
-    run_ex2(workflow)
+    workflow = cosmos.start('Example1', 'analysis_output/ex1', restart=True, skip_confirm=True)
+    run_ex1(workflow)

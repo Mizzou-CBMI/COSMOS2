@@ -5,7 +5,7 @@ import codecs
 import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
 from flask import url_for
 from networkx.algorithms import breadth_first_search
@@ -130,24 +130,26 @@ class TaskEdge(Base):
 class Task(Base):
     __tablename__ = 'task'
     """
-    A job that gets executed.  Has a unique set of tags within its Stage.
+    A job that gets executed.  Has a unique set of params within its Stage.
     """
-    # causes a problem with mysql.  its checked a the application level so should be okay
-    # __table_args__ = (UniqueConstraint('tags', 'stage_id', name='_uc1'),)
+    # FIXME causes a problem with mysql?
+    __table_args__ = (UniqueConstraint('stage_id', 'uid', name='_uc1'),)
 
     id = Column(Integer, primary_key=True)
+    uid = Column(String(255), index=True)
+
     mem_req = Column(Integer, default=None)
     core_req = Column(Integer, default=1)
     cpu_req = synonym('core_req')
     time_req = Column(Integer)
     NOOP = Column(Boolean, default=False, nullable=False)
-    tags = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
-    output_dir = Column(String(255))
+    # output_dir = Column(String(255))
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt)
     successful = Column(Boolean, default=False, nullable=False)
-    started_on = Column(DateTime) # FIXME this should probably be deleted.  Too hard to determine.
+    started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)
     finished_on = Column(DateTime)
     attempt = Column(Integer, default=1)
@@ -161,11 +163,19 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    input_files = Column(MutableList.as_mutable(ListOfStrings))
-    output_files = Column(MutableList.as_mutable(ListOfStrings))
+    # input_files = Column(MutableList.as_mutable(ListOfStrings))
+    # output_files = Column(MutableList.as_mutable(ListOfStrings))
 
-    # in_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
-    # out_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+
+    @property
+    def input_files(self):
+        return self.input_map.values()
+
+    @property
+    def output_files(self):
+        return self.output_map.values()
 
     # command = Column(Text)
 
@@ -281,15 +291,15 @@ class Task(Base):
     @property
     def label(self):
         """Label used for the taskgraph image"""
-        tags = '' if len(self.tags) == 0 else "\\n {0}".format(
-            "\\n".join(["{0}: {1}".format(k, v) for k, v in self.tags.items()]))
+        params = '' if len(self.params) == 0 else "\\n {0}".format(
+                "\\n".join(["{0}: {1}".format(k, v) for k, v in self.params.items()]))
 
-        return "[%s] %s%s" % (self.id, self.stage.name, tags)
+        return "[%s] %s%s" % (self.id, self.stage.name, params)
 
-    def tags_as_query_string(self):
+    def args_as_query_string(self):
         import urllib
 
-        return urllib.urlencode(self.tags)
+        return urllib.urlencode(self.params)
 
     def delete(self, delete_files=False):
         self.log.debug('Deleting %s' % self)
@@ -307,13 +317,13 @@ class Task(Base):
         return url_for('cosmos.task', ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id)
 
     @property
-    def tags_pretty(self):
-        return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.tags.items())
+    def params_pretty(self):
+        return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
 
     def __repr__(self):
         return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
                                       self.stage.name if self.stage else '',
-                                      self.tags_pretty
+                                      self.params_pretty
                                       )
 
     def __str__(self):
