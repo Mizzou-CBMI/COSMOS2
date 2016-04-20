@@ -41,7 +41,7 @@ task_failed_printout = u"""Failure Info:
 <STDERR path="{0.output_stderr_path}">
 {0.stderr_text}
 </STDERR>
-Failed Task.output_dir: {0.output_dir}"""
+"""
 
 
 @signal_task_status_change.connect
