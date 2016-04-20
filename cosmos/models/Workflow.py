@@ -25,8 +25,6 @@ from ..util.helpers import get_logger
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
-from ..core.cmd_fxn import io
-from cosmos import ACCEPTABLE_TAG_TYPES
 
 opj = os.path.join
 
@@ -153,14 +151,17 @@ class Workflow(Base):
             params = dict()
         for k, v in params.iteritems():
             if isinstance(v, Dependency):
-                params[k] = v.task.params[v]
-                parents.append(v.task)
+                dependency = v
+                params[k] = dependency.task.params[dependency.param]
+                if dependency.task not in parents:
+                    parents.append(dependency.task)
             # elif not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
             #     raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
             #                      'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
 
         # uid
         if uid is None:
+            # raise AssertionError, 'uid parameter must be specified'
             # Fix me assert params are all JSONable
             uid = str(params)
         else:
@@ -177,7 +178,7 @@ class Workflow(Base):
             self.session.add(stage)
 
         # Check if task is already in stage
-        task = stage.get_task(params, None)
+        task = stage.get_task(uid, None)
 
         if task is not None:
             # if task is already in stage, but unsuccessful, raise an error (duplicate params) since unsuccessful tasks

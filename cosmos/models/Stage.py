@@ -10,7 +10,6 @@ from ..util.sqla import Enum34_ColumnType
 from .. import StageStatus, signal_stage_status_change, RelationshipType, TaskStatus
 import networkx as nx
 import datetime
-from cosmos import ACCEPTABLE_TAG_TYPES
 
 
 @signal_stage_status_change.connect

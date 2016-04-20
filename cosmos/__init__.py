@@ -9,9 +9,16 @@ warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
+
 # ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
-Dependency = namedtuple('Dependency', 'task param metadata')
+class Dependency(namedtuple('Dependency', 'task param metadata')):
+    def __new__(self, task, param, metadata=None):
+        if metadata is None:
+            metadata = dict()
+        assert param in task.params, 'Cannot create Dependency, %s does not exist %s.params' % (param, task)
+        return super(Dependency, self).__new__(self,task, param, metadata)
+
 
 # class _non_jsonable_value(object):
 #     def __repr__(self):
