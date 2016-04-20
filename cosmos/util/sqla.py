@@ -70,8 +70,7 @@ class JSONEncodedDict(TypeDecorator):
     impl = types.UnicodeText
 
     def process_bind_param(self, value, dialect):
-        value = six.text_type(json.dumps({k: v for k, v in value.items()
-                                          if any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}))
+        value = six.text_type(json.dumps({k: v for k, v in value.items()}))
 
         return value
 

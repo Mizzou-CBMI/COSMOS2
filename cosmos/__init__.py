@@ -1,14 +1,17 @@
 import os
-import math
+from collections import namedtuple
 
 # turn SQLAlchemy warnings into errors
 import warnings
 from sqlalchemy.exc import SAWarning
+
 warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
 
 ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
+
+Dependency = namedtuple('Dependency', 'task param metadata')
 
 # class _non_jsonable_value(object):
 #     def __repr__(self):
@@ -31,6 +34,7 @@ with open(os.path.join(library_path, 'VERSION'), 'r') as fh:
 
 class WorkflowFailed(Exception): pass
 
+
 #########################################################################################################################
 # Signals
 #########################################################################################################################
@@ -39,7 +43,6 @@ import blinker
 signal_task_status_change = blinker.Signal()
 signal_stage_status_change = blinker.Signal()
 signal_workflow_status_change = blinker.Signal()
-
 
 ########################################################################################################################
 # Enums

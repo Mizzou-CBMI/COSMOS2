@@ -1,6 +1,6 @@
 import os
 import subprocess as sp
-from cosmos.api import Cosmos, draw_stage_graph, draw_task_graph, pygraphviz_available
+from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, pygraphviz_available
 from tools import echo, cat, word_count
 
 

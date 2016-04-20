@@ -137,27 +137,36 @@ class Workflow(Base):
         :param str stage_name:
         :return:
         """
-        from .Stage import Stage
+        from cosmos.models.Stage import Stage
+        from cosmos.api import Dependency
 
-        if params is None:
-            params = dict()
-        for k, v in params.iteritems():
-            if not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
-                raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
-                                 'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
-
+        # parents
         if isinstance(parents, types.GeneratorType):
             parents = list(parents)
         if parents is None:
             parents = []
         if isinstance(parents, Task):
             parents = [parents]
+
+        # params
+        if params is None:
+            params = dict()
+        for k, v in params.iteritems():
+            if isinstance(v, Dependency):
+                params[k] = v.task.params[v]
+                parents.append(v.task)
+            # elif not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
+            #     raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
+            #                      'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
+
+        # uid
         if uid is None:
             # Fix me assert params are all JSONable
             uid = str(params)
         else:
             assert isinstance(uid, basestring), 'uid must be a string'
 
+        # stage_name
         if stage_name is None:
             stage_name = str(func.__name__).replace('_', ' ').title().replace(' ', '_')
 
@@ -191,7 +200,9 @@ class Workflow(Base):
             #     if parameter.default is funcsigs._empty and keyword not in params:
             #         raise AssertionError, 'Parameter %s is required for %s' % (keyword, func)
 
-            params_or_signature_default_or = lambda name, default: params.get(name) or sig.parameters.get(name).default or default
+            def params_or_signature_default_or(name, default):
+                sig_param = sig.parameters.get(name)
+                return params.get(name) or sig_param.default if sig_param else None or default
 
             input_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('in_')}
             output_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('out_')}

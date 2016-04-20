@@ -50,110 +50,110 @@ def group(tasks_or_tuples, by):
 
     for group_params, parent_group in it.groupby(sorted(tasks_or_tuples, key=f), f):
         yield group_params.copy(), list(parent_group)
-
-
-def one2one(cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
-    """
-    :param func cmd_fxn: the function that runs the command
-    :param itrbl(Task) parents: A child task will be created for each element in this list.
-    :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the params of its parent.
-    :param str out_dir: The directory to output to, will be .formated() with its task's params.  ex. '{shape}/{color}'.
-        Defaults to the output_dir of the parent task.
-    :yields Task: Tasks.
-    """
-    workflow = parents[0].workflow
-
-    if tag is None:
-        tag = dict()
-
-    assert isinstance(tag, dict), '`tag` must be a dict'
-
-    def g():
-        for parent in parents:
-            new_params = parent.params.copy()
-            new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
-            yield workflow.add_task(cmd_fxn, params=new_params, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
-
-    return list(g())
-
-
-def many2one(cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
-    """
-    :param func cmd_fxn: the function that runs the command
-    :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
-        their params given by `groupby`.
-    :param itrbl(Task) parents: An group of parents to groupby
-    :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the params of its parent.
-    :param str|callable out_dir: The directory to output to, will be .formated() with its task's params.  ex. '{shape}/{color}'.
-        Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are params and returns
-        a str.  ie. ``out_dir=lambda params: '{color}/' if params['has_color'] else 'square/'``
-    :yields: Tasks.
-    """
-    workflow = parents[0].workflow
-
-    if tag is None:
-        tag = dict()
-    assert isinstance(tag, dict), '`tag` must be a dict'
-
-    def g():
-        for new_params, parent_group in group(parents, groupby):
-            new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
-
-            yield workflow.add_task(cmd_fxn, params=new_params, parents=parent_group,
-                                    out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
-                                    stage_name=stage_name
-                                    )
-
-    return list(g())
-
-
-def combinations(splitby):
-    for items in it.product(*[[(k, v) for v in l] for k, l in splitby.items()]):
-        yield dict(items)
-
-
-def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
-    """
-    :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
-    :yields: Tasks.
-    """
-    workflow = parents[0].workflow
-
-    if tag is None:
-        tag = dict()
-    assert isinstance(tag, dict), '`tag` must be a dict'
-
-    def g():
-        for parent_task in parents:
-            new_params = parent_task.params.copy()
-            tag_itrbl = splitby(parent_task) if hasattr(splitby, '__call__') else combinations(splitby)
-
-            for split_params in tag_itrbl:
-                new_params.update(split_params)
-                new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
-                yield workflow.add_task(cmd_fxn, params=new_params, parents=[parent_task],
-                                        out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
-                                        stage_name=stage_name)
-
-    return list(g())
-
-
-def many2many(cmd_fxn, parents, groupby, splitby, tag=None, out_dir='', stage_name=None):
-    workflow = parents[0].workflow
-
-    if tag is None:
-        tag = dict()
-    assert isinstance(tag, dict), '`tag` must be a dict'
-
-    def g():
-        for new_params, parent_group in group(parents, groupby):
-            tag_itrbl = splitby(parent_group) if hasattr(splitby, '__call__') else combinations(splitby)
-            for split_params in tag_itrbl:
-                new_params.update(split_params)
-                new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
-                yield workflow.add_task(cmd_fxn, params=new_params, parents=parent_group,
-                                        out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
-                                        stage_name=stage_name)
+#
+#
+# def one2one(cmd_fxn, parents, tag=None, out_dir=None, stage_name=None):
+#     """
+#     :param func cmd_fxn: the function that runs the command
+#     :param itrbl(Task) parents: A child task will be created for each element in this list.
+#     :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the params of its parent.
+#     :param str out_dir: The directory to output to, will be .formated() with its task's params.  ex. '{shape}/{color}'.
+#         Defaults to the output_dir of the parent task.
+#     :yields Task: Tasks.
+#     """
+#     workflow = parents[0].workflow
+#
+#     if tag is None:
+#         tag = dict()
+#
+#     assert isinstance(tag, dict), '`tag` must be a dict'
+#
+#     def g():
+#         for parent in parents:
+#             new_params = parent.params.copy()
+#             new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
+#             yield workflow.add_task(cmd_fxn, params=new_params, parents=[parent], out_dir=out_dir or parent.output_dir, stage_name=stage_name)
+#
+#     return list(g())
+#
+#
+# def many2one(cmd_fxn, parents, groupby, tag=None, out_dir='', stage_name=None):
+#     """
+#     :param func cmd_fxn: the function that runs the command
+#     :param list(str) groupby: A list of keys to groupby.  Parents will be grouped if they have the same values in
+#         their params given by `groupby`.
+#     :param itrbl(Task) parents: An group of parents to groupby
+#     :param dict tag: Tags to add to the Task's dictionary.  The Task will also inherit the params of its parent.
+#     :param str|callable out_dir: The directory to output to, will be .formated() with its task's params.  ex. '{shape}/{color}'.
+#         Defaults to the output_dir of the parent task.  Alternatively use a callable who's parameter are params and returns
+#         a str.  ie. ``out_dir=lambda params: '{color}/' if params['has_color'] else 'square/'``
+#     :yields: Tasks.
+#     """
+#     workflow = parents[0].workflow
+#
+#     if tag is None:
+#         tag = dict()
+#     assert isinstance(tag, dict), '`tag` must be a dict'
+#
+#     def g():
+#         for new_params, parent_group in group(parents, groupby):
+#             new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
+#
+#             yield workflow.add_task(cmd_fxn, params=new_params, parents=parent_group,
+#                                     out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
+#                                     stage_name=stage_name
+#                                     )
+#
+#     return list(g())
+#
+#
+# def combinations(splitby):
+#     for items in it.product(*[[(k, v) for v in l] for k, l in splitby.items()]):
+#         yield dict(items)
+#
+#
+# def one2many(cmd_fxn, parents, splitby, tag=None, out_dir='', stage_name=None):
+#     """
+#     :param dict splitby: a dict who's values are lists, ex: dict(color=['red','blue'], shape=['square','circle'])
+#     :yields: Tasks.
+#     """
+#     workflow = parents[0].workflow
+#
+#     if tag is None:
+#         tag = dict()
+#     assert isinstance(tag, dict), '`tag` must be a dict'
+#
+#     def g():
+#         for parent_task in parents:
+#             new_params = parent_task.params.copy()
+#             tag_itrbl = splitby(parent_task) if hasattr(splitby, '__call__') else combinations(splitby)
+#
+#             for split_params in tag_itrbl:
+#                 new_params.update(split_params)
+#                 new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
+#                 yield workflow.add_task(cmd_fxn, params=new_params, parents=[parent_task],
+#                                         out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
+#                                         stage_name=stage_name)
+#
+#     return list(g())
+#
+#
+# def many2many(cmd_fxn, parents, groupby, splitby, tag=None, out_dir='', stage_name=None):
+#     workflow = parents[0].workflow
+#
+#     if tag is None:
+#         tag = dict()
+#     assert isinstance(tag, dict), '`tag` must be a dict'
+#
+#     def g():
+#         for new_params, parent_group in group(parents, groupby):
+#             tag_itrbl = splitby(parent_group) if hasattr(splitby, '__call__') else combinations(splitby)
+#             for split_params in tag_itrbl:
+#                 new_params.update(split_params)
+#                 new_params.update({k: v.format(**new_params) if isinstance(v, str) else v for k, v in tag.items()})
+#                 yield workflow.add_task(cmd_fxn, params=new_params, parents=parent_group,
+#                                         out_dir=out_dir(new_params) if hasattr(out_dir, '__call__') else out_dir,
+#                                         stage_name=stage_name)
 
 
 def make_params(new_params, tag):

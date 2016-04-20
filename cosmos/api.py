@@ -4,10 +4,10 @@ from .models.Cosmos import Cosmos, default_get_submit_args
 from .models.Task import Task
 from .models.Stage import Stage
 from .models.Workflow import Workflow
-from . import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change
+from . import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
 
 from .util.args import add_workflow_args
-from .util.relationship_patterns import one2one, one2many, many2one, many2many, group
+from .util.relationship_patterns import  group
 from .util.helpers import make_dict
 from .util.iterstuff import only_one
 
@@ -17,11 +17,15 @@ import re
 
 from black_magic.decorator import partial
 from decorator import decorator
+
+
 # from cosmos.core.cmd_fxn.io import _validate_input_mapping, unpack_if_cardinality_1
 
 
 # def load_input(in_file, out_file=forward('in_file')): pass
 # def load_inputs(in_files, out_files=forward('in_files')): pass
+
+def load_input(out_file): pass
 
 
 def arg(name, value):
@@ -46,6 +50,8 @@ def args(*args):
 #     # validate cardinality and unpack...
 #     _validate_input_mapping('cmd?', 'param?', find(regex,n), files, parents)
 #     return unpack_if_cardinality_1(find(regex, n), files)
+
+
 
 
 @decorator
