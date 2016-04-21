@@ -124,7 +124,7 @@ class Workflow(Base):
         for dir in dirs:
             sp.check_call(['mkdir', '-p', dir])
 
-    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None):
+    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -155,9 +155,9 @@ class Workflow(Base):
                 params[k] = dependency.task.params[dependency.param]
                 if dependency.task not in parents:
                     parents.append(dependency.task)
-            # elif not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
-            #     raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
-            #                      'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
+                    # elif not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
+                    # raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
+                    #                      'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
 
         # uid
         if uid is None:
@@ -198,15 +198,27 @@ class Workflow(Base):
 
             # Check required parameters are specified
             # for keyword, parameter in sig.parameters.iteritems():
-            #     if parameter.default is funcsigs._empty and keyword not in params:
+            # if parameter.default is funcsigs._empty and keyword not in params:
             #         raise AssertionError, 'Parameter %s is required for %s' % (keyword, func)
 
             def params_or_signature_default_or(name, default):
                 sig_param = sig.parameters.get(name)
-                return params.get(name) or sig_param.default if sig_param else None or default
+                r = params.get(name, sig_param.default if sig_param is not None else None)
+                if r == funcsigs._empty or r is None:
+                    return default
 
-            input_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('in_')}
-            output_map = {keyword: params.get(keyword) or param.default for keyword, param in sig.parameters.iteritems() if keyword.startswith('out_')}
+            input_map = dict()
+            output_map = dict()
+
+            for keyword, param in sig.parameters.iteritems():
+                if keyword.startswith('in_'):
+                    v = params.get(keyword, param.default)
+                    assert v != funcsigs._empty, 'parameter %s for %s is required' % (param, func)
+                    input_map[keyword] = v
+                elif keyword.startswith('out_'):
+                    v = params.get(keyword, param.default)
+                    assert v != funcsigs._empty, 'parameter %s for %s is required' % (param, func)
+                    output_map[keyword] = v
 
             task = Task(stage=stage,
                         params=params,
@@ -214,7 +226,7 @@ class Workflow(Base):
                         input_map=input_map,
                         output_map=output_map,
                         uid=uid,
-                        drm=params_or_signature_default_or('drm', self.cosmos_app.default_drm),
+                        drm=drm or self.cosmos_app.default_drm,
                         core_req=params_or_signature_default_or('core_req', 1),
                         must_succeed=params_or_signature_default_or('must_succeed', True),
                         mem_req=params_or_signature_default_or('mem_req', None),
@@ -269,7 +281,7 @@ class Workflow(Base):
         if self.jobmanager is None:
             self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
                                          cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
-                                         )
+            )
 
         self.status = WorkflowStatus.running
         self.successful = False
@@ -283,7 +295,7 @@ class Workflow(Base):
         stage_g = self.stage_graph()
 
         # def assert_no_duplicate_taskfiles():
-        #     taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
+        # taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
         #     f = lambda tf: tf.path
         #     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
         #         group = list(group)
