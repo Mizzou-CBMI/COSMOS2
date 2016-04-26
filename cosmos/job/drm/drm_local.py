@@ -20,9 +20,7 @@ class DRM_Local(DRM):
         p = psutil.Popen(task.output_command_script_path,
                          stdout=open(task.output_stderr_path, 'w'),
                          stderr=open(task.output_stdout_path, 'w'),
-                         preexec_fn=preexec_function(),
-                         shell=False, env=os.environ
-                         )
+                         shell=False, env=os.environ)
         p.start_time = time.time()
         drm_jobID = p.pid
         self.procs[drm_jobID] = p
@@ -77,13 +75,6 @@ class DRM_Local(DRM):
     def kill_tasks(self, tasks):
         for t in tasks:
             self.kill(t)
-
-
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()
 
 
 class JobStatusError(Exception):
