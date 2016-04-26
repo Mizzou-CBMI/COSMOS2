@@ -124,7 +124,7 @@ class Workflow(Base):
         for dir in dirs:
             sp.check_call(['mkdir', '-p', dir])
 
-    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None):
+    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -161,9 +161,9 @@ class Workflow(Base):
 
         # uid
         if uid is None:
-            # raise AssertionError, 'uid parameter must be specified'
+            raise AssertionError, 'uid parameter must be specified'
             # Fix me assert params are all JSONable
-            uid = str(params)
+            # uid = str(params)
         else:
             assert isinstance(uid, basestring), 'uid must be a string'
 
@@ -214,7 +214,7 @@ class Workflow(Base):
                         input_map=input_map,
                         output_map=output_map,
                         uid=uid,
-                        drm=params_or_signature_default_or('drm', self.cosmos_app.default_drm),
+                        drm=drm or self.cosmos_app.default_drm,
                         core_req=params_or_signature_default_or('core_req', 1),
                         must_succeed=params_or_signature_default_or('must_succeed', True),
                         mem_req=params_or_signature_default_or('mem_req', None),
