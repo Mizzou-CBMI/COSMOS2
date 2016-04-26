@@ -12,7 +12,7 @@ opj = os.path.join
 
 # ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
-Dependency = namedtuple('Dependency', 'task param metadata')
+Dependency = namedtuple('Dependency', 'task param')
 
 # class Dependency(namedtuple('Dependency', 'task param metadata')):
 #     def __new__(self, task, param, metadata=None):
