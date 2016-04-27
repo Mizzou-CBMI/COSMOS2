@@ -1,7 +1,7 @@
 import os
-import re
+import sys
+
 from .DRM_Base import DRM
-from cosmos.api import only_one
 from .util import div, convert_size_to_kb
 
 _drmaa_session = None
@@ -22,21 +22,20 @@ class DRM_DRMAA(DRM):
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
-        jt = get_drmaa_session().createJobTemplate()
-        # jt.workingDirectory = settings['working_directory']
-        jt.remoteCommand = task.output_command_script_path
-        # jt.params             = cmd.split(' ')[1:]
-        # jt.jobName          = jobAttempt.task.stage.name
-        jt.outputPath = ':' + task.output_stdout_path
-        jt.errorPath = ':' + task.output_stderr_path
-        jt.jobEnvironment = os.environ
+        with get_drmaa_session().createJobTemplate() as jt:
+            jt.remoteCommand = task.output_command_script_path
+            jt.outputPath = ':' + task.output_stdout_path
+            jt.errorPath = ':' + task.output_stderr_path
+            jt.jobEnvironment = os.environ
+            jt.nativeSpecification = task.drm_native_specification or ''
 
-        jt.nativeSpecification = task.drm_native_specification or ''
-
-        drm_jobID = get_drmaa_session().runJob(jt)
-
-        # prevents memory leak
-        get_drmaa_session().deleteJobTemplate(jt)
+            try:
+                drm_jobID = get_drmaa_session().runJob(jt)
+            except BaseException:
+                print >>sys.stderr, \
+                    "Couldn't run task with uid=%s and nativeSpecification=%s" % \
+                    (task.uid, jt.nativeSpecification)
+                raise
 
         return drm_jobID
 
