@@ -202,10 +202,14 @@ class Workflow(Base):
             #         raise AssertionError, 'Parameter %s is required for %s' % (keyword, func)
 
             def params_or_signature_default_or(name, default):
-                sig_param = sig.parameters.get(name)
-                r = params.get(name, sig_param.default if sig_param is not None else None)
-                if r == funcsigs._empty or r is None:
-                    return default
+                if name in params:
+                    return params[name]
+                if name in sig.parameters:
+                    param_default = sig.parameters[name].default
+                    if param_default is funcsigs._empty:
+                        return default
+                    else:
+                        return param_default
 
             input_map = dict()
             output_map = dict()
@@ -281,7 +285,7 @@ class Workflow(Base):
         if self.jobmanager is None:
             self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
                                          cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
-            )
+                                         )
 
         self.status = WorkflowStatus.running
         self.successful = False
