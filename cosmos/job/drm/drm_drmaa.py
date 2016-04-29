@@ -20,6 +20,7 @@ class DRM_DRMAA(DRM):
 
     def __init__(self, *args, **kwargs):
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
+        self.num_jobs_raising_bare_exception = 0
 
     def submit_job(self, task):
         with get_drmaa_session().createJobTemplate() as jt:
@@ -49,17 +50,58 @@ class DRM_DRMAA(DRM):
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
                 extra_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
-            except drmaa.errors.InvalidJobException as e:
-                # There are no jobs left to wait on!
-                raise AssertionError('Should not be waiting on non-existant jobs.')
+
+                extra_jobinfo['successful'] = extra_jobinfo is not None and \
+                    int(extra_jobinfo['exitStatus']) == 0 and \
+                    extra_jobinfo['wasAborted'] == False and \
+                    extra_jobinfo['hasExited']
+                yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
+
             except drmaa.errors.ExitTimeoutException:
-                # Kobs are queued, but none are done yet.  Exit loop.
+                # Jobs are queued, but none are done yet. Exit loop.
                 # enable_stderr()
                 break
 
-            extra_jobinfo['successful'] = extra_jobinfo is not None and int(extra_jobinfo['exitStatus']) == 0 and extra_jobinfo['wasAborted'] == False and \
-                                          extra_jobinfo['hasExited']
-            yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
+            except drmaa.errors.InvalidJobException:
+                # There are no jobs left to wait on!
+
+                if len(jobid_to_task) <= self.num_jobs_raising_bare_exception:
+                    #
+                    # If the job queue is empty, and at least as many bare
+                    # exceptions were raised while polling as there are
+                    # jobs remaining, then any remaining jobs have been lost.
+                    #
+                    self.num_jobs_raising_bare_exception = 0
+                    while jobid_to_task:
+                        jobid, task = jobid_to_task.popitem()
+                        print >>sys.stderr, 'job %s is missing and presumed dead' % jobid
+                        # FIXME set a flag to tell the runner to resubmit the job?
+                        jobinfo = degenerate_extra_jobinfo(os.EX_TEMPFAIL)
+                        jobinfo['successful'] = False
+                        yield task, jobinfo
+                else:
+                    raise RuntimeError('Should not be waiting on non-existent jobs.')
+
+            except Exception as exc:
+                #
+                # python-drmaa occasionally throws a naked Exception. Yuk!
+                #
+                # 'code 24' can occur when a running job is explicitly killed.
+                # If we see that, it's a safe bet a job has died, but which one?
+                # session.wait() hasn't returned a job id, or much of anything.
+                #
+                # Count how many of these exceptions have fired, so that later,
+                # when drmaa's queue is empty, we can tell that jobs were lost.
+                #
+                if not exc.message.startswith("code 24"):
+                    # not sure we can handle other bare drmaa exceptions cleanly
+                    raise
+
+                # "code 24: no usage information was returned for the completed job"
+                print >>sys.stderr, 'drmaa raised a naked Exception while ' \
+                                    'fetching job status - this may be transient ' \
+                                    'or an existing job may have been killed'
+                self.num_jobs_raising_bare_exception += 1
 
     def drm_statuses(self, tasks):
         import drmaa
@@ -142,4 +184,38 @@ def parse_extra_jobinfo(extra_jobinfo):
 
         memory=float(d['mem']),
 
+    )
+
+
+def degenerate_extra_jobinfo(exit_status):
+
+    return dict(
+        exit_status=int(exit_status),
+
+        percent_cpu=0.0,
+        wall_time=0.0,
+
+        cpu_time=0.0,
+        user_time=0.0,
+        system_time=0.0,
+
+        avg_rss_mem=0.0,
+        max_rss_mem_kb=0.0,
+        avg_vms_mem_kb=None,
+        max_vms_mem_kb=0.0,
+
+        io_read_count=0,
+        io_write_count=0,
+        io_wait=0.0,
+        io_read_kb=0.0,
+        io_write_kb=0.0,
+
+        ctx_switch_voluntary=0,
+        ctx_switch_involuntary=0,
+
+        avg_num_threads=None,
+        max_num_threads=None,
+        avg_num_fds=None,
+        max_num_fds=None,
+        memory=0.0
     )
