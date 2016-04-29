@@ -210,6 +210,7 @@ class Workflow(Base):
                         return default
                     else:
                         return param_default
+                return default
 
             input_map = dict()
             output_map = dict()

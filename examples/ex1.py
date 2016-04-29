@@ -16,7 +16,7 @@ def say(text, out_file, core_req=3):
     """.format(text=text, out_file=out_file)
 
 
-t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt'), uid='my_task')
+t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt'), uid='my_task', drm='drmaa:ge')
 
 print 'task.params', t.params
 print 'task.input_map', t.input_map
