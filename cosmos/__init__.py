@@ -12,7 +12,11 @@ opj = os.path.join
 
 # ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
-Dependency = namedtuple('Dependency', 'task param')
+class Dependency(namedtuple('Dependency', 'task param')):
+    def __init__(self, task, param):
+        from cosmos.api import Task
+        assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
+        super(Dependency, self).__init__(task, param)
 
 # class Dependency(namedtuple('Dependency', 'task param metadata')):
 #     def __new__(self, task, param, metadata=None):

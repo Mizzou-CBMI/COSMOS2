@@ -122,7 +122,8 @@ class Workflow(Base):
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values()}
         for dir in dirs:
-            sp.check_call(['mkdir', '-p', dir])
+            if dir != '':
+                sp.check_call(['mkdir', '-p', dir])
 
     def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
         """
@@ -187,7 +188,8 @@ class Workflow(Base):
                 return task
             else:
                 # TODO check for duplicate params here?  would be a lot faster at Workflow.run
-                raise ValueError('Duplicate uid, you have added a Task to Stage %s with uid `%s` twice' % (stage_name, uid))
+                raise ValueError('Duplicate uid, you have added a Task to Stage %s with the uid (unique identifier) `%s` twice.  '
+                                 'Task uids must be unique within the same Stage.' % (stage_name, uid))
         else:
             # Create Task
 
