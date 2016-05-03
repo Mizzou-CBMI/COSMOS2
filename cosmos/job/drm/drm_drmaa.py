@@ -54,6 +54,7 @@ class DRM_DRMAA(DRM):
                 extra_jobinfo['successful'] = extra_jobinfo is not None and \
                     int(extra_jobinfo['exitStatus']) == 0 and \
                     extra_jobinfo['wasAborted'] == False and \
+                    extra_jobinfo['hasSignaled'] == False and \
                     extra_jobinfo['hasExited']
                 yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
 
