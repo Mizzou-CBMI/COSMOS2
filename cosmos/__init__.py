@@ -39,7 +39,7 @@ def recursive_resolve_dependency(parameter):
         return ({k: rds for k, (rds, _) in tuple_dict.iteritems()},
                 set.union(*[tasks for _, tasks in tuple_dict.itervalues()]))
     else:
-        return parameter, {}
+        return parameter, set()
 
 
 # class Dependency(namedtuple('Dependency', 'task param metadata')):

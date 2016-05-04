@@ -137,7 +137,8 @@ class Workflow(Base):
         :return:
         """
         from cosmos.models.Stage import Stage
-        from cosmos.api import Dependency, recursive_resolve_dependency
+        from cosmos import recursive_resolve_dependency
+        from cosmos.api import Dependency
 
         # parents
         if isinstance(parents, types.GeneratorType):
@@ -155,7 +156,7 @@ class Workflow(Base):
             new_val, parent_tasks = recursive_resolve_dependency(v)
 
             params[k] = new_val
-            parents.extend(set(parents) - parent_tasks)
+            parents.extend(parent_tasks - set(parents))
 
         # uid
         if uid is None:
