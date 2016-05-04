@@ -137,6 +137,7 @@ class Workflow(Base):
         :return:
         """
         from cosmos.models.Stage import Stage
+        from cosmos import recursive_resolve_dependency
         from cosmos.api import Dependency
 
         # parents
@@ -151,14 +152,11 @@ class Workflow(Base):
         if params is None:
             params = dict()
         for k, v in params.iteritems():
-            if isinstance(v, Dependency):
-                dependency = v
-                params[k] = dependency.task.params[dependency.param]
-                if dependency.task not in parents:
-                    parents.append(dependency.task)
-                    # elif not any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES):
-                    # raise ValueError('Error adding %s.  Param type must be one of %s so that it can be persisted to the SQL database.  '
-                    #                      'Offending parameter: %s: %s, which is of type %s' % (func, ACCEPTABLE_TAG_TYPES, k, v, type(v)))
+            # decompose `Dependency` objects to values and parents
+            new_val, parent_tasks = recursive_resolve_dependency(v)
+
+            params[k] = new_val
+            parents.extend(parent_tasks - set(parents))
 
         # uid
         if uid is None:

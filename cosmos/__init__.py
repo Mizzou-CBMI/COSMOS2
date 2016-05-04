@@ -13,10 +13,34 @@ opj = os.path.join
 # ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
 class Dependency(namedtuple('Dependency', 'task param')):
-    def __init__(self, task, param):
+    def __new__(cls, task, param):
         from cosmos.api import Task
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
-        super(Dependency, self).__init__(task, param)
+        return super(Dependency, cls).__new__(cls, task, param)
+
+    def get_dependency(self):
+        return self.task.params[self.param]
+
+
+def recursive_resolve_dependency(parameter):
+    """
+    Return a 2-tuple of the recursively resolved datastructure and a set of dependent tasks.
+    """
+    if isinstance(parameter, Dependency):
+        return parameter.get_dependency(), {parameter.task}
+    elif type(parameter) == list:
+        tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
+        return list(rds for (rds, _) in tuple_list), set.union(*[tasks for _, tasks in tuple_list])
+    elif type(parameter) == tuple:
+        tuple_tuple = tuple(recursive_resolve_dependency(v) for v in parameter)
+        return tuple(rds for (rds, _) in tuple_tuple), set.union(*[tasks for _, tasks in tuple_tuple])
+    elif type(parameter) == dict:
+        tuple_dict = {k: recursive_resolve_dependency(v) for k, v in parameter.iteritems()}
+        return ({k: rds for k, (rds, _) in tuple_dict.iteritems()},
+                set.union(*[tasks for _, tasks in tuple_dict.itervalues()]))
+    else:
+        return parameter, set()
+
 
 # class Dependency(namedtuple('Dependency', 'task param metadata')):
 #     def __new__(self, task, param, metadata=None):
