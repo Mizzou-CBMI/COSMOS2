@@ -1,7 +1,7 @@
 import os
-import re
+import sys
+
 from .DRM_Base import DRM
-from cosmos.api import only_one
 from .util import div, convert_size_to_kb
 
 _drmaa_session = None
@@ -22,21 +22,20 @@ class DRM_DRMAA(DRM):
         super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
-        jt = get_drmaa_session().createJobTemplate()
-        # jt.workingDirectory = settings['working_directory']
-        jt.remoteCommand = task.output_command_script_path
-        # jt.params             = cmd.split(' ')[1:]
-        # jt.jobName          = jobAttempt.task.stage.name
-        jt.outputPath = ':' + task.output_stdout_path
-        jt.errorPath = ':' + task.output_stderr_path
-        jt.jobEnvironment = os.environ
+        with get_drmaa_session().createJobTemplate() as jt:
+            jt.remoteCommand = task.output_command_script_path
+            jt.outputPath = ':' + task.output_stdout_path
+            jt.errorPath = ':' + task.output_stderr_path
+            jt.jobEnvironment = os.environ
+            jt.nativeSpecification = task.drm_native_specification or ''
 
-        jt.nativeSpecification = task.drm_native_specification or ''
-
-        drm_jobID = get_drmaa_session().runJob(jt)
-
-        # prevents memory leak
-        get_drmaa_session().deleteJobTemplate(jt)
+            try:
+                drm_jobID = get_drmaa_session().runJob(jt)
+            except BaseException:
+                print >>sys.stderr, \
+                    "Couldn't run task with uid=%s and nativeSpecification=%s" % \
+                    (task.uid, jt.nativeSpecification)
+                raise
 
         return drm_jobID
 
@@ -46,21 +45,74 @@ class DRM_DRMAA(DRM):
         jobid_to_task = {t.drm_jobID: t for t in tasks}
         # Keep yielding jobs until timeout > 1s occurs or there are no jobs
         while len(jobid_to_task):
+
+            failed_jobs = []
+
             try:
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
-                extra_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
+                drmaa_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
-            except drmaa.errors.InvalidJobException as e:
-                # There are no jobs left to wait on!
-                raise AssertionError('Should not be waiting on non-existant jobs.')
+
+                yield jobid_to_task.pop(int(drmaa_jobinfo['jobId'])), \
+                      parse_drmaa_jobinfo(drmaa_jobinfo)
+
             except drmaa.errors.ExitTimeoutException:
-                # Kobs are queued, but none are done yet.  Exit loop.
+                # Jobs are queued, but none are done yet. Exit loop.
                 # enable_stderr()
                 break
 
-            extra_jobinfo['successful'] = extra_jobinfo is not None and int(extra_jobinfo['exitStatus']) == 0 and extra_jobinfo['wasAborted'] == False and \
-                                          extra_jobinfo['hasExited']
-            yield jobid_to_task.pop(int(extra_jobinfo['jobId'])), parse_extra_jobinfo(extra_jobinfo)
+            except drmaa.errors.InvalidJobException:
+                # There are no jobs left to wait on!
+                raise RuntimeError('Should not be waiting on non-existent jobs.')
+
+            except Exception as exc:
+                #
+                # python-drmaa occasionally throws a naked Exception. Yuk!
+                #
+                # 'code 24' may occur when a running or queued job is killed.
+                # If we see that, one or more jobs may be dead, but if so,
+                # which one(s)? drmaa.Session.wait() hasn't returned a job id,
+                # or much of anything.
+                #
+                # TODO This code correctly handles cases when a running job is
+                # TODO killed, but killing a *queued* job (before it is even
+                # TODO scheduled) can really foul things up, in ways I don't
+                # TODO quite understand. We can find and flag the failed job,
+                # TODO but subsequent calls to wait() either block indefinitely
+                # TODO or throw a bunch of exceptions that kill the Cosmos
+                # TODO process. Personally, I blame python-drmaa, but still, it
+                # TODO would be nice to handle this error case more gracefully.
+                #
+                # TL;DR Don't kill queued jobs!!!
+                #
+                if not exc.message.startswith("code 24"):
+                    # not sure we can handle other bare drmaa exceptions cleanly
+                    raise
+
+                # "code 24: no usage information was returned for the completed job"
+                print >>sys.stderr, 'drmaa raised a naked Exception while ' \
+                                    'fetching job status - an existing job may ' \
+                                    'have been killed'
+                #
+                # Check the status of each outstanding job and fake
+                # a failure status for any that have gone missing.
+                #
+                for jobid in jobid_to_task.keys():
+                    try:
+                        drmaa_jobstatus = get_drmaa_session().jobStatus(str(jobid))
+                    except drmaa.errors.InvalidJobException:
+                        drmaa_jobstatus = drmaa.JobState.FAILED
+                    except Exception:
+                        drmaa_jobstatus = drmaa.JobState.UNDETERMINED
+
+                    if drmaa_jobstatus in (drmaa.JobState.DONE,
+                                           drmaa.JobState.FAILED,
+                                           drmaa.JobState.UNDETERMINED):
+                        cosmos_jobinfo = create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
+                        failed_jobs.append((jobid_to_task.pop(jobid), cosmos_jobinfo))
+
+            for jobid, task in failed_jobs:
+                yield jobid, task
 
     def drm_statuses(self, tasks):
         import drmaa
@@ -109,10 +161,10 @@ def div(n, d):
         return n / d
 
 
-def parse_extra_jobinfo(extra_jobinfo):
-    d = extra_jobinfo['resourceUsage']
-    return dict(
-        exit_status=int(extra_jobinfo['exitStatus']),
+def parse_drmaa_jobinfo(drmaa_jobinfo):
+    d = drmaa_jobinfo['resourceUsage']
+    cosmos_jobinfo = dict(
+        exit_status=int(drmaa_jobinfo['exitStatus']),
 
         percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
         wall_time=float(d['ru_wallclock']),
@@ -142,5 +194,63 @@ def parse_extra_jobinfo(extra_jobinfo):
         max_num_fds=None,
 
         memory=float(d['mem']),
+    )
 
+    #
+    # Wait, what? drmaa has two exit status fields? Of course, they don't always
+    # agree when an error occurs. Worse, sometimes drmaa doesn't set exit_status
+    # when a job is killed. We may not be able to get the exact exit code, but
+    # at least we can guarantee it will be non-zero for any job that shows signs
+    # of terminating in error.
+    #
+    if int(drmaa_jobinfo['exitStatus']) != 0 or \
+       drmaa_jobinfo['hasSignal'] or \
+       drmaa_jobinfo['wasAborted'] or \
+       not drmaa_jobinfo['hasExited']:
+
+        if cosmos_jobinfo['exit_status'] == 0:
+            cosmos_jobinfo['exit_status'] = int(float(
+                drmaa_jobinfo['resourceUsage']['exit_status']))
+        if cosmos_jobinfo['exit_status'] == 0:
+            cosmos_jobinfo['exit_status'] = os.EX_SOFTWARE
+
+        cosmos_jobinfo['successful'] = False
+    else:
+        cosmos_jobinfo['successful'] = True
+
+    return cosmos_jobinfo
+
+
+def create_empty_drmaa_jobinfo(exit_status):
+
+    return dict(
+        exit_status=int(exit_status),
+        successful=(int(exit_status) == 0),
+
+        percent_cpu=0.0,
+        wall_time=0.0,
+
+        cpu_time=0.0,
+        user_time=0.0,
+        system_time=0.0,
+
+        avg_rss_mem=0.0,
+        max_rss_mem_kb=0.0,
+        avg_vms_mem_kb=None,
+        max_vms_mem_kb=0.0,
+
+        io_read_count=0,
+        io_write_count=0,
+        io_wait=0.0,
+        io_read_kb=0.0,
+        io_write_kb=0.0,
+
+        ctx_switch_voluntary=0,
+        ctx_switch_involuntary=0,
+
+        avg_num_threads=None,
+        max_num_threads=None,
+        avg_num_fds=None,
+        max_num_fds=None,
+        memory=0.0
     )

@@ -121,9 +121,9 @@ class Workflow(Base):
 
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values()}
-        for dir in dirs:
-            if dir != '':
-                sp.check_call(['mkdir', '-p', dir])
+        for d in dirs:
+            if d != '':
+                sp.check_call(['mkdir', '-p', os.path.join(self.output_dir, d)])
 
     def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
         """
