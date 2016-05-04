@@ -101,17 +101,16 @@ class DRM_DRMAA(DRM):
                     try:
                         drmaa_jobstatus = get_drmaa_session().jobStatus(str(jobid))
                     except drmaa.errors.InvalidJobException:
-                        drmaa_jobstatus = drmaa.JobState.FAILED
+                        drmaa_jobstatus = drmaa.JobState.UNDETERMINED
                     except Exception:
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
 
-                    if drmaa_jobstatus in (drmaa.JobState.DONE,
-                                           drmaa.JobState.FAILED,
-                                           drmaa.JobState.UNDETERMINED):
+                    if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
                         cosmos_jobinfo = create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
                         failed_jobs.append((jobid_to_task.pop(jobid), cosmos_jobinfo))
 
             for jobid, task in failed_jobs:
+                print >>sys.stderr, 'job %d is missing and presumed dead' % jobid
                 yield jobid, task
 
     def drm_statuses(self, tasks):
