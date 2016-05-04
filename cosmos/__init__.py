@@ -28,7 +28,7 @@ def recursive_resolve_dependency(parameter):
     """
     if isinstance(parameter, Dependency):
         return parameter.resolve(), {parameter.task}
-    elif type(parameter) in (str, unicode, int, float, long):
+    elif type(parameter) in (str, unicode, int, float, long, bool):
         return parameter, set()
     elif type(parameter) == list:
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
