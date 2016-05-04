@@ -9,7 +9,7 @@ cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__fil
                 get_submit_args=partial(default_get_submit_args, parallel_env='smp'))
 cosmos.initdb()
 
-workflow = cosmos.start('Example1', 'analysis_output/ex1', restart=True, skip_confirm=True)
+workflow = cosmos.start('Example1', restart=True, skip_confirm=True)
 
 
 def say(text, out_file, core_req=3):
@@ -18,7 +18,7 @@ def say(text, out_file, core_req=3):
     """.format(text=text, out_file=out_file)
 
 
-t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt', core_req=5), uid='my_task', drm='drmaa:ge')
+t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='analysis_output/ex1/out.txt', core_req=5), uid='my_task', drm='local')
 
 print 'task.params', t.params
 print 'task.input_map', t.input_map

@@ -34,14 +34,14 @@ from .Task import Task
 
 def default_task_log_output_dir(task):
     """The default function for computing Task.log_output_dir"""
-    return opj(task.workflow.output_dir, 'log', task.stage.name, str(task.uid))
+    return opj('log', task.stage.name, str(task.uid))
 
 
 @signal_workflow_status_change.connect
 def _workflow_status_changed(ex):
     if ex.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
         logfunc = ex.log.warning if ex.status in [WorkflowStatus.failed, WorkflowStatus.killed] else ex.log.info
-        logfunc('%s %s, output_dir: %s' % (ex, ex.status, ex.output_dir))
+        logfunc('%s %s' % (ex, ex.status))
         ex.finished_on = datetime.datetime.now()
 
     if ex.status == WorkflowStatus.successful:
@@ -59,9 +59,9 @@ class Workflow(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(200), unique=True)
-    description = Column(String(255))
+    # description = Column(String(255))
     successful = Column(Boolean, nullable=False, default=False)
-    output_dir = Column(String(255), nullable=False)
+    # output_dir = Column(String(255), nullable=False)
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
@@ -106,7 +106,7 @@ class Workflow(Base):
         if manual_instantiation:
             raise TypeError, 'Do not instantiate an Workflow manually.  Use the Cosmos.start method.'
         super(Workflow, self).__init__(*args, **kwargs)
-        assert self.output_dir is not None, 'output_dir cannot be None'
+        # assert self.output_dir is not None, 'output_dir cannot be None'
         if self.info is None:
             # mutable dict column defaults to None
             self.info = dict()
@@ -117,13 +117,13 @@ class Workflow(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Workflow.name, opj(self.output_dir, self.primary_log_path or 'workflow.log'))
+        return get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
 
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values()}
         for d in dirs:
             if d != '':
-                sp.check_call(['mkdir', '-p', os.path.join(self.output_dir, d)])
+                sp.check_call(['mkdir', '-p', d])
 
     def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
         """
@@ -275,8 +275,8 @@ class Workflow(Base):
         assert self.session, 'Workflow must be part of a sqlalchemy session'
 
         session = self.session
-        self.log.info('Preparing to run %s using DRM `%s`, output_dir: `%s`' % (
-            self, self.cosmos_app.default_drm, self.output_dir))
+        self.log.info('Preparing to run %s using DRM `%s`' % (
+            self, self.cosmos_app.default_drm))
 
         self.max_cores = max_cores
         self.max_attempts = max_attempts
@@ -474,16 +474,18 @@ class Workflow(Base):
         :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
         if hasattr(self, 'log'):
-            self.log.info('Deleting %s, output_dir=%s, delete_files=%s' % (self, self.output_dir, delete_files))
+            self.log.info('Deleting %s, delete_files=%s' % (self, delete_files))
             for h in self.log.handlers:
                 h.flush()
                 h.close()
                 self.log.removeHandler(h)
                 # time.sleep(.1)  # takes a second for logs to flush?
 
-        print >> sys.stderr, 'Deleting output_dir: %s...' % self.output_dir
-        if delete_files and os.path.exists(self.output_dir):
-            shutil.rmtree(self.output_dir)
+        # print >> sys.stderr, 'Deleting output_dir: %s...' % self.output_dir
+        if delete_files:
+            raise NotImplementedError('This should delete all Task.output_files')
+        # if delete_files and os.path.exists(self.output_dir):
+        #     shutil.rmtree(self.output_dir)
 
         ### Faster deleting can be done with explicit sql queries?
         # from .TaskFile import InputFileAssociation

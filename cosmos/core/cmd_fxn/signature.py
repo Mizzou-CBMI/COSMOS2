@@ -29,13 +29,11 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
 import decorator
 
 
-def default_prepend(workflow_output_dir):
+def default_prepend(task):
     return '#!/bin/bash\n' \
            'set -e\n' \
            'set -o pipefail\n' \
-           'EXECUTION_OUTPUT_DIR={ex_out}\n' \
-           'cd $EXECUTION_OUTPUT_DIR\n' \
-           '\n\n'.format(ex_out=workflow_output_dir)
+           '\n\n'
 
 # def default_cmd_append(task):
 #     return ''
@@ -57,6 +55,6 @@ def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, cd_to_task_
         if r is None:
             return None
         else:
-            return default_prepend(task.workflow.output_dir) + r
+            return default_prepend(task) + r
 
     return decorator.decorator(real_decorator)
