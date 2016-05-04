@@ -22,8 +22,8 @@ def recipe(workflow):
                                          parents=[echo_task],
                                          uid='%s_%s' % (word, n))
 
-            # Count the words in the previous stage.  An example of a one2one relationship,
-            # the most common stage dependency pattern.  For each task in StageA, there is a single dependent task in StageB.
+            # Count the words in the previous stage.  An example of a simple one2one relationship (aka a map operation),
+            # For each task in StageA, there is a single dependent task in StageB.
             word_count_task = workflow.add_task(func=word_count,
                                                 params=dict(in_txts=[cat_task.params['out_txt']],
                                                             out_txt='%s/%s/wc.txt' % (word, n),
@@ -33,7 +33,7 @@ def recipe(workflow):
             word_count_tasks.append(word_count_task)
 
     # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
-    # all of the WordCounts (a many2one relationship).
+    # all of the WordCounts (a many2one relationship, aka a reduce operation).
     summarize_task = workflow.add_task(func=cat,
                                        params=dict(in_txts=[t.params['out_txt'] for t in word_count_tasks],
                                                    out_txt='summary.txt'),
