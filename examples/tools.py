@@ -1,4 +1,3 @@
-from main import settings as s
 
 
 def sleep(time=10):
@@ -6,7 +5,7 @@ def sleep(time=10):
 
 
 def echo(word, out_txt):
-    return '{s[echo_path]} {word} > {out_txt}'.format(s=s, **locals())
+    return 'echo {word} > {out_txt}'.format(**locals())
 
 
 def cat(in_txts, out_txt):

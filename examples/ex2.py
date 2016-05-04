@@ -4,10 +4,11 @@ from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, py
 from tools import echo, cat, word_count
 
 
-def run_ex1(workflow):
+def recipe(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (these are source nodes in the dag).
     echo_tasks = [workflow.add_task(func=echo,
-                                    params=dict(word=word, out_txt='%s.txt' % word))
+                                    params=dict(word=word, out_txt='%s.txt' % word),
+                                    uid=word)
                   for word in ['hello', 'world']]
 
     # Split each echo into two dependent Tasks (a one2many relationship).
@@ -18,7 +19,8 @@ def run_ex1(workflow):
             cat_task = workflow.add_task(cat,
                                          params=dict(in_txts=[echo_task.params['out_txt']],
                                                      out_txt='%s/%s/cat.txt' % (word, n)),
-                                         parents=[echo_task])
+                                         parents=[echo_task],
+                                         uid='%s_%s' % (word, n))
 
             # Count the words in the previous stage.  An example of a one2one relationship,
             # the most common stage dependency pattern.  For each task in StageA, there is a single dependent task in StageB.
@@ -26,7 +28,8 @@ def run_ex1(workflow):
                                                 params=dict(in_txts=[cat_task.params['out_txt']],
                                                             out_txt='%s/%s/wc.txt' % (word, n),
                                                             chars=True),
-                                                parents=[cat_task])
+                                                parents=[cat_task],
+                                                uid='%s_%s' % (word, n), )
             word_count_tasks.append(word_count_task)
 
     # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
@@ -35,7 +38,23 @@ def run_ex1(workflow):
                                        params=dict(in_txts=[t.params['out_txt'] for t in word_count_tasks],
                                                    out_txt='summary.txt'),
                                        parents=word_count_tasks,
-                                       stage_name='Summary_Analysis')
+                                       stage_name='Summary_Analysis',
+                                       uid='')  # It's the only Task in this Stage, so doesn't need a specific uid
+
+
+if __name__ == '__main__':
+    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
+    cosmos.initdb()
+
+    sp.check_call('mkdir -p analysis_output/ex2', shell=True)
+    os.chdir('analysis_output/ex2')
+
+    workflow = cosmos.start('Example1', restart=True, skip_confirm=True)
+
+    recipe(workflow)
+
+    workflow.make_output_dirs()
+    workflow.run(max_attempts=1, max_cores=10)
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
@@ -43,14 +62,3 @@ def run_ex1(workflow):
         draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
-
-    workflow.run(max_attempts=1, max_cores=10)
-
-
-if __name__ == '__main__':
-    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
-    cosmos.initdb()
-
-    sp.check_call('mkdir -p analysis_output/ex1', shell=True)
-    workflow = cosmos.start('Example1', 'analysis_output/ex1', restart=True, skip_confirm=True)
-    run_ex1(workflow)

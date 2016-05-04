@@ -125,7 +125,7 @@ class Workflow(Base):
             if d != '':
                 sp.check_call(['mkdir', '-p', d])
 
-    def add_task(self, func, params=None, parents=None, uid=None, stage_name=None, drm=None):
+    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
