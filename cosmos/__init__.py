@@ -18,7 +18,7 @@ class Dependency(namedtuple('Dependency', 'task param')):
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
         return super(Dependency, cls).__new__(cls, task, param)
 
-    def get_dependency(self):
+    def resolve(self):
         return self.task.params[self.param]
 
 
@@ -27,7 +27,7 @@ def recursive_resolve_dependency(parameter):
     Return a 2-tuple of the recursively resolved datastructure and a set of dependent tasks.
     """
     if isinstance(parameter, Dependency):
-        return parameter.get_dependency(), {parameter.task}
+        return parameter.resolve(), {parameter.task}
     elif type(parameter) == list:
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
         return list(rds for (rds, _) in tuple_list), set.union(*[tasks for _, tasks in tuple_list])
