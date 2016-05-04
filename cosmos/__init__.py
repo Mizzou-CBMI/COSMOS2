@@ -28,6 +28,8 @@ def recursive_resolve_dependency(parameter):
     """
     if isinstance(parameter, Dependency):
         return parameter.resolve(), {parameter.task}
+    elif type(parameter) in (str, unicode, int, float, long):
+        return parameter, set()
     elif type(parameter) == list:
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
         return list(rds for (rds, _) in tuple_list), set.union(*[tasks for _, tasks in tuple_list])
@@ -39,7 +41,7 @@ def recursive_resolve_dependency(parameter):
         return ({k: rds for k, (rds, _) in tuple_dict.iteritems()},
                 set.union(*[tasks for _, tasks in tuple_dict.itervalues()]))
     else:
-        return parameter, set()
+        raise ValueError('Cannot handle parameter of type {}'.format(type(parameter)))
 
 
 # class Dependency(namedtuple('Dependency', 'task param metadata')):
