@@ -23,9 +23,9 @@ class DRM_DRMAA(DRM):
 
     def submit_job(self, task):
         with get_drmaa_session().createJobTemplate() as jt:
-            jt.remoteCommand = task.output_command_script_path
-            jt.outputPath = ':' + task.output_stdout_path
-            jt.errorPath = ':' + task.output_stderr_path
+            jt.remoteCommand = os.path.abspath(task.output_command_script_path)
+            jt.outputPath = ':' + os.path.abspath(task.output_stdout_path)
+            jt.errorPath = ':' + os.path.abspath(task.output_stderr_path)
             jt.jobEnvironment = os.environ
             jt.nativeSpecification = task.drm_native_specification or ''
 
@@ -33,8 +33,8 @@ class DRM_DRMAA(DRM):
                 drm_jobID = get_drmaa_session().runJob(jt)
             except BaseException:
                 print >>sys.stderr, \
-                    "Couldn't run task with uid=%s and nativeSpecification=%s" % \
-                    (task.uid, jt.nativeSpecification)
+                    "Couldn't run %s with nativeSpecification=`%s`" % \
+                    (task, jt.nativeSpecification)
                 raise
 
         return drm_jobID

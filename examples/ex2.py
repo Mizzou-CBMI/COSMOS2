@@ -1,6 +1,7 @@
 import os
 import subprocess as sp
-from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, pygraphviz_available
+from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, pygraphviz_available, default_get_submit_args
+from functools import partial
 from tools import echo, cat, word_count
 
 
@@ -43,7 +44,10 @@ def recipe(workflow):
 
 
 if __name__ == '__main__':
-    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
+    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
+                    # example of how to change arguments if you're NOT using default_drm='local'
+                    get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
+                    default_drm='local')
     cosmos.initdb()
 
     sp.check_call('mkdir -p analysis_output/ex2', shell=True)
