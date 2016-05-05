@@ -41,6 +41,21 @@ def arg(name, value):
 def args(*args):
     return " \\\n".join(arg(k, v) for k, v in args if arg(k, v) != '')
 
+import contextlib
+import os
+
+
+@contextlib.contextmanager
+def cd(path):
+    """A context manager which changes the working directory to the given
+    path, and then changes it back to its previous value on exit.
+
+    """
+    prev_cwd = os.getcwd()
+    os.chdir(path)
+    yield
+    os.chdir(prev_cwd)
+
 
 # def find2(regex, parents, n='==1'):
 #     if isinstance(parents, Task):
