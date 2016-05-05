@@ -186,7 +186,8 @@ def get_logger(name, path):
     # create file handler which logs debug messages
     if path:
         d = os.path.dirname(path)
-        assert d == '' or os.path.exists(d), 'Cannot write to %s' % path
+        assert d == '' or os.path.exists(d), \
+            'Cannot write to %s from %s' % (path, os.getcwd())
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))

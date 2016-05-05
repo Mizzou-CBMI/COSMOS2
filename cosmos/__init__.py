@@ -1,10 +1,11 @@
 import os
-from collections import namedtuple
-
-# turn SQLAlchemy warnings into errors
+import types
 import warnings
+
+from collections import namedtuple
 from sqlalchemy.exc import SAWarning
 
+# turn SQLAlchemy warnings into errors
 warnings.simplefilter("error", SAWarning)
 
 opj = os.path.join
@@ -28,7 +29,7 @@ def recursive_resolve_dependency(parameter):
     """
     if isinstance(parameter, Dependency):
         return parameter.resolve(), {parameter.task}
-    elif type(parameter) in (str, unicode, int, float, long, bool):
+    elif type(parameter) in (bool, float, int, long, str, unicode, types.NoneType):
         return parameter, set()
     elif type(parameter) == list:
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)

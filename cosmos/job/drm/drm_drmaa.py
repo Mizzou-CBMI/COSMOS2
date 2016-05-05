@@ -101,17 +101,16 @@ class DRM_DRMAA(DRM):
                     try:
                         drmaa_jobstatus = get_drmaa_session().jobStatus(str(jobid))
                     except drmaa.errors.InvalidJobException:
-                        drmaa_jobstatus = drmaa.JobState.FAILED
+                        drmaa_jobstatus = drmaa.JobState.UNDETERMINED
                     except Exception:
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
 
-                    if drmaa_jobstatus in (drmaa.JobState.DONE,
-                                           drmaa.JobState.FAILED,
-                                           drmaa.JobState.UNDETERMINED):
+                    if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
                         cosmos_jobinfo = create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
                         failed_jobs.append((jobid_to_task.pop(jobid), cosmos_jobinfo))
 
             for jobid, task in failed_jobs:
+                print >>sys.stderr, 'job %d is missing and presumed dead' % jobid
                 yield jobid, task
 
     def drm_statuses(self, tasks):
@@ -132,7 +131,10 @@ class DRM_DRMAA(DRM):
         import drmaa
 
         if task.drm_jobID is not None:
-            get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+            try:
+                get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+            except drmaa.errors.InvalidJobException:
+                pass
 
     def kill_tasks(self, tasks):
         for t in tasks:
@@ -164,28 +166,30 @@ def div(n, d):
 def parse_drmaa_jobinfo(drmaa_jobinfo):
     d = drmaa_jobinfo['resourceUsage']
     cosmos_jobinfo = dict(
-        exit_status=int(drmaa_jobinfo['exitStatus']),
+        exit_status=int(drmaa_jobinfo.get('exitStatus', os.EX_UNAVAILABLE)),
 
-        percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
-        wall_time=float(d['ru_wallclock']),
+        percent_cpu=div(float(d.get('cpu', 0)),
+                        float(d.get('ru_wallclock', 0))),
+        wall_time=float(d.get('ru_wallclock', 0)),
 
-        cpu_time=float(d['cpu']),
-        user_time=float(d['ru_utime']),
-        system_time=float(d['ru_stime']),
+        cpu_time=float(d.get('cpu', 0)),
+        user_time=float(d.get('ru_utime', 0)),
+        system_time=float(d.get('ru_stime', 0)),
 
-        avg_rss_mem=d['ru_ixrss'],
-        max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+        # TODO should we be calling convert_size_to_kb() for avg_rss_mem?
+        avg_rss_mem=d.get('ru_ixrss', "0"),
+        max_rss_mem_kb=convert_size_to_kb(d.get('ru_maxrss', "0")),
         avg_vms_mem_kb=None,
-        max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
+        max_vms_mem_kb=convert_size_to_kb(d.get('maxvmem', "0")),
 
-        io_read_count=int(float(d['ru_inblock'])),
-        io_write_count=int(float(d['ru_oublock'])),
-        io_wait=float(d['iow']),
-        io_read_kb=float(d['io']),
-        io_write_kb=float(d['io']),
+        io_read_count=int(float(d.get('ru_inblock', 0))),
+        io_write_count=int(float(d.get('ru_oublock', 0))),
+        io_wait=float(d.get('iow', 0)),
+        io_read_kb=float(d.get('io', 0)),
+        io_write_kb=float(d.get('io', 0)),
 
-        ctx_switch_voluntary=int(float(d['ru_nvcsw'])),
-        ctx_switch_involuntary=int(float(d['ru_nivcsw'])),
+        ctx_switch_voluntary=int(float(d.get('ru_nvcsw', 0))),
+        ctx_switch_involuntary=int(float(d.get('ru_nivcsw', 0))),
 
         avg_num_threads=None,
         max_num_threads=None,
@@ -193,7 +197,7 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
         avg_num_fds=None,
         max_num_fds=None,
 
-        memory=float(d['mem']),
+        memory=float(d.get('mem', 0)),
     )
 
     #
@@ -209,8 +213,12 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
        not drmaa_jobinfo['hasExited']:
 
         if cosmos_jobinfo['exit_status'] == 0:
-            cosmos_jobinfo['exit_status'] = int(float(
-                drmaa_jobinfo['resourceUsage']['exit_status']))
+            try:
+                cosmos_jobinfo['exit_status'] = int(float(
+                    drmaa_jobinfo['resourceUsage']['exit_status']))
+            except KeyError:
+                cosmos_jobinfo['exit_status'] = os.EX_UNAVAILABLE
+
         if cosmos_jobinfo['exit_status'] == 0:
             cosmos_jobinfo['exit_status'] = os.EX_SOFTWARE
 
