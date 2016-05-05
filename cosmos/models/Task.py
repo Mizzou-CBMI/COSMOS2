@@ -321,7 +321,7 @@ class Task(Base):
         return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
 
     def __repr__(self):
-        return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
+        return '<Task[%s] %s(uid=%s)>' % (self.id or 'id_%s' % id(self),
                                       self.stage.name if self.stage else '',
                                       self.uid
                                       )

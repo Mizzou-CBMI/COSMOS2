@@ -1,6 +1,7 @@
 """
 Basic demonstration the structure of a Task instance
 """
+import subprocess as sp
 import os
 from cosmos.api import Cosmos, default_get_submit_args
 from functools import partial
