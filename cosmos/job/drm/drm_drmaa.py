@@ -131,7 +131,10 @@ class DRM_DRMAA(DRM):
         import drmaa
 
         if task.drm_jobID is not None:
-            get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+            try:
+                get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+            except drmaa.errors.InvalidJobException:
+                pass
 
     def kill_tasks(self, tasks):
         for t in tasks:
