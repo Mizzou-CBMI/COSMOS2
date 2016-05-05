@@ -275,8 +275,8 @@ class Workflow(Base):
         assert self.session, 'Workflow must be part of a sqlalchemy session'
 
         session = self.session
-        self.log.info('Preparing to run %s using DRM `%s`' % (
-            self, self.cosmos_app.default_drm))
+        self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
+            self, self.cosmos_app.default_drm, os.getcwd()))
 
         self.max_cores = max_cores
         self.max_attempts = max_attempts
