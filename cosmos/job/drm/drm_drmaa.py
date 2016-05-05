@@ -174,10 +174,10 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
         system_time=float(d.get('ru_stime', 0)),
 
         # TODO should we be calling convert_size_to_kb() for avg_rss_mem?
-        avg_rss_mem=d.get('ru_ixrss', 0),
-        max_rss_mem_kb=convert_size_to_kb(d.get('ru_maxrss', 0)),
+        avg_rss_mem=d.get('ru_ixrss', "0"),
+        max_rss_mem_kb=convert_size_to_kb(d.get('ru_maxrss', "0")),
         avg_vms_mem_kb=None,
-        max_vms_mem_kb=convert_size_to_kb(d.get('maxvmem', 0)),
+        max_vms_mem_kb=convert_size_to_kb(d.get('maxvmem', "0")),
 
         io_read_count=int(float(d.get('ru_inblock', 0))),
         io_write_count=int(float(d.get('ru_oublock', 0))),
