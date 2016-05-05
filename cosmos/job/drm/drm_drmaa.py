@@ -46,8 +46,6 @@ class DRM_DRMAA(DRM):
         # Keep yielding jobs until timeout > 1s occurs or there are no jobs
         while len(jobid_to_task):
 
-            failed_jobs = []
-
             try:
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
                 drmaa_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
@@ -106,12 +104,9 @@ class DRM_DRMAA(DRM):
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
 
                     if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
-                        cosmos_jobinfo = create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
-                        failed_jobs.append((jobid_to_task.pop(jobid), cosmos_jobinfo))
-
-            for jobid, task in failed_jobs:
-                print >>sys.stderr, 'job %d is missing and presumed dead' % jobid
-                yield jobid, task
+                        print >>sys.stderr, 'job %d is missing and presumed dead' % jobid
+                        yield jobid_to_task.pop(jobid), \
+                              create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
 
     def drm_statuses(self, tasks):
         import drmaa
