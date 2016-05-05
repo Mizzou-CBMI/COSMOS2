@@ -323,7 +323,7 @@ class Task(Base):
     def __repr__(self):
         return '<Task[%s] %s(%s)>' % (self.id or 'id_%s' % id(self),
                                       self.stage.name if self.stage else '',
-                                      self.params_pretty
+                                      self.uid
                                       )
 
     def __str__(self):
