@@ -53,7 +53,7 @@ if __name__ == '__main__':
     sp.check_call('mkdir -p analysis_output/ex2', shell=True)
     os.chdir('analysis_output/ex2')
 
-    workflow = cosmos.start('Example1', restart=True, skip_confirm=True)
+    workflow = cosmos.start('Example2', restart=True, skip_confirm=True)
 
     recipe(workflow)
 
