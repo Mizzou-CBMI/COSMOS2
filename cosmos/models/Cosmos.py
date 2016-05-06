@@ -12,17 +12,17 @@ from concurrent import futures
 from datetime import datetime
 
 
-def default_get_submit_args(task, queue=None, parallel_env='orte'):
+def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would cause all jobs
     to be submitted with `bsub -n 3`.
 
     :param cosmos.api.Task task: The Task being submitted.
-    :param str queue: The queue to submit to
+    :param str default_queue: The default_queue to submit to
     :rtype: str
     """
-    drm = task.drm or queue
+    drm = task.drm
     default_job_priority = None
     use_mem_req = False
     use_time_req = False
@@ -32,13 +32,13 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
     time_req = task.time_req if use_time_req else None
 
     jobname = '%s[%s]' % (task.stage.name, task.uid)
-    queue = ' -q %s' % queue if queue else ''
+    default_queue = ' -q %s' % default_queue if default_queue else ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
     if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
-        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
+        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{default_queue} -J "{jobname}"'.format(**locals())
 
     elif drm in ['ge', 'drmaa:ge']:
         h_vmem = int(math.ceil(mem_req / float(core_req))) if mem_req else None
@@ -51,8 +51,10 @@ def default_get_submit_args(task, queue=None, parallel_env='orte'):
 
         resource_str = ','.join(g())
 
-        return '-cwd -pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority, queue=queue,
-                                                                                       jobname=jobname, core_req=core_req, parallel_env=parallel_env)
+        return '-cwd -pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority,
+                                                                                                    queue=default_queue,
+                                                                                                    jobname=jobname, core_req=core_req,
+                                                                                                    parallel_env=parallel_env)
     elif drm == 'local':
         return None
     else:

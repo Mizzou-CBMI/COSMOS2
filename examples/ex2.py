@@ -44,10 +44,15 @@ def recipe(workflow):
 
 
 if __name__ == '__main__':
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge'))
+    args = p.parse_args()
+
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
                     # example of how to change arguments if you're NOT using default_drm='local'
                     get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
-                    default_drm='local')
+                    default_drm=args.drm)
     cosmos.initdb()
 
     sp.check_call('mkdir -p analysis_output/ex2', shell=True)
