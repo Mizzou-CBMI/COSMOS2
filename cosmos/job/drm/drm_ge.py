@@ -97,7 +97,7 @@ class DRM_GE(DRM):
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
-        for group in grouper(tasks, 50):
+        for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: str(t.drm_jobID), group))
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
