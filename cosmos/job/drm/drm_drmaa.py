@@ -104,7 +104,7 @@ class DRM_DRMAA(DRM):
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
 
                     if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
-                        print >>sys.stderr, 'job %d is missing and presumed dead' % jobid
+                        print >>sys.stderr, 'job %s is missing and presumed dead' % jobid
                         yield jobid_to_task.pop(jobid), \
                               create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
 
