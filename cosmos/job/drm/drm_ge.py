@@ -114,7 +114,7 @@ def qacct(task, timeout=600):
                 break
             except sp.CalledProcessError:
                 pass
-            time.sleep(1)
+            time.sleep(5)
 
     def g():
         for line in out.strip().split('\n')[1:]:  # first line is a header
