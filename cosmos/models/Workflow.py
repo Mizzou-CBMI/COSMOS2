@@ -514,6 +514,17 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
 
+    # graph_failed = nx.DiGraph()
+    #
+    # def handler(signal, frame):
+    #     task_queue.add_edges(graph_failed.edges())
+    #     for task in graph_failed.nodes():
+    #         task.attempt +=1
+    #         task.status = TaskStatus.no_attempt
+    #     graph_failed.remove_nodes_from(graph_failed.nodes())
+
+    # signal.signal(signal.SIGUSR1, handler)
+
     available_cores = True
     while len(task_queue) > 0:
         if available_cores:
@@ -523,8 +534,10 @@ def _run(workflow, session, task_queue):
         for task in _process_finished_tasks(workflow.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
                 # pop all descendents when a task fails; the rest of the graph can still execute
-                task_queue.remove_nodes_from(descendants(task_queue, task))
-                task_queue.remove_node(task)
+                remove_nodes = descendants(task_queue, task) + [task]
+                # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
+
+                task_queue.remove_nodes_from(remove_nodes)
                 workflow.status = WorkflowStatus.failed_but_running
                 workflow.log.info('%s tasks left in the queue' % len(task_queue))
             elif task.status == TaskStatus.successful:
@@ -541,6 +554,8 @@ def _run(workflow, session, task_queue):
         session.commit()
         time.sleep(.3)
 
+
+import networkx as nx
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
