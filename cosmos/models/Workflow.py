@@ -534,7 +534,7 @@ def _run(workflow, session, task_queue):
         for task in _process_finished_tasks(workflow.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
                 # pop all descendents when a task fails; the rest of the graph can still execute
-                remove_nodes = descendants(task_queue, task) + {task,}
+                remove_nodes = descendants(task_queue, task).union({task,})
                 # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
 
                 task_queue.remove_nodes_from(remove_nodes)
