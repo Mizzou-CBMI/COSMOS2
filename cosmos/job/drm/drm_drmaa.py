@@ -151,13 +151,6 @@ class DRM_DRMAA(DRM):
                 drmaa.JobState.FAILED: 'job finished, but failed'}
 
 
-def div(n, d):
-    if d == 0.:
-        return 1
-    else:
-        return n / d
-
-
 def parse_drmaa_jobinfo(drmaa_jobinfo):
     d = drmaa_jobinfo['resourceUsage']
     cosmos_jobinfo = dict(
