@@ -103,6 +103,12 @@ class JobManager(object):
                     setattr(task, k, v)
                 yield task
 
+    @property
+    def poll_interval(self):
+        return max(d.poll_interval for d in set(
+            t.drm for t in self.running_tasks))
+
+
 
 def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""

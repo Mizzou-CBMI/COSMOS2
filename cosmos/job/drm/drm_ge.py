@@ -11,6 +11,7 @@ from .DRM_Base import DRM
 
 class DRM_GE(DRM):
     name = 'ge'
+    poll_interval = 5
 
     def submit_job(self, task):
         for p in [task.output_stdout_path, task.output_stderr_path]:

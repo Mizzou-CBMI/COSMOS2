@@ -18,6 +18,7 @@ decode_lsf_state = dict([
 
 class DRM_LSF(DRM):
     name = 'lsf'
+    poll_interval = 5
 
     def submit_job(self, task):
         ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''

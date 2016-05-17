@@ -16,6 +16,8 @@ def get_drmaa_session():
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
+    poll_interval = 5
+
     _session = None
 
     def __init__(self, *args, **kwargs):
