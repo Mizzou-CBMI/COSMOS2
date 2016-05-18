@@ -34,7 +34,7 @@ from .Task import Task
 
 def default_task_log_output_dir(task):
     """The default function for computing Task.log_output_dir"""
-    return opj('log', task.stage.name, str(task.uid))
+    return os.path.abspath(opj('log', task.stage.name, str(task.uid)))
 
 
 @signal_workflow_status_change.connect
@@ -552,7 +552,7 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        time.sleep(workflow.jobmanager.poll_interval)
+        time.sleep(.3)
 
 
 import networkx as nx

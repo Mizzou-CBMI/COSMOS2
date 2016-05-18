@@ -8,7 +8,7 @@ from ..util.args import get_last_cmd_executed
 from ..db import Base
 from .. import __version__
 import math
-from concurrent import futures
+# from concurrent import futures
 from datetime import datetime
 
 
