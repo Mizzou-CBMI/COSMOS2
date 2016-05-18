@@ -107,8 +107,8 @@ class JobManager(object):
     def poll_interval(self):
         if not self.running_tasks:
             return 0
-        return max(d.poll_interval for d in set(
-            t.drm for t in self.running_tasks))
+        return max(self.get_drm(d).poll_interval for d in
+                   set(t.drm for t in self.running_tasks))
 
 
 def _create_command_sh(task, command):
