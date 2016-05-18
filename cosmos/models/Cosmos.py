@@ -257,7 +257,7 @@ class Cosmos(object):
         cosmos_app = self
         session = self.session
         workflows = self.session.query(Workflow).order_by('id').all()
-        ex = workflows[-1] if len(workflows) else None
+        wf = workflows[-1] if len(workflows) else None
 
         import IPython
 
