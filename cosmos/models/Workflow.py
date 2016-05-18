@@ -120,7 +120,7 @@ class Workflow(Base):
         return get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
 
     def make_output_dirs(self):
-        dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values()}
+        dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
         for d in dirs:
             if d != '':
                 sp.check_call(['mkdir', '-p', d])
