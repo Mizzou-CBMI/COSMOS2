@@ -16,6 +16,8 @@ def get_drmaa_session():
 
 class DRM_DRMAA(DRM):
     name = 'drmaa'
+    poll_interval = 5
+
     _session = None
 
     def __init__(self, *args, **kwargs):
@@ -149,13 +151,6 @@ class DRM_DRMAA(DRM):
                 drmaa.JobState.USER_SUSPENDED: 'job is user suspended',
                 drmaa.JobState.DONE: 'job finished normally',
                 drmaa.JobState.FAILED: 'job finished, but failed'}
-
-
-def div(n, d):
-    if d == 0.:
-        return 1
-    else:
-        return n / d
 
 
 def parse_drmaa_jobinfo(drmaa_jobinfo):

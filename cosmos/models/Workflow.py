@@ -552,7 +552,7 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        time.sleep(.3)
+        time.sleep(workflow.jobmanager.poll_interval)
 
 
 import networkx as nx

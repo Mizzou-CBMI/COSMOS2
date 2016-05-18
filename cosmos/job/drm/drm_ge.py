@@ -11,6 +11,7 @@ from .DRM_Base import DRM
 
 class DRM_GE(DRM):
     name = 'ge'
+    poll_interval = 5
 
     def submit_job(self, task):
         for p in [task.output_stdout_path, task.output_stderr_path]:
@@ -97,7 +98,7 @@ class DRM_GE(DRM):
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
-        for group in grouper(tasks, 50):
+        for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: str(t.drm_jobID), group))
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
@@ -114,7 +115,7 @@ def qacct(task, timeout=600):
                 break
             except sp.CalledProcessError:
                 pass
-            time.sleep(1)
+            time.sleep(5)
 
     def g():
         for line in out.strip().split('\n')[1:]:  # first line is a header
