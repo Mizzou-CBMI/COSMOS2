@@ -17,6 +17,11 @@ Here is the source code of the :file:`example_workflows/ex1.py` you ran in :ref:
 
 .. literalinclude:: ../../../examples/ex1.py
 
+
+:file:`example_workflows/ex2.py`
+
+.. literalinclude:: ../../../examples/ex2.py
+
 Here's the :term:`DAG` that was created.  If you use the web-interface, there will the nodes are convenient links
 you can click to jump straight to the debug information that pertains to that Task or Stage.
 
