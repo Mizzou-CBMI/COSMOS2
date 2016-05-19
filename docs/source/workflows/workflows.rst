@@ -137,27 +137,6 @@ Two or more parents in StageA produce two or more parents in StageB.
 .. figure:: /_static/imgs/many2many.png
     :align: center
 
-Helpers
-++++++++++
-
-The above patterns are very common, so there are some handy generators available that take care of many cases.
-However, it is not
-recommended you use these until you are familiar with creating the DAG more explicitly.  Feel free to code your own
-patterns!
-
-* :meth:`cosmos.api.one2one`
-* :meth:`cosmos.api.many2one`
-* :meth:`cosmos.api.one2many`
-* :meth:`cosmos.api.many2many`
-
-
-Notes
-+++++++
-
-    The above is **not** exhaustive (but handles most cases).  For example, you could have a task who has 3 different parents, each belonging to a different stage.
-    It is **highly** recommended that you get familiar with itertools, especially :py:func:`itertools.groupby`.  You will often want to group parent Tasks
-    by a particular set of params.
-
 
 API
 -----------
@@ -167,10 +146,3 @@ Workflow
 
 .. autoclass:: cosmos.api.Workflow
     :members: add_task, run
-
-
-Helpers
-+++++++++++
-
-.. automodule:: cosmos.api
-    :members: one2one, many2one, one2many
