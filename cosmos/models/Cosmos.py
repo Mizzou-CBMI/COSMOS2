@@ -158,6 +158,8 @@ class Cosmos(object):
         from ..util.helpers import mkdir
 
         assert isinstance(primary_log_path, basestring) and len(primary_log_path) > 0, 'invalid parimary log path'
+        if os.path.dirname(primary_log_path):
+            mkdir(os.path.dirname(primary_log_path))
 
         session = self.session
 
