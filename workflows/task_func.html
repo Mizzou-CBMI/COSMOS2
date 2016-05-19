@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5. Command Functions &mdash; Cosmos 1.5.13 documentation</title>
+  <title>5. Task Functions &mdash; Cosmos 1.7.3 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="Cosmos 1.5.13 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 1.7.3 documentation" href="../index.html"/>
         <link rel="next" title="6. Workflows" href="workflows.html"/>
         <link rel="prev" title="4. Initializing" href="initializing.html"/> 
 
@@ -77,13 +77,9 @@
 <li class="toctree-l2"><a class="reference internal" href="initializing.html#api">4.1. API</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">5. Command Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#more-on-find">5.1. More on find()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api">5.2. API</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">6. Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#params">6.1. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#tags">6.1. Tags</a></li>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html#api">6.3. API</a></li>
 </ul>
@@ -92,15 +88,19 @@
 <li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../shell.html">8. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">8.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">8.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">8.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">8.4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced.html#bash-call">8.1. bash_call()</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">9. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">10. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">9. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">9.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">9.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">11. Cosmos FAQ</a></li>
 </ul>
 
         
@@ -124,10 +124,10 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
       
-    <li>5. Command Functions</li>
+    <li>5. Task Functions</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/workflows/cmd_fxn.txt" rel="nofollow"> View page source</a>
+          <a href="../_sources/workflows/task_func.txt" rel="nofollow"> View page source</a>
         
       </li>
   </ul>
@@ -135,9 +135,9 @@
 </div>
           <div role="main">
             
-  <span class="target" id="module-cosmos.core"><span id="tools"></span></span><div class="section" id="command-functions">
-<h1>5. Command Functions<a class="headerlink" href="#command-functions" title="Permalink to this headline">¶</a></h1>
-<p>A <cite>command_fxn</cite> (or <cite>cmd_fxn</cite>) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
+  <span class="target" id="module-cosmos.core"><span id="tools"></span></span><div class="section" id="task-functions">
+<h1>5. Task Functions<a class="headerlink" href="#task-functions" title="Permalink to this headline">¶</a></h1>
+<p>A <cite>Task Function</cite> (or <cite>task_func</cite>) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
 which gets written to the filesystem as a shell-script and submitted as a job.  It is a plain old python function.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">out_dir</span>
 
@@ -151,87 +151,11 @@ which gets written to the filesystem as a shell-script and submitted as a job.  
 <span class="o">&gt;&gt;&gt;</span> <span class="s">&quot;wc -l /path/to/input_file.txt output_count.txt&quot;</span>
 </pre></div>
 </div>
-<p>There are some special things about <cite>cmd_fxn</cite> parameters that Cosmos will recognize.</p>
+<p>There are some special things about <cite>task_func</cite> parameters that Cosmos will recognize.</p>
 <ul class="simple">
 <li>A function parameter that starts with <cite>in_</cite> is an input_file.</li>
 <li>A function parameter that starts with <cite>out_</cite> is an output_file.</li>
-<li>The <a class="reference internal" href="#cosmos.api.find" title="cosmos.api.find"><tt class="xref py py-func docutils literal"><span class="pre">find()</span></tt></a> default can be specified for input files (and almost always is).  This will cause Cosmos, by default,
-to search all of the parents of a Task for files that match the find&#8217;s <a href="#id1"><span class="problematic" id="id2">:param:`regex`</span></a> parameter.</li>
-<li><a class="reference internal" href="#cosmos.api.out_dir" title="cosmos.api.out_dir"><tt class="xref py py-func docutils literal"><span class="pre">out_dir()</span></tt></a> will automatically append the Task&#8217;s output directory to the filename.</li>
-<li><a class="reference internal" href="#cosmos.api.forward" title="cosmos.api.forward"><tt class="xref py py-func docutils literal"><span class="pre">forward()</span></tt></a> will automatically set an output_file to the input_file specified.</li>
 </ul>
-<div class="section" id="more-on-find">
-<h2>5.1. More on find()<a class="headerlink" href="#more-on-find" title="Permalink to this headline">¶</a></h2>
-<p>The cardinality (The <cite>n</cite> parameter), is enforced such that <tt class="docutils literal"><span class="pre">n</span></tt> number of input_files should match.  By default,
-the cardinality of each abstract_input_file is <tt class="docutils literal"><span class="pre">==1</span></tt>, but this can be changed using the <tt class="docutils literal"><span class="pre">n</span></tt> parameter: ie <tt class="docutils literal"><span class="pre">find(format='txt',</span> <span class="pre">n='&gt;=1')</span></tt>.
-If you specify a cardinality where there may be more than 1, for example <tt class="docutils literal"><span class="pre">n='&gt;=1'</span></tt>, the value passed into this input_file
-will be a list of file paths, rather than a string (even if only 1 match was found).  All basic operations work,
-for example:</p>
-<ul class="simple">
-<li>&#8220;==2&#8221;</li>
-<li>&#8220;&lt;3&#8221;</li>
-<li>&#8220;&gt;=4&#8221;</li>
-</ul>
-<p><tt class="docutils literal"><span class="pre">find()</span></tt> can also be passed a dict of <tt class="docutils literal"><span class="pre">params</span></tt>, which will filter the search space of parents to Task&#8217;s who&#8217;s <tt class="docutils literal"><span class="pre">params</span></tt> match.</p>
-<p>You can always explicitly specify input_files via params, should find() not work for you.</p>
-</div>
-<div class="section" id="api">
-<h2>5.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="command-function-i-o">
-<h3>5.2.1. Command Function I/O<a class="headerlink" href="#command-function-i-o" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="cosmos.api.find">
-<tt class="descclassname">cosmos.api.</tt><tt class="descname">find</tt><big>(</big><em>regex</em>, <em>n='==1'</em>, <em>params=None</em><big>)</big><a class="headerlink" href="#cosmos.api.find" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to set an input_file&#8217;s default behavior to finds output_files from a Task&#8217;s parents using a regex</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>regex</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; a regex to match the file path</li>
-<li><strong>n</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (cardinality) the number of files to find</li>
-<li><strong>params</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; filter parent search space using these params</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="cosmos.api.out_dir">
-<tt class="descclassname">cosmos.api.</tt><tt class="descname">out_dir</tt><big>(</big><em>basename=''</em>, <em>peo=True</em><big>)</big><a class="headerlink" href="#cosmos.api.out_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>Essentially will perform os.path.join(Task.output_dir, basename)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>basename</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The basename of the output_file</li>
-<li><strong>peo</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Prepend workflow.output_dir to the output</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="cosmos.api.forward">
-<tt class="descclassname">cosmos.api.</tt><tt class="descname">forward</tt><big>(</big><em>input_parameter_name</em><big>)</big><a class="headerlink" href="#cosmos.api.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forwards a Task&#8217;s input as an output</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_parameter_name</strong> &#8211; The name of this cmd_fxn&#8217;s input parameter to forward</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-</div>
 </div>
 
 
@@ -272,7 +196,7 @@ for example:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.5.13',
+            VERSION:'1.7.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

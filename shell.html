@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>8. Cosmos Shell &mdash; Cosmos 1.5.13 documentation</title>
+  <title>9. Cosmos Shell &mdash; Cosmos 1.7.3 documentation</title>
   
 
   
@@ -28,9 +28,9 @@
   
 
   
-    <link rel="top" title="Cosmos 1.5.13 documentation" href="index.html"/>
-        <link rel="next" title="9. Glossary" href="glossary.html"/>
-        <link rel="prev" title="7. Workflow Code Examples" href="workflows/examples.html"/> 
+    <link rel="top" title="Cosmos 1.7.3 documentation" href="index.html"/>
+        <link rel="next" title="10. Glossary" href="glossary.html"/>
+        <link rel="prev" title="8. Advanced Functionality" href="workflows/advanced.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -77,30 +77,30 @@
 <li class="toctree-l2"><a class="reference internal" href="workflows/initializing.html#api">4.1. API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/cmd_fxn.html">5. Command Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/cmd_fxn.html#more-on-find">5.1. More on find()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/cmd_fxn.html#api">5.2. API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/executions.html">6. Executions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#api">6.3. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#tags">6.1. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.3. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="workflows/examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">8. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#delete-a-stage-and-all-of-it-s-descendants">8.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#getting-a-stage-s-descendants">8.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#manually-altering-attributes">8.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api">8.4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/advanced.html">8. Advanced Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/advanced.html#bash-call">8.1. bash_call()</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">9. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">10. Cosmos FAQ</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">9. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-altering-attributes">9.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api">9.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">11. Cosmos FAQ</a></li>
 </ul>
 
         
@@ -124,7 +124,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>8. Cosmos Shell</li>
+    <li>9. Cosmos Shell</li>
       <li class="wy-breadcrumbs-aside">
         
           <a href="_sources/shell.txt" rel="nofollow"> View page source</a>
@@ -136,7 +136,7 @@
           <div role="main">
             
   <div class="section" id="cosmos-shell">
-<h1>8. Cosmos Shell<a class="headerlink" href="#cosmos-shell" title="Permalink to this headline">¶</a></h1>
+<h1>9. Cosmos Shell<a class="headerlink" href="#cosmos-shell" title="Permalink to this headline">¶</a></h1>
 <p>The Cosmos shell is an interactive python session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful <a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a></p>
 <p>To launch the shell, create a script like this (Take a look at the <a class="reference internal" href="#cosmos.api.Cosmos.shell" title="cosmos.api.Cosmos.shell"><tt class="xref py py-meth docutils literal"><span class="pre">cosmos.api.Cosmos.shell()</span></tt></a> source code, it is very simple):</p>
@@ -148,15 +148,15 @@ your workflows.  It is highly recommended to interactively explore your workflow
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The list of the <cite>executions</cite> list will become stale if another process runs a new Execution.  Either restart the shell, or re-run
+<p>The list of the <cite>workflows</cite> list will become stale if another process runs a new Workflow.  Either restart the shell, or re-run
 the <a class="reference internal" href="glossary.html#term-sqlalchemy"><em class="xref std std-term">SQLALchemy</em></a> query:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">executions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Execution</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Workflow</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="delete-a-stage-and-all-of-it-s-descendants">
-<h2>8.1. Delete a Stage and all of it&#8217;s Descendants<a class="headerlink" href="#delete-a-stage-and-all-of-it-s-descendants" title="Permalink to this headline">¶</a></h2>
-<p>When you&#8217;re developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Execution
+<h2>9.1. Delete a Stage and all of it&#8217;s Descendants<a class="headerlink" href="#delete-a-stage-and-all-of-it-s-descendants" title="Permalink to this headline">¶</a></h2>
+<p>When you&#8217;re developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Workflow
 from there.  This avoids a lot of unnecessary re-computation of Stages that weren&#8217;t affected by your code fix.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_files</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_descendants</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="go"># or, if your DAG is simple</span>
@@ -167,22 +167,22 @@ from there.  This avoids a lot of unnecessary re-computation of Stages that were
 delete_files=False and just have the next run overwrite the files.</p>
 </div>
 <div class="section" id="getting-a-stage-s-descendants">
-<h2>8.2. Getting a Stage&#8217;s Descendants<a class="headerlink" href="#getting-a-stage-s-descendants" title="Permalink to this headline">¶</a></h2>
+<h2>9.2. Getting a Stage&#8217;s Descendants<a class="headerlink" href="#getting-a-stage-s-descendants" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="manually-altering-attributes">
-<h2>8.3. Manually Altering Attributes<a class="headerlink" href="#manually-altering-attributes" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Execution_Name&#39;</span>
+<h2>9.3. Manually Altering Attributes<a class="headerlink" href="#manually-altering-attributes" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Workflow_Name&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Stage_Name&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">executions</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]:</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">ExecutionStatus</span><span class="o">.</span><span class="n">successful</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]:</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">WorkflowStatus</span><span class="o">.</span><span class="n">successful</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span> <span class="c"># write all changes to database so that they persist.  Always do this after you&#39;re done modifying objects.</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="api">
-<h2>8.4. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2>9.4. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <dl class="method">
 <dt id="cosmos.api.Cosmos.shell">
 <tt class="descclassname">Cosmos.</tt><tt class="descname">shell</tt><big>(</big><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.shell" title="Permalink to this definition">¶</a></dt>
@@ -198,10 +198,10 @@ delete_files=False and just have the next run overwrite the files.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="glossary.html" class="btn btn-neutral float-right" title="9. Glossary"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="glossary.html" class="btn btn-neutral float-right" title="10. Glossary"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="workflows/examples.html" class="btn btn-neutral" title="7. Workflow Code Examples"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="workflows/advanced.html" class="btn btn-neutral" title="8. Advanced Functionality"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -230,7 +230,7 @@ delete_files=False and just have the next run overwrite the files.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.13',
+            VERSION:'1.7.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

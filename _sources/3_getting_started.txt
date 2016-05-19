@@ -19,7 +19,7 @@ git repository so that you have access to the examples code:
     $ cd Cosmos/examples
     $ python ex1.py
 
-    INFO: 2014-09-02 19:30:48: Rendering taskgraph for <Execution[1] test> using DRM `local`, output_dir: `/locus/home/egafni/projects/Cosmos/examples/out/test`
+    INFO: 2014-09-02 19:30:48: Rendering taskgraph for <Workflow[1] test> using DRM `local`, output_dir: `/locus/home/egafni/projects/Cosmos/examples/out/test`
     INFO: 2014-09-02 19:30:48: Committing 10 Tasks to the SQL database...
     INFO: 2014-09-02 19:30:48: <Stage[1] Echo> Has not been attempted
     INFO: 2014-09-02 19:30:48: <Stage[2] Cat> Has not been attempted
@@ -52,7 +52,7 @@ git repository so that you have access to the examples code:
     INFO: 2014-09-02 19:30:52: <Task[7] WordCount {'word': 'world', 'n': 2}> Finished successfully
     INFO: 2014-09-02 19:30:52: <Task[6] WordCount {'word': 'world', 'n': 1}> Finished successfully
     INFO: 2014-09-02 19:30:52: <Stage[3] WordCount> Finished successfully
-    INFO: 2014-09-02 19:30:52: <Execution[1] test> Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
+    INFO: 2014-09-02 19:30:52: <Workflow[1] test> Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
 
 Organizing your project
 ________________________
@@ -81,23 +81,23 @@ see examples/main.py for a way to organize multiple workflows into a single acce
         ex3       Example3: Twilio SMS (note you must edit the file)
 
     $ python main.py ex1 -h
-    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c MAX_CPUS]
+    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c max_cores]
                    [-m MAX_ATTEMPTS] [-r] [-y]
 
     optional arguments:
       -h, --help            show this help message and exit
-      -n NAME, --name NAME  A name for this execution
+      -n NAME, --name NAME  A name for this workflow
       -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                             The directory to output files to. Path should not
-                            exist if this is a new execution.
-      -c MAX_CPUS, --max_cpus MAX_CPUS
-                            Maximum number (based on the sum of cpu_requirement)
+                            exist if this is a new workflow.
+      -c max_cores, --max_cores max_cores
+                            Maximum number (based on the sum of core_requirement)
                             of cores to use at once. 0 means unlimited
       -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
                             Maximum number of times to try running a Task that
-                            must succeed before the execution fails
-      -r, --restart         Completely restart the execution. Note this will
-                            delete all record of the execution in the database
+                            must succeed before the workflow fails
+      -r, --restart         Completely restart the workflow. Note this will
+                            delete all record of the workflow in the database
       -y, --skip_confirm    Do not use confirmation prompts before restarting or
                             deleting, and assume answer is always yes
 
@@ -111,7 +111,7 @@ You can use the web interface to explore the history and debug all workflows.  F
 
 * Visualizing all jobs as a dependency graph (not useful if there are too many jobs)
 * Visualizing the stages as a dependency graph (high level overview)
-* Search for particular tasks based on their tags or other attributes
+* Search for particular tasks based on their params or other attributes
 * See resource usage statistics
 * For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.
 
@@ -157,15 +157,15 @@ algorithm for resuming is as follows:
 
 2) Add any new Tasks
 
-* A Task is "new" if a Task with the same stage and set of tags does not exist.
+* A Task is "new" if a Task with the same stage and set of params does not exist.
 
 3) Run the workflow
 
 * Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.
 
 .. warning::
-    If a task in a stage with the same tags and has already been executed successfully, it
+    If a task in a stage with the same params and has already been executed successfully, it
     will not be re-executed or altered, *even if the actual command has changed because
     you modified the script*.  If you look at the algorithm above, the successful task was never deleted in 1), so it
     did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
-    This can be especially tricky when you try to change a successful task that has no tags.
+    This can be especially tricky when you try to change a successful task that has no params.

@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4. Initializing &mdash; Cosmos 1.5.13 documentation</title>
+  <title>4. Initializing &mdash; Cosmos 1.7.3 documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   
 
   
-    <link rel="top" title="Cosmos 1.5.13 documentation" href="../index.html"/>
-        <link rel="next" title="5. Command Functions" href="cmd_fxn.html"/>
+    <link rel="top" title="Cosmos 1.7.3 documentation" href="../index.html"/>
+        <link rel="next" title="5. Task Functions" href="task_func.html"/>
         <link rel="prev" title="3. Getting Started" href="../3_getting_started.html"/> 
 
   
@@ -77,30 +77,30 @@
 <li class="toctree-l2"><a class="reference internal" href="#api">4.1. API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cmd_fxn.html">5. Command Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cmd_fxn.html#more-on-find">5.1. More on find()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cmd_fxn.html#api">5.2. API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="executions.html">6. Executions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="executions.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="executions.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="executions.html#api">6.3. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">6. Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#tags">6.1. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#api">6.3. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">7. Workflow Code Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../shell.html">8. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">8.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">8.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">8.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">8.4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced.html#bash-call">8.1. bash_call()</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">9. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">10. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">9. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#manually-altering-attributes">9.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../shell.html#api">9.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">11. Cosmos FAQ</a></li>
 </ul>
 
         
@@ -137,12 +137,12 @@
             
   <div class="section" id="initializing">
 <span id="tools"></span><h1>4. Initializing<a class="headerlink" href="#initializing" title="Permalink to this headline">¶</a></h1>
-<p>Cosmos is initialized using the <tt class="xref py py-class docutils literal"><span class="pre">cosmos.Cosmos</span></tt> object, which is subsequently used to starts instances of <tt class="xref py py-class docutils literal"><span class="pre">Execution</span></tt>
+<p>Cosmos is initialized using the <tt class="xref py py-class docutils literal"><span class="pre">cosmos.Cosmos</span></tt> object, which is subsequently used to starts instances of <tt class="xref py py-class docutils literal"><span class="pre">Workflow</span></tt>
 which contain the entire structure of a workflow.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
 <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s">&#39;sqlite:///my_cosmos_db.sqlite&#39;</span><span class="p">)</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">execution</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;My_Workflow&#39;</span><span class="p">)</span>
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s">&#39;My_Workflow&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You will likely have to install the python package required to use the driver you&#8217;d like. For example, if you are using
@@ -154,10 +154,10 @@ for more details.</p>
 <h3>4.1.1. Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="cosmos.api.Cosmos">
-<em class="property">class </em><tt class="descclassname">cosmos.api.</tt><tt class="descname">Cosmos</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10c4e3938&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">cosmos.api.</tt><tt class="descname">Cosmos</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x1123b98c0&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="cosmos.api.Cosmos.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10c4e3938&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x1123b98c0&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -200,15 +200,15 @@ requirements or the queue to submit to.  See <tt class="xref py py-func docutils
 <dt id="cosmos.api.default_get_submit_args">
 <tt class="descclassname">cosmos.api.</tt><tt class="descname">default_get_submit_args</tt><big>(</big><em>task</em>, <em>default_queue=None</em>, <em>parallel_env='orte'</em><big>)</big><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default method for determining the extra arguments to pass to the DRM.
-For example, returning <cite>&#8220;-n 3&#8221; if</cite> <cite>task.drm == &#8220;lsf&#8221;</cite> would caused all jobs
+For example, returning <cite>&#8220;-n 3&#8221; if</cite> <cite>task.drm == &#8220;lsf&#8221;</cite> would cause all jobs
 to be submitted with <cite>bsub -n 3</cite>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>task</strong> (<em>cosmos.Task</em>) &#8211; The Task being submitted.</li>
-<li><strong>default_queue</strong> &#8211; The default queue.</li>
+<li><strong>task</strong> (<em>cosmos.api.Task</em>) &#8211; The Task being submitted.</li>
+<li><strong>default_queue</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The default_queue to submit to</li>
 </ul>
 </td>
 </tr>
@@ -229,7 +229,7 @@ to be submitted with <cite>bsub -n 3</cite>.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cmd_fxn.html" class="btn btn-neutral float-right" title="5. Command Functions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="task_func.html" class="btn btn-neutral float-right" title="5. Task Functions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../3_getting_started.html" class="btn btn-neutral" title="3. Getting Started"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -261,7 +261,7 @@ to be submitted with <cite>bsub -n 3</cite>.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.5.13',
+            VERSION:'1.7.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

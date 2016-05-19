@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. Getting Started &mdash; Cosmos 1.5.13 documentation</title>
+  <title>3. Getting Started &mdash; Cosmos 1.7.3 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="Cosmos 1.5.13 documentation" href="index.html"/>
+    <link rel="top" title="Cosmos 1.7.3 documentation" href="index.html"/>
         <link rel="next" title="4. Initializing" href="workflows/initializing.html"/>
         <link rel="prev" title="2. Installation" href="2_install.html"/> 
 
@@ -77,30 +77,30 @@
 <li class="toctree-l2"><a class="reference internal" href="workflows/initializing.html#api">4.1. API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/cmd_fxn.html">5. Command Functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/cmd_fxn.html#more-on-find">5.1. More on find()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/cmd_fxn.html#api">5.2. API</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/executions.html">6. Executions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/executions.html#api">6.3. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#tags">6.1. Tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.3. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="workflows/examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="shell.html">8. Cosmos Shell</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#delete-a-stage-and-all-of-it-s-descendants">8.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#getting-a-stage-s-descendants">8.2. Getting a Stage&#8217;s Descendants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#manually-altering-attributes">8.3. Manually Altering Attributes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="shell.html#api">8.4. API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/advanced.html">8. Advanced Functionality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows/advanced.html#bash-call">8.1. bash_call()</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">9. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">10. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">9. Cosmos Shell</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#manually-altering-attributes">9.3. Manually Altering Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html#api">9.4. API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">11. Cosmos FAQ</a></li>
 </ul>
 
         
@@ -148,7 +148,7 @@ git repository so that you have access to the examples code:</p>
 <span class="nv">$ </span><span class="nb">cd </span>Cosmos/examples
 <span class="nv">$ </span>python ex1.py
 
-INFO: 2014-09-02 19:30:48: Rendering taskgraph <span class="k">for</span> &lt;Execution<span class="o">[</span>1<span class="o">]</span> <span class="nb">test</span>&gt; using DRM <span class="sb">`</span><span class="nb">local</span><span class="sb">`</span>, output_dir: <span class="sb">`</span>/locus/home/egafni/projects/Cosmos/examples/out/test<span class="sb">`</span>
+INFO: 2014-09-02 19:30:48: Rendering taskgraph <span class="k">for</span> &lt;Workflow<span class="o">[</span>1<span class="o">]</span> <span class="nb">test</span>&gt; using DRM <span class="sb">`</span><span class="nb">local</span><span class="sb">`</span>, output_dir: <span class="sb">`</span>/locus/home/egafni/projects/Cosmos/examples/out/test<span class="sb">`</span>
 INFO: 2014-09-02 19:30:48: Committing <span class="m">10</span> Tasks to the SQL database...
 INFO: 2014-09-02 19:30:48: &lt;Stage<span class="o">[</span>1<span class="o">]</span> Echo&gt; Has not been attempted
 INFO: 2014-09-02 19:30:48: &lt;Stage<span class="o">[</span>2<span class="o">]</span> Cat&gt; Has not been attempted
@@ -181,7 +181,7 @@ INFO: 2014-09-02 19:30:52: &lt;Task<span class="o">[</span>4<span class="o">]</s
 INFO: 2014-09-02 19:30:52: &lt;Task<span class="o">[</span>7<span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: 2<span class="o">}</span>&gt; Finished successfully
 INFO: 2014-09-02 19:30:52: &lt;Task<span class="o">[</span>6<span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: 1<span class="o">}</span>&gt; Finished successfully
 INFO: 2014-09-02 19:30:52: &lt;Stage<span class="o">[</span>3<span class="o">]</span> WordCount&gt; Finished successfully
-INFO: 2014-09-02 19:30:52: &lt;Execution<span class="o">[</span>1<span class="o">]</span> <span class="nb">test</span>&gt; Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
+INFO: 2014-09-02 19:30:52: &lt;Workflow<span class="o">[</span>1<span class="o">]</span> <span class="nb">test</span>&gt; Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
 </pre></div>
 </div>
 </div>
@@ -208,23 +208,23 @@ Commands:
     ex3       Example3: Twilio SMS <span class="o">(</span>note you must edit the file<span class="o">)</span>
 
 <span class="nv">$ </span>python main.py ex1 -h
-usage: main.py ex1 <span class="o">[</span>-h<span class="o">]</span> -n NAME <span class="o">[</span>-o OUTPUT_DIR<span class="o">]</span> <span class="o">[</span>-c MAX_CPUS<span class="o">]</span>
+usage: main.py ex1 <span class="o">[</span>-h<span class="o">]</span> -n NAME <span class="o">[</span>-o OUTPUT_DIR<span class="o">]</span> <span class="o">[</span>-c max_cores<span class="o">]</span>
                <span class="o">[</span>-m MAX_ATTEMPTS<span class="o">]</span> <span class="o">[</span>-r<span class="o">]</span> <span class="o">[</span>-y<span class="o">]</span>
 
 optional arguments:
   -h, --help            show this <span class="nb">help </span>message and <span class="nb">exit</span>
-  -n NAME, --name NAME  A name <span class="k">for</span> this execution
+  -n NAME, --name NAME  A name <span class="k">for</span> this workflow
   -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                         The directory to output files to. Path should not
-                        exist <span class="k">if</span> this is a new execution.
-  -c MAX_CPUS, --max_cpus MAX_CPUS
-                        Maximum number <span class="o">(</span>based on the sum of cpu_requirement<span class="o">)</span>
+                        exist <span class="k">if</span> this is a new workflow.
+  -c max_cores, --max_cores max_cores
+                        Maximum number <span class="o">(</span>based on the sum of core_requirement<span class="o">)</span>
                         of cores to use at once. <span class="m">0</span> means unlimited
   -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
                         Maximum number of <span class="nb">times </span>to try running a Task that
-                        must succeed before the execution fails
-  -r, --restart         Completely restart the execution. Note this will
-                        delete all record of the execution in the database
+                        must succeed before the workflow fails
+  -r, --restart         Completely restart the workflow. Note this will
+                        delete all record of the workflow in the database
   -y, --skip_confirm    Do not use confirmation prompts before restarting or
                         deleting, and assume answer is always yes
 </pre></div>
@@ -236,7 +236,7 @@ optional arguments:
 <ul class="simple">
 <li>Visualizing all jobs as a dependency graph (not useful if there are too many jobs)</li>
 <li>Visualizing the stages as a dependency graph (high level overview)</li>
-<li>Search for particular tasks based on their tags or other attributes</li>
+<li>Search for particular tasks based on their params or other attributes</li>
 <li>See resource usage statistics</li>
 <li>For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.</li>
 </ul>
@@ -281,7 +281,7 @@ algorithm for resuming is as follows:</p>
 <li>Add any new Tasks</li>
 </ol>
 <ul class="simple">
-<li>A Task is &#8220;new&#8221; if a Task with the same stage and set of tags does not exist.</li>
+<li>A Task is &#8220;new&#8221; if a Task with the same stage and set of params does not exist.</li>
 </ul>
 <ol class="arabic simple" start="3">
 <li>Run the workflow</li>
@@ -291,11 +291,11 @@ algorithm for resuming is as follows:</p>
 </ul>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">If a task in a stage with the same tags and has already been executed successfully, it
+<p class="last">If a task in a stage with the same params and has already been executed successfully, it
 will not be re-executed or altered, <em>even if the actual command has changed because
 you modified the script</em>.  If you look at the algorithm above, the successful task was never deleted in 1), so it
 did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
-This can be especially tricky when you try to change a successful task that has no tags.</p>
+This can be especially tricky when you try to change a successful task that has no params.</p>
 </div>
 </div>
 </div>
@@ -338,7 +338,7 @@ This can be especially tricky when you try to change a successful task that has 
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.13',
+            VERSION:'1.7.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
