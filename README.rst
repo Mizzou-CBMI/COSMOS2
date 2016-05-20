@@ -77,10 +77,11 @@ Some pretty big changes here, incurred during a hackathon at Invitae where a lot
 more intuitive.  A new COSMOS primitive was created called a Dependency, which we have found extremely useful for generalizing subworkflow recipes.
 This API is now considered to be much more stable.
 
-* Reworked Execution.add_task() api, see its docstring.
+* Renamed Execution -> Workflow
+* Reworked Workflow.add_task() api, see its docstring.
 * Renamed task.tags -> task.params.
 * Require that a task's params do not have keywords that do not exist in a task's functions parameters.
 * Require that a user specify a task uid (unique identifer), which is now used for resuming instead of a Task's params.
 * Created cosmos.api.Dependency, which provides a way to specify a parent and input at the same time.
 * Removed one2one, one2many, etc. helpers.  Found this just confused people more than helped.
-
+* Various stability improvements to the drmaa jobmanager module

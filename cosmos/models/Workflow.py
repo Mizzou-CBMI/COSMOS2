@@ -129,11 +129,16 @@ class Workflow(Base):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
-        :param func func:
-        :param dict params:
-        :param list[Tasks] parents:
-        :param str uid:
-        :param str stage_name:
+        :param func func: A function which returns a string which will get converted to a shell script to be executed.  Func will not get called until
+          all of its dependencies have completed.
+        :param dict params: Parameters to `func`.  Must be jsonable so that it can be stored in the database.  Any Dependency objects will get resolved into
+            a string, and the Dependency.task will be added to this Task's parents.
+        :param list[Tasks] parents: A list of dependent Tasks.
+        :param str uid: A unique identifier for this Task, primarily used for skipping  previously successful Tasks.
+            If a Task with this stage_name and uid already exists in the database (and was successful), the
+            database version will be returned and a new one will not be created.
+        :param str stage_name: The name of the Stage to add this Task to.  Defaults to a title()ed __name__ of `func`.
+        :param str drm: The drm to use for this Task (example 'local' or 'ge')
         :return:
         """
         from cosmos.models.Stage import Stage
@@ -534,7 +539,7 @@ def _run(workflow, session, task_queue):
         for task in _process_finished_tasks(workflow.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
                 # pop all descendents when a task fails; the rest of the graph can still execute
-                remove_nodes = descendants(task_queue, task).union({task,})
+                remove_nodes = descendants(task_queue, task).union({task, })
                 # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
 
                 task_queue.remove_nodes_from(remove_nodes)
@@ -556,6 +561,7 @@ def _run(workflow, session, task_queue):
 
 
 import networkx as nx
+
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
