@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. Workflows &mdash; Cosmos 1.7.3 documentation</title>
+  <title>6. Workflows &mdash; Cosmos 2.0.1 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="Cosmos 1.7.3 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 2.0.1 documentation" href="../index.html"/>
         <link rel="next" title="7. Workflow Code Examples" href="examples.html"/>
         <link rel="prev" title="5. Task Functions" href="task_func.html"/> 
 
@@ -270,11 +270,16 @@ For example when <tt class="docutils literal"><span class="pre">cmd()</span></tt
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>func</strong> (<em>func</em>) &#8211; </li>
-<li><strong>params</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; </li>
-<li><strong>parents</strong> (<em>list[Tasks]</em>) &#8211; </li>
-<li><strong>uid</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; </li>
-<li><strong>stage_name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; </li>
+<li><strong>func</strong> (<em>func</em>) &#8211; A function which returns a string which will get converted to a shell script to be executed.  Func will not get called until
+all of its dependencies have completed.</li>
+<li><strong>params</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Parameters to <cite>func</cite>.  Must be jsonable so that it can be stored in the database.  Any Dependency objects will get resolved into
+a string, and the Dependency.task will be added to this Task&#8217;s parents.</li>
+<li><strong>parents</strong> (<em>list[Tasks]</em>) &#8211; A list of dependent Tasks.</li>
+<li><strong>uid</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A unique identifier for this Task, primarily used for skipping  previously successful Tasks.
+If a Task with this stage_name and uid already exists in the database (and was successful), the
+database version will be returned and a new one will not be created.</li>
+<li><strong>stage_name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The name of the Stage to add this Task to.  Defaults to a title()ed __name__ of <cite>func</cite>.</li>
+<li><strong>drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The drm to use for this Task (example &#8216;local&#8217; or &#8216;ge&#8217;)</li>
 </ul>
 </td>
 </tr>
@@ -287,7 +292,7 @@ For example when <tt class="docutils literal"><span class="pre">cmd()</span></tt
 
 <dl class="method">
 <dt id="cosmos.api.Workflow.run">
-<tt class="descname">run</tt><big>(</big><em>max_cores=None</em>, <em>max_attempts=1</em>, <em>dry=False</em>, <em>set_successful=True</em>, <em>cmd_wrapper=&lt;function default_cmd_fxn_wrapper at 0x1118b88c0&gt;</em>, <em>log_out_dir_func=&lt;function default_task_log_output_dir at 0x112667c08&gt;</em><big>)</big><a class="headerlink" href="#cosmos.api.Workflow.run" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">run</tt><big>(</big><em>max_cores=None</em>, <em>max_attempts=1</em>, <em>dry=False</em>, <em>set_successful=True</em>, <em>cmd_wrapper=&lt;function default_cmd_fxn_wrapper at 0x104f3b410&gt;</em>, <em>log_out_dir_func=&lt;function default_task_log_output_dir at 0x10559aaa0&gt;</em><big>)</big><a class="headerlink" href="#cosmos.api.Workflow.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs this Workflow&#8217;s DAG</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -354,7 +359,7 @@ run more tasks in this workflow later.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.7.3',
+            VERSION:'2.0.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
