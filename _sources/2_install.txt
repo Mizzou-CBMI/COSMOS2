@@ -1,8 +1,7 @@
 Installation
 =============
 
-
-To install, clone the repository.  This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.org/en/latest/>`_:
+This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.org/en/latest/>`_:
 
 .. code-block:: bash
 
@@ -11,6 +10,6 @@ To install, clone the repository.  This procedure assumes you're using `VirtualE
     source ve/bin/activate
     pip install cosmos-wfm
 
-    # Optional, but highly recommended:
+    # Optional, recommended for visualizing Workflows:
     sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
     pip install pygraphviz # requires graphviz

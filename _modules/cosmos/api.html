@@ -85,10 +85,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../workflows/examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../workflows/advanced.html">8. Advanced Functionality</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../workflows/advanced.html#bash-call">8.1. bash_call()</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflows/advanced.html">8. Advanced Functionality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../shell.html">9. Cosmos Shell</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../shell.html#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../shell.html#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
@@ -204,12 +201,12 @@
 
 
 
-<div class="viewcode-block" id="bash_call"><a class="viewcode-back" href="../../workflows/advanced.html#cosmos.api.bash_call">[docs]</a><span class="k">def</span> <span class="nf">bash_call</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">bash_call</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func</span><span class="o">.</span><span class="n">bash_call</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
-</div>
+
 <span class="nd">@decorator</span>
 <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>

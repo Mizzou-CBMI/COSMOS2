@@ -3,11 +3,11 @@
 Introduction
 ============
 `COSMOS <http://cosmos.hms.harvard.edu>`_ is a Python library for workflow management and distributed computing.
- It includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow.
- Workflows can be created on traditional computing clusters as well as cloud-based services, or run on local machines.
- It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School,
- the `Wall Lab <wall-lab.stanford.edu>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
+It includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow.
+Workflows can be created on traditional computing clusters as well as cloud-based services, or run on local machines.
+It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School,
+the `Wall Lab <wall-lab.stanford.edu>`_ at Stanford University, and
+Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
 
 COSMOS allows you to efficiently program complex workflows of command line tools that automatically take
 advantage of a compute cluster, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is

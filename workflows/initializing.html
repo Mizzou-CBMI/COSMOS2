@@ -67,10 +67,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#launch-the-web-interface">3.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#terminating-a-workflow">3.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3_getting_started.html#resuming-a-workflow">3.4. Resuming a workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">4. Initializing</a><ul>
@@ -79,19 +78,15 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows.html">6. Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows.html#api">6.3. API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#api">6.2. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">7. Workflow Code Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#basic-workflows">7.1. Basic Workflows</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Functionality</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="advanced.html#bash-call">8.1. bash_call()</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Functionality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../shell.html">9. Cosmos Shell</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../shell.html#delete-a-stage-and-all-of-it-s-descendants">9.1. Delete a Stage and all of it&#8217;s Descendants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../shell.html#getting-a-stage-s-descendants">9.2. Getting a Stage&#8217;s Descendants</a></li>
@@ -154,10 +149,10 @@ for more details.</p>
 <h3>4.1.1. Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="cosmos.api.Cosmos">
-<em class="property">class </em><tt class="descclassname">cosmos.api.</tt><tt class="descname">Cosmos</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x1029aa5f0&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">cosmos.api.</tt><tt class="descname">Cosmos</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10bcd3e60&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="cosmos.api.Cosmos.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x1029aa5f0&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args at 0x10bcd3e60&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -170,6 +165,29 @@ requirements or the queue to submit to.  See <tt class="xref py py-func docutils
 <li><strong>flask_app</strong> (<em>Flask</em>) &#8211; A Flask application instance for the web interface.  The default behavior is to create one.</li>
 <li><strong>default_drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The Default DRM to use (ex &#8216;local&#8217;, &#8216;lsf&#8217;, or &#8216;ge&#8217;)</li>
 </ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cosmos.api.Cosmos.start">
+<tt class="descname">start</tt><big>(</big><em>name</em>, <em>restart=False</em>, <em>skip_confirm=False</em>, <em>primary_log_path='workflow.log'</em><big>)</big><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A name for the workflow.  Must be unique for this Cosmos session.</li>
+<li><strong>restart</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True and the workflow exists, delete it first.</li>
+<li><strong>skip_confirm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; (If True, do not prompt the shell for input before deleting workflows or files.</li>
+<li><strong>primary_log_path</strong> &#8211; The path of the primary log to write to.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An Workflow instance.</p>
 </td>
 </tr>
 </tbody>
