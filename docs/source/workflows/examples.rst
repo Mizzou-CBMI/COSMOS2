@@ -13,10 +13,7 @@ Basic Workflows
 Hello World
 ___________
 
-Here is the source code of the :file:`example_workflows/ex1.py` you ran in :ref:`getting_started`.
-
-.. literalinclude:: ../../../examples/ex1.py
-
+Here is the source code of the :file:`example_workflows/ex2.py` you ran in :ref:`getting_started`.
 
 :file:`example_workflows/ex2.py`
 

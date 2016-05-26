@@ -14,7 +14,7 @@ and comprehensions are a great way to do this in a very readable way.
 
     from cosmos import Cosmos
 
-    def word_count(use_lines=False, in_txt=find('txt$'), out_txt=out_dir('count.txt')):
+    def word_count(use_lines=False, in_txt, out_txt):
         l = ' -l' if use_lines else ''
         return r"""
             wc{l} {in_txt} > {out_txt}
@@ -31,29 +31,16 @@ and comprehensions are a great way to do this in a very readable way.
 Each call to :meth:`Workflow.add_task` does the following:
 
 1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
-2) Checks to see if a Task with the same params already completed successfully in that stage
+2) Checks to see if a Task with the same uid already completed successfully in that stage
 3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
 4) if `2)` is False, then create and return new Task instance
-
-
-Tags
------
-
-Every instance of a Task has a ``dict`` of params.  These params are used for the following:
-
-* A unique identifier.  No tool/task can have the same set of params within the *same stage*.
-* Parameters.  If a keyword in a tool's params matches a parameter in it's ``cmd()`` method, it will be passed into the call to ``cmd()`` as a parameter.
-  For example when ``cmd()`` is called by Cossmos for the tool ``WordCount(params=dict(lines=True, other='val'))``, it will be called like this:
-  ``cmd(lines=True, other='val',...)``.
-* A way to group similar tasks together when defining the :term:`DAG`.
-* A way to look up particular tasks in the Web Interface or using the API.
 
 
 Creating Your Job Dependency Graph (DAG)
 ---------------------------------------------------
 A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.
 
-One2one (aka a map() operation)
+One2one (aka. map)
 +++++++++++++++++++++++++++++++
 This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.
 
@@ -62,29 +49,31 @@ This is the most common stage dependency.  For each task in StageA, you create a
 
     cosmos = Cosmos()
     cosmos.initdb()
-    workflow = cosmos.start('One2One', '/tmp', check_output_dir=False)
-    stageA_tasks = workflow.add_task(tool_a, params=dict(i=i))
-                                 for i in [1, 2])
-    stageB_tasks = workflow.add_task(tool_b, ags=task.params, parents=[task])
-                                 for task in stageA_tasks)
+    workflow = cosmos.start('One2One')
+    for i in [1, 2]:
+        stageA_task = workflow.add_task(tool_a, params=dict(i=i), uid=i)
+        stageB_tasks = workflow.add_task(tool_b, params=task.params, parents=[task], uid=i)
+
     draw_task_graph(workflow.task_graph(), 'one2one.png')
 
 .. figure:: /_static/imgs/one2one.png
     :align: center
 
 
-One2many
-++++++++
+One2many (aka. scatter)
++++++++++++++++++++++++++
 For each parent task in StageA, two or more new children are generated in StageB
 
 .. code-block:: python
 
-    workflow = cosmos.start('One2Many', '/tmp', check_output_dir=False)
-    stageA_tasks = workflow.add_task(tool_a, params=dict(i=i))
-                                      for i in [1, 2])
-    stageB_tasks = workflow.add_task(tool_b, params=dict(j=j, **task.params), parents=[task])
-                                      for task in stageA_tasks
-                                      for j in ['a','b'])
+    workflow = cosmos.start('One2Many')
+    for i in [1, 2]:
+        stageA_task = workflow.add_task(tool_a, params=dict(i=i)), uid=i)
+        for j in ['a','b']:
+            stageB_tasks = workflow.add_task(tool_b,
+                                             params=dict(j=j, **task.params),
+                                             parents=[stageA_task],
+                                              uid='%s_%s'%(i,j))
     draw_task_graph(workflow.task_graph(), 'one2many.png')
 
 
@@ -93,19 +82,20 @@ For each parent task in StageA, two or more new children are generated in StageB
 
 
 
-Many2one
-++++++++++++++++++++++++++
+Many2one (aka. reduce or gather)
++++++++++++++++++++++++++++++++++
 Two or more parents in StageA produce one task in StageB.
 
 .. code-block:: python
 
-    workflow = cosmos.start('Many2One', '/tmp', check_output_dir=False)
-    stageA_tasks = workflow.add_task(tool_a, params=dict(i=i, j=j))
+    import itertools as it
+    workflow = cosmos.start('Many2One')
+    stageA_tasks = [workflow.add_task(tool_a, params=dict(i=i, j=j), uid='%s_%s'%(i,j))
                                       for i in [1, 2]
-                                      for j in ['a','b'])
+                                      for j in ['a','b'])]
     get_i = lambda task: task.params['i']
-    stageB_tasks = workflow.add_task(tool_b, params=dict(i=i), parents=list(tasks))
-                                      for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
+    stageB_task = workflow.add_task(tool_b, params=dict(i=i), parents=list(tasks), uid=i)
+                                    for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
     draw_task_graph(workflow.task_graph(), 'many2one.png')
 
 
@@ -118,19 +108,19 @@ Two or more parents in StageA produce two or more parents in StageB.
 
 .. code-block:: python
 
-    workflow = cosmos.start('many2many', '/tmp', check_output_dir=False)
-    stageA_tasks = workflow.add_task(tool_a, params=dict(i=i, j=j))
+    workflow = cosmos.start('many2many')
+    stageA_tasks = [workflow.add_task(tool_a, params=dict(i=i, j=j), uid='%s_%s' %(i,j))
                                       for i in [1, 2]
-                                      for j in ['a','b'])
+                                      for j in ['a','b'])]
     def B_generator(stageA_tasks):
-        # For the more complicated relationships, it's usually best to just define a generator
+        # For the more complicated relationships, it's can be useful to define a generator
         get_i = lambda task: task.params['i']
         for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i):
             parents = list(tasks)
             for k in ['x', 'y']:
-                yield tool_b, params=dict(i=i, k=k), parents=parents)
+                yield workflow.add_task(tool_b, params=dict(i=i, k=k), parents=parents, uid='%s_%s' % (i,k))
 
-    stageB_tasks = workflow.add_task(B_generator(stageA_tasks))
+    stageB_tasks = listB_generator(stageA_tasks))
     draw_task_graph(workflow.task_graph(), 'many2many.png')
 
 

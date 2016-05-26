@@ -1,12 +1,13 @@
 import os
 import subprocess as sp
-from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, pygraphviz_available, default_get_submit_args
+from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
+    pygraphviz_available, default_get_submit_args
 from functools import partial
 from tools import echo, cat, word_count
 
 
 def recipe(workflow):
-    # Create two Tasks that echo "hello" and "world" respectively (these are source nodes in the dag).
+    # Create two Tasks that echo "hello" and "world" respectively (source nodes of the dag).
     echo_tasks = [workflow.add_task(func=echo,
                                     params=dict(word=word, out_txt='%s.txt' % word),
                                     uid=word)
@@ -17,34 +18,39 @@ def recipe(workflow):
     for echo_task in echo_tasks:
         word = echo_task.params['word']
         for n in [1, 2]:
-            cat_task = workflow.add_task(cat,
-                                         params=dict(in_txts=[echo_task.params['out_txt']],
-                                                     out_txt='%s/%s/cat.txt' % (word, n)),
-                                         parents=[echo_task],
-                                         uid='%s_%s' % (word, n))
+            cat_task = workflow.add_task(
+                    func=cat,
+                    params=dict(in_txts=[echo_task.params['out_txt']],
+                                out_txt='%s/%s/cat.txt' % (word, n)),
+                    parents=[echo_task],
+                    uid='%s_%s' % (word, n))
 
-            # Count the words in the previous stage.  An example of a simple one2one relationship (aka a map operation),
+            # Count the words in the previous stage.  An example of a simple one2one relationship
             # For each task in StageA, there is a single dependent task in StageB.
-            word_count_task = workflow.add_task(func=word_count,
-                                                params=dict(in_txts=[cat_task.params['out_txt']],
-                                                            out_txt='%s/%s/wc.txt' % (word, n),
-                                                            chars=True),
-                                                parents=[cat_task],
-                                                uid='%s_%s' % (word, n), )
+            word_count_task = workflow.add_task(
+                    func=word_count,
+                    # Dependency instances allow you to specify an input and parent simultaneously
+                    params=dict(in_txts=[Dependency(cat_task, 'out_txt')],
+                                out_txt='%s/%s/wc.txt' % (word, n),
+                                chars=True),
+                    # parents=[cat_task], <-- not necessary!
+                    uid='%s_%s' % (word, n), )
             word_count_tasks.append(word_count_task)
 
-    # Cat the contents of all word_counts into one file.  Only one node is being created who's parents are
-    # all of the WordCounts (a many2one relationship, aka a reduce operation).
-    summarize_task = workflow.add_task(func=cat,
-                                       params=dict(in_txts=[t.params['out_txt'] for t in word_count_tasks],
-                                                   out_txt='summary.txt'),
-                                       parents=word_count_tasks,
-                                       stage_name='Summary_Analysis',
-                                       uid='')  # It's the only Task in this Stage, so doesn't need a specific uid
+    # Cat the contents of all word_counts into one file.  Only one node is being created who's
+    # parents are all of the WordCounts (a many2one relationship, aka a reduce operation).
+    summarize_task = workflow.add_task(
+            func=cat,
+            params=dict(in_txts=[Dependency(t, 'out_txt') for t in word_count_tasks],
+                        out_txt='summary.txt'),
+            parents=word_count_tasks,
+            stage_name='Summary_Analysis',
+            uid='')  # It's the only Task in this Stage, so doesn't need a specific uid
 
 
 if __name__ == '__main__':
     import argparse
+
     p = argparse.ArgumentParser()
     p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge'))
     args = p.parse_args()
