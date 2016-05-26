@@ -15,7 +15,7 @@ git repository so that you have access to the examples code:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/LPM-HMS/Cosmos2 Cosmos
+    $ git clone https://github.com/LPM-HMS/COSMOS2 Cosmos
     $ cd Cosmos/examples
     $ python ex2.py
 

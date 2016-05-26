@@ -137,8 +137,6 @@ class Cosmos(object):
         self.close()
 
     def start(self, name, restart=False, skip_confirm=False, primary_log_path='workflow.log'):
-        from .Workflow import Workflow
-
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
@@ -149,6 +147,7 @@ class Cosmos(object):
 
         :returns: An Workflow instance.
         """
+        from .Workflow import Workflow
         assert os.path.exists(
                 os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         # output_dir = os.path.abspath(output_dir)
