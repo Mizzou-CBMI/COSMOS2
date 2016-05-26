@@ -67,10 +67,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_getting_started.html">3. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#launch-the-web-interface">3.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#terminating-a-workflow">3.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#resuming-a-workflow">3.4. Resuming a workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a><ul>
@@ -79,9 +78,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.3. API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.2. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a><ul>
@@ -137,10 +135,6 @@
             
   <div class="section" id="installation">
 <h1>2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>If you want to use visualizations of your workflows, make sure you have graphviz and pygraphviz installed (recommended).</p>
-<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get graphviz graphviz-dev  <span class="c"># or brew install graphviz for mac</span>
-</pre></div>
-</div>
 <p>To install, clone the repository.  This procedure assumes you&#8217;re using <a class="reference external" href="http://virtualenv.readthedocs.org/en/latest/">VirtualEnv</a>:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nb">cd</span> /dir/to/install/Cosmos/to
 mkvirtualenv ve
@@ -148,13 +142,8 @@ mkvirtualenv ve
 pip install cosmos-wfm
 
 <span class="c"># Optional, but highly recommended:</span>
+sudo apt-get graphviz graphviz-dev  <span class="c"># or brew install graphviz for mac</span>
 pip install pygraphviz <span class="c"># requires graphviz</span>
-</pre></div>
-</div>
-<p>We recommend using <a class="reference external" href="https://virtualenvwrapper.readthedocs.org/en/latest/">virtualenvwrapper</a>.</p>
-<div class="highlight-bash"><div class="highlight"><pre>mkvirtualenv myproject
-pip install cosmos-wfm
-pip install pygraphviz  <span class="c"># requires graphviz</span>
 </pre></div>
 </div>
 </div>

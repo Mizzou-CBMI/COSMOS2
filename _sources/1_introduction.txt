@@ -2,7 +2,12 @@
 
 Introduction
 ============
-`COSMOS <http://cosmos.hms.harvard.edu>`_ is a Python library for workflow management that allows formal description of pipelines and partitioning of jobs. In addition, it includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow. Workflows can be created on traditional computing clusters as well as cloud-based services. It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School and the `Wall Lab <wall-lab.stanford.edu>`_ at Stanford University.
+`COSMOS <http://cosmos.hms.harvard.edu>`_ is a Python library for workflow management and distributed computing.
+ It includes a user-interface for tracking the progress of jobs, abstraction of the queuing system and fine-grained control over the workflow.
+ Workflows can be created on traditional computing clusters as well as cloud-based services, or run on local machines.
+ It is developed jointly by the `Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School,
+ the `Wall Lab <wall-lab.stanford.edu>`_ at Stanford University, and
+`Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
 
 COSMOS allows you to efficiently program complex workflows of command line tools that automatically take
 advantage of a compute cluster, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
@@ -18,14 +23,14 @@ Gafni E, Luquette LJ, Lancaster AK, Hawkins JB, Jung J-Y, Souilmi Y, Wall DP, To
 History
 ___________
 
-Since the original publication, COSMOS has been re-written and open-sourced by the original author, in a collaboration between
-`The Laboratory for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
+Since the original publication, COSMOS has been re-written and open-sourced by the original author.  It was primarily designed by the author to create scientific
+data pipelines for Next Generation Sequencing, and he continues to use it for this today.  However, COSMOS is a general distributed computing workflow library, not tied to
+bioinformatics, and used in other fields such as image processing.
 
 Features
 _________
 
-* Powerful syntax for the creation of complex and highly parallelized workflows.
+* Simple syntax for the creation of complex and highly parallelized workflows.
 * Reusable recipes and definitions of tools and sub-workflows allows for DRY code.
 * Keeps track of workflows, job information, and resource utilization and provenance in an SQL database.
 * The ability to visualize all jobs and job dependencies as a convenient image.
@@ -47,14 +52,13 @@ The Zen of Cosmos
 
 (`The Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_)
 
+* `Workflow Syntaxes` that try to create an abstraction or DSL to describe a :term:`DAG` are **bad**.  They work 90% of the time, and the 10% of the time they
+ don't, you get into a lot of trouble.  Describing a DAG in COSMOS is very similar to constructing a DAG in any graph library.
+
 * The definition of a DAG and the definition of a Task should be completely divorced from each other so that
-  the same Task should be be reusable in different workflows.
+  the same Task can be reused in different workflows.
 
-* A Task is a function with inputs, outputs and parameters.
-
-* The Task's inputs, outputs and parameters should contain sensible defaults, but be easily overridden.
-
-* Recipes for the creation of dags should be re-usable and composable.
+* Tasks and recipes for the creation of dags should be re-usable and composable.
 
 * It should be really easy to debug errors.
 

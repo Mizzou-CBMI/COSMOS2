@@ -17,7 +17,7 @@ git repository so that you have access to the examples code:
 
     $ git clone https://github.com/LPM-HMS/Cosmos2 Cosmos
     $ cd Cosmos/examples
-    $ python ex1.py
+    $ python ex2.py
 
     INFO: 2014-09-02 19:30:48: Rendering taskgraph for <Workflow[1] test> using DRM `local`, output_dir: `/locus/home/egafni/projects/Cosmos/examples/out/test`
     INFO: 2014-09-02 19:30:48: Committing 10 Tasks to the SQL database...
@@ -54,54 +54,6 @@ git repository so that you have access to the examples code:
     INFO: 2014-09-02 19:30:52: <Stage[3] WordCount> Finished successfully
     INFO: 2014-09-02 19:30:52: <Workflow[1] test> Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
 
-Organizing your project
-________________________
-
-see examples/main.py for a way to organize multiple workflows into a single access point.
-
-.. code-block:: bash
-
-    $ python main.py initdb
-    Initializing db...
-    
-    $ python main.py -h
-    usage: main.py [-h] <command> ...
-
-    optional arguments:
-      -h, --help  show this help message and exit
-
-    Commands:
-      <command>
-        resetdb   Resets the database. This is not reversible!
-        initdb    Initialize the database via sql CREATE statements
-        shell     Launch an IPython shell with useful variables already imported
-        runweb
-        ex1       Example1
-        ex2       Example2: A failed task
-        ex3       Example3: Twilio SMS (note you must edit the file)
-
-    $ python main.py ex1 -h
-    usage: main.py ex1 [-h] -n NAME [-o OUTPUT_DIR] [-c max_cores]
-                   [-m MAX_ATTEMPTS] [-r] [-y]
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -n NAME, --name NAME  A name for this workflow
-      -o OUTPUT_DIR, --output_dir OUTPUT_DIR
-                            The directory to output files to. Path should not
-                            exist if this is a new workflow.
-      -c max_cores, --max_cores max_cores
-                            Maximum number (based on the sum of core_requirement)
-                            of cores to use at once. 0 means unlimited
-      -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
-                            Maximum number of times to try running a Task that
-                            must succeed before the workflow fails
-      -r, --restart         Completely restart the workflow. Note this will
-                            delete all record of the workflow in the database
-      -y, --skip_confirm    Do not use confirmation prompts before restarting or
-                            deleting, and assume answer is always yes
-
-
 
 Launch the Web Interface
 ________________________
@@ -117,7 +69,7 @@ You can use the web interface to explore the history and debug all workflows.  F
 
 .. code-block:: bash
 
-   python examples/main.py runweb --host 0.0.0.0 --port 8080
+   cosmos runweb sqlite.db
 
 Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if you're running cosmos locally.
 
@@ -147,25 +99,6 @@ You can resume from the point in the workflow you left off later.
 Resuming a workflow
 ____________________
 
-A workflow can be resumed by re-running the script that originally started it.  Usually that means just re-running any
-failed tasks.  However, it is a bit more complicated if you modify the script, or manually delete successful jobs. The
-algorithm for resuming is as follows:
-
-1) Delete any failed Tasks
-
-* output_files are not cleaned up, it is expected they will be over-written
-
-2) Add any new Tasks
-
-* A Task is "new" if a Task with the same stage and set of params does not exist.
-
-3) Run the workflow
-
-* Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.
-
-.. warning::
-    If a task in a stage with the same params and has already been executed successfully, it
-    will not be re-executed or altered, *even if the actual command has changed because
-    you modified the script*.  If you look at the algorithm above, the successful task was never deleted in 1), so it
-    did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
-    This can be especially tricky when you try to change a successful task that has no params.
+A workflow can be resumed by re-running the script that originally started it.  The call to :meth:`Cosmos.start` will delete any failed Tasks.
+Calls to :meth:`Workflow.add_task` will check the database to see if the task already has been successfully completed (using the stage_name and uid).  If so,
+it'll return the database version of that Task, and not re-run it when :meth:`Workflow.run` is called.

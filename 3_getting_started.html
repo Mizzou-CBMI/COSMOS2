@@ -67,10 +67,9 @@
 <li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">3. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#organizing-your-project">3.2. Organizing your project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#launch-the-web-interface">3.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terminating-a-workflow">3.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resuming-a-workflow">3.4. Resuming a workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a><ul>
@@ -79,9 +78,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.3. API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.2. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a><ul>
@@ -146,7 +144,7 @@ features of Cosmos.  The number beside each object inside brackets, <cite>[#]</c
 git repository so that you have access to the examples code:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>git clone https://github.com/LPM-HMS/Cosmos2 Cosmos
 <span class="nv">$ </span><span class="nb">cd </span>Cosmos/examples
-<span class="nv">$ </span>python ex1.py
+<span class="nv">$ </span>python ex2.py
 
 INFO: 2014-09-02 19:30:48: Rendering taskgraph <span class="k">for</span> &lt;Workflow<span class="o">[</span>1<span class="o">]</span> <span class="nb">test</span>&gt; using DRM <span class="sb">`</span><span class="nb">local</span><span class="sb">`</span>, output_dir: <span class="sb">`</span>/locus/home/egafni/projects/Cosmos/examples/out/test<span class="sb">`</span>
 INFO: 2014-09-02 19:30:48: Committing <span class="m">10</span> Tasks to the SQL database...
@@ -185,53 +183,8 @@ INFO: 2014-09-02 19:30:52: &lt;Workflow<span class="o">[</span>1<span class="o">
 </pre></div>
 </div>
 </div>
-<div class="section" id="organizing-your-project">
-<h2>3.2. Organizing your project<a class="headerlink" href="#organizing-your-project" title="Permalink to this headline">¶</a></h2>
-<p>see examples/main.py for a way to organize multiple workflows into a single access point.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python main.py initdb
-Initializing db...
-
-<span class="nv">$ </span>python main.py -h
-usage: main.py <span class="o">[</span>-h<span class="o">]</span> &lt;<span class="nb">command</span>&gt; ...
-
-optional arguments:
-  -h, --help  show this <span class="nb">help </span>message and <span class="nb">exit</span>
-
-Commands:
-  &lt;<span class="nb">command</span>&gt;
-    resetdb   Resets the database. This is not reversible!
-    initdb    Initialize the database via sql CREATE statements
-    shell     Launch an IPython shell with useful variables already imported
-    runweb
-    ex1       Example1
-    ex2       Example2: A failed task
-    ex3       Example3: Twilio SMS <span class="o">(</span>note you must edit the file<span class="o">)</span>
-
-<span class="nv">$ </span>python main.py ex1 -h
-usage: main.py ex1 <span class="o">[</span>-h<span class="o">]</span> -n NAME <span class="o">[</span>-o OUTPUT_DIR<span class="o">]</span> <span class="o">[</span>-c max_cores<span class="o">]</span>
-               <span class="o">[</span>-m MAX_ATTEMPTS<span class="o">]</span> <span class="o">[</span>-r<span class="o">]</span> <span class="o">[</span>-y<span class="o">]</span>
-
-optional arguments:
-  -h, --help            show this <span class="nb">help </span>message and <span class="nb">exit</span>
-  -n NAME, --name NAME  A name <span class="k">for</span> this workflow
-  -o OUTPUT_DIR, --output_dir OUTPUT_DIR
-                        The directory to output files to. Path should not
-                        exist <span class="k">if</span> this is a new workflow.
-  -c max_cores, --max_cores max_cores
-                        Maximum number <span class="o">(</span>based on the sum of core_requirement<span class="o">)</span>
-                        of cores to use at once. <span class="m">0</span> means unlimited
-  -m MAX_ATTEMPTS, --max_attempts MAX_ATTEMPTS
-                        Maximum number of <span class="nb">times </span>to try running a Task that
-                        must succeed before the workflow fails
-  -r, --restart         Completely restart the workflow. Note this will
-                        delete all record of the workflow in the database
-  -y, --skip_confirm    Do not use confirmation prompts before restarting or
-                        deleting, and assume answer is always yes
-</pre></div>
-</div>
-</div>
 <div class="section" id="launch-the-web-interface">
-<h2>3.3. Launch the Web Interface<a class="headerlink" href="#launch-the-web-interface" title="Permalink to this headline">¶</a></h2>
+<h2>3.2. Launch the Web Interface<a class="headerlink" href="#launch-the-web-interface" title="Permalink to this headline">¶</a></h2>
 <p>You can use the web interface to explore the history and debug all workflows.  Features include:</p>
 <ul class="simple">
 <li>Visualizing all jobs as a dependency graph (not useful if there are too many jobs)</li>
@@ -240,7 +193,7 @@ optional arguments:
 <li>See resource usage statistics</li>
 <li>For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.</li>
 </ul>
-<div class="highlight-bash"><div class="highlight"><pre>python examples/main.py runweb --host 0.0.0.0 --port 8080
+<div class="highlight-bash"><div class="highlight"><pre>cosmos runweb sqlite.db
 </pre></div>
 </div>
 <p>Visit <a class="reference external" href="http://servername:8080">http://servername:8080</a> to access it (or <a class="reference external" href="http://localhost:8080">http://localhost:8080</a> if you&#8217;re running cosmos locally.</p>
@@ -261,42 +214,16 @@ Flask web server environment, see <a class="reference external" href="DeployingF
 </div>
 </div>
 <div class="section" id="terminating-a-workflow">
-<h2>3.4. Terminating a Workflow<a class="headerlink" href="#terminating-a-workflow" title="Permalink to this headline">¶</a></h2>
+<h2>3.3. Terminating a Workflow<a class="headerlink" href="#terminating-a-workflow" title="Permalink to this headline">¶</a></h2>
 <p>To terminate a workflow, simply press ctrl+c (or send the process a SIGINT signal) in the terminal.
 Cosmos will terminate running jobs and mark them as failed.
 You can resume from the point in the workflow you left off later.</p>
 </div>
 <div class="section" id="resuming-a-workflow">
-<h2>3.5. Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
-<p>A workflow can be resumed by re-running the script that originally started it.  Usually that means just re-running any
-failed tasks.  However, it is a bit more complicated if you modify the script, or manually delete successful jobs. The
-algorithm for resuming is as follows:</p>
-<ol class="arabic simple">
-<li>Delete any failed Tasks</li>
-</ol>
-<ul class="simple">
-<li>output_files are not cleaned up, it is expected they will be over-written</li>
-</ul>
-<ol class="arabic simple" start="2">
-<li>Add any new Tasks</li>
-</ol>
-<ul class="simple">
-<li>A Task is &#8220;new&#8221; if a Task with the same stage and set of params does not exist.</li>
-</ul>
-<ol class="arabic simple" start="3">
-<li>Run the workflow</li>
-</ol>
-<ul class="simple">
-<li>Successful tasks will not be re-run.  Only new tasks added in 2) will be re-run.</li>
-</ul>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If a task in a stage with the same params and has already been executed successfully, it
-will not be re-executed or altered, <em>even if the actual command has changed because
-you modified the script</em>.  If you look at the algorithm above, the successful task was never deleted in 1), so it
-did not get added in 2).  In the future Cosmos may emmit a warning when this occurs.
-This can be especially tricky when you try to change a successful task that has no params.</p>
-</div>
+<h2>3.4. Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
+<p>A workflow can be resumed by re-running the script that originally started it.  The call to <tt class="xref py py-meth docutils literal"><span class="pre">Cosmos.start()</span></tt> will delete any failed Tasks.
+Calls to <tt class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></tt> will check the database to see if the task already has been successfully completed (using the stage_name and uid).  If so,
+it&#8217;ll return the database version of that Task, and not re-run it when <tt class="xref py py-meth docutils literal"><span class="pre">Workflow.run()</span></tt> is called.</p>
 </div>
 </div>
 

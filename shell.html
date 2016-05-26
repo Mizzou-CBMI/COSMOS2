@@ -67,10 +67,9 @@
 <li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_getting_started.html">3. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#organizing-your-project">3.2. Organizing your project</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#launch-the-web-interface">3.3. Launch the Web Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#terminating-a-workflow">3.4. Terminating a Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#resuming-a-workflow">3.5. Resuming a workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#launch-the-web-interface">3.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#terminating-a-workflow">3.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_getting_started.html#resuming-a-workflow">3.4. Resuming a workflow</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a><ul>
@@ -79,9 +78,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#tags">6.1. Tags</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.2. Creating Your Job Dependency Graph (DAG)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.3. API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows/workflows.html#api">6.2. API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a><ul>
@@ -158,9 +156,9 @@ the <a class="reference internal" href="glossary.html#term-sqlalchemy"><em class
 <h2>9.1. Delete a Stage and all of it&#8217;s Descendants<a class="headerlink" href="#delete-a-stage-and-all-of-it-s-descendants" title="Permalink to this headline">¶</a></h2>
 <p>When you&#8217;re developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Workflow
 from there.  This avoids a lot of unnecessary re-computation of Stages that weren&#8217;t affected by your code fix.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_files</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_descendants</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_files</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_descendants</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="go"># or, if your DAG is simple</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span> <span class="n">stage</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">wf</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span> <span class="n">stage</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Note that setting delete_files=True can be slow if there are a lot of files to delete.  Sometimes it&#8217;s better (especially in development) to set
@@ -168,15 +166,15 @@ delete_files=False and just have the next run overwrite the files.</p>
 </div>
 <div class="section" id="getting-a-stage-s-descendants">
 <h2>9.2. Getting a Stage&#8217;s Descendants<a class="headerlink" href="#getting-a-stage-s-descendants" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="manually-altering-attributes">
 <h2>9.3. Manually Altering Attributes<a class="headerlink" href="#manually-altering-attributes" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Workflow_Name&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ex</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Stage_Name&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]:</span> <span class="n">ex</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">WorkflowStatus</span><span class="o">.</span><span class="n">successful</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Workflow_Name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;My_New_Stage_Name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">[</span><span class="o">-</span><span class="mi">6</span><span class="p">:]:</span> <span class="n">wf</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">WorkflowStatus</span><span class="o">.</span><span class="n">successful</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span> <span class="c"># write all changes to database so that they persist.  Always do this after you&#39;re done modifying objects.</span>
 </pre></div>
 </div>

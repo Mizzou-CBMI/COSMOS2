@@ -33,9 +33,9 @@ from there.  This avoids a lot of unnecessary re-computation of Stages that were
 
 .. code-block:: python
 
-    >>> ex.stages[4].delete(delete_files=True, delete_descendants=True)
+    >>> wf.stages[4].delete(delete_files=True, delete_descendants=True)
     # or, if your DAG is simple
-    >>> for stage in ex.stages[4:]: stage.delete()
+    >>> for stage in wf.stages[4:]: stage.delete()
 
 Note that setting delete_files=True can be slow if there are a lot of files to delete.  Sometimes it's better (especially in development) to set
 delete_files=False and just have the next run overwrite the files.
@@ -46,7 +46,7 @@ Getting a Stage's Descendants
 
 .. code-block:: python
 
-    >>> ex.stages[4].descendants(include_self=True)
+    >>> wf.stages[4].descendants(include_self=True)
 
 
 Manually Altering Attributes
@@ -54,9 +54,9 @@ Manually Altering Attributes
 
 .. code-block:: python
 
-    >>> ex.name='My_New_Workflow_Name'
-    >>> ex.stages[0].name='My_New_Stage_Name'
-    >>> for ex in workflows[-6:]: ex.status = WorkflowStatus.successful
+    >>> wf.name='My_New_Workflow_Name'
+    >>> wf.stages[0].name='My_New_Stage_Name'
+    >>> for wf in workflows[-6:]: wf.status = WorkflowStatus.successful
     >>> session.commit() # write all changes to database so that they persist.  Always do this after you're done modifying objects.
 
 API
