@@ -68,11 +68,11 @@ For each parent task in StageA, two or more new children are generated in StageB
 
     workflow = cosmos.start('One2Many')
     for i in [1, 2]:
-        stageA_tasks = workflow.add_task(tool_a, params=dict(i=i)), uid=i)
+        stageA_task = workflow.add_task(tool_a, params=dict(i=i)), uid=i)
         for j in ['a','b']:
             stageB_tasks = workflow.add_task(tool_b,
                                              params=dict(j=j, **task.params),
-                                             parents=[task],
+                                             parents=[stageA_task],
                                               uid='%s_%s'%(i,j))
     draw_task_graph(workflow.task_graph(), 'one2many.png')
 
@@ -88,13 +88,14 @@ Two or more parents in StageA produce one task in StageB.
 
 .. code-block:: python
 
+    import itertools as it
     workflow = cosmos.start('Many2One')
     stageA_tasks = [workflow.add_task(tool_a, params=dict(i=i, j=j), uid='%s_%s'%(i,j))
                                       for i in [1, 2]
                                       for j in ['a','b'])]
     get_i = lambda task: task.params['i']
-    stageB_tasks = workflow.add_task(tool_b, params=dict(i=i), parents=list(tasks), uid=i)
-                                      for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
+    stageB_task = workflow.add_task(tool_b, params=dict(i=i), parents=list(tasks), uid=i)
+                                    for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i))
     draw_task_graph(workflow.task_graph(), 'many2one.png')
 
 
