@@ -4,7 +4,7 @@ import sys
 
 def get_last_cmd_executed():
     cmd_args = [a if ' ' not in a else "'" + a + "'" for a in sys.argv[1:]]
-    return ' '.join([os.path.basename(sys.argv[0])] + cmd_args)
+    return ' '.join([sys.argv[0]] + cmd_args)
 
 #
 def add_workflow_args(p, require_name=True):
