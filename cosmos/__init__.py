@@ -17,6 +17,7 @@ class Dependency(namedtuple('Dependency', 'task param')):
     def __new__(cls, task, param):
         from cosmos.api import Task
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
+        assert param in task.params, 'Invalid dependency, param `%s` is not a parameter of `%s`' % (param, task)
         return super(Dependency, cls).__new__(cls, task, param)
 
     def resolve(self):

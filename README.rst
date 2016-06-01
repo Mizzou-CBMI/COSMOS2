@@ -1,10 +1,6 @@
 .. image:: https://travis-ci.org/LPM-HMS/COSMOS2.svg?branch=master
     :target: https://travis-ci.org/LPM-HMS/COSMOS2
 
-COSMOS is currently BETA.  Although the code is considered stable,
-we are planning a major publication before the official release.
-
-
 For more information and the full documentation please visit
 `http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
 
