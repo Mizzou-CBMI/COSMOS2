@@ -69,7 +69,7 @@ __________
 
 2.0.1
 ++++++
-Some pretty big changes here, incurred during a hackathon at Invitae where a lot of feedback was received.  Primarily, the api was simplified and made
+Some pretty big changes here, incurred during a hackathon at Invitae where a lot of feedback and contributions were received.  Primarily, the api was simplified and made
 more intuitive.  A new COSMOS primitive was created called a Dependency, which we have found extremely useful for generalizing subworkflow recipes.
 This API is now considered to be much more stable.
 
