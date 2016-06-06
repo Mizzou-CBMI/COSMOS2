@@ -107,7 +107,10 @@ def readfile(path):
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
-            return fh.read(2 ** 20)
+            s = fh.read(2 ** 20)
+            if len(s) == 2**20:
+                s += '\n*****READ TRUNCATED, check log file for full output*****'
+            return s
     except:
         return 'error parsing as utf-8: %s' % path
 
