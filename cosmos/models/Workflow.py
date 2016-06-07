@@ -32,9 +32,9 @@ from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_c
 from .Task import Task
 
 
-def default_task_log_output_dir(task):
+def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
-    return os.path.abspath(opj('log', task.stage.name, str(task.uid)))
+    return os.path.abspath(opj('log', subdir, task.stage.name, str(task.uid)))
 
 
 @signal_workflow_status_change.connect
