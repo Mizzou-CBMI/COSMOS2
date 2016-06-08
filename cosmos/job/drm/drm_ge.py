@@ -150,7 +150,8 @@ def qacct(task, timeout=600):
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise
+            raise EnvironmentError('%s with drm_jobID=%s has invalid qacct output: %s' %
+                                   (task, task.drm_jobID, qacct_out))
 
         qacct_dict[k] = v.strip()
 
