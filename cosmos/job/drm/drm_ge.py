@@ -104,30 +104,57 @@ class DRM_GE(DRM):
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
+def is_garbage(qacct_dict):
+    """
+    qacct may return multiple records for a job. Yuk.
+
+    This was allegedly fixed in 6.0u10 but we've seen it in UGE 8.3.1.
+
+    http://osdir.com/ml/clustering.gridengine.users/2007-11/msg00397.html
+
+    When multiple records are returned, the first one(s) may have garbage data.
+    This function checks for three values whose presence means the entire block
+    is wrong.
+    """
+    return qacct_dict.get('qsub_time', '').startswith('12/31/1969') or \
+        qacct_dict.get('start_time', None) == '-/-' or \
+        qacct_dict.get('end_time', None) == '-/-'
+
+
 def qacct(task, timeout=600):
     start = time.time()
+    qacct_dict = None
+
     with open(os.devnull, 'w') as DEVNULL:
         while True:
             if time.time() - start > timeout:
                 raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
-                out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
-                if len(out.strip()):
+                qacct_out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
+                if len(qacct_out.strip()):
                     break
             except sp.CalledProcessError:
                 pass
             time.sleep(5)
 
-    def g():
-        for line in out.strip().split('\n')[1:]:  # first line is a header
-            try:
-                k, v = re.split("\s+", line, maxsplit=1)
-            except ValueError:
-                raise ValueError('%s with drm_jobID=%s has an invalid qacct result: %s' % (task, task.drm_jobID, out))
+    for line in qacct_out.strip().split('\n'):
+        if line.startswith('='):
+            if not qacct_dict or is_garbage(qacct_dict):
+                # Whether we haven't parsed any qacct data yet, or everything
+                # we've seen up to this point is unreliable garbage, when we see
+                # a stretch of ==='s, a new block of qacct data is beginning.
+                qacct_dict = OrderedDict()
+                continue
+            else:
+                break
+        try:
+            k, v = re.split(r'\s+', line, maxsplit=1)
+        except ValueError:
+            raise
 
-            yield k, v.strip()
+        qacct_dict[k] = v.strip()
 
-    return OrderedDict(g())
+    return qacct_dict
 
 
 def qstat_all():
