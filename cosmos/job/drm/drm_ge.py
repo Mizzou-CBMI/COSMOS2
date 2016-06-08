@@ -112,14 +112,19 @@ def qacct(task, timeout=600):
                 raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
                 out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
-                break
+                if len(out.strip()):
+                    break
             except sp.CalledProcessError:
                 pass
             time.sleep(5)
 
     def g():
         for line in out.strip().split('\n')[1:]:  # first line is a header
-            k, v = re.split("\s+", line, maxsplit=1)
+            try:
+                k, v = re.split("\s+", line, maxsplit=1)
+            except ValueError:
+                raise ValueError('%s with drm_jobID=%s has an invalid qacct result: %s' % (task, task.drm_jobID, out))
+
             yield k, v.strip()
 
     return OrderedDict(g())
