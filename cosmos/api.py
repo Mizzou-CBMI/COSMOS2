@@ -3,7 +3,7 @@ from .core.cmd_fxn.signature import default_cmd_fxn_wrapper
 from .models.Cosmos import Cosmos, default_get_submit_args
 from .models.Task import Task
 from .models.Stage import Stage
-from .models.Workflow import Workflow
+from .models.Workflow import Workflow, default_task_log_output_dir
 from . import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
 
 from .util.args import add_workflow_args
