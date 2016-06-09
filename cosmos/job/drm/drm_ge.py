@@ -133,6 +133,8 @@ def qacct(task, timeout=600):
                 qacct_out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
                 if len(qacct_out.strip()):
                     break
+                else:
+                    task.workflow.log.warn('qacct -j %s returned an empty string for %s'  % (task.drm_jobID, task))
             except sp.CalledProcessError:
                 pass
             time.sleep(5)
