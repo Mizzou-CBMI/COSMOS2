@@ -7,8 +7,8 @@ import os
 
 def runweb(db_url_or_path_to_sqlite, host, port):
     if '://' not in db_url_or_path_to_sqlite:
+        assert os.path.exists(db_url_or_path_to_sqlite), '`%s` does not exist on the filesystem' % db_url_or_path_to_sqlite
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
-        assert os.path.exists(db_url_or_path_to_sqlite), '%s does not exist' % db_url_or_path_to_sqlite
 
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
 
