@@ -32,6 +32,7 @@ class GetOutputError(Exception): pass
 
 
 task_failed_printout = u"""Failure Info:
+<EXIT_STATUS="{0.exit_status}">
 <COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}"
 params="{0.params_pretty}">
 

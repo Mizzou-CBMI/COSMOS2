@@ -90,7 +90,6 @@ class DRM_GE(DRM):
             max_num_fds=None,
 
             memory=float(d['mem']),
-
         )
 
     def kill(self, task):
@@ -157,6 +156,9 @@ def qacct(task, timeout=600):
 
         qacct_dict[k] = v.strip()
 
+    if is_garbage(qacct_dict) or qacct_dict['failed'][0] != '0':
+        task.workflow.log.warn('`qacct -j %s` (for task %s) shows job failure:\n%s' %
+                               (task.drm_jobID, task, qacct_out))
     return qacct_dict
 
 
