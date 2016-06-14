@@ -69,11 +69,54 @@ def cd(path):
 
 
 
-def bash_call(func):
-    func.bash_call = True
-    return func
+# def bash_call(func):
+#     func.bash_call = True
+#     return func
+
+@decorator
+def bash_call(func, *args, **kwargs):
+    """
+    A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task. Converts any function call to a bash script
+    that uses python to import the function and call it with the same arguments.
+
+    Current Limitations:
+       * function must be importable from anywhere in the VE
+       * This means no partials! So parameters must all be passed as params.
 
 
+    def echo(arg1, out_file=out_dir('out.txt')):
+        with open(out_file) as fp:
+            print >> fp, arg1
+
+    bash_call(echo)(arg1='hello world')
+    python - <<EOF
+
+    from my_module import echo
+
+    echo(** {'arg1': 'hello world',
+             'out_file': OutputDir(basename='out.txt', prepend_workflow_output_dir=True)}
+
+    EOF
+
+    """
+
+    import pprint
+
+    sig = funcsigs.signature(func)
+    kwargs = dict(zip(sig.parameters.keys(), args))
+
+    return r"""
+
+python - <<EOF
+
+from {func.__module__} import {func.__name__}
+
+{func.__name__}(**
+{param_str}
+)
+
+EOF""".format(func=func,
+              param_str=pprint.pformat(kwargs, width=1, indent=1))  # todo assert values are basetypes
 
 @decorator
 def run(func, *args, **kwargs):
