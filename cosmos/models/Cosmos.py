@@ -219,6 +219,7 @@ class Cosmos(object):
 
         wf.info['last_cmd_executed'] = get_last_cmd_executed()
         wf.info['cwd'] = os.getcwd()
+        wf.log.info('Execution Command: %s' % get_last_cmd_executed())
         session.commit()
         session.expunge_all()
         session.add(wf)
