@@ -289,7 +289,7 @@ class Workflow(Base):
         from ..job.JobManager import JobManager
 
         if self.jobmanager is None:
-            self.jobmanager = JobManager(cosmos_app=self.cosmos_app, get_submit_args=self.cosmos_app.get_submit_args,
+            self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
                                          cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
                                          )
 

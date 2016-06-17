@@ -12,8 +12,7 @@ from operator import attrgetter
 from cosmos.models.Workflow import default_task_log_output_dir
 
 class JobManager(object):
-    def __init__(self, cosmos_app, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.cosmos_app = cosmos_app
+    def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
         self.drms = dict(local=DRM_Local(self))  # always support local workflow
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
@@ -35,7 +34,7 @@ class JobManager(object):
         :param task:
         :return:
         """
-        session = self.cosmos_app.session  # we expect this to be its own thread
+        #session = self.cosmos_app.session  # we expect this to be its own thread
         # thread_local_task = session.merge(task)
         thread_local_task = task
 

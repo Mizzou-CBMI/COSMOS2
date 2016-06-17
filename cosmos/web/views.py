@@ -1,7 +1,7 @@
 import itertools as it
 from operator import attrgetter
 
-from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request
+from flask import Markup, render_template, Blueprint, redirect, url_for, flash, abort, request, g
 from sqlalchemy import desc
 
 from cosmos.api import Workflow, Stage, Task, TaskStatus
@@ -10,9 +10,8 @@ from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph
 
 
-def gen_bprint(cosmos_app):
-    session = cosmos_app.session
-
+def gen_bprint(session):
+    
     def get_workflow(id):
         return session.query(Workflow).filter_by(id=id).one()
 
@@ -51,7 +50,7 @@ def gen_bprint(cosmos_app):
         if stage is None:
             return abort(404)
         submitted = filter(lambda t: t.status == TaskStatus.submitted, stage.tasks)
-        jm = JobManager(cosmos_app, cosmos_app.get_submit_args)
+        jm = JobManager(get_submit_args=None)
 
         f = attrgetter('drm')
         drm_statuses = {}

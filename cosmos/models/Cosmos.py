@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, g
 
 import sys
 import os
@@ -105,6 +105,7 @@ class Cosmos(object):
         self.session = scoped_session(sessionmaker(autocommit=False,
                                                    autoflush=False,
                                                    bind=engine))
+
         Base = declarative_base()
         Base.query = self.session.query_property()
 
@@ -114,13 +115,10 @@ class Cosmos(object):
 
         self.default_drm = default_drm
 
-    def configure_flask(self):
+    # def configure_flask(self):
         # setup flask views
-        from cosmos.web.views import gen_bprint
         # from cosmos.web.admin import add_cosmos_admin
 
-        self.cosmos_bprint = gen_bprint(self)
-        self.flask_app.register_blueprint(self.cosmos_bprint)
         # add_cosmos_admin(flask_app, self.session)
 
     # @property
@@ -269,5 +267,8 @@ class Cosmos(object):
         """
         Starts the web dashboard
         """
-        self.configure_flask()
+        from cosmos.web.views import gen_bprint
+        self.cosmos_bprint = gen_bprint(self.session)
+        self.flask_app.register_blueprint(self.cosmos_bprint)
+
         return self.flask_app.run(debug=debug, host=host, port=port)
