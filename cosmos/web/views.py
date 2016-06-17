@@ -23,7 +23,7 @@ def gen_bprint(cosmos_app):
     @bprint.route('/workflow/delete/<int:id>')
     def workflow_delete(id):
         e = get_workflow(id)
-        e.delete(delete_files=True)
+        e.delete()
         flash('Deleted %s' % e)
         return redirect(url_for('cosmos.index'))
 
