@@ -28,7 +28,7 @@ from decorator import decorator
 def load_input(out_file): pass
 
 
-def arg(name, value):
+def _arg_to_str(name, value):
     if value:
         if value == True:
             return name
@@ -38,9 +38,26 @@ def arg(name, value):
         return ''
 
 
-def args(*args):
-    return " \\\n".join(arg(k, v) for k, v in args if arg(k, v) != '')
+def args_to_str(*args):
+    """
+    Turn a set of arguments into a string to be passed to a command line tool
 
+    :param args: A number of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.
+
+    >>> x = 'bar'
+    >>> y = None
+    >>> z = 123
+    >>> args_to_str(('--foo', x))
+    '--foo bar'
+
+    >>> args_to_str(('--skip-me', y), ('--use-me', z))
+    '--use-me 123'
+
+    """
+    return " \\\n".join(_arg_to_str(k, v) for k, v in args if _arg_to_str(k, v) != '')
+
+# arg = _arg_to_str
+# args = args_to_str
 
 import contextlib
 import os
