@@ -28,7 +28,7 @@ from decorator import decorator
 def load_input(out_file): pass
 
 
-def _arg_to_str(name, value):
+def arg_to_str(name, value):
     if value:
         if value == True:
             return name
@@ -54,7 +54,7 @@ def args_to_str(*args):
     '--use-me 123'
 
     """
-    return " \\\n".join(_arg_to_str(k, v) for k, v in args if _arg_to_str(k, v) != '')
+    return " \\\n".join(arg_to_str(k, v) for k, v in args if arg_to_str(k, v) != '')
 
 # arg = _arg_to_str
 # args = args_to_str
