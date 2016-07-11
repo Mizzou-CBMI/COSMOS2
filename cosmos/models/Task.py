@@ -15,6 +15,7 @@ from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfS
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
 import datetime
+import pprint
 
 opj = os.path.join
 
@@ -33,9 +34,10 @@ class GetOutputError(Exception): pass
 
 task_failed_printout = u"""Failure Info:
 <EXIT_STATUS="{0.exit_status}">
-<COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}"
-params="{0.params_pretty}">
-
+<COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
+<PARAMS>
+{0.params_pformat}
+</PARAMS>
 {0.command_script_text}
 </COMMAND>
 <STDOUT path="{0.output_stdout_path}">
@@ -326,8 +328,12 @@ class Task(Base):
     def params_pretty(self):
         return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
 
+    @property
+    def params_pformat(self):
+        return pprint.pformat(self.params, indent=2, width=1)
+
     def __repr__(self):
-        return '<Task[%s] %s(uid=%s)>' % (self.id or 'id_%s' % id(self),
+        return "<Task[%s] %s(uid='%s')>" % (self.id or 'id_%s' % id(self),
                                       self.stage.name if self.stage else '',
                                       self.uid
                                       )
