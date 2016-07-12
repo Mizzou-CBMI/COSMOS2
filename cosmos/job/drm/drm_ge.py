@@ -34,9 +34,9 @@ class DRM_GE(DRM):
         Yield a dictionary of SGE job metadata for each task that has completed.
 
         This method tries to be defensive against incorrect qstat and qacct
-        output (see ASSAYD-153, PT-3987, etc.). If qstat reports that a job is
-        finished, but qacct output looks suspicious, we try to give that job,
-        and/or SGE, time to complete and/or recover.
+        output (see ASSAYD-153, PIPE-1978, PT-3987, etc.). If qstat reports that
+        a job is finished, but qacct output looks suspicious, we try to give the
+        job, and/or SGE, time to complete and/or recover.
 
         This method will only yield so-called 'garbage' qacct data if every
         outstanding task has been affected by this SGE bug.
