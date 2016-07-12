@@ -104,15 +104,13 @@ class DRM_GE(DRM):
         d = _qacct_raw(task)
 
         job_failed = d['failed'][0] != '0'
-        data_are_corrupt = False
+        data_are_corrupt = _is_corrupt(d)
 
-        if _is_corrupt(d):
-            task.workflow.log.warn('`qacct -j %s` (for task %s) returned corrupt data:\n%s' %
-                                   (task.drm_jobID, task, d))
-            data_are_corrupt = True
-        elif job_failed:
-            task.workflow.log.warn('`qacct -j %s` (for task %s) shows job failure:\n%s' %
-                                   (task.drm_jobID, task, d))
+        if job_failed or data_are_corrupt:
+            task.workflow.log.warn('`qacct -j %s` (for task %s) shows %s:\n%s' %
+                                   (task.drm_jobID,
+                                    'corrupt data' if data_are_corrupt else 'job failure',
+                                    task, d))
 
         processed_data = dict(
             exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
