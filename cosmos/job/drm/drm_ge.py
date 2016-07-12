@@ -33,47 +33,47 @@ class DRM_GE(DRM):
         """
         Yield a dictionary of SGE job metadata for each task that has completed.
 
-        This method tries to be defensive against incorrect qstat and qacct
-        output (see ASSAYD-153, PIPE-1978, PT-3987, etc.). If qstat reports that
-        a job is finished, but qacct output looks suspicious, we try to give the
-        job, and/or SGE, time to complete and/or recover.
+        This method tries to be defensive against corrupt qstat and qacct output
+        (see ASSAYD-153, PIPE-1978, PT-3987, etc.). If qstat reports that a job
+        has finished, but qacct output looks suspicious, we try to give the job,
+        and/or SGE, time to complete and/or recover.
 
-        This method will only yield so-called 'garbage' qacct data if every
-        outstanding task has been affected by this SGE bug.
+        This method will only yield corrupt qacct data if every outstanding task
+        has been affected by this SGE bug.
         """
         if len(tasks):
             qjobs = _qstat_all()
-            garbage_data = {}
+            corrupt_data = {}
 
         for task in tasks:
             jid = str(task.drm_jobID)
             if jid not in qjobs or \
                any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
                 #
-                # If the job doesn't appear in qstat (or is tagged with e or E),
+                # If the job doesn't appear in qstat (or is tagged with 'e' or 'E'),
                 # it *probably* has completed. However, SGE's qmaster may have
                 # simply lost track of it for a little while, in which case qacct
-                # will output unreliable garbage when it is interrogated.
+                # will output corrupt data when it is interrogated.
                 #
-                data, data_are_garbage = self._get_task_return_data(task)
-                if data_are_garbage:
+                data, data_are_corrupt = self._get_task_return_data(task)
+                if data_are_corrupt:
                     task.workflow.log.warn(
-                        'unreliable qstat/qacct output for %s means it may still be running' % task)
-                    garbage_data[task] = data
+                        'corrupt qstat/qacct output for %s means it may still be running' % task)
+                    corrupt_data[task] = data
                 else:
                     yield task, data
 
-        num_cleanly_running_jobs = len(tasks) - len(garbage_data)
+        num_cleanly_running_jobs = len(tasks) - len(corrupt_data)
 
         if num_cleanly_running_jobs > 0:
-            for task in garbage_data.keys():
+            for task in corrupt_data.keys():
                 task.workflow.log.info(
-                    'masking error condition for %s while %d other jobs are running cleanly' %
+                    'temporarily masking corrupt SGE data for %s since %d other jobs are running cleanly' %
                     (task, num_cleanly_running_jobs))
         else:
-            for task, data in garbage_data.items():
+            for task, data in corrupt_data.items():
                 task.workflow.log.error(
-                    'all outstanding ge tasks show some kind of error: giving up on %s' % task)
+                    'all outstanding drm_ge tasks had corrupt SGE data: giving up on %s' % task)
                 yield task, data
 
 
@@ -99,17 +99,17 @@ class DRM_GE(DRM):
         Returns a 2-tuple comprising:
         [0] a dictionary of job metadata,
         [1] a boolean indicating whether the metadata in [0] are affected by an
-            SGE bug that causes qacct to occasionally return garbage results.
+            SGE bug that causes qacct to occasionally return corrupt results.
         """
         d = _qacct_raw(task)
 
         job_failed = d['failed'][0] != '0'
-        data_are_garbage = False
+        data_are_corrupt = False
 
-        if _is_garbage(d):
-            task.workflow.log.warn('`qacct -j %s` (for task %s) is invalid:\n%s' %
+        if _is_corrupt(d):
+            task.workflow.log.warn('`qacct -j %s` (for task %s) returned corrupt data:\n%s' %
                                    (task.drm_jobID, task, d))
-            data_are_garbage = True
+            data_are_corrupt = True
         elif job_failed:
             task.workflow.log.warn('`qacct -j %s` (for task %s) shows job failure:\n%s' %
                                    (task.drm_jobID, task, d))
@@ -147,7 +147,7 @@ class DRM_GE(DRM):
             memory=float(d['mem']),
         )
 
-        return processed_data, data_are_garbage
+        return processed_data, data_are_corrupt
 
     def kill(self, task):
         "Terminates a task"
@@ -160,7 +160,7 @@ class DRM_GE(DRM):
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
-def _is_garbage(qacct_dict):
+def _is_corrupt(qacct_dict):
     """
     qacct may return multiple records for a job. They may all be corrupt. Yuk.
 
@@ -168,10 +168,10 @@ def _is_garbage(qacct_dict):
 
     http://osdir.com/ml/clustering.gridengine.users/2007-11/msg00397.html
 
-    When multiple records are returned, the first one(s) may have garbage data.
-    UPDATE: this can happen even when only one block is returned, and we've
-    also seen cases where multiple blocks are return and not one is reliable.
-    This function checks for values whose presence means an entire block is wrong.
+    When multiple records are returned, the first one(s) may have corrupt data.
+    UPDATE: this can happen even when only one block is returned, and we've also
+    seen cases where multiple blocks are returned and not one is reliable. This
+    function checks for values whose presence means an entire block is corrupt.
 
     Note that qacct may return a date that precedes the Epoch (!), depending on
     the $TZ env. variable. To be safe we check for dates within 24 hours of it.
@@ -189,7 +189,7 @@ def _qacct_raw(task, timeout=600):
 
     If qacct reports results in multiple blocks (separated by a row of ===='s),
     the first block with valid data is returned. If no such block exists, then
-    the last block of garbage data is returned.
+    the most recently-generated block of corrupt data is returned.
     """
     start = time.time()
     qacct_dict = None
@@ -210,10 +210,12 @@ def _qacct_raw(task, timeout=600):
 
     for line in qacct_out.strip().split('\n'):
         if line.startswith('='):
-            if not qacct_dict or _is_garbage(qacct_dict):
+            if not qacct_dict or _is_corrupt(qacct_dict):
+                #
                 # Whether we haven't parsed any qacct data yet, or everything
-                # we've seen up to this point is unreliable garbage, when we see
-                # a stretch of ==='s, a new block of qacct data is beginning.
+                # we've seen up to this point appears corrupt, when we see a
+                # stretch of ==='s, a new block of qacct data is beginning.
+                #
                 qacct_dict = OrderedDict()
                 continue
             else:
@@ -221,7 +223,7 @@ def _qacct_raw(task, timeout=600):
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s with drm_jobID=%s has invalid qacct output: %s' %
+            raise EnvironmentError('%s with drm_jobID=%s has corrupt qacct output: %s' %
                                    (task, task.drm_jobID, qacct_out))
 
         qacct_dict[k] = v.strip()
