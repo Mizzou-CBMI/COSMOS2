@@ -33,10 +33,10 @@ class DRM_GE(DRM):
         """
         Yield a dictionary of SGE job metadata for each task that has completed.
 
-        This method tries to be defensive against corrupt qstat and qacct output
-        (see ASSAYD-153, PIPE-1978, PT-3987, etc.). If qstat reports that a job
-        has finished, but qacct output looks suspicious, we try to give the job,
-        and/or SGE, time to complete and/or recover.
+        This method tries to be defensive against corrupt qstat and qacct output.
+        If qstat reports that a job has finished, but qacct output looks
+        suspicious, we try to give the job, and/or SGE, time to complete and/or
+        recover.
 
         This method will only yield corrupt qacct data if every outstanding task
         has been affected by this SGE bug.
@@ -108,9 +108,9 @@ class DRM_GE(DRM):
 
         if job_failed or data_are_corrupt:
             task.workflow.log.warn('`qacct -j %s` (for task %s) shows %s:\n%s' %
-                                   (task.drm_jobID,
+                                   (task.drm_jobID, task,
                                     'corrupt data' if data_are_corrupt else 'job failure',
-                                    task, d))
+                                    d))
 
         processed_data = dict(
             exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
