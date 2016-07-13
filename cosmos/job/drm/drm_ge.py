@@ -76,7 +76,6 @@ class DRM_GE(DRM):
                     'all outstanding drm_ge tasks had corrupt SGE data: giving up on %s' % task)
                 yield task, data
 
-
     def drm_statuses(self, tasks):
         """
         :param tasks: tasks that have been submitted to the job manager
@@ -186,11 +185,12 @@ def _qacct_raw(task, timeout=600):
     Parse qacct output into key/value pairs.
 
     If qacct reports results in multiple blocks (separated by a row of ===='s),
-    the first block with valid data is returned. If no such block exists, then
-    the most recently-generated block of corrupt data is returned.
+    the most recently-generated block with valid data is returned. If no such
+    block exists, then return the most recently-generated block of corrupt data.
     """
     start = time.time()
-    qacct_dict = None
+    curr_qacct_dict = None
+    good_qacct_dict = None
 
     with open(os.devnull, 'w') as DEVNULL:
         while True:
@@ -208,25 +208,29 @@ def _qacct_raw(task, timeout=600):
 
     for line in qacct_out.strip().split('\n'):
         if line.startswith('='):
-            if not qacct_dict or _is_corrupt(qacct_dict):
+            if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
                 #
-                # Whether we haven't parsed any qacct data yet, or everything
-                # we've seen up to this point appears corrupt, when we see a
-                # stretch of ==='s, a new block of qacct data is beginning.
+                # Cache this non-corrupt block of qacct data just
+                # in case all the more recent blocks are corrupt.
                 #
-                qacct_dict = OrderedDict()
-                continue
-            else:
-                break
+                good_qacct_dict = curr_qacct_dict
+
+            curr_qacct_dict = OrderedDict()
+            continue
+
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s with drm_jobID=%s has corrupt qacct output: %s' %
+            raise EnvironmentError('%s with drm_jobID=%s has corrupt qacct output:\n%s' %
                                    (task, task.drm_jobID, qacct_out))
 
-        qacct_dict[k] = v.strip()
+        curr_qacct_dict[k] = v.strip()
 
-    return qacct_dict
+    # if the last block of qacct data looks good, promote it
+    if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
+        good_qacct_dict = curr_qacct_dict
+
+    return good_qacct_dict if good_qacct_dict else curr_qacct_dict
 
 
 def _qstat_all():
