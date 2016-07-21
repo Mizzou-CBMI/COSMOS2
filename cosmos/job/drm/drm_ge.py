@@ -26,7 +26,7 @@ class DRM_GE(DRM):
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
                               env=os.environ, preexec_fn=preexec_function, shell=True)
 
-        drm_jobID = int(re.search('job (\d+) ', out).group(1))
+        drm_jobID = str(re.search('job (\d+) ', out).group(1))
         return drm_jobID
 
     def filter_is_done(self, tasks):

@@ -23,7 +23,7 @@ class DRM_Local(DRM):
                          stderr=open(task.output_stdout_path, 'w'),
                          shell=False, env=os.environ)
         p.start_time = time.time()
-        drm_jobID = p.pid
+        drm_jobID = str(p.pid)
         self.procs[drm_jobID] = p
         return drm_jobID
 
@@ -69,7 +69,7 @@ class DRM_Local(DRM):
         "Terminates a task"
 
         try:
-            psutil.Process(task.drm_jobID).kill()
+            psutil.Process(int(task.drm_jobID)).kill()
         except psutil.NoSuchProcess:
             pass
 

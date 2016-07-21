@@ -188,7 +188,7 @@ class Task(Base):
     # command = Column(Text)
 
     drm_native_specification = Column(String(255))
-    drm_jobID = Column(Integer)
+    drm_jobID = Column(String(255))
 
     profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count',
                       'io_write_count', 'io_read_kb', 'io_write_kb',
