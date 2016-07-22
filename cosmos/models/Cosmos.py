@@ -7,6 +7,7 @@ import itertools as it
 from ..util.args import get_last_cmd_executed
 from ..db import Base
 from .. import __version__
+from .. import WorkflowStatus
 import math
 # from concurrent import futures
 from datetime import datetime
@@ -189,6 +190,7 @@ class Cosmos(object):
 
             wf.successful = False
             wf.finished_on = None
+            wf.status = WorkflowStatus.resuming
 
             # if not os.path.exists(wf.output_dir):
             #     raise IOError('output_directory %s does not exist, cannot resume %s' % (wf.output_dir, wf))

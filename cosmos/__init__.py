@@ -119,6 +119,7 @@ class StageStatus(MyEnum):
 
 class WorkflowStatus(MyEnum):
     no_attempt = 'No Attempt yet',
+    resuming = 'Resuming',
     running = 'Running',
     successful = 'Successfully Finished',
     killed = 'Killed'
