@@ -126,7 +126,11 @@ def bash_call(func, *args, **kwargs):
 
 python - <<EOF
 
-from {func.__module__} import {func.__name__}
+try:
+    from {func.__module__} import {func.__name__}
+except ImportError:
+    import imp, inspect
+    {func.__name__} = imp.load_source('{func.__name__}', inspect.getsourcefile(func))
 
 {func.__name__}(**
 {param_str}
