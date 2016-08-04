@@ -57,6 +57,7 @@ class JobManager(object):
             task.drm_native_specification = self.get_submit_args(task)
             assert task.drm is not None, 'task has no drm set'
             drm_jobID = self.get_drm(task.drm).submit_job(task)
+            assert issubclass(type(drm_jobID), basestring)
             task.drm_jobID = drm_jobID
 
         task.status = TaskStatus.submitted

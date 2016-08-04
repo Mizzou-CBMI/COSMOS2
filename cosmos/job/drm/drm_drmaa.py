@@ -53,7 +53,7 @@ class DRM_DRMAA(DRM):
                 drmaa_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
 
-                yield jobid_to_task.pop(int(drmaa_jobinfo['jobId'])), \
+                yield jobid_to_task.pop(str(drmaa_jobinfo['jobId'])), \
                       parse_drmaa_jobinfo(drmaa_jobinfo)
 
             except drmaa.errors.ExitTimeoutException:
