@@ -6,7 +6,7 @@ Task Functions
 ==================
 
 A `Task Function` (or `task_func`) represents a command-line tool (like echo, cat, paste, or a custom script).  It returns a String,
-which gets written to the filesystem as a shell-script and submitted as a job.  It is a plain old python function.
+which gets written to the filesystem as a shell-script and submitted as a job.  It is just a plain old python function.
 
 .. code-block:: python
 
