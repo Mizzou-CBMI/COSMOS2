@@ -144,9 +144,8 @@
 <h1>8. Advanced Functionality<a class="headerlink" href="#advanced-functionality" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="using-signals">
 <h2>8.1. Using signals<a class="headerlink" href="#using-signals" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">signal</span>
-<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">signal_task_status_change</span>
+<p>COSMOS uses <a class="reference external" href="https://pythonhosted.org/blinker/">blinked</a> for signals.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">signal_task_status_change</span>
 
 <span class="nd">@signal_task_status_change.connect</span>
 <span class="k">def</span> <span class="nf">task_status_changed</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
@@ -154,8 +153,7 @@
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;MyStage&#39;</span><span class="p">:</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">output_map</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fp</span><span class="p">):</span>
-                    <span class="c1"># Send a ctrl+c signal to the main process, which will cause it to clean-up and terminate</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">kill</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">)</span>
+                    <span class="n">task</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
