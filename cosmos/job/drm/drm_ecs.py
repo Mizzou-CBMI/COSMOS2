@@ -49,7 +49,6 @@ class DRM_ECS(DRM):
         for task, task_response in self._describe_tasks(tasks).iteritems():
             ecs_status = task_response['lastStatus']
             if ecs_status == 'STOPPED':
-                pprint.pprint(task_response)
                 yield task, {
                     'exit_status': only_one(task_response['containers'])['exitCode'],
                 }
