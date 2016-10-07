@@ -10,7 +10,7 @@ from more_itertools import grouper
 from .DRM_Base import DRM
 
 CLUSTER = 'pipe-dev'
-taskDefinition = 'pipe-job'
+taskDefinition = 'pipe-job:3'
 startedBy = 'cosmos'
 container_name = 'pipe-job'
 region = 'us-east-1'
@@ -51,7 +51,7 @@ class DRM_ECS(DRM):
             if ecs_status == 'STOPPED':
                 pprint.pprint(task_response)
                 yield task, {
-                    'exit_code': only_one(task_response['containers'])['exitCode'],
+                    'exit_code': int(only_one(task_response['containers'])['exitCode']),
                 }
 
     def kill(self, task):
