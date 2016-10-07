@@ -52,7 +52,7 @@ if __name__ == '__main__':
     import argparse
 
     p = argparse.ArgumentParser()
-    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge'))
+    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge', 'ecs'))
     args = p.parse_args()
 
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
