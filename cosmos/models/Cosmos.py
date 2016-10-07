@@ -11,7 +11,7 @@ from .. import WorkflowStatus
 import math
 # from concurrent import futures
 from datetime import datetime
-
+import warnings
 
 def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     """
@@ -135,7 +135,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, restart=False, skip_confirm=False, primary_log_path=None):
+    def start(self, name, restart=False, skip_confirm=False, primary_log_path='workflow.log'):
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
@@ -147,6 +147,10 @@ class Cosmos(object):
 
         :returns: An Workflow instance.
         """
+        if primary_log_path is not None:
+            warnings.warn('The primary_log_path argument is deprecated, and will be removed soon.  In the future, if you want logs printed to'
+                          'a file you will be expected to pipe to the `tee` program')
+
         from .Workflow import Workflow
         assert os.path.exists(
                 os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
