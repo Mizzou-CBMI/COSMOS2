@@ -51,7 +51,7 @@ class DRM_ECS(DRM):
             if ecs_status == 'STOPPED':
                 pprint.pprint(task_response)
                 yield task, {
-                    'exit_code': int(only_one(task_response['containers'])['exitCode']),
+                    'exit_status': only_one(task_response['containers'])['exitCode'],
                 }
 
     def kill(self, task):
