@@ -13,7 +13,7 @@ CLUSTER = 'pipe-dev'
 taskDefinition = 'pipe-job'
 startedBy = 'cosmos'
 container_name = 'pipe-job'
-
+region = 'us-east-1'
 
 class DRM_ECS(DRM):
     name = 'efs'
@@ -21,7 +21,7 @@ class DRM_ECS(DRM):
 
     def __init__(self, *args, **kwargs):
         import boto3
-        self.ecs = boto3.client('ecs')
+        self.ecs = boto3.client('ecs', region=region)
         super(DRM_ECS, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
