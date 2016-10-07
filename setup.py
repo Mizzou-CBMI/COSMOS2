@@ -26,6 +26,7 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 install_requires = [
     "decorator",
+    'boto3',
     "flask",
     'funcsigs',
     'blinker',

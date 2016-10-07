@@ -53,13 +53,13 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
         resource_str = ','.join(g())
 
         return '-cwd -pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority,
-                                                                                                    queue=default_queue,
-                                                                                                    jobname=jobname, core_req=core_req,
-                                                                                                    parallel_env=parallel_env)
+                                                                                            queue=default_queue,
+                                                                                            jobname=jobname, core_req=core_req,
+                                                                                            parallel_env=parallel_env)
     elif drm == 'local':
         return None
     else:
-        raise Exception('DRM not supported: %s' % drm)
+        return None
 
 
 class Cosmos(object):
@@ -76,7 +76,7 @@ class Cosmos(object):
         :param Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
-        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa'], 'unsupported drm: %s' % default_drm.split(':')[0]
+        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa', 'ecs'], 'unsupported drm: %s' % default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
         # self.futures_executor = futures.ThreadPoolExecutor(10)

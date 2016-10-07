@@ -117,7 +117,7 @@ class Workflow(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
+        return get_logger('cosmos-%s' % Workflow.name, self.primary_log_path)
 
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
