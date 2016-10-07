@@ -2,7 +2,7 @@ FROM ubuntu:14.04
 MAINTAINER Erik Gafni
 
 RUN apt-get update -y
-RUN apt-get install -y git python-dev python-pip
+RUN apt-get install -y git python-dev python-pip tmux
 RUN pip install pip -U
 RUN pip install setuptools -U
 #RUN pip install virtualenv

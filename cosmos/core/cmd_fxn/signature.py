@@ -33,7 +33,7 @@ def default_prepend(task):
     return '#!/bin/bash\n' \
            'set -e\n' \
            'set -o pipefail\n' \
-           '\n'
+           'cd %s\n\n' % os.getcwd()
 
 # def default_cmd_append(task):
 #     return ''

@@ -23,7 +23,7 @@ def say(text, out_file, core_req=3):
     """.format(text=text, out_file=out_file)
 
 
-t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='/locus/data/out.txt', core_req=5), uid='my_task')
+t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt', core_req=5), uid='my_task')
 
 print 'task.params', t.params
 print 'task.input_map', t.input_map
