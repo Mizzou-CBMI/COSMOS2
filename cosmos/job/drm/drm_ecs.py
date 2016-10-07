@@ -15,13 +15,15 @@ startedBy = 'cosmos'
 container_name = 'pipe-job'
 region = 'us-east-1'
 
+os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+
 class DRM_ECS(DRM):
     name = 'efs'
     poll_interval = 5
 
     def __init__(self, *args, **kwargs):
         import boto3
-        self.ecs = boto3.client('ecs', region=region)
+        self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):

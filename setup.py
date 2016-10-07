@@ -37,7 +37,6 @@ install_requires = [
     "enum34",
     "six",
     "SQLAlchemy-Utils",
-    # "pyparsing==1.5.7",
     'psutil',
     "drmaa",
     'more_itertools'

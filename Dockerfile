@@ -13,6 +13,7 @@ WORKDIR Cosmos
 #RUN virtualenv ve
 #RUN source ve/bin/activate
 RUN pip install .
+RUN pip uninstall cosmos-wfm -y
 RUN python setup.py develop
 
 EXPOSE 5000
