@@ -3,8 +3,9 @@ class DRM(object):
     name = None
     poll_interval = 1
 
-    def __init__(self, jobmanager):
+    def __init__(self, jobmanager, drm_options):
         self.jobmanager = jobmanager
+        self.drm_options = drm_options
 
     def submit_job(self, task):
         raise NotImplementedError

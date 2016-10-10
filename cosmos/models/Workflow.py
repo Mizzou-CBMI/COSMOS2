@@ -290,6 +290,7 @@ class Workflow(Base):
 
         if self.jobmanager is None:
             self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
+                                         drm_options=self.cosmos_app.drm_options,
                                          cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
                                          )
 

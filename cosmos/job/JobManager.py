@@ -14,15 +14,14 @@ from cosmos.models.Workflow import default_task_log_output_dir
 from collections import defaultdict
 
 class JobManager(object):
-    def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = dict(local=DRM_Local(self))  # always support local workflow
-        self.drms['lsf'] = DRM_LSF(self)
-        self.drms['ge'] = DRM_GE(self)
-        self.drms['drmaa'] = DRM_DRMAA(self)
-        self.drms['ecs'] = DRM_ECS(self)
+    def __init__(self, get_submit_args, drm_options, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
+        self.drms = dict(local=DRM_Local(self, drm_options.get('local', dict())))  # always support local workflow
+        self.drms['lsf'] = DRM_LSF(self, drm_options.get('lsf', dict()))
+        self.drms['ge'] = DRM_GE(self, drm_options.get('ge', dict()))
+        self.drms['drmaa'] = DRM_DRMAA(self, drm_options.get('drmaa', dict()))
+        self.drms['ecs'] = DRM_ECS(self, drm_options.get('ecs', dict()))
         # self.drms = defaultdict(lambda name: {'lsf'}[name])
 
-        self.local_drm = DRM_Local(self)
         self.running_tasks = []
         self.get_submit_args = get_submit_args
         self.cmd_wrapper = cmd_wrapper
