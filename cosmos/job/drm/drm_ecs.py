@@ -35,7 +35,7 @@ class DRM_ECS(DRM):
                               taskDefinition='pipe-job',
                               startedBy='erik',
                               overrides=dict(containerOverrides=[dict(name='pipe-job', command=['/bin/bash',
-                                                                                                task.output_command_script_path,
+                                                                                                '-c','cd %s; %s' % (os.getcwd(), task.output_command_script_path),
                                                                                                 # '2> %s 1> %s' % (task.output_stderr_path,
                                                                                                 #                  task.output_stdout_path)
                                                                                                 ])]))

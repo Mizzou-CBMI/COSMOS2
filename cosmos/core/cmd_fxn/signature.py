@@ -32,8 +32,8 @@ import decorator
 def default_prepend(task):
     return '#!/bin/bash\n' \
            'set -e\n' \
-           'set -o pipefail\n' \
-           'cd %s\n\n' % os.getcwd()
+           'set -o pipefail' \
+
 
 # def default_cmd_append(task):
 #     return ''
