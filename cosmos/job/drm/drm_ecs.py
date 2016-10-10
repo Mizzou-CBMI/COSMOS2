@@ -20,7 +20,7 @@ class DRM_ECS(DRM):
         import boto3
         self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
-        self.drm_config = dict(cluster='pipe-dev',
+        self.drm_options = dict(cluster='pipe-dev',
                                container_name='pipe-dev:PIPE-2139-docker_v9',
                                taskDefinition='pipe-job2',
                                startedBy='cosmos')
