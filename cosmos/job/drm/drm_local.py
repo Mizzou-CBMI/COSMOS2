@@ -12,9 +12,9 @@ class DRM_Local(DRM):
     name = 'local'
     poll_interval = 0.3
 
-    def __init__(self, jobmanager):
-        self.jobmanager = jobmanager
+    def __init__(self, *args, **kwargs):
         self.procs = dict()
+        super(DRM_Local, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
 

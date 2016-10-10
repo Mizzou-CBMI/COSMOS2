@@ -3,7 +3,7 @@ class DRM(object):
     name = None
     poll_interval = 1
 
-    def __init__(self, jobmanager, drm_options):
+    def __init__(self, jobmanager, drm_options=None):
         self.jobmanager = jobmanager
         self.drm_options = drm_options
 
