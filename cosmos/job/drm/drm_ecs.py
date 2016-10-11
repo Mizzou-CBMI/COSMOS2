@@ -21,7 +21,7 @@ class DRM_ECS(DRM):
         self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
         self.drm_options = dict(cluster='pipe-dev',
-                                container_image='pipe-dev:PIPE-2139-docker_v17',
+                                container_image='pipe-dev:PIPE-2139-docker_v18',
                                 task_family='pipe-job-dev',
                                 mount_points=[{u'containerPath': u'/locus', u'sourceVolume': u'efs'}],
                                 startedBy='cosmos')
@@ -58,7 +58,7 @@ class DRM_ECS(DRM):
         r = self.ecs.run_task(cluster=self.drm_options['cluster'],
                               taskDefinition=r['taskDefinition']['taskDefinitionArn'],
                               startedBy=self.drm_options['startedBy'])
-        drm_jobID = r['tasks'][0]['taskArn']
+        drm_jobID = only_one(r['tasks'])['taskArn']
         # ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         return drm_jobID
 
@@ -70,7 +70,11 @@ class DRM_ECS(DRM):
         """
         for task, task_response in self._describe_tasks(tasks).iteritems():
             ecs_status = task_response['lastStatus']
+
             if ecs_status == 'STOPPED':
+                if 'exitCode' not in only_one(task_response['containers']):
+                    raise Exception('Task did does not have a valid exit code: %s' % pprint.pformat(task_response, indent=2))
+
                 yield task, {
                     'exit_status': only_one(task_response['containers'])['exitCode'],
                 }
