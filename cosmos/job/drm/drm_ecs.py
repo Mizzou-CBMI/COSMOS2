@@ -21,7 +21,7 @@ class DRM_ECS(DRM):
         self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
         self.drm_options = dict(cluster='pipe-dev',
-                                container_image='pipe-dev:PIPE-2139-docker_v15',
+                                container_image='pipe-dev:PIPE-2139-docker_v16',
                                 task_family='pipe-job-dev',
                                 mount_points=[{u'containerPath': u'/locus', u'sourceVolume': u'efs'}],
                                 startedBy='cosmos')
@@ -47,7 +47,7 @@ class DRM_ECS(DRM):
                                           u'portMappings': [],
                                           u'readonlyRootFilesystem': False,
                                           u'volumesFrom': []}],
-               u'family': self.options['task_family'],
+               u'family': self.drm_options['task_family'],
                u'networkMode': u'bridge',
                u'volumes': [{u'host': {u'sourcePath': u'/locus'}, u'name': u'efs'}]}
         )
