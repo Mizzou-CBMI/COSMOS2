@@ -21,25 +21,49 @@ class DRM_ECS(DRM):
         self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
         self.drm_options = dict(cluster='pipe-dev',
-                               container_name='pipe-dev:PIPE-2139-docker_v9',
-                               taskDefinition='pipe-job2',
-                               startedBy='cosmos')
+                                container_image='pipe-dev:PIPE-2139-docker_v14',
+                                task_family='pipe-job-dev',
+                                mount_points=[{u'containerPath': u'/locus', u'sourceVolume': u'efs'}],
+                                startedBy='cosmos')
+
+        self.task_id_to_task_definition_arn = dict()
 
     def submit_job(self, task):
         for p in [task.output_stdout_path, task.output_stderr_path]:
             if os.path.exists(p):
                 os.unlink(p)
 
+        r = self.ecs.register_task_definition(
+            **{u'containerDefinitions': [{u'cpu': task.core_req * 1024,
+                                          u'command': ['/bin/bash',
+                                                       '-c', 'cd %s; %s' % (os.getcwd(), task.output_command_script_path),
+                                                       ],
+                                          u'environment': [],
+                                          u'essential': True,
+                                          u'image': self.drm_options['container_image'],
+                                          u'memoryReservation': task.mem_req or 1000,
+                                          u'mountPoints': self.drm_options['mount_points'],
+                                          u'name': task.stage.name,
+                                          u'portMappings': [],
+                                          u'readonlyRootFilesystem': False,
+                                          u'volumesFrom': []}],
+               u'family': self.options['task_family'],
+               u'networkMode': u'bridge',
+               u'volumes': [{u'host': {u'sourcePath': u'/locus'}, u'name': u'efs'}]}
+        )
+
+        _check_status(r)
+        self.task_id_to_task_definition_arn[task.id] = r['taskDefinition']['taskDefinitionArn']
+
         r = self.ecs.run_task(cluster=self.drm_options['cluster'],
-                              taskDefinition='%s:%s' % (self.drm_options['taskDefinition'], task.cpu_req),
-                              startedBy=self.drm_options['startedBy'],
-                              overrides=dict(containerOverrides=[dict(name=self.drm_options['container_name'],
-                                                                      command=['/bin/bash',
-                                                                               '-c', 'cd %s; %s' % (os.getcwd(), task.output_command_script_path),
-                                                                               ])]))
+                              taskDefinition=r['taskDefinition']['taskDefinitionArn'],
+                              startedBy=self.drm_options['startedBy'])
         drm_jobID = r['tasks'][0]['taskArn']
         # ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
         return drm_jobID
+
+    def clean_up(self, task):
+        self.ecs.deregister_task_definition(taskDefinition=self.task_id_to_task_definition_arn.pop(task.id))
 
     def filter_is_done(self, tasks):
         """

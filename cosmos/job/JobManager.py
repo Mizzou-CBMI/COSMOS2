@@ -104,6 +104,7 @@ class JobManager(object):
                 self.running_tasks.remove(task)
                 for k, v in job_info_dict.items():
                     setattr(task, k, v)
+                self.get_drm(drm).clean_up(task)
                 yield task
 
     @property

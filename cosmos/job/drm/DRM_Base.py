@@ -25,3 +25,6 @@ class DRM(object):
     def kill_tasks(self, tasks):
         for t in tasks:
             self.kill(t)
+
+    def clean_up(self, task):
+        pass
