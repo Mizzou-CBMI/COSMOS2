@@ -21,8 +21,13 @@ class DRM_ECS(DRM):
         self.ecs = boto3.client('ecs')
         super(DRM_ECS, self).__init__(*args, **kwargs)
 
-        for k in ('cluster', 'container_image', 'task_family', 'mounts', 'started_by'):
-            assert k in self.drm_options, '%s must be set in the ECS drm_options' % k
+        # vaidate drm_options
+        if self.drm_options is not None or self.drm_options != dict():
+            for k in ('cluster', 'container_image', 'task_family', 'mounts', 'started_by'):
+                assert k in self.drm_options, '%s must be set in the ECS drm_options' % k
+                if k == 'mounts':
+                    for d in self.drm_options['mounts']:
+                        assert 'containerPath' in d and 'sourcePath' in d and 'name' in d, 'invalid mount in drm_options: %s' % self.drm_options
 
         self.task_id_to_task_definition_arn = dict()
 
@@ -30,7 +35,6 @@ class DRM_ECS(DRM):
         for p in [task.output_stdout_path, task.output_stderr_path]:
             if os.path.exists(p):
                 os.unlink(p)
-
         r = self.ecs.register_task_definition(
             **{u'containerDefinitions': [{u'cpu': task.core_req * 1024,
                                           u'command': ['/bin/bash',
@@ -40,7 +44,8 @@ class DRM_ECS(DRM):
                                           u'essential': True,
                                           u'image': self.drm_options['container_image'],
                                           u'memoryReservation': task.mem_req or 1000,
-                                          u'mountPoints': [m[''] for m in self.drm_options['mounts']],
+                                          u'mountPoints': [{'containerPath': m['containerPath'], 'sourceVolume': m['name']}
+                                                           for m in self.drm_options['mounts']],
                                           u'name': task.stage.name,
                                           u'portMappings': [],
                                           u'readonlyRootFilesystem': False,
@@ -93,8 +98,8 @@ class DRM_ECS(DRM):
                     task=task.drm_jobID,
                     reason='killed by cosmos'
                 )
-            _check_response_for_error(r)
-            self.clean_up(task)
+                _check_response_for_error(r)
+                self.clean_up(task)
 
     def _describe_tasks(self, tasks):
         r = self.ecs.describe_tasks(cluster=self.drm_options['cluster'], tasks=[task.drm_jobID for task in tasks])
@@ -114,7 +119,7 @@ class DRM_ECS(DRM):
 
 def _check_response_for_error(r):
     if 'failures' in r and len(r['failures']):
-        raise Exception('Failures:\n{0}'.format(pprint.pformat(r['failures'], indent=2)))
+        raise Exception('Failures:\n{0}'.format(pprint.pformat(r, indent=2)))
 
     status_code = r['ResponseMetadata']['HTTPStatusCode']
     if status_code != 200:
