@@ -22,7 +22,7 @@ class DRM_ECS(DRM):
         super(DRM_ECS, self).__init__(*args, **kwargs)
 
         # vaidate drm_options
-        if self.drm_options is not None or self.drm_options != dict():
+        if not (self.drm_options is None or self.drm_options != dict()):
             for k in ('cluster', 'container_image', 'task_family', 'mounts', 'started_by'):
                 assert k in self.drm_options, '%s must be set in the ECS drm_options' % k
                 if k == 'mounts':
