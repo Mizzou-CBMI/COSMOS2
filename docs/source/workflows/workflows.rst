@@ -14,7 +14,7 @@ and comprehensions are a great way to do this in a very readable way.
 
     from cosmos import Cosmos
 
-    def word_count(use_lines=False, in_txt, out_txt):
+    def word_count(in_txt, out_txt, use_lines=False):
         l = ' -l' if use_lines else ''
         return r"""
             wc{l} {in_txt} > {out_txt}
@@ -30,7 +30,7 @@ and comprehensions are a great way to do this in a very readable way.
 
 Each call to :meth:`Workflow.add_task` does the following:
 
-1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
+1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `func`)
 2) Checks to see if a Task with the same uid already completed successfully in that stage
 3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
 4) if `2)` is False, then create and return new Task instance
