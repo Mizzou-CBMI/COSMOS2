@@ -17,5 +17,3 @@ COSMOS uses `blinked <https://pythonhosted.org/blinker/>`_ for signals.
                 with open(task.output_map['out_file']) as fp:
                     if any('ERROR' in line for line in fp):
                         task.workflow.terminate()
-
-

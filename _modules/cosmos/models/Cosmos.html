@@ -274,14 +274,15 @@
     <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Cosmos.start"><a class="viewcode-back" href="../../../workflows/initializing.html#cosmos.api.Cosmos.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">primary_log_path</span><span class="o">=</span><span class="s1">&#39;workflow.log&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Cosmos.start"><a class="viewcode-back" href="../../../workflows/initializing.html#cosmos.api.Cosmos.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">primary_log_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</span>
 
 <span class="sd">        :param str name: A name for the workflow.  Must be unique for this Cosmos session.</span>
 <span class="sd">        :param bool restart: If True and the workflow exists, delete it first.</span>
 <span class="sd">        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.</span>
-<span class="sd">        :param primary_log_path: The path of the primary log to write to.</span>
+<span class="sd">        :param primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to</span>
+<span class="sd">          stderr.</span>
 
 <span class="sd">        :returns: An Workflow instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -294,8 +295,8 @@
         <span class="c1"># assert os.path.exists(prefix_dir), &#39;%s does not exist&#39; % prefix_dir</span>
         <span class="kn">from</span> <span class="nn">..util.helpers</span> <span class="k">import</span> <span class="n">mkdir</span>
 
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">primary_log_path</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">primary_log_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;invalid parimary log path&#39;</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">primary_log_path</span><span class="p">):</span>
+        <span class="c1"># assert isinstance(primary_log_path, basestring) and len(primary_log_path) &gt; 0, &#39;invalid parimary log path&#39;</span>
+        <span class="k">if</span> <span class="n">primary_log_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">primary_log_path</span><span class="p">):</span>
             <span class="n">mkdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">primary_log_path</span><span class="p">))</span>
 
         <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>

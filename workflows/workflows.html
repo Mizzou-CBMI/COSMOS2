@@ -158,7 +158,7 @@ and are mostly just for keeping track of similar Tasks.  Tasks execute as soon a
 and comprehensions are a great way to do this in a very readable way.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
 
-<span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">use_lines</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">in_txt</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">in_txt</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">,</span> <span class="n">use_lines</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">l</span> <span class="o">=</span> <span class="s1">&#39; -l&#39;</span> <span class="k">if</span> <span class="n">use_lines</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="k">return</span> <span class="s2">r&quot;&quot;&quot;</span>
 <span class="s2">        wc{l} {in_txt} &gt; {out_txt}</span>
@@ -174,7 +174,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 <p>Each call to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> does the following:</p>
 <ol class="arabic simple">
-<li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>cmd_fxn</cite>)</li>
+<li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>func</cite>)</li>
 <li>Checks to see if a Task with the same uid already completed successfully in that stage</li>
 <li>If <cite>2)</cite> is True, then return that Task instance (it will also be skipped when the <cite>DAG</cite> is run)</li>
 <li>if <cite>2)</cite> is False, then create and return new Task instance</li>

@@ -186,7 +186,7 @@ requirements or the queue to submit to.  See <code class="xref py py-func docuti
 
 <dl class="method">
 <dt id="cosmos.api.Cosmos.start">
-<code class="descname">start</code><span class="sig-paren">(</span><em>name</em>, <em>restart=False</em>, <em>skip_confirm=False</em>, <em>primary_log_path='workflow.log'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
+<code class="descname">start</code><span class="sig-paren">(</span><em>name</em>, <em>restart=False</em>, <em>skip_confirm=False</em>, <em>primary_log_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -196,7 +196,8 @@ requirements or the queue to submit to.  See <code class="xref py py-func docuti
 <li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A name for the workflow.  Must be unique for this Cosmos session.</li>
 <li><strong>restart</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True and the workflow exists, delete it first.</li>
 <li><strong>skip_confirm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; (If True, do not prompt the shell for input before deleting workflows or files.</li>
-<li><strong>primary_log_path</strong> &#8211; The path of the primary log to write to.</li>
+<li><strong>primary_log_path</strong> &#8211; The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
+stderr.</li>
 </ul>
 </td>
 </tr>

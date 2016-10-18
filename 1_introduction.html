@@ -87,7 +87,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#history">1.2. History</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#features">1.3. Features</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#workflow-structure">1.3.1. Workflow Structure</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#the-zen-of-cosmos">1.3.2. The Zen of Cosmos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#some-philosphies-of-cosmos">1.3.2. Some Philosphies of Cosmos</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multi-platform-support">1.3.3. Multi-platform Support</a></li>
 </ul>
 </li>
@@ -188,12 +188,11 @@ with a SQL database, which is used for recording all the objects in a workflow. 
 one2many relationship to Tasks.</p>
 <p>Tasks contain parent/child relationships to other Tasks (directed edges) which define dependencies, and this makes up the DAG.</p>
 </div>
-<div class="section" id="the-zen-of-cosmos">
-<h3>1.3.2. The Zen of Cosmos<a class="headerlink" href="#the-zen-of-cosmos" title="Permalink to this headline">¶</a></h3>
-<p>(<a class="reference external" href="https://www.python.org/dev/peps/pep-0020/">The Zen of Python</a>)</p>
+<div class="section" id="some-philosphies-of-cosmos">
+<h3>1.3.2. Some Philosphies of Cosmos<a class="headerlink" href="#some-philosphies-of-cosmos" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><cite>Workflow Syntaxes</cite> that try to create an abstraction or DSL to describe a <a class="reference internal" href="glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> are <strong>bad</strong>.  They work 90% of the time, and the 10% of the time they don&#8217;t, you get into a lot of trouble.  Describing a DAG in COSMOS is very similar to constructing a DAG in any graph library.</li>
-<li>The definition of a DAG and the definition of a Task should be completely divorced from each other so that the same Task can be reused in different workflows.</li>
+<li><cite>Workflow Syntaxes</cite> that try to create an abstraction or DSL to describe a <a class="reference internal" href="glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> are <strong>bad</strong>.  They work 80% of the time, and the 20% of the time they don&#8217;t, you get into a lot of trouble.  Constructing a DAG in COSMOS is very similar to constructing a DAG in a standard graph library.</li>
+<li>The definition of a DAG and the definition of a Task should be completely divorced from each other so that the same Task can be reused in different Workflows.</li>
 <li>Tasks and recipes for the creation of dags should be re-usable and composable.</li>
 <li>It should be really easy to debug errors.</li>
 </ul>
@@ -201,7 +200,7 @@ one2many relationship to Tasks.</p>
 <div class="section" id="multi-platform-support">
 <h3>1.3.3. Multi-platform Support<a class="headerlink" href="#multi-platform-support" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Support for <a class="reference internal" href="glossary.html#term-drms"><span class="xref std std-term">DRMS</span></a> such as SGE, LSF.  <a class="reference internal" href="glossary.html#term-drmaa"><span class="xref std std-term">DRMAA</span></a> coming soon.  Adding support for more DRMs is very straightforward.</li>
+<li>Support for <a class="reference internal" href="glossary.html#term-drm"><span class="xref std std-term">DRM</span></a> such as SGE, LSF.  <a class="reference internal" href="glossary.html#term-drmaa"><span class="xref std std-term">DRMAA</span></a> is also supported.  Adding support for more DRMs is very straightforward.</li>
 <li>Supports for MySQL, PosgreSQL, Oracle, SQLite by using the <a class="reference internal" href="glossary.html#term-sqlalchemy"><span class="xref std std-term">Sqlalchemy</span></a> ORM.</li>
 <li>Extremely well suited for cloud computing, especially when used in conjuection with <a class="reference external" href="http://aws.amazon.com">AWS</a> and <a class="reference external" href="http://star.mit.edu/cluster/">StarCluster</a>.</li>
 </ul>
