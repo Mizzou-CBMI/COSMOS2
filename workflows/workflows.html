@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="Cosmos 2.0.11 documentation" href="../index.html"/>
         <link rel="next" title="7. Workflow Code Examples" href="examples.html"/>
         <link rel="prev" title="5. Task Functions" href="task_func.html"/> 
@@ -174,17 +177,18 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 <p>Each call to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> does the following:</p>
 <ol class="arabic simple">
-<li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>func</cite>)</li>
-<li>Checks to see if a Task with the same uid already completed successfully in that stage</li>
-<li>If <cite>2)</cite> is True, then return that Task instance (it will also be skipped when the <cite>DAG</cite> is run)</li>
-<li>if <cite>2)</cite> is False, then create and return new Task instance</li>
+<li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>cmd_fxn</cite>)</li>
 </ol>
+<p>2) Checks to see if a Task with the same <em>uid</em> already completed successfully in that stage
+3.1) If <cite>2)</cite> is True, then return the successful Task instance (it will also be skipped when the <cite>DAG</cite> is run)
+3.2) if <cite>2)</cite> is False, then create and return a new Task instance</p>
+<p>This allows you to easily change the code that produced a failed Task and resume where you left off.</p>
 <div class="section" id="creating-your-job-dependency-graph-dag">
 <h2>6.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
-<p>A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.</p>
+<p>A useful model for thinking about how your stages and tasks are related is to think in terms of SQL relationship types.</p>
 <div class="section" id="one2one-aka-map">
 <h3>6.1.1. One2one (aka. map)<a class="headerlink" href="#one2one-aka-map" title="Permalink to this headline">¶</a></h3>
-<p>This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
+<p>This is the most common type of dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
 <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;One2One&#39;</span><span class="p">)</span>
@@ -201,7 +205,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 <div class="section" id="one2many-aka-scatter">
 <h3>6.1.2. One2many (aka. scatter)<a class="headerlink" href="#one2many-aka-scatter" title="Permalink to this headline">¶</a></h3>
-<p>For each parent task in StageA, two or more new children are generated in StageB</p>
+<p>For each parent task in StageA, two or more new children are generated in StageB.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;One2Many&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
     <span class="n">stageA_task</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">)),</span> <span class="n">uid</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>

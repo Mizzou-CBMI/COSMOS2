@@ -1,4 +1,4 @@
-.. _tools:
+.. _task_func:
 
 .. py:module:: cosmos.core
 
