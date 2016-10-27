@@ -6,23 +6,23 @@ Glossary
 .. glossary::
 
     LSF
-      Platform LSF is a commercial :term:`DRMS`
+      Platform LSF is a commercial :term:`DRM`
 
     SGE
-        Sun Grid Engine is a commercial :term:`DRMS`
+        Sun Grid Engine is a commercial :term:`DRM`
 
     GE
         Grid Engine is an open source version of :term:`SGE`
 
-    DRMS
+    DRM
         Distributed Resource Management System.  This is the underlying queuing
         software that manages jobs on a cluster.
         Examples include :term:`LSF`, and :term:`SGE`
 
     DRMAA
         Distributed Resorce Management Application API.  A standard library that
-        is an abstraction built on top of :term:`DRMS`
-        so that the same application code can seamlessly run on any :term:`DRMS`
+        is an abstraction built on top of :term:`DRM`
+        so that the same application code can seamlessly run on any :term:`DRM`
         that supports DRMAA
 
     DAG
