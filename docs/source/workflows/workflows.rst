@@ -14,7 +14,7 @@ and comprehensions are a great way to do this in a very readable way.
 
     from cosmos import Cosmos
 
-    def word_count(use_lines=False, in_txt, out_txt):
+    def word_count(in_txt, out_txt, use_lines=False):
         l = ' -l' if use_lines else ''
         return r"""
             wc{l} {in_txt} > {out_txt}

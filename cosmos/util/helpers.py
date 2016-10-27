@@ -168,7 +168,7 @@ def formatError(txt, dict, error_text=''):
     print s
 
 
-def get_logger(name, path):
+def get_logger(name, path=None):
     """
     Gets a logger of name `name` that prints to stderr and to root_path
 

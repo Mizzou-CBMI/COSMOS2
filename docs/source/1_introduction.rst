@@ -47,25 +47,18 @@ one2many relationship to Tasks.
 
 Tasks contain parent/child relationships to other Tasks (directed edges) which define dependencies, and this makes up the DAG.
 
-The Zen of Cosmos
-++++++++++++++++++
+Some Philosphies of Cosmos
++++++++++++++++++++++++++++++
 
-(`The Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_)
-
-* `Workflow Syntaxes` that try to create an abstraction or DSL to describe a :term:`DAG` are **bad**.  They work 90% of the time, and the 10% of the time they
- don't, you get into a lot of trouble.  Describing a DAG in COSMOS is very similar to constructing a DAG in any graph library.
-
-* The definition of a DAG and the definition of a Task should be completely divorced from each other so that
-  the same Task can be reused in different workflows.
-
+* `Workflow Syntaxes` that try to create an abstraction or DSL to describe a :term:`DAG` are **bad**.  They work 80% of the time, and the 20% of the time they don't, you get into a lot of trouble.  Constructing a DAG in COSMOS is very similar to constructing a DAG in a standard graph library.
+* The definition of a DAG and the definition of a Task should be completely divorced from each other so that the same Task can be reused in different Workflows.
 * Tasks and recipes for the creation of dags should be re-usable and composable.
-
 * It should be really easy to debug errors.
-
 
 Multi-platform Support
 +++++++++++++++++++++++
 
-* Support for :term:`DRMS` such as SGE, LSF.  :term:`DRMAA` coming soon.  Adding support for more DRMs is very straightforward.
+* Support for :term:`DRMS` such as SGE, LSF.  :term:`DRMAA` is also supported.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the :term:`Sqlalchemy` ORM.
 * Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
+

@@ -135,14 +135,15 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, restart=False, skip_confirm=False, primary_log_path='workflow.log'):
+    def start(self, name, restart=False, skip_confirm=False, primary_log_path=None):
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
         :param str name: A name for the workflow.  Must be unique for this Cosmos session.
         :param bool restart: If True and the workflow exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
-        :param primary_log_path: The path of the primary log to write to.
+        :param primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
+          stderr.
 
         :returns: An Workflow instance.
         """
@@ -155,8 +156,8 @@ class Cosmos(object):
         # assert os.path.exists(prefix_dir), '%s does not exist' % prefix_dir
         from ..util.helpers import mkdir
 
-        assert isinstance(primary_log_path, basestring) and len(primary_log_path) > 0, 'invalid parimary log path'
-        if os.path.dirname(primary_log_path):
+        # assert isinstance(primary_log_path, basestring) and len(primary_log_path) > 0, 'invalid parimary log path'
+        if primary_log_path is not None and os.path.dirname(primary_log_path):
             mkdir(os.path.dirname(primary_log_path))
 
         session = self.session
