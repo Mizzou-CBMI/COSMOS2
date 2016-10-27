@@ -31,18 +31,19 @@ and comprehensions are a great way to do this in a very readable way.
 Each call to :meth:`Workflow.add_task` does the following:
 
 1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
-2) Checks to see if a Task with the same uid already completed successfully in that stage
-3) If `2)` is True, then return that Task instance (it will also be skipped when the `DAG` is run)
-4) if `2)` is False, then create and return new Task instance
+2) Checks to see if a Task with the same *uid* already completed successfully in that stage
+3.1) If `2)` is True, then return the successful Task instance (it will also be skipped when the `DAG` is run)
+3.2) if `2)` is False, then create and return a new Task instance
 
+This allows you to easily change the code that produced a failed Task and resume where you left off.
 
 Creating Your Job Dependency Graph (DAG)
 ---------------------------------------------------
-A useful model for thinking about how your stages are related is to think in terms of SQL relationship types.
+A useful model for thinking about how your stages and tasks are related is to think in terms of SQL relationship types.
 
 One2one (aka. map)
 +++++++++++++++++++++++++++++++
-This is the most common stage dependency.  For each task in StageA, you create a single dependent task in StageB.
+This is the most common type of dependency.  For each task in StageA, you create a single dependent task in StageB.
 
 
 .. code-block:: python
@@ -62,7 +63,7 @@ This is the most common stage dependency.  For each task in StageA, you create a
 
 One2many (aka. scatter)
 +++++++++++++++++++++++++
-For each parent task in StageA, two or more new children are generated in StageB
+For each parent task in StageA, two or more new children are generated in StageB.
 
 .. code-block:: python
 
