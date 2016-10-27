@@ -8,6 +8,7 @@ This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.o
     cd /dir/to/install/Cosmos/to
     mkvirtualenv ve
     source ve/bin/activate
+    pip install pip setuptools -U
     pip install cosmos-wfm
 
     # Optional, recommended for visualizing Workflows:
