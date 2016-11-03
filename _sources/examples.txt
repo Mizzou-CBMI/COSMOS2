@@ -54,7 +54,7 @@ Here is the source code of the :file:`example_workflows/ex2.py` you ran in :ref:
 
 .. literalinclude:: ../../examples/ex2.py
 
-Here's the :term:`DAG` that was created.  If you use the web-interface, there will the nodes are convenient links
+Here's the :term:`DAG` that was created.  If you use the web-interface, the nodes are convenient links
 you can click to jump straight to the debug information that pertains to that Task or Stage.
 
 .. figure:: /_static/imgs/ex1_stage_graph.png
