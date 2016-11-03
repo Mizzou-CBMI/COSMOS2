@@ -20,12 +20,11 @@ and comprehensions are a great way to do this in a very readable way.
             wc{l} {in_txt} > {out_txt}
             """.format(**locals())
 
-    cosmos = Cosmos()
+    cosmos = Cosmos('sqlite:///cosmos.sqlite')
     cosmos.initdb()
-    workflow = cosmos.start('My_Workflow', 'out_dir)
+    workflow = cosmos.start('My_Workflow', 'out_dir')
 
-    # note in_txt is specified, so find() will not be used.
-    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt='a.txt')) ]
+    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt=f)) for f in ('a.txt','b.txt') ]
 
 
 Each call to :meth:`Workflow.add_task` does the following:

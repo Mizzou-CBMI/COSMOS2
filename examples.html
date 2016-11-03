@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>11. Cosmos FAQ &mdash; Cosmos 2.0.11 documentation</title>
+  <title>8. Workflow Code Examples &mdash; Cosmos 2.0.11 documentation</title>
   
 
   
@@ -31,7 +31,8 @@
 
   
     <link rel="top" title="Cosmos 2.0.11 documentation" href="index.html"/>
-        <link rel="prev" title="10. Glossary" href="glossary.html"/> 
+        <link rel="next" title="9. Cosmos Shell" href="shell.html"/>
+        <link rel="prev" title="7. Advanced Functionality" href="workflows/advanced.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -88,10 +89,19 @@
 <li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/advanced.html">7. Advanced Functionality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">8. Workflow Code Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">8. Workflow Code Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-workflows">8.1. Basic Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hello-world">8.1.1. Hello World</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#command-functions-used-by-examples">8.1.1.1. Command Functions used by Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="shell.html">9. Cosmos Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">11. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">11. Cosmos FAQ</a></li>
 </ul>
 
             
@@ -122,11 +132,11 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>11. Cosmos FAQ</li>
+    <li>8. Workflow Code Examples</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/faq.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/examples.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -136,17 +146,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cosmos-faq">
-<span id="faq"></span><h1>11. Cosmos FAQ<a class="headerlink" href="#cosmos-faq" title="Permalink to this headline">¶</a></h1>
-<dl class="docutils">
-<dt>Why does it take so long to delete large Workflows and Stages?</dt>
-<dd>This is a limitation of SQLAlchemy and using Asosciation Tables and Many2Many relationships.  Unfortunately there&#8217;s not much to do about this for the time being.</dd>
-<dt>How do I cite COSMOS?</dt>
-<dd>COSMOS was officially published as a
-<a class="reference external" href="http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385">manuscript</a>,
-but has evolved a lot since it&#8217;s original inception.  If you use COSMOS
-for research, please cite it&#8217;s <a class="reference external" href="http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385">manuscript</a>.  This means a lot to the author.</dd>
-</dl>
+  <div class="section" id="workflow-code-examples">
+<span id="examples"></span><h1>8. Workflow Code Examples<a class="headerlink" href="#workflow-code-examples" title="Permalink to this headline">¶</a></h1>
+<p>The easiest way to learn is often by example.  When you&#8217;re learning to write your own workflows,
+make liberal use of the <code class="xref py py-meth docutils literal"><span class="pre">create_dag_img()</span></code> and the <cite>visualize</cite> button
+in the runweb interface.</p>
+<div class="section" id="basic-workflows">
+<h2>8.1. Basic Workflows<a class="headerlink" href="#basic-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="hello-world">
+<h3>8.1.1. Hello World<a class="headerlink" href="#hello-world" title="Permalink to this headline">¶</a></h3>
+<p>Here is the source code of the <code class="file docutils literal"><span class="pre">example_workflows/ex2.py</span></code> you ran in <a class="reference internal" href="3_getting_started.html#getting-started"><span class="std std-ref">Getting Started</span></a>.</p>
+<p><code class="file docutils literal"><span class="pre">example_workflows/ex2.py</span></code></p>
+<p>Here&#8217;s the <a class="reference internal" href="glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> that was created.  If you use the web-interface, there will the nodes are convenient links
+you can click to jump straight to the debug information that pertains to that Task or Stage.</p>
+<div class="figure align-center">
+<img alt="_images/ex1_stage_graph.png" src="_images/ex1_stage_graph.png" />
+</div>
+<p>The Stage Graph is a high level overview.  Often the <a class="reference internal" href="glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> of Tasks
+is too large for a visualization to be useful:</p>
+<div class="figure align-center">
+<img alt="_images/ex1_task_graph.png" src="_images/ex1_task_graph.png" />
+</div>
+<div class="section" id="command-functions-used-by-examples">
+<h4>8.1.1.1. Command Functions used by Examples<a class="headerlink" href="#command-functions-used-by-examples" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -156,8 +181,10 @@ for research, please cite it&#8217;s <a class="reference external" href="http://
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="shell.html" class="btn btn-neutral float-right" title="9. Cosmos Shell" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-        <a href="glossary.html" class="btn btn-neutral" title="10. Glossary" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+        <a href="workflows/advanced.html" class="btn btn-neutral" title="7. Advanced Functionality" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

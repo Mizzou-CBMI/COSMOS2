@@ -31,7 +31,7 @@
 
   
     <link rel="top" title="Cosmos 2.0.11 documentation" href="../index.html"/>
-        <link rel="next" title="7. Workflow Code Examples" href="examples.html"/>
+        <link rel="next" title="7. Advanced Functionality" href="advanced.html"/>
         <link rel="prev" title="5. Task Functions" href="task_func.html"/> 
 
   
@@ -101,8 +101,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">7. Workflow Code Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="advanced.html">8. Advanced Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">7. Advanced Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">8. Workflow Code Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../shell.html">9. Cosmos Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">11. Cosmos FAQ</a></li>
@@ -164,12 +164,11 @@ and comprehensions are a great way to do this in a very readable way.</p>
 <span class="s2">        wc{l} {in_txt} &gt; {out_txt}</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
-<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
+<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///cosmos.sqlite&#39;</span><span class="p">)</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="s1">&#39;out_dir)</span>
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="s1">&#39;out_dir&#39;</span><span class="p">)</span>
 
-<span class="c1"># note in_txt is specified, so find() will not be used.</span>
-<span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="s1">&#39;a.txt&#39;</span><span class="p">))</span> <span class="p">]</span>
+<span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="n">f</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;a.txt&#39;</span><span class="p">,</span><span class="s1">&#39;b.txt&#39;</span><span class="p">)</span> <span class="p">]</span>
 </pre></div>
 </div>
 <p>Each call to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> does the following:</p>
@@ -335,7 +334,7 @@ run more tasks in this workflow later.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="examples.html" class="btn btn-neutral float-right" title="7. Workflow Code Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="advanced.html" class="btn btn-neutral float-right" title="7. Advanced Functionality" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="task_func.html" class="btn btn-neutral" title="5. Task Functions" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

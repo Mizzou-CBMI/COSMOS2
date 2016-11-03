@@ -94,8 +94,8 @@
 <li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/examples.html">7. Workflow Code Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/advanced.html">8. Advanced Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/advanced.html">7. Advanced Functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">8. Workflow Code Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shell.html">9. Cosmos Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">11. Cosmos FAQ</a></li>
@@ -220,7 +220,7 @@ using lynx.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">The webserver is <strong>NOT</strong> secure.  If you need it secured, you&#8217;ll have to set it up in a production
-Flask web server environment, see <a class="reference external" href="DeployingFlaskhttp://flask.pocoo.org/docs/0.10/deploying/">DeployingFlaskhttp://flask.pocoo.org/docs/0.10/deploying/</a>.</p>
+Flask web server environment, see <a class="reference external" href="http://flask.pocoo.org/docs/0.10/deploying/">Deploying Flask</a>.</p>
 </div>
 </div>
 <div class="section" id="terminating-a-workflow">
@@ -232,8 +232,9 @@ You can resume from the point in the workflow you left off later.</p>
 <div class="section" id="resuming-a-workflow">
 <h2>3.4. Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
 <p>A workflow can be resumed by re-running the script that originally started it.  The call to <code class="xref py py-meth docutils literal"><span class="pre">Cosmos.start()</span></code> will delete any failed Tasks.
-Calls to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> will check the database to see if the task already has been successfully completed (using the stage_name and uid).  If so,
-it&#8217;ll return the database version of that Task, and not re-run it when <code class="xref py py-meth docutils literal"><span class="pre">Workflow.run()</span></code> is called.</p>
+Calls to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> will check the database to see if the Task already has been successfully completed (using the stage_name and uid).  If so,
+it&#8217;ll return the database version of that Task, and not re-run it when <code class="xref py py-meth docutils literal"><span class="pre">Workflow.run()</span></code> is called.  If the Task had failed, <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> will
+return a new Task which <em>will</em> be run when <code class="xref py py-meth docutils literal"><span class="pre">Workflow.run()</span></code> is called.</p>
 </div>
 </div>
 

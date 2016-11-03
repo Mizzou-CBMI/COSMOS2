@@ -60,7 +60,7 @@ Getting a Stage's Descendants
 .. code-block:: python
 
     >>> wf.stages[4].descendants(include_self=True)
-    
+
 
 
 Manually Altering Attributes

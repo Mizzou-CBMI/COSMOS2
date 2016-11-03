@@ -14,8 +14,8 @@ we are planning a major publication before the official release.
     workflows/initializing
     workflows/task_func
     workflows/workflows
-    workflows/examples
     workflows/advanced
+    examples
     shell
     glossary
     faq
