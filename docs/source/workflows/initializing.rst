@@ -3,7 +3,7 @@
 Initializing
 ===============
 
-Cosmos is initialized using the :class:`cosmos.Cosmos` object, which is subsequently used to starts instances of :class:`Workflow`
+Cosmos is initialized using the :class:`cosmos.Cosmos` object, which is subsequently used to start instances of :class:`Workflow`
 which contain the entire structure of a workflow.
 
 .. code-block:: python

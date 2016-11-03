@@ -87,7 +87,7 @@ Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if
 .. warning::
 
     The webserver is **NOT** secure.  If you need it secured, you'll have to set it up in a production
-    Flask web server environment, see `<Deploying Flask http://flask.pocoo.org/docs/0.10/deploying/>`_.
+    Flask web server environment, see `Deploying Flask <http://flask.pocoo.org/docs/0.10/deploying/>`_.
 
 Terminating a Workflow
 ______________________
@@ -100,5 +100,6 @@ Resuming a workflow
 ____________________
 
 A workflow can be resumed by re-running the script that originally started it.  The call to :meth:`Cosmos.start` will delete any failed Tasks.
-Calls to :meth:`Workflow.add_task` will check the database to see if the task already has been successfully completed (using the stage_name and uid).  If so,
-it'll return the database version of that Task, and not re-run it when :meth:`Workflow.run` is called.
+Calls to :meth:`Workflow.add_task` will check the database to see if the Task already has been successfully completed (using the stage_name and uid).  If so,
+it'll return the database version of that Task, and not re-run it when :meth:`Workflow.run` is called.  If the Task had failed, :meth:`Workflow.add_task` will
+return a new Task which *will* be run when :meth:`Workflow.run` is called.

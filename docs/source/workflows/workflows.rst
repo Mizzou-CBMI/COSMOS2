@@ -20,20 +20,19 @@ and comprehensions are a great way to do this in a very readable way.
             wc{l} {in_txt} > {out_txt}
             """.format(**locals())
 
-    cosmos = Cosmos()
+    cosmos = Cosmos('sqlite:///cosmos.sqlite')
     cosmos.initdb()
-    workflow = cosmos.start('My_Workflow', 'out_dir)
+    workflow = cosmos.start('My_Workflow', 'out_dir')
 
-    # note in_txt is specified, so find() will not be used.
-    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt='a.txt')) ]
+    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt=f)) for f in ('a.txt','b.txt') ]
 
 
 Each call to :meth:`Workflow.add_task` does the following:
 
 1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
 2) Checks to see if a Task with the same *uid* already completed successfully in that stage
-3.1) If `2)` is True, then return the successful Task instance (it will also be skipped when the `DAG` is run)
-3.2) if `2)` is False, then create and return a new Task instance
+3) If `2)` is True, then return the successful Task instance (it will also be skipped when the `DAG` is run)
+4) if `2)` is False, then create and return a new Task instance
 
 This allows you to easily change the code that produced a failed Task and resume where you left off.
 

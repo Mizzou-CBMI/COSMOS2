@@ -1,15 +1,32 @@
-Cosmos Shell
+Shell
 =============
 
-The Cosmos shell is an interactive python session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
+The Cosmos shell is an interactive IPython session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
 
+For example, **wf** will be the most recent Workflow.
 
 To launch the shell, just run:
 
-.. code-block:: bash
+.. code-block:: text
 
-    $ cosmos shell /path/to/database.sqlite___or_a_sqlalchemy_database_url
+    $ cosmos shell /path/to/database.sqlite
+    or
+    $ cosmos shell sqlalchemy_database_url
+
+    Python 2.7.12 (default, Jul 21 2016, 20:22:53)
+    Type "copyright", "credits" or "license" for more information.
+
+    IPython 3.2.3 -- An enhanced Interactive Python.
+    ?         -> Introduction and overview of IPython's features.
+    %quickref -> Quick reference.
+    help      -> Python's own help system.
+    object?   -> Details about 'object', use 'object??' for extra details.
+
+    In [1]: wf.stages
+    Out[1]:
+    [<Stage[1] Hello>,
+     <Stage[2] World>]
 
 .. note::
 
@@ -43,6 +60,7 @@ Getting a Stage's Descendants
 .. code-block:: python
 
     >>> wf.stages[4].descendants(include_self=True)
+
 
 
 Manually Altering Attributes
