@@ -9,7 +9,9 @@ To launch the shell, just run:
 
 .. code-block:: bash
 
-    $ cosmos shell /path/to/database.sqlite___or_a_sqlalchemy_database_url
+    $ cosmos shell /path/to/database.sqlite
+    or
+    $ cosmos shell sqlalchemy_database_url 
 
 .. note::
 
