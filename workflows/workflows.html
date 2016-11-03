@@ -174,10 +174,10 @@ and comprehensions are a great way to do this in a very readable way.</p>
 <p>Each call to <code class="xref py py-meth docutils literal"><span class="pre">Workflow.add_task()</span></code> does the following:</p>
 <ol class="arabic simple">
 <li>Gets the corresponding Stage based on stage_name (which defaults to the name of of the <cite>cmd_fxn</cite>)</li>
+<li>Checks to see if a Task with the same <em>uid</em> already completed successfully in that stage</li>
+<li>If <cite>2)</cite> is True, then return the successful Task instance (it will also be skipped when the <cite>DAG</cite> is run)</li>
+<li>if <cite>2)</cite> is False, then create and return a new Task instance</li>
 </ol>
-<p>2) Checks to see if a Task with the same <em>uid</em> already completed successfully in that stage
-3.1) If <cite>2)</cite> is True, then return the successful Task instance (it will also be skipped when the <cite>DAG</cite> is run)
-3.2) if <cite>2)</cite> is False, then create and return a new Task instance</p>
 <p>This allows you to easily change the code that produced a failed Task and resume where you left off.</p>
 <div class="section" id="creating-your-job-dependency-graph-dag">
 <h2>6.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
