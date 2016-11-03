@@ -8,13 +8,13 @@ For example, **wf** will be the most recent Workflow.
 
 To launch the shell, just run:
 
-.. code-block:: bash
+.. code-block:: text
 
     $ cosmos shell /path/to/database.sqlite
     or
     $ cosmos shell sqlalchemy_database_url
 
-    wf.stagesPython 2.7.12 (default, Jul 21 2016, 20:22:53)
+    Python 2.7.12 (default, Jul 21 2016, 20:22:53)
     Type "copyright", "credits" or "license" for more information.
 
     IPython 3.2.3 -- An enhanced Interactive Python.
@@ -60,6 +60,7 @@ Getting a Stage's Descendants
 .. code-block:: python
 
     >>> wf.stages[4].descendants(include_self=True)
+    
 
 
 Manually Altering Attributes
