@@ -1,4 +1,4 @@
-Cosmos Shell
+Shell
 =============
 
 The Cosmos shell is an interactive IPython session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug

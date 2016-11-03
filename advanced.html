@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>7. Advanced Functionality &mdash; Cosmos 2.0.11 documentation</title>
+  <title>10. Advanced &mdash; Cosmos 2.0.11 documentation</title>
   
 
   
@@ -24,18 +24,18 @@
 
   
   
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   
 
   
 
   
-    <link rel="top" title="Cosmos 2.0.11 documentation" href="../index.html"/>
-        <link rel="next" title="8. Workflow Code Examples" href="../examples.html"/>
-        <link rel="prev" title="6. Workflows" href="workflows.html"/> 
+    <link rel="top" title="Cosmos 2.0.11 documentation" href="index.html"/>
+        <link rel="next" title="11. Glossary" href="glossary.html"/>
+        <link rel="prev" title="9. FAQ" href="faq.html"/> 
 
   
-  <script src="../_static/js/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -50,7 +50,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Cosmos
+            <a href="index.html" class="icon icon-home"> Cosmos
           
 
           
@@ -67,7 +67,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -82,20 +82,20 @@
             
             
                 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="initializing.html">4. Initializing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="task_func.html">5. Task Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows.html">6. Workflows</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">7. Advanced Functionality</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#using-signals">7.1. Using signals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1_introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3_getting_started.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">7. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">8. Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">9. FAQ</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">10. Advanced</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-signals">10.1. Using signals</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">8. Workflow Code Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../shell.html">9. Cosmos Shell</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">11. Cosmos FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">11. Glossary</a></li>
 </ul>
 
             
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">Cosmos</a>
+        <a href="index.html">Cosmos</a>
       </nav>
 
 
@@ -124,13 +124,13 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
+    <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>7. Advanced Functionality</li>
+    <li>10. Advanced</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/workflows/advanced.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/advanced.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -140,11 +140,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="advanced-functionality">
-<h1>7. Advanced Functionality<a class="headerlink" href="#advanced-functionality" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="advanced">
+<h1>10. Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="using-signals">
-<h2>7.1. Using signals<a class="headerlink" href="#using-signals" title="Permalink to this headline">¶</a></h2>
-<p>COSMOS uses <a class="reference external" href="https://pythonhosted.org/blinker/">blinked</a> for signals.</p>
+<h2>10.1. Using signals<a class="headerlink" href="#using-signals" title="Permalink to this headline">¶</a></h2>
+<p>COSMOS uses <a class="reference external" href="https://pythonhosted.org/blinker/">blinker</a> for signals.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">signal_task_status_change</span>
 
 <span class="nd">@signal_task_status_change.connect</span>
@@ -166,10 +166,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../examples.html" class="btn btn-neutral float-right" title="8. Workflow Code Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="glossary.html" class="btn btn-neutral float-right" title="11. Glossary" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="workflows.html" class="btn btn-neutral" title="6. Workflows" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="faq.html" class="btn btn-neutral" title="9. FAQ" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -199,22 +199,22 @@
 
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
+            URL_ROOT:'./',
             VERSION:'2.0.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
         };
     </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
 
   
 
   
   
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script>
   
 
   

@@ -1,10 +1,10 @@
-Advanced Functionality
+Advanced
 =======================
 
 Using signals
 ++++++++++++++
 
-COSMOS uses `blinked <https://pythonhosted.org/blinker/>`_ for signals.
+COSMOS uses `blinker <https://pythonhosted.org/blinker/>`_ for signals.
 
 .. code-block:: python
 

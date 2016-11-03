@@ -1,10 +1,7 @@
 .. _faq:
 
-Cosmos FAQ
+FAQ
 ==========
-
-Why does it take so long to delete large Workflows and Stages?
-    This is a limitation of SQLAlchemy and using Asosciation Tables and Many2Many relationships.  Unfortunately there's not much to do about this for the time being.
 
 How do I cite COSMOS?
     COSMOS was officially published as a
