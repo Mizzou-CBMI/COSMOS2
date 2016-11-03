@@ -30,9 +30,6 @@
   
 
   
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Cosmos 2.0.11 documentation" href="index.html"/>
         <link rel="next" title="10. Glossary" href="glossary.html"/>
         <link rel="prev" title="8. Advanced Functionality" href="workflows/advanced.html"/> 
@@ -150,11 +147,8 @@
 <h1>9. Cosmos Shell<a class="headerlink" href="#cosmos-shell" title="Permalink to this headline">¶</a></h1>
 <p>The Cosmos shell is an interactive python session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful <a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a></p>
-<p>To launch the shell, create a script like this (Take a look at the <a class="reference internal" href="#cosmos.api.Cosmos.shell" title="cosmos.api.Cosmos.shell"><code class="xref py py-meth docutils literal"><span class="pre">cosmos.api.Cosmos.shell()</span></code></a> source code, it is very simple):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
-<span class="n">cosmos_app</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///sqlite.db&#39;</span><span class="p">)</span>
-<span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">cosmos_app</span><span class="o">.</span><span class="n">shell</span><span class="p">()</span>
+<p>To launch the shell, just run:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ cosmos shell /path/to/database.sqlite___or_a_sqlalchemy_database_url
 </pre></div>
 </div>
 <div class="admonition note">
@@ -174,7 +168,7 @@ from there.  This avoids a lot of unnecessary re-computation of Stages that were
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">wf</span><span class="o">.</span><span class="n">stages</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span> <span class="n">stage</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Note that setting delete_files=True can be slow if there are a lot of files to delete.  Sometimes it&#8217;s better (especially in development) to set
+<p>Note that setting delete_files=True can be slow if there are a lot of files to delete.  Usually it&#8217;s better (especially in development) to set
 delete_files=False and just have the next run overwrite the files.</p>
 </div>
 <div class="section" id="getting-a-stage-s-descendants">

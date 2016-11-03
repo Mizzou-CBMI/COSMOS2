@@ -5,15 +5,11 @@ The Cosmos shell is an interactive python session with useful modules already im
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
 
 
-To launch the shell, create a script like this (Take a look at the :meth:`cosmos.api.Cosmos.shell` source code, it is very simple):
+To launch the shell, just run:
 
-.. code-block:: python
+.. code-block:: bash
 
-    from cosmos import Cosmos
-    cosmos_app = Cosmos('sqlite:///sqlite.db')
-    cosmos.initdb()
-    cosmos_app.shell()
-
+    $ cosmos shell /path/to/database.sqlite___or_a_sqlalchemy_database_url
 
 .. note::
 
@@ -37,7 +33,7 @@ from there.  This avoids a lot of unnecessary re-computation of Stages that were
     # or, if your DAG is simple
     >>> for stage in wf.stages[4:]: stage.delete()
 
-Note that setting delete_files=True can be slow if there are a lot of files to delete.  Sometimes it's better (especially in development) to set
+Note that setting delete_files=True can be slow if there are a lot of files to delete.  Usually it's better (especially in development) to set
 delete_files=False and just have the next run overwrite the files.
 
 
