@@ -80,9 +80,8 @@ Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if
 .. hint::
 
     If the cosmos webserver is running, but you can't connect, it is likely because there is a firewall
-    in front of the server.  You can get around it by using **ssh port forwarding**, for example"
-    `$ ssh -L 8080:servername:8080 user@server`.  And if that fails, the Cosmos web interface works well
-    using lynx.
+    in front of the server.  You can get around it by using **ssh port forwarding**, for example:
+    ``$ ssh -L 8080:servername:8080 user@server``.
 
 .. warning::
 
