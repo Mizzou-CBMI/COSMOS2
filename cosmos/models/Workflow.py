@@ -277,8 +277,7 @@ class Workflow(Base):
 
         if self.jobmanager is None:
             self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                         cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func
-                                         )
+                                         cmd_wrapper=cmd_wrapper, log_out_dir_func=log_out_dir_func)
 
         self.status = WorkflowStatus.running
         self.successful = False
@@ -319,8 +318,12 @@ class Workflow(Base):
             next(duplicates(self.stages)))
 
         # renumber stages
-        for i, s in enumerate(topological_sort(stage_graph)):
+        stage_graph_no_cycles = stage_graph.copy()
+        for cycle in nx.simple_cycles(stage_graph):
+            stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
+        for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
             s.number = i + 1
+
 
         # Add final taskgraph to session
         # session.expunge_all()
@@ -330,7 +333,7 @@ class Workflow(Base):
         successful = filter(lambda t: t.successful, task_graph.nodes())
 
         # print stages
-        for s in topological_sort(stage_graph):
+        for s in sorted(self.stages, lambda s: s.number):
             self.log.info('%s %s' % (s, s.status))
 
         # Create Task Queue

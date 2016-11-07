@@ -51,7 +51,6 @@ class Stage(Base):
     number = Column(Integer)
     name = Column(String(255))
     started_on = Column(DateTime)
-    finished_on = Column(DateTime)
     workflow_id = Column(ForeignKey('workflow.id', ondelete="CASCADE"), nullable=False, index=True)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
