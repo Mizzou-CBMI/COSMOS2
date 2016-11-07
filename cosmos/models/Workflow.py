@@ -143,7 +143,6 @@ class Workflow(Base):
         """
         from cosmos.models.Stage import Stage
         from cosmos import recursive_resolve_dependency
-        from cosmos.api import Dependency
 
         # parents
         if isinstance(parents, types.GeneratorType):
@@ -195,16 +194,7 @@ class Workflow(Base):
                                  'Task uids must be unique within the same Stage.' % (stage_name, uid))
         else:
             # Create Task
-
-            # input_map, output_map = io.get_io_map(task_func, task_params, parents, stage.name, out_dir, self.output_dir)
-            # input_files = io.unpack_io_map(input_map)
-            # output_files = io.unpack_io_map(output_map)
             sig = funcsigs.signature(func)
-
-            # Check required parameters are specified
-            # for keyword, parameter in sig.parameters.iteritems():
-            # if parameter.default is funcsigs._empty and keyword not in params:
-            #         raise AssertionError, 'Parameter %s is required for %s' % (keyword, func)
 
             def params_or_signature_default_or(name, default):
                 if name in params:
@@ -243,9 +233,6 @@ class Workflow(Base):
                         time_req=params_or_signature_default_or('time_req', None))
 
             task.cmd_fxn = func
-            # task.input_map = input_map
-            # task.output_map = output_map
-            # task.call_kwargs = call_kwargs
 
         # Add Stage Dependencies
         for p in parents:
@@ -301,8 +288,8 @@ class Workflow(Base):
 
             self.started_on = datetime.datetime.now()
 
-        task_g = self.task_graph()
-        stage_g = self.stage_graph()
+        task_graph = self.task_graph()
+        stage_graph = self.stage_graph()
 
         # def assert_no_duplicate_taskfiles():
         # taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
@@ -328,22 +315,11 @@ class Workflow(Base):
         #
         # assert_no_duplicate_taskfiles()
 
-
-        # Collapse
-        # from ..graph.collapse import collapse
-        #
-        # for stage_bubble, name in recipe.collapses:
-        #     self.log.debug('Collapsing %s into `%s`' % ([s.name for s in stage_bubble], name))
-        #     collapse(session, task_g, stage_g, stage_bubble, name)
-
-        # taskg and stageg are now finalized
-
-        # stages = stage_g.nodes()
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
             next(duplicates(self.stages)))
 
         # renumber stages
-        for i, s in enumerate(topological_sort(stage_g)):
+        for i, s in enumerate(topological_sort(stage_graph)):
             s.number = i + 1
 
         # Add final taskgraph to session
@@ -351,14 +327,14 @@ class Workflow(Base):
         session.add(self)
         # session.add_all(stage_g.nodes())
         # session.add_all(task_g.nodes())
-        successful = filter(lambda t: t.successful, task_g.nodes())
+        successful = filter(lambda t: t.successful, task_graph.nodes())
 
         # print stages
-        for s in topological_sort(stage_g):
+        for s in topological_sort(stage_graph):
             self.log.info('%s %s' % (s, s.status))
 
         # Create Task Queue
-        task_queue = _copy_graph(task_g)
+        task_queue = _copy_graph(task_graph)
         self.log.info('Skipping %s successful tasks...' % len(successful))
         task_queue.remove_nodes_from(successful)
 
