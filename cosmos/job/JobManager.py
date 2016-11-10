@@ -79,7 +79,7 @@ class JobManager(object):
         f = lambda t: t.drm
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             tasks = list(tasks)
-            self.get_drm(drm).kill_tasks(tasks)
+            self.get_drm(drm).kill_tasks([t for t in tasks if t.drm_jobID is not None])
             for task in tasks:
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
