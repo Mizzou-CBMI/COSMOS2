@@ -129,7 +129,7 @@ class Workflow(Base):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
-        :param func func: A function which returns a string which will get converted to a shell script to be executed.  Func will not get called until
+        :param callable func: A function which returns a string which will get converted to a shell script to be executed.  `func` will not get called until
           all of its dependencies have completed.
         :param dict params: Parameters to `func`.  Must be jsonable so that it can be stored in the database.  Any Dependency objects will get resolved into
             a string, and the Dependency.task will be added to this Task's parents.
@@ -137,9 +137,9 @@ class Workflow(Base):
         :param str uid: A unique identifier for this Task, primarily used for skipping  previously successful Tasks.
             If a Task with this stage_name and uid already exists in the database (and was successful), the
             database version will be returned and a new one will not be created.
-        :param str stage_name: The name of the Stage to add this Task to.  Defaults to a title()ed __name__ of `func`.
-        :param str drm: The drm to use for this Task (example 'local' or 'ge')
-        :return:
+        :param str stage_name: The name of the Stage to add this Task to.  Defaults to `func.__name__`.
+        :param str drm: The drm to use for this Task (example 'local', 'ge' or 'drmaa:lsf')
+        :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
         from cosmos import recursive_resolve_dependency
@@ -170,9 +170,8 @@ class Workflow(Base):
         else:
             assert isinstance(uid, basestring), 'uid must be a string'
 
-        # stage_name
         if stage_name is None:
-            stage_name = str(func.__name__).replace('_', ' ').title().replace(' ', '_')
+            stage_name = str(func.__name__)
 
         # Get the right Stage
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
@@ -251,12 +250,12 @@ class Workflow(Base):
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
         :param int max_attempts: The maximum number of times to retry a failed job.
-        :param func log_out_dir_func: A function that returns a Task's logging directory (must be unique).
-             It receives one parameter: the task instance.
-             By default a Task's log output is stored in output_dir/log/stage_name/task_id.
+        :param callable log_out_dir_func: A function that returns a Task's logging directory (must be unique).
+             It receives one parameter: the Task instance.
+             By default a Task's log output is stored in log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
         :param bool dry: If True, do not actually run any jobs.
-        :param set_successful: (bool) sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+        :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
 
         """

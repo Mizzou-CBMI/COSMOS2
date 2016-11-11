@@ -71,9 +71,9 @@ class Cosmos(object):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
-        :param func get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
-            requirements or the queue to submit to.  See :func:`cosmos.default_get_submit_args` for details
-        :param Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
+        :param callable get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
+            requirements or the queue to submit to.  See :func:`cosmos.api.default_get_submit_args` for details
+        :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
         assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa'], 'unsupported drm: %s' % default_drm.split(':')[0]
@@ -142,7 +142,7 @@ class Cosmos(object):
         :param str name: A name for the workflow.  Must be unique for this Cosmos session.
         :param bool restart: If True and the workflow exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
-        :param primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
+        :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
           stderr.
 
         :returns: An Workflow instance.
@@ -269,6 +269,8 @@ class Cosmos(object):
     def runweb(self, host, port, debug=True):
         """
         Starts the web dashboard
+        :param str host: Host name to bind to.  Default is local host, but commonly 0.0.0.0 to allow outside internet traffic.
+        :param int port: Port to bind to.
         """
         from cosmos.web.views import gen_bprint
         self.cosmos_bprint = gen_bprint(self.session)
