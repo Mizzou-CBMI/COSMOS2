@@ -110,7 +110,7 @@ def bash_call(func, *args, **kwargs):
     python - <<EOF
     <BLANKLINE>
     try:
-        from api import echo
+        from cosmos.api import echo
     except ImportError:
         import imp
         echo = imp.load_source('module_name', 'None').echo
