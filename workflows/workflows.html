@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. Workflows &mdash; Cosmos 2.0.11 documentation</title>
+  <title>6. Workflows &mdash; Cosmos 2.0.14 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Cosmos 2.0.11 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 2.0.14 documentation" href="../index.html"/>
         <link rel="next" title="7. Examples" href="../examples.html"/>
         <link rel="prev" title="5. Task Functions" href="task_func.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.0.11
+                2.0.14
               </div>
             
           
@@ -276,7 +276,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>func</strong> (<em>func</em>) &#8211; A function which returns a string which will get converted to a shell script to be executed.  Func will not get called until
+<li><strong>func</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a>) &#8211; A function which returns a string which will get converted to a shell script to be executed.  <cite>func</cite> will not get called until
 all of its dependencies have completed.</li>
 <li><strong>params</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Parameters to <cite>func</cite>.  Must be jsonable so that it can be stored in the database.  Any Dependency objects will get resolved into
 a string, and the Dependency.task will be added to this Task&#8217;s parents.</li>
@@ -284,12 +284,12 @@ a string, and the Dependency.task will be added to this Task&#8217;s parents.</l
 <li><strong>uid</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A unique identifier for this Task, primarily used for skipping  previously successful Tasks.
 If a Task with this stage_name and uid already exists in the database (and was successful), the
 database version will be returned and a new one will not be created.</li>
-<li><strong>stage_name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The name of the Stage to add this Task to.  Defaults to a title()ed __name__ of <cite>func</cite>.</li>
-<li><strong>drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The drm to use for this Task (example &#8216;local&#8217; or &#8216;ge&#8217;)</li>
+<li><strong>stage_name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The name of the Stage to add this Task to.  Defaults to <cite>func.__name__</cite>.</li>
+<li><strong>drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The drm to use for this Task (example &#8216;local&#8217;, &#8216;ge&#8217; or &#8216;drmaa:lsf&#8217;)</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">cosmos.api.Task</p>
 </td>
 </tr>
 </tbody>
@@ -307,12 +307,12 @@ database version will be returned and a new one will not be created.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>max_cores</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The maximum number of cores to use at once.  A value of None indicates no maximum.</li>
 <li><strong>max_attempts</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The maximum number of times to retry a failed job.</li>
-<li><strong>log_out_dir_func</strong> (<em>func</em>) &#8211; A function that returns a Task&#8217;s logging directory (must be unique).
-It receives one parameter: the task instance.
-By default a Task&#8217;s log output is stored in output_dir/log/stage_name/task_id.
+<li><strong>log_out_dir_func</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#callable" title="(in Python v2.7)"><em>callable</em></a>) &#8211; A function that returns a Task&#8217;s logging directory (must be unique).
+It receives one parameter: the Task instance.
+By default a Task&#8217;s log output is stored in log/stage_name/task_id.
 See _default_task_log_output_dir for more info.</li>
 <li><strong>dry</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, do not actually run any jobs.</li>
-<li><strong>set_successful</strong> &#8211; (bool) sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+<li><strong>set_successful</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
 run more tasks in this workflow later.</li>
 </ul>
 </td>
@@ -368,7 +368,7 @@ run more tasks in this workflow later.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.0.11',
+            VERSION:'2.0.14',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
