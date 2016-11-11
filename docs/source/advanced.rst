@@ -1,6 +1,21 @@
 Advanced
 =======================
 
+This is a useful helper function for converting Task function arguments to command line arguments.
+
+.. code-block:: python
+
+    from cosmos.api import args_to_str
+
+    def foo(in_tsv, out_tsv, bar, x=None):
+        return "foo {in_tsv} {out_tsv} {args}".format(
+            args=args_to_str(('--bar', bar), ('--x', x)), **locals()
+        )
+
+
+.. autofunction:: cosmos.api.args_to_str
+
+
 Bash Call
 ++++++++++
 
