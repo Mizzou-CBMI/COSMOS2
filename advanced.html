@@ -143,6 +143,40 @@
             
   <div class="section" id="advanced">
 <h1>10. Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
+<p>This is a useful helper function for converting Task function arguments to command line arguments.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">args_to_str</span>
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">in_tsv</span><span class="p">,</span> <span class="n">out_tsv</span><span class="p">,</span> <span class="n">bar</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;foo {in_tsv} {out_tsv} {args}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--bar&#39;</span><span class="p">,</span> <span class="n">bar</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--x&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="cosmos.api.args_to_str">
+<code class="descclassname">cosmos.api.</code><code class="descname">args_to_str</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#args_to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.args_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn a set of arguments into a string to be passed to a command line tool</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; A number of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce &#8211;{arg_flag} {value}.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="mi">123</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+<span class="go">&#39;--foo bar&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--skip-me&#39;</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--use-me&#39;</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+<span class="go">&#39;--use-me 123&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <div class="section" id="bash-call">
 <h2>10.1. Bash Call<a class="headerlink" href="#bash-call" title="Permalink to this headline">¶</a></h2>
 <p>Tired of writing argparse boiler plate code for every Task you wrote a python script for?
@@ -182,7 +216,7 @@ call it with the same arguments.</p>
 <span class="go">python - &lt;&lt;EOF</span>
 
 <span class="go">try:</span>
-<span class="go">    from api import echo</span>
+<span class="go">    from cosmos.api import echo</span>
 <span class="go">except ImportError:</span>
 <span class="go">    import imp</span>
 <span class="go">    echo = imp.load_source(&#39;module_name&#39;, &#39;None&#39;).echo</span>

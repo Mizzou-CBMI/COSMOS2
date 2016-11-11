@@ -177,7 +177,7 @@
         <span class="k">return</span> <span class="s1">&#39;&#39;</span>
 
 
-<span class="k">def</span> <span class="nf">args_to_str</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="args_to_str"><a class="viewcode-back" href="../../advanced.html#cosmos.api.args_to_str">[docs]</a><span class="k">def</span> <span class="nf">args_to_str</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Turn a set of arguments into a string to be passed to a command line tool</span>
 
@@ -193,7 +193,7 @@
 <span class="sd">    &#39;--use-me 123&#39;</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
 
 <span class="c1"># arg = _arg_to_str</span>
 <span class="c1"># args = args_to_str</span>
@@ -249,7 +249,7 @@
 <span class="sd">    python - &lt;&lt;EOF</span>
 <span class="sd">    &lt;BLANKLINE&gt;</span>
 <span class="sd">    try:</span>
-<span class="sd">        from api import echo</span>
+<span class="sd">        from cosmos.api import echo</span>
 <span class="sd">    except ImportError:</span>
 <span class="sd">        import imp</span>
 <span class="sd">        echo = imp.load_source(&#39;module_name&#39;, &#39;None&#39;).echo</span>
