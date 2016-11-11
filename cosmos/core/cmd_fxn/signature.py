@@ -22,6 +22,7 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
                         '%s requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() '
                         'method signature, or pass a value for `%s` with a tag' % (cmd_fxn, keyword, keyword))
 
+    #TODO dont format with params?
     kwargs = {k: v.format(**params) if isinstance(v, basestring) else v for k, v in gen_params()}
     return kwargs
 

@@ -1,17 +1,17 @@
 # from .core.cmd_fxn.io import find, out_dir, forward
-from .core.cmd_fxn.signature import default_cmd_fxn_wrapper
-from .models.Cosmos import Cosmos, default_get_submit_args
-from .models.Task import Task
-from .models.Stage import Stage
-from .models.Workflow import Workflow, default_task_log_output_dir
-from . import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
+from cosmos.core.cmd_fxn.signature import default_cmd_fxn_wrapper
+from cosmos.models.Cosmos import Cosmos, default_get_submit_args
+from cosmos.models.Task import Task
+from cosmos.models.Stage import Stage
+from cosmos.models.Workflow import Workflow, default_task_log_output_dir
+from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
 
-from .util.args import add_workflow_args
-from .util.relationship_patterns import group
-from .util.helpers import make_dict
-from .util.iterstuff import only_one
+from cosmos.util.args import add_workflow_args
+from cosmos.util.relationship_patterns import group
+from cosmos.util.helpers import make_dict
+from cosmos.util.iterstuff import only_one
 
-from .graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
+from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 import funcsigs
 import re
 
@@ -93,28 +93,34 @@ def cd(path):
 @decorator
 def bash_call(func, *args, **kwargs):
     """
-    A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task. Converts any function call to a bash script
-    that uses python to import the function and call it with the same arguments.
+    A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task.
+    It converts the decorated function to produce a bash script that uses python to import the function and
+    call it with the same arguments.
 
     Current Limitations:
-       * function must be importable from anywhere in the VE
-       * This means no partials! So parameters must all be passed as params.
+       * Function must be importable
+       * No partials
 
 
-    def echo(arg1, out_file=out_dir('out.txt')):
-        with open(out_file) as fp:
-            print >> fp, arg1
-
-    bash_call(echo)(arg1='hello world')
+    >>> def echo(arg1, out_file='out.txt'):
+    ...     with open(out_file) as fp:
+    ...         print >> fp, arg1
+    >>> print bash_call(echo)(arg1='hello world')
+    <BLANKLINE>
     python - <<EOF
-
-    from my_module import echo
-
-    echo(** {'arg1': 'hello world',
-             'out_file': OutputDir(basename='out.txt', prepend_workflow_output_dir=True)}
-
+    <BLANKLINE>
+    try:
+        from api import echo
+    except ImportError:
+        import imp
+        echo = imp.load_source('module_name', 'None').echo
+    <BLANKLINE>
+    echo(**
+    {'arg1': 'hello world',
+     'out_file': 'out.txt'}
+    )
+    <BLANKLINE>
     EOF
-
     """
 
     import pprint
@@ -124,7 +130,6 @@ def bash_call(func, *args, **kwargs):
     kwargs = dict(zip(sig.parameters.keys(), args))
 
     return r"""
-
 python - <<EOF
 
 try:
@@ -139,31 +144,31 @@ except ImportError:
 
 EOF""".format(func=func,
               source_file=inspect.getsourcefile(func),
-              param_str=pprint.pformat(kwargs, width=1, indent=1))  # todo assert values are basetypes
-
-@decorator
-def run(func, *args, **kwargs):
-    """
-    Similar to bash_call, but actually just returns a string that is the source code of this function instead of importing it.
-    """
-    import inspect
-    import pprint
-
-    source = inspect.getsource(func)
-
-    sig = funcsigs.signature(func)
-    kwargs = dict(zip(sig.parameters.keys(), args))
-
-    return r"""
-
-python - <<EOF
-
-{soource}
-
-{func.__name__}(**
-{param_str}
-)
-
-EOF""".format(func=func,
-              source=source,
               param_str=pprint.pformat(kwargs, width=1, indent=1))
+
+# @decorator
+# def run(func, *args, **kwargs):
+#     """
+#     Similar to bash_call, but actually just returns a string that is the source code of this function instead of importing it.
+#     """
+#     import inspect
+#     import pprint
+#
+#     source = inspect.getsource(func)
+#
+#     sig = funcsigs.signature(func)
+#     kwargs = dict(zip(sig.parameters.keys(), args))
+#
+#     return r"""
+#
+# python - <<EOF
+#
+# {soource}
+#
+# {func.__name__}(**
+# {param_str}
+# )
+#
+# EOF""".format(func=func,
+#               source=source,
+#               param_str=pprint.pformat(kwargs, width=1, indent=1))
