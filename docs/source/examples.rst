@@ -68,7 +68,7 @@ is too large for a visualization to be useful:
 
 Tools
 ++++++
-Tools used by Example2
+tools.py used by Example2
 
 :file:`examples/tools.py`
 

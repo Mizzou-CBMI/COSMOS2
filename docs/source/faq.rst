@@ -8,6 +8,23 @@ How do I cite Cosmos?
     `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_,
     but has evolved a lot since it's original inception.  If you use Cosmos
     for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
-    
+
+
 Is there an easy way to get the command that was executed to run a pipeline?
-    
+    Yes, check the primary log output, it will be the first thing that Cosmos writes to it.
+
+How can I compose Workflows together?
+    We do this by making "Recipes", which is not a Cosmos primitive, but rather simply a function that takes a Workflow and modifies it's DAG.  Recipes
+    can easily call other Recipes since they are just functions.  Because Recipes can often require complex input datastructures, we like to create Recipe Input Schemas using
+    `Voluptuous <https://github.com/alecthomas/voluptuous>`_
+
+How can I be more efficient with I/O?  Writing all the files back and forth to our shared filesystem has become a bottle neck.
+    This is the most common failure point for large workflows on a traditional cluster (Hadoop and Spark get around this by using HDFS, but then
+    you are limited to the map reduce framework).  To reduce the amount of shared filesystem I/O of your pipeline, you can make sub-pipelines that are themselves jobs, that run using drm='local' on
+    a single node, utilize (fast) disk local to the node for scratch space, and only push final results back to the shared file system.
+    For example, a sub-workflow
+    might contain 10 Tasks.  The first Task may pull a large file to local disk that Tasks 2-8, reducing the number of times the large file has to be read
+    *from the shared filesystem* to once.  The last Task will push the final output back to the shared filesystem, and likely delete some intermediate/temporary files.  To be clear,
+    this involves a Cosmos pipeline submitting another Cosmos pipeline as a job.  This is what we do in production, and has other advantages such as modularizing
+    different aspects of our pipeline.
+
