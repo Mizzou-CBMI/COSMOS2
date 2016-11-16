@@ -19,9 +19,9 @@ How can I compose Workflows together?
     `Voluptuous <https://github.com/alecthomas/voluptuous>`_
 
 How can I be more efficient with I/O?  Writing all the files back and forth to our shared filesystem has become a bottle neck.
-    This is the most common failure point for large workflows on a traditional cluster (Hadoop and Spark get around this by using HDFS, but then
+    This is the most common failure point for large production workflows on a traditional cluster (Hadoop and Spark get around this by using HDFS, but then
     you are limited to the map reduce framework).  To reduce the amount of shared filesystem I/O of your pipeline, you can make sub-pipelines that are themselves jobs, that run using drm='local' on
-    a single node, utilize (fast) disk local to the node for scratch space, and only push final results back to the shared file system.
+    a single node, utilize (fast) disk local on the node for scratch space, and only push final results back to the shared file system.
     For example, a sub-workflow
     might contain 10 Tasks.  The first Task may pull a large file to local disk that Tasks 2-8, reducing the number of times the large file has to be read
     *from the shared filesystem* to once.  The last Task will push the final output back to the shared filesystem, and likely delete some intermediate/temporary files.  To be clear,

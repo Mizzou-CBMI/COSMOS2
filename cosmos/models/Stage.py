@@ -14,7 +14,7 @@ import datetime
 
 @signal_stage_status_change.connect
 def task_status_changed(stage):
-    stage.log.info('%s %s (stage has %s/%s successful tasks)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
+    stage.log.info('%s %s (%s/%s successful tasks)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
 
     if stage.status == StageStatus.successful:
         stage.successful = True
