@@ -26,7 +26,7 @@ class DRM_GE(DRM):
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
                               env=os.environ, preexec_fn=preexec_function, shell=True)
 
-        drm_jobID = str(re.search('job (\d+) ', out).group(1))
+        drm_jobID = unicode(re.search('job (\d+) ', out).group(1))
         return drm_jobID
 
     def filter_is_done(self, tasks):
@@ -46,7 +46,7 @@ class DRM_GE(DRM):
             corrupt_data = {}
 
         for task in tasks:
-            jid = str(task.drm_jobID)
+            jid = unicode(task.drm_jobID)
             if jid not in qjobs or \
                any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
                 #
@@ -85,7 +85,7 @@ class DRM_GE(DRM):
             qjobs = _qstat_all()
 
             def f(task):
-                return qjobs.get(str(task.drm_jobID), dict()).get('state', '???')
+                return qjobs.get(unicode(task.drm_jobID), dict()).get('state', '???')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -153,7 +153,7 @@ class DRM_GE(DRM):
     def kill_tasks(self, tasks):
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = ','.join(map(lambda t: str(t.drm_jobID), group))
+            pids = ','.join(map(lambda t: unicode(t.drm_jobID), group))
             sp.Popen(['qdel', pids], preexec_fn=preexec_function)
 
 
@@ -197,7 +197,7 @@ def _qacct_raw(task, timeout=600):
             if time.time() - start > timeout:
                 raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
-                qacct_out = sp.check_output(['qacct', '-j', str(task.drm_jobID)], stderr=DEVNULL)
+                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], stderr=DEVNULL)
                 if len(qacct_out.strip()):
                     break
                 else:

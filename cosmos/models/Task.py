@@ -61,7 +61,7 @@ def task_status_changed(task):
     elif task.status == TaskStatus.submitted:
         task.stage.status = StageStatus.running
         if not task.NOOP:
-            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, task.drm, task.drm_jobID))
+            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, repr(task.drm), repr(task.drm_jobID)))
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:

@@ -53,7 +53,7 @@ class DRM_DRMAA(DRM):
                 drmaa_jobinfo = get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 # enable_stderr()
 
-                yield jobid_to_task.pop(str(drmaa_jobinfo['jobId'])), \
+                yield jobid_to_task.pop(unicode(drmaa_jobinfo['jobId'])), \
                       parse_drmaa_jobinfo(drmaa_jobinfo)
 
             except drmaa.errors.ExitTimeoutException:
@@ -99,7 +99,7 @@ class DRM_DRMAA(DRM):
                 #
                 for jobid in jobid_to_task.keys():
                     try:
-                        drmaa_jobstatus = get_drmaa_session().jobStatus(str(jobid))
+                        drmaa_jobstatus = get_drmaa_session().jobStatus(unicode(jobid))
                     except drmaa.errors.InvalidJobException:
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
                     except Exception:
@@ -115,7 +115,7 @@ class DRM_DRMAA(DRM):
 
         def get_status(task):
             try:
-                return self.decodestatus[get_drmaa_session().jobStatus(str(task.drm_jobID))] if task.drm_jobID is not None else '?'
+                return self.decodestatus[get_drmaa_session().jobStatus(unicode(task.drm_jobID))] if task.drm_jobID is not None else '?'
             except drmaa.errors.InvalidJobException:
                 return '?'
             except:
@@ -129,7 +129,7 @@ class DRM_DRMAA(DRM):
 
         if task.drm_jobID is not None:
             try:
-                get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
+                get_drmaa_session().control(unicode(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
             except drmaa.errors.InvalidJobException:
                 pass
 

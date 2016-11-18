@@ -23,7 +23,7 @@ class DRM_Local(DRM):
                          stderr=open(task.output_stdout_path, 'w'),
                          shell=False, env=os.environ)
         p.start_time = time.time()
-        drm_jobID = str(p.pid)
+        drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
         return drm_jobID
 

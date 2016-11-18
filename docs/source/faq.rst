@@ -26,5 +26,5 @@ How can I be more efficient with I/O?  Writing all the files back and forth to o
     might contain 10 Tasks.  The first Task may pull a large file to local disk that Tasks 2-8, reducing the number of times the large file has to be read
     *from the shared filesystem* to once.  The last Task will push the final output back to the shared filesystem, and likely delete some intermediate/temporary files.  To be clear,
     this involves a Cosmos pipeline submitting another Cosmos pipeline as a job.  This is what we do in production, and has other advantages such as modularizing
-    different aspects of our pipeline.
+    different aspects of our pipeline.  It had the added benefit of greatly increasing I/O for the jobs that are reading from local disc, rather than the shared file system.
 
