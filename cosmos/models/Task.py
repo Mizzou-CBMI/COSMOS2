@@ -112,7 +112,7 @@ def readfile(path):
         with codecs.open(path, "r", "utf-8") as fh:
             s = fh.read(2 ** 20)
             if len(s) == 2**20:
-                s += '\n*****READ TRUNCATED, check log file for full output*****'
+                s += '\n*****TRUNCATED, check log file for full output*****'
             return s
     except:
         return 'error parsing as utf-8: %s' % path
@@ -262,11 +262,11 @@ class Task(Base):
 
     @property
     def stdout_text(self):
-        return readfile(self.output_stdout_path).strip()
+        return readfile(self.output_stdout_path)
 
     @property
     def stderr_text(self):
-        r = readfile(self.output_stderr_path).strip()
+        r = readfile(self.output_stderr_path)
         if r == 'file does not exist':
             if self.drm == 'lsf' and self.drm_jobID:
                 r += '\n\nbpeek %s output:\n\n' % self.drm_jobID
