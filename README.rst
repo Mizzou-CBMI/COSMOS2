@@ -20,14 +20,16 @@ Install
 
 Introduction
 ============
-
-Cosmos is a workflow management system for Python.  It allows you to efficiently program complex workflows of command line tools that automatically take
-advantage of a compute cluster, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
-able to scale on a traditional cluster such as LSF or GridEngine with a shared filesystem.  It is especially
+Cosmos is a python workflow management library primarily intended to process Big Data through scientific pipelines on a distributed computing cluster. 
+It is used in production by large companies and researchers, and is popular in the bioinformatics community yet general enough for any distributed computing application.
+ It allows you to efficiently program extremely complex workflows that are still readable and accessible to other software engineers,
+ and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
+able to automatically process large amounts of data by utilizing traditional cluster such as LSF or GridEngine and a shared filesystem, which do not come
+with the limitations of map reduce frameworks like Hadoop and Spark.  It is especially
 powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and
-`StarCluster <http://star.mit.edu/cluster/>`_.
+`StarCluster <http://star.mit.edu/cluster/>`_ where we have processed hundreds of terrabytes in parallel in a single workflow.
 
-Cosmos was designed to solve the problem of compute-intensive and complex scientific data pipelines.  It's primary objective is to provide a simple but
+Cosmos provides a simple but
 flexible api to specify complex job DAGs, a way to resume modified or failed workflows, and make debugging and provenance as easy as possible.
 
 
@@ -40,7 +42,7 @@ for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_, a clinical genetic sequencing diagnostics laboratory.
+`Invitae <http://invitae.com>`_, a leading clinical genetic sequencing diagnostics laboratory.
 
 Features
 _________
@@ -55,9 +57,10 @@ _________
 Multi-platform Support
 +++++++++++++++++++++++
 
-* Support for DRMS such as SGE, LSF.  DRMAA coming soon.  Adding support for more DRMs is very straightforward.
+* Support for DRMS such as SGE, LSF and DRMAA.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
-* Extremely well suited for cloud computing, especially when used in conjuection with `AWS <http://aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_.
+* Well suited for cloud computing 
+* Ability to run workflows on your local computing, which is often great for testing.
 
 Bug Reports
 ____________
