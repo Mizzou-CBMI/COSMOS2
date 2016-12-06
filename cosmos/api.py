@@ -136,13 +136,14 @@ try:
     from {func.__module__} import {func.__name__}
 except ImportError:
     import imp
-    {func.__name__} = imp.load_source('module_name', '{source_file}').{func.__name__}
+    {func.__name__} = imp.load_source({module_name}, '{source_file}').{func.__name__}
 
 {func.__name__}(**
 {param_str}
 )
 
 EOF""".format(func=func,
+              module_name=func.__name__,
               source_file=inspect.getsourcefile(func),
               param_str=pprint.pformat(kwargs, width=1, indent=1))
 

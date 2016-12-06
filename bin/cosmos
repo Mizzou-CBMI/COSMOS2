@@ -4,9 +4,12 @@
 Cosmos Script
 """
 
-from cosmos.api import Cosmos
+from cosmos.api import Cosmos, default_get_submit_args
 import argparse
 import os
+import re
+import json
+from functools import partial
 
 
 def runweb(db_url_or_path_to_sqlite, host, port):
@@ -23,11 +26,35 @@ def runweb(db_url_or_path_to_sqlite, host, port):
 
 def shell(db_url_or_path_to_sqlite):
     if '://' not in db_url_or_path_to_sqlite:
+        if not os.path.exists(db_url_or_path_to_sqlite):
+            raise IOError('`%s` does not exist' % db_url_or_path_to_sqlite)
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
 
     cosmos_app = Cosmos(database_url=database_url)
     cosmos_app.shell()
+
+
+def run(in_jobs, default_drm, queue, restart, max_cores, max_attempts):
+    """
+    Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
+    keyed by uid => command.
+    """
+    with open(in_jobs) as fp:
+        jobs_dict = json.load(fp)
+
+    cosmos_app = Cosmos(database_url='sqlite:///cosmos.sqlite',
+                        default_drm=default_drm,
+                        get_submit_args=partial(default_get_submit_args, parallel_env='smp', default_queue=queue))
+    cosmos_app.initdb()
+    wf = cosmos_app.start(name='workflow', restart=restart, skip_confirm=True)
+
+    for uid, cmd in jobs_dict.iteritems():
+        wf.add_task(func=lambda cmd: cmd,
+                    params=dict(cmd=cmd),
+                    stage_name='lambda',
+                    uid=uid)
+    wf.run(max_cores=max_cores, max_attempts=max_attempts)
 
 
 if __name__ == '__main__':
@@ -43,6 +70,19 @@ if __name__ == '__main__':
     sp = sps.add_parser('shell')
     sp.add_argument('db_url_or_path_to_sqlite')
     sp.set_defaults(func=shell)
+
+    sp = sps.add_parser('run')
+    sp.add_argument('in_jobs')
+    sp.add_argument('--default-drm', '-drm', default='ge')
+    sp.add_argument('--queue', '-q')
+
+    p.add_argument('--max_cores', '--max-cores', '-c', type=int,
+                   help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means unlimited.", default=None)
+    sp.add_argument('--max_attempts', '--max-attempts', '-a', type=int,
+                    help="Maximum number of times to try running a Task that must succeed before the workflow fails.", default=1)
+    sp.add_argument('--restart', '-r', action='store_true',
+                    help="Completely restart the Workflow.  Note this will delete all record of the Workflow in the database.")
+    sp.set_defaults(func=run)
 
     args = p.parse_args()
     kwargs = dict(args._get_kwargs())
