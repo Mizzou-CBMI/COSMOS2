@@ -113,7 +113,7 @@ def bash_call(func, *args, **kwargs):
         from cosmos.api import echo
     except ImportError:
         import imp
-        echo = imp.load_source('module_name', 'None').echo
+        echo = imp.load_source('echo', 'None').echo
     <BLANKLINE>
     echo(**
     {'arg1': 'hello world',
@@ -136,7 +136,7 @@ try:
     from {func.__module__} import {func.__name__}
 except ImportError:
     import imp
-    {func.__name__} = imp.load_source({module_name}, '{source_file}').{func.__name__}
+    {func.__name__} = imp.load_source('{module_name}', '{source_file}').{func.__name__}
 
 {func.__name__}(**
 {param_str}
