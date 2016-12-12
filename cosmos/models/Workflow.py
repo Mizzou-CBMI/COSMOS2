@@ -125,7 +125,7 @@ class Workflow(Base):
             if d != '':
                 sp.check_call(['mkdir', '-p', d])
 
-    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None):
+    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, must_succeed=True, time_req=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -139,6 +139,8 @@ class Workflow(Base):
             database version will be returned and a new one will not be created.
         :param str stage_name: The name of the Stage to add this Task to.  Defaults to `func.__name__`.
         :param str drm: The drm to use for this Task (example 'local', 'ge' or 'drmaa:lsf')
+        :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
+        :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -226,10 +228,10 @@ class Workflow(Base):
                         output_map=output_map,
                         uid=uid,
                         drm=drm or self.cosmos_app.default_drm,
+                        must_succeed=must_succeed,
                         core_req=params_or_signature_default_or('core_req', 1),
-                        must_succeed=params_or_signature_default_or('must_succeed', True),
                         mem_req=params_or_signature_default_or('mem_req', None),
-                        time_req=params_or_signature_default_or('time_req', None))
+                        time_req=time_req)
 
             task.cmd_fxn = func
 
