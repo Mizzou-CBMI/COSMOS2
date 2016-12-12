@@ -22,12 +22,13 @@ def say(text, out_file, core_req=1):
     """.format(text=text, out_file=out_file)
 
 
-t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt', core_req=2), uid='my_task')
+t = workflow.add_task(func=say, params=dict(text='Hello World', out_file='out.txt', core_req=2), uid='my_task', time_req=2)
 
 print 'task.params', t.params
 print 'task.input_map', t.input_map
 print 'task.output_map', t.output_map
 print 'task.core_req', t.core_req
+print 'task.time_req', t.time_req
 print 'task.drm', t.drm
 print 'task.uid', t.uid
 
