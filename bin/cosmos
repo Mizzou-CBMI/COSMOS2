@@ -76,7 +76,7 @@ if __name__ == '__main__':
     sp.add_argument('--default-drm', '-drm', default='ge')
     sp.add_argument('--queue', '-q')
 
-    p.add_argument('--max_cores', '--max-cores', '-c', type=int,
+    sp.add_argument('--max_cores', '--max-cores', '-c', type=int,
                    help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means unlimited.", default=None)
     sp.add_argument('--max_attempts', '--max-attempts', '-a', type=int,
                     help="Maximum number of times to try running a Task that must succeed before the workflow fails.", default=1)
