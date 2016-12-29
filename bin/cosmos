@@ -45,7 +45,8 @@ def run(in_jobs, default_drm, queue, restart, max_cores, max_attempts):
 
     cosmos_app = Cosmos(database_url='sqlite:///cosmos.sqlite',
                         default_drm=default_drm,
-                        get_submit_args=partial(default_get_submit_args, parallel_env='smp', default_queue=queue))
+                        default_queue=queue,
+                        get_submit_args=partial(default_get_submit_args, parallel_env='smp'))
     cosmos_app.initdb()
     wf = cosmos_app.start(name='workflow', restart=restart, skip_confirm=True)
 

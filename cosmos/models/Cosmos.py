@@ -13,14 +13,13 @@ import math
 from datetime import datetime
 
 
-def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
+def default_get_submit_args(task, parallel_env='orte'):
     """
     Default method for determining the extra arguments to pass to the DRM.
     For example, returning `"-n 3" if` `task.drm == "lsf"` would cause all jobs
     to be submitted with `bsub -n 3`.
 
     :param cosmos.api.Task task: The Task being submitted.
-    :param str default_queue: The default_queue to submit to
     :rtype: str
     """
     drm = task.drm
@@ -33,13 +32,13 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
     time_req = task.time_req if use_time_req else None
 
     jobname = '%s[%s]' % (task.stage.name, task.uid.replace('/', '_'))
-    default_queue = ' -q %s' % default_queue if default_queue else ''
+    queue = ' -q %s' % task.queue or ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
     if drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
-        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{default_queue} -J "{jobname}"'.format(**locals())
+        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
 
     elif drm in ['ge', 'drmaa:ge']:
         h_vmem = int(math.ceil(mem_req / float(core_req))) if mem_req else None
@@ -53,7 +52,7 @@ def default_get_submit_args(task, default_queue=None, parallel_env='orte'):
         resource_str = ','.join(g())
 
         return '-cwd -pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority,
-                                                                                                    queue=default_queue,
+                                                                                                    queue=queue,
                                                                                                     jobname=jobname, core_req=core_req,
                                                                                                     parallel_env=parallel_env)
     elif drm == 'local':
@@ -67,6 +66,7 @@ class Cosmos(object):
                  database_url='sqlite:///:memory:',
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
+                 default_queue=None,
                  flask_app=None):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
@@ -115,6 +115,7 @@ class Cosmos(object):
             self.session.remove()
 
         self.default_drm = default_drm
+        self.default_queue = default_queue
 
     # def configure_flask(self):
         # setup flask views

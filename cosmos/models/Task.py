@@ -163,6 +163,7 @@ class Task(Base):
     attempt = Column(Integer, default=1)
     must_succeed = Column(Boolean, default=True)
     drm = Column(String(255), nullable=False)
+    queue = Column(String(255))
     parents = relationship("Task",
                            secondary=TaskEdge.__table__,
                            primaryjoin=id == TaskEdge.parent_id,
@@ -171,8 +172,6 @@ class Task(Base):
                            passive_deletes=True,
                            cascade="save-update, merge, delete",
                            )
-    # input_files = Column(MutableList.as_mutable(ListOfStrings))
-    # output_files = Column(MutableList.as_mutable(ListOfStrings))
 
     input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
     output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')

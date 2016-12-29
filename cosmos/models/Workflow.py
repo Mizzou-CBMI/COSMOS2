@@ -125,7 +125,7 @@ class Workflow(Base):
             if d != '':
                 sp.check_call(['mkdir', '-p', d])
 
-    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, must_succeed=True, time_req=None):
+    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, queue=None, must_succeed=True, time_req=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -138,7 +138,8 @@ class Workflow(Base):
             If a Task with this stage_name and uid already exists in the database (and was successful), the
             database version will be returned and a new one will not be created.
         :param str stage_name: The name of the Stage to add this Task to.  Defaults to `func.__name__`.
-        :param str drm: The drm to use for this Task (example 'local', 'ge' or 'drmaa:lsf')
+        :param str drm: The drm to use for this Task (example 'local', 'ge' or 'drmaa:lsf').  Defaults to the `default_drm` parameter of :meth:`Cosmos.start`
+        :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
         :rtype: cosmos.api.Task
@@ -228,6 +229,7 @@ class Workflow(Base):
                         output_map=output_map,
                         uid=uid,
                         drm=drm or self.cosmos_app.default_drm,
+                        queue=queue or self.cosmos_app.default_queue,
                         must_succeed=must_succeed,
                         core_req=params_or_signature_default_or('core_req', 1),
                         mem_req=params_or_signature_default_or('mem_req', None),
@@ -403,15 +405,6 @@ class Workflow(Base):
         else:
             self.status = WorkflowStatus.killed
 
-    # @property
-    # def tasksq(self):
-    # stage_ids = [s.id for s in self.stages]
-    # if len(stage_ids):
-    # return self.session.query(Task).filter(Task.stage_id.in_(stage_ids))
-    # else:
-    # return []
-
-
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]
@@ -457,7 +450,7 @@ class Workflow(Base):
     def __unicode__(self):
         return self.__repr__()
 
-    def delete(self, delete_files):
+    def delete(self, delete_files=False):
         """
         :param delete_files: (bool) If True, delete :attr:`output_dir` directory and all contents on the filesystem
         """
@@ -467,25 +460,10 @@ class Workflow(Base):
                 h.flush()
                 h.close()
                 self.log.removeHandler(h)
-                # time.sleep(.1)  # takes a second for logs to flush?
 
-        # print >> sys.stderr, 'Deleting output_dir: %s...' % self.output_dir
         if delete_files:
             raise NotImplementedError('This should delete all Task.output_files')
-        # if delete_files and os.path.exists(self.output_dir):
-        #     shutil.rmtree(self.output_dir)
 
-        ### Faster deleting can be done with explicit sql queries?
-        # from .TaskFile import InputFileAssociation
-        # from .Task import TaskEdge
-        # from .. import Stage, TaskFile
-        # self.session.query(InputFileAssociation).join(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
-        # self.session.query(TaskFile).join(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
-        #
-        # self.session.query(TaskEdge).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
-        # self.session.query(Task).join(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
-        # self.session.query(Stage).join(Workflow).filter(Workflow.id == self.id).delete()
-        #
         print >> sys.stderr, '%s Deleting from SQL...' % self
         self.session.delete(self)
         self.session.commit()
