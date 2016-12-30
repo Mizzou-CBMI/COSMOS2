@@ -1,4 +1,3 @@
-import shutil
 from sqlalchemy import orm
 import atexit
 import sys

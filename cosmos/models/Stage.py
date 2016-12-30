@@ -1,13 +1,13 @@
 import re
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
-from sqlalchemy.orm import relationship, synonym, backref, validates
+from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
 from ..db import Base
 from ..util.sqla import Enum34_ColumnType
-from .. import StageStatus, signal_stage_status_change, RelationshipType, TaskStatus
+from .. import StageStatus, signal_stage_status_change, TaskStatus
 import networkx as nx
 import datetime
 
@@ -54,7 +54,6 @@ class Stage(Base):
     workflow_id = Column(ForeignKey('workflow.id', ondelete="CASCADE"), nullable=False, index=True)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
-    # relationship_type = Column(Enum34_ColumnType(RelationshipType))
     successful = Column(Boolean, nullable=False, default=False)
     _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
     parents = relationship("Stage",
@@ -141,8 +140,6 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in filter_by.items()))
 
     def get_task(self, uid, default='ERROR@#$'):
-        # params = {k: v for k, v in params.items() if
-        #         any(isinstance(v, t) for t in ACCEPTABLE_TAG_TYPES)}  # These are the only params that actually get saved to the DB
         for task in self.tasks:
             if task.uid == uid:
                 return task
@@ -151,12 +148,6 @@ class Stage(Base):
             raise KeyError('Task with uid %s does not exist' % uid)
         else:
             return default
-
-    # def get_task(self, **filter_by):
-    #     tasks = self.filter_tasks(**filter_by)
-    #     assert len(tasks) > 0, 'no task found with params %s' % filter_by
-    #     assert len(tasks) == 1, 'more than one task with params %s' % filter_by
-    #     return tasks[0]
 
     def percent_successful(self):
         return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
@@ -172,7 +163,6 @@ class Stage(Base):
         """
         :return: (list) all stages that descend from this stage in the stage_graph
         """
-        # return set(it.chain(*breadth_first_search.bfs_successors(self.ex.stage_graph(), self).values()))
         x = nx.descendants(self.workflow.stage_graph(), self)
         if include_self:
             return sorted({self}.union(x), key=lambda stage: stage.number)
