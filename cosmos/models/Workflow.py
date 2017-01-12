@@ -414,9 +414,11 @@ class Workflow(Base):
                 session.commit()
                 return True
             else:
-                raise AssertionError('Bad workflow status %s' % self.status)
-
-        self.log.info('Workflow complete')
+                self.log.warning('Workflow exited with status %s', self.status)
+                session.commit()
+                return False
+        else:
+            self.log.info('Workflow dry run is complete')
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
