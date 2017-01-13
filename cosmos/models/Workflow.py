@@ -9,6 +9,8 @@ import signal
 import types
 import funcsigs
 import subprocess as sp
+import threading
+import traceback
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
@@ -48,6 +50,30 @@ def _workflow_status_changed(ex):
         ex.finished_on = datetime.datetime.now()
 
     ex.session.commit()
+
+
+class SignalWatcher(object):
+    """
+    Monitors the specified signals and sets an Event when one is caught.
+    """
+
+    def __init__(self, target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU)):
+        self.signal_event = threading.Event()
+        for sig in target_signals:
+            if signal.getsignal(sig) not in (signal.SIG_DFL, signal.SIG_IGN):
+                raise RuntimeError("a custom signal handler has already been set for signal %d" % sig)
+            signal.signal(sig, self.flag_signal_receipt)
+
+    def flag_signal_receipt(self, signum, frame):
+        print >>sys.stderr, "Caught signal %d" % signum
+        traceback.print_stack(frame, file=sys.stderr)
+        self.signal_event.set()
+
+    def wait(self, timeout=None):
+        self.signal_event.wait(timeout)
+
+    def caught_signal(self):
+        return self.signal_event.is_set()
 
 
 class Workflow(Base):
@@ -479,6 +505,8 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
 
+    watcher = SignalWatcher()
+
     # graph_failed = nx.DiGraph()
     #
     # def handler(signal, frame):
@@ -517,7 +545,10 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        time.sleep(.3)
+        watcher.wait(.3)
+        if watcher.caught_signal():
+            workflow.terminate(due_to_failure=False)
+            break
 
 
 import networkx as nx
@@ -566,15 +597,6 @@ def _process_finished_tasks(jobmanager):
 
 
 def handle_exits(workflow, do_atexit=True):
-    # terminate on ctrl+c
-    def ctrl_c(signal, frame):
-        if not workflow.successful:
-            workflow.log.info('Caught SIGINT (ctrl+c)')
-            workflow.terminate(due_to_failure=False)
-            raise SystemExit('Workflow terminated with a SIGINT (ctrl+c) event')
-
-    signal.signal(signal.SIGINT, ctrl_c)
-
     if do_atexit:
         @atexit.register
         def cleanup_check():
