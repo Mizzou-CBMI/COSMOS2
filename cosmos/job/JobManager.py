@@ -77,11 +77,11 @@ class JobManager(object):
         map(self.submit_task, tasks, commands)
 
     def terminate(self):
-        f = lambda t: t.drm
-        for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
-            tasks = list(tasks)
-            self.get_drm(drm).kill_tasks([t for t in tasks if t.drm_jobID is not None])
-            for task in tasks:
+        get_drm = lambda t: t.drm
+        for drm, tasks in it.groupby(sorted(self.running_tasks, key=get_drm), get_drm):
+            target_tasks = list([t for t in tasks if t.drm_jobID is not None])
+            self.get_drm(drm).kill_tasks(target_tasks)
+            for task in target_tasks:
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
 
