@@ -607,6 +607,8 @@ def handle_exits(workflow, do_atexit=True):
                 workflow.terminate(due_to_failure=True)
                 # raise SystemExit('Workflow terminated due to the python interpreter exiting')
 
+            workflow.log.info('Ceased work on %s: this is its final log message', workflow)
+
 
 def _copy_graph(graph):
     import networkx as nx
