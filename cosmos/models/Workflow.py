@@ -57,13 +57,25 @@ class SignalWatcher(object):
     Monitors the specified signals and sets an Event when one is caught.
     """
 
-    def __init__(self, target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU)):
+    def __init__(self,
+                 target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
+                 ignored_signals=(signal.SIGUSR1,)):
+
         self.signal_event = threading.Event()
+
         for sig in target_signals:
-            prev_handler = signal.getsignal(sig)
-            if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
-                raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
+            self._check_existing_handler(sig)
             signal.signal(sig, self.flag_signal_receipt)
+
+        for sig in ignored_signals:
+            self._check_existing_handler(sig)
+            signal.signal(sig, signal.SIG_IGN)
+
+    @staticmethod
+    def _check_existing_handler(sig):
+        prev_handler = signal.getsignal(sig)
+        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+            raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
 
     def flag_signal_receipt(self, signum, frame):
         print >>sys.stderr, "Caught signal %d" % signum
