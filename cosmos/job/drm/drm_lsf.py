@@ -3,6 +3,7 @@ import re
 import os
 
 from .DRM_Base import DRM
+from .util import preexec_function
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
@@ -91,10 +92,3 @@ def bjobs_all():
         items = re.split("\s\s+", l)
         bjobs[items[0]] = dict(zip(header, items))
     return bjobs
-
-
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()

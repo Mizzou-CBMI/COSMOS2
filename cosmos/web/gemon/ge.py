@@ -1,10 +1,11 @@
 import subprocess as sp
-import os
 import getpass
 from collections import OrderedDict
 
-from xml import etree
+from cosmos.job.drm.util import preexec_function
+
 import xml.etree.ElementTree as ET
+
 
 def qstat(user=getpass.getuser()):
     import pandas as pd
@@ -26,11 +27,3 @@ def qstat(user=getpass.getuser()):
 
     dicts = list( job_list_to_dict(jl) for jl in et.findall('.//job_list') )
     return pd.DataFrame.from_dict(dicts)[dicts[0].keys()]
-
-
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()
-    return os.setsid

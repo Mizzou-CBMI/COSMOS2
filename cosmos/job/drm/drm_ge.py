@@ -3,7 +3,7 @@ import re
 import os
 from collections import OrderedDict
 import time
-from .util import div, convert_size_to_kb
+from .util import div, convert_size_to_kb, preexec_function
 
 from more_itertools import grouper
 from .DRM_Base import DRM
@@ -250,9 +250,3 @@ def _qstat_all():
     return bjobs
 
 
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()
-    return os.setsid
