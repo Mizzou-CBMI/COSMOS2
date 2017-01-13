@@ -60,8 +60,9 @@ class SignalWatcher(object):
     def __init__(self, target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU)):
         self.signal_event = threading.Event()
         for sig in target_signals:
-            if signal.getsignal(sig) not in (signal.SIG_DFL, signal.SIG_IGN):
-                raise RuntimeError("a custom signal handler has already been set for signal %d" % sig)
+            prev_handler = signal.getsignal(sig)
+            if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+                raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
             signal.signal(sig, self.flag_signal_receipt)
 
     def flag_signal_receipt(self, signum, frame):
