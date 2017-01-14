@@ -3,6 +3,7 @@ import os
 import psutil
 
 from .DRM_Base import DRM
+from .util import preexec_function
 
 from ...api import TaskStatus
 import time
@@ -21,7 +22,8 @@ class DRM_Local(DRM):
         p = psutil.Popen(task.output_command_script_path,
                          stdout=open(task.output_stderr_path, 'w'),
                          stderr=open(task.output_stdout_path, 'w'),
-                         shell=False, env=os.environ)
+                         shell=False, env=os.environ,
+                         preexec_fn=preexec_function)
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
