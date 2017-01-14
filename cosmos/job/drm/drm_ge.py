@@ -197,7 +197,7 @@ def _qacct_raw(task, timeout=600):
             if time.time() - start > timeout:
                 raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
-                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], stderr=DEVNULL)
+                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=preexec_function, stderr=DEVNULL)
                 if len(qacct_out.strip()):
                     break
                 else:
