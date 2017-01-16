@@ -74,7 +74,7 @@ class DRM_LSF(DRM):
 
     def kill_tasks(self, tasks):
         for t in tasks:
-            sp.check_call(['bkill', str(t.drm_jobID)])
+            sp.check_call(['bkill', str(t.drm_jobID)], preexec_function=exit_process_group)
 
 
 def bjobs_all():
@@ -83,7 +83,7 @@ def bjobs_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['bjobs', '-a']).split('\n')
+        lines = sp.check_output(['bjobs', '-a'], preexec_function=exit_process_group).split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     bjobs = {}
