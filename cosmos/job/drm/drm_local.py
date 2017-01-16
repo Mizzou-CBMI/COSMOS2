@@ -67,15 +67,24 @@ class DRM_Local(DRM):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
-    def kill(self, task):
-        "Terminates a task"
+    def terminate(self, task):
+        """Terminate a task using SIGTERM."""
+        try:
+            psutil.Process(int(task.drm_jobID)).terminate()
+        except psutil.NoSuchProcess:
+            pass
 
+    def kill(self, task):
+        """Kill a task using SIGKILL."""
         try:
             psutil.Process(int(task.drm_jobID)).kill()
         except psutil.NoSuchProcess:
             pass
 
     def kill_tasks(self, tasks):
+        for t in tasks:
+            self.terminate(t)
+        time.sleep(1)
         for t in tasks:
             self.kill(t)
 
