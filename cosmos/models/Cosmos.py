@@ -22,43 +22,24 @@ def default_get_submit_args(task, parallel_env='orte'):
     :param cosmos.api.Task task: The Task being submitted.
     :rtype: str
     """
-    drm = task.drm
     default_job_priority = None
     use_mem_req = False
-    use_time_req = False
-
-    core_req = task.core_req
-    mem_req = task.mem_req if use_mem_req else None
-    time_req = task.time_req if use_time_req else None
 
     jobname = '%s[%s]' % (task.stage.name, task.uid.replace('/', '_'))
     queue = ' -q %s' % task.queue or ''
     priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
-    if drm in ['lsf', 'drmaa:lsf']:
-        rusage = '-R "rusage[mem={mem}] ' if mem_req and use_mem_req else ''
+    if task.drm in ['lsf', 'drmaa:lsf']:
+        rusage = '-R "rusage[mem={mem}] ' if task.mem_req and use_mem_req else ''
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
         return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
-
-    elif drm in ['ge', 'drmaa:ge']:
-        h_vmem = int(math.ceil(mem_req / float(core_req))) if mem_req else None
-
-        def g():
-            resource_reqs = dict(h_vmem=h_vmem, slots=core_req, time_req=time_req)
-            for k, v in resource_reqs.items():
-                if v is not None:
-                    yield '%s=%s' % (k, v)
-
-        resource_str = ','.join(g())
-
-        return '-cwd -pe {parallel_env} {core_req} {priority} -N "{jobname}"{queue}'.format(resource_str=resource_str, priority=priority,
-                                                                                                    queue=queue,
-                                                                                                    jobname=jobname, core_req=core_req,
-                                                                                                    parallel_env=parallel_env)
-    elif drm == 'local':
+    elif task.drm in ['ge', 'drmaa:ge']:
+        return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{queue}'.format(
+            priority=priority, queue=queue, jobname=jobname, core_req=task.core_req, parallel_env=parallel_env)
+    elif task.drm == 'local':
         return None
     else:
-        raise Exception('DRM not supported: %s' % drm)
+        raise Exception('DRM not supported: %s' % task.drm)
 
 
 class Cosmos(object):
