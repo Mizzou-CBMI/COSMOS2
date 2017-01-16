@@ -59,9 +59,15 @@ class SignalWatcher(object):
     def __init__(self,
                  workflow,
                  target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
-                 ignored_signals=(signal.SIGUSR1,)):
+                 ignored_signals=(signal.SIGUSR1,),
+                 explanations={
+                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
+                     signal.SIGUSR2: 'SGE is about to send a SIGKILL',
+                     signal.SIGXCPU: 'SGE resource limit has been exceeded'}):
 
         self.workflow = workflow
+        self.explanations = explanations
+
         self.signal_event = threading.Event()
         self.last_signal = None
 
@@ -71,7 +77,7 @@ class SignalWatcher(object):
 
         for sig in ignored_signals:
             self._check_existing_handler(sig)
-            signal.signal(sig, signal.SIG_IGN)
+            signal.signal(sig, self.log_signal)
 
     @staticmethod
     def _check_existing_handler(sig):
@@ -79,12 +85,27 @@ class SignalWatcher(object):
         if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
             raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
 
-    def flag_signal_receipt(self, signum, frame):
-        msg = "Caught signal %d" % signum
+    def explain(self, signum):
+        names = []
+        for k, v in signal.__dict__.iteritems():
+            if k.startswith('SIG') and v == signum:
+                names.append(k)
+        names.sort()
+
+        if signum in self.explanations:
+            return ': '.join((' or '.join(names), self.explanations[signum]))
+        else:
+            return ' or '.join(names)
+
+    def log_signal(self, signum, frame):    # pylint: disable=unused-argument
+        msg = "Caught signal %d (%s)" % (signum, self.explain(signum))
         print >>sys.stderr, msg
         sys.stderr.flush()
         self.workflow.log.info(msg)
         traceback.print_stack(frame, file=sys.stderr)
+
+    def flag_signal_receipt(self, signum, frame):
+        self.log_signal(signum, frame)
         self.last_signal = signum
         self.signal_event.set()
 
