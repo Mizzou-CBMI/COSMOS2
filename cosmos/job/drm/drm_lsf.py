@@ -3,7 +3,7 @@ import re
 import os
 
 from .DRM_Base import DRM
-from .util import preexec_function
+from .util import exit_process_group
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
@@ -29,7 +29,7 @@ class DRM_LSF(DRM):
 
         out = sp.check_output('{bsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), bsub=bsub),
                               env=os.environ,
-                              preexec_fn=preexec_function(),
+                              preexec_fn=exit_process_group,
                               shell=True)
 
         drm_jobID = int(re.search('Job <(\d+)>', out).group(1))

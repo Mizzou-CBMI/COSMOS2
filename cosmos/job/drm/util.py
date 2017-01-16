@@ -19,16 +19,21 @@ def div(n, d):
         return n / d
 
 
-def preexec_function():
+def exit_process_group():
     """
-    Prevent signals from cascading to subprocesses.
+    Remove a subprocess from its parent's process group.
 
     By default, subprocesses run within the same process group as the parent
-    Python process that ran them. Signals sent to the parent will also be sent
-    to its children; a poorly-timed ctrl+c interrupt or other signal can thusly
-    be caught and handled both by Python and the SGE tools used in this module.
+    Python process that spawned them. Signals sent to the process group will be
+    sent to the parent and also to to its children. Apparently SGE's qdel sends
+    signals not to a process, but to its process group:
 
-    If interrupted or signaled, we want to handle the event within Python
+    https://community.oracle.com/thread/2335121
+
+    Therefore, an inconveniently-timed SGE warning or other signal can thus be
+    caught and handled both by Cosmos and the subprocesses it manages. Since
+    Cosmos assumes all responsibility for job control when it starts a Task, if
+    interrupted or signaled, we want to handle the event within Python
     exclusively. This method creates a new process group with only one member
     and thus insulates child processes from signals aimed at its parent.
 
