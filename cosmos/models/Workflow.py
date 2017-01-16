@@ -57,10 +57,13 @@ class SignalWatcher(object):
     """
 
     def __init__(self,
+                 workflow,
                  target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
                  ignored_signals=(signal.SIGUSR1,)):
 
+        self.workflow = workflow
         self.signal_event = threading.Event()
+        self.last_signal = None
 
         for sig in target_signals:
             self._check_existing_handler(sig)
@@ -77,8 +80,12 @@ class SignalWatcher(object):
             raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
 
     def flag_signal_receipt(self, signum, frame):
-        print >>sys.stderr, "Caught signal %d" % signum
+        msg = "Caught signal %d" % signum
+        print >>sys.stderr, msg
+        sys.stderr.flush()
+        self.workflow.log.info(msg)
         traceback.print_stack(frame, file=sys.stderr)
+        self.last_signal = signum
         self.signal_event.set()
 
     def wait(self, timeout=None):
@@ -518,7 +525,7 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
 
-    watcher = SignalWatcher()
+    watcher = SignalWatcher(workflow)
 
     # graph_failed = nx.DiGraph()
     #
@@ -560,6 +567,7 @@ def _run(workflow, session, task_queue):
         session.commit()
         watcher.wait(.3)
         if watcher.caught_signal():
+            workflow.log.info('Terminating workflow due to signal %d', watcher.last_signal)
             workflow.terminate(due_to_failure=False)
             break
 
