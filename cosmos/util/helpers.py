@@ -1,7 +1,6 @@
 import pprint
 import logging
 import itertools as it
-import subprocess as sp
 import signal
 import os
 import random

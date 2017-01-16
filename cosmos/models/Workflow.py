@@ -21,8 +21,7 @@ import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
 from ..util.iterstuff import only_one
-from ..util.helpers import duplicates
-from ..util.helpers import get_logger
+from ..util.helpers import duplicates, get_logger, mkdir
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
@@ -160,8 +159,7 @@ class Workflow(Base):
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
         for d in dirs:
-            if d != '':
-                sp.check_call(['mkdir', '-p', d])
+            mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, queue=None, must_succeed=True, time_req=None):
         """
