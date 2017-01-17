@@ -53,6 +53,25 @@ def _workflow_status_changed(ex):
 class SignalWatcher(object):
     """
     Monitors the specified signals and sets an Event when one is caught.
+
+    Depending on its configuration, SGE can send a SIGUSR1, SIGUSR2, and/or
+    SIGXCPU before sending SIGSTOP/SIGKILL signals which cannot be caught.
+
+    According to ``man qsub`` (search for -notify), SGE can:
+
+    > send "warning" signals to a running job prior to sending the
+    > signals themselves. If a SIGSTOP is pending, the job will
+    > receive a SIGUSR1 several seconds before the SIGSTOP. If a
+    > SIGKILL is pending, the job will receive a SIGUSR2 several
+    > seconds before the SIGKILL.
+
+    acording to ``man queue_conf``, SGE additionally can:
+
+    > If s_cpu is exceeded, the job is sent a SIGXCPU signal which
+    > can be caught by the job.... If s_vmem is exceeded, the job
+    > is sent a SIGXCPU signal which can be caught by the job....
+    > If s_rss is exceeded, the job is sent a SIGXCPU signal which
+      can be caught by the job
     """
 
     def __init__(self,
