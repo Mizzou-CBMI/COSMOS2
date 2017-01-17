@@ -30,13 +30,12 @@ install_requires = [
     'funcsigs',
     'blinker',
     "sqlalchemy",
-    "black_magic==0.0.10",  # to get a signature preserving partial() in cosmos.api
+    "black_magic>=0.0.10",  # to get a signature preserving partial() in cosmos.api
     'flask-sqlalchemy',
     'networkx',
     "enum34",
     "six",
     "SQLAlchemy-Utils",
-    # "pyparsing==1.5.7",
     'psutil',
     "drmaa",
     'more_itertools'

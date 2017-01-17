@@ -3,6 +3,7 @@ import re
 import os
 
 from .DRM_Base import DRM
+from .util import exit_process_group
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
@@ -28,7 +29,7 @@ class DRM_LSF(DRM):
 
         out = sp.check_output('{bsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), bsub=bsub),
                               env=os.environ,
-                              preexec_fn=preexec_function(),
+                              preexec_fn=exit_process_group,
                               shell=True)
 
         drm_jobID = int(re.search('Job <(\d+)>', out).group(1))
@@ -73,7 +74,7 @@ class DRM_LSF(DRM):
 
     def kill_tasks(self, tasks):
         for t in tasks:
-            sp.check_call(['bkill', str(t.drm_jobID)])
+            sp.check_call(['bkill', str(t.drm_jobID)], preexec_function=exit_process_group)
 
 
 def bjobs_all():
@@ -82,7 +83,7 @@ def bjobs_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['bjobs', '-a']).split('\n')
+        lines = sp.check_output(['bjobs', '-a'], preexec_function=exit_process_group).split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     bjobs = {}
@@ -91,10 +92,3 @@ def bjobs_all():
         items = re.split("\s\s+", l)
         bjobs[items[0]] = dict(zip(header, items))
     return bjobs
-
-
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()

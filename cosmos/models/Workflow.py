@@ -1,14 +1,13 @@
 from sqlalchemy import orm
 import atexit
 import sys
-import time
 import datetime
 import os
 import re
 import signal
 import types
 import funcsigs
-import subprocess as sp
+import threading
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
@@ -19,8 +18,7 @@ import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
 from ..util.iterstuff import only_one
-from ..util.helpers import duplicates
-from ..util.helpers import get_logger
+from ..util.helpers import duplicates, get_logger, mkdir
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
@@ -48,6 +46,89 @@ def _workflow_status_changed(ex):
         ex.finished_on = datetime.datetime.now()
 
     ex.session.commit()
+
+
+class SignalWatcher(object):
+    """
+    Monitors the specified signals and sets an Event when one is caught.
+
+    Depending on its configuration, SGE can send a SIGUSR1, SIGUSR2, and/or
+    SIGXCPU before sending SIGSTOP/SIGKILL signals which cannot be caught.
+
+    According to ``man qsub`` (search for -notify), SGE can:
+
+    > send "warning" signals to a running job prior to sending the
+    > signals themselves. If a SIGSTOP is pending, the job will
+    > receive a SIGUSR1 several seconds before the SIGSTOP. If a
+    > SIGKILL is pending, the job will receive a SIGUSR2 several
+    > seconds before the SIGKILL.
+
+    acording to ``man queue_conf``, SGE additionally can:
+
+    > If s_cpu is exceeded, the job is sent a SIGXCPU signal which
+    > can be caught by the job.... If s_vmem is exceeded, the job
+    > is sent a SIGXCPU signal which can be caught by the job....
+    > If s_rss is exceeded, the job is sent a SIGXCPU signal which
+      can be caught by the job
+    """
+
+    def __init__(self,
+                 workflow,
+                 target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
+                 ignored_signals=(signal.SIGUSR1,),
+                 explanations={
+                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
+                     signal.SIGUSR2: 'SGE is about to send a SIGKILL',
+                     signal.SIGXCPU: 'SGE resource limit has been exceeded'}):
+
+        self.workflow = workflow
+        self.explanations = explanations
+
+        self.signal_event = threading.Event()
+        self.last_signal = None
+
+        for sig in target_signals:
+            self._check_existing_handler(sig)
+            signal.signal(sig, self.flag_signal_receipt)
+
+        for sig in ignored_signals:
+            self._check_existing_handler(sig)
+            signal.signal(sig, self.log_signal)
+
+    @staticmethod
+    def _check_existing_handler(sig):
+        prev_handler = signal.getsignal(sig)
+        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+            raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
+
+    def explain(self, signum):
+        names = []
+        for k, v in signal.__dict__.iteritems():
+            if k.startswith('SIG') and v == signum:
+                names.append(k)
+        names.sort()
+
+        if signum in self.explanations:
+            return ': '.join((' or '.join(names), self.explanations[signum]))
+        else:
+            return ' or '.join(names)
+
+    def log_signal(self, signum, frame):    # pylint: disable=unused-argument
+        msg = "Caught signal %d (%s)" % (signum, self.explain(signum))
+        print >>sys.stderr, msg
+        sys.stderr.flush()
+        self.workflow.log.info(msg)
+
+    def flag_signal_receipt(self, signum, frame):
+        self.log_signal(signum, frame)
+        self.last_signal = signum
+        self.signal_event.set()
+
+    def wait(self, timeout=None):
+        self.signal_event.wait(timeout)
+
+    def caught_signal(self):
+        return self.signal_event.is_set()
 
 
 class Workflow(Base):
@@ -121,8 +202,7 @@ class Workflow(Base):
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
         for d in dirs:
-            if d != '':
-                sp.check_call(['mkdir', '-p', d])
+            mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, queue=None, must_succeed=True, time_req=None):
         """
@@ -388,9 +468,11 @@ class Workflow(Base):
                 session.commit()
                 return True
             else:
-                raise AssertionError('Bad workflow status %s' % self.status)
-
-        self.log.info('Workflow complete')
+                self.log.warning('Workflow exited with status %s', self.status)
+                session.commit()
+                return False
+        else:
+            self.log.info('Workflow dry run is complete')
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -479,6 +561,8 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
 
+    watcher = SignalWatcher(workflow)
+
     # graph_failed = nx.DiGraph()
     #
     # def handler(signal, frame):
@@ -517,7 +601,11 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        time.sleep(.3)
+        watcher.wait(.3)
+        if watcher.caught_signal():
+            workflow.log.info('Interrupting workflow to handle signal %d', watcher.last_signal)
+            workflow.terminate(due_to_failure=False)
+            break
 
 
 import networkx as nx
@@ -566,15 +654,6 @@ def _process_finished_tasks(jobmanager):
 
 
 def handle_exits(workflow, do_atexit=True):
-    # terminate on ctrl+c
-    def ctrl_c(signal, frame):
-        if not workflow.successful:
-            workflow.log.info('Caught SIGINT (ctrl+c)')
-            workflow.terminate(due_to_failure=False)
-            raise SystemExit('Workflow terminated with a SIGINT (ctrl+c) event')
-
-    signal.signal(signal.SIGINT, ctrl_c)
-
     if do_atexit:
         @atexit.register
         def cleanup_check():
@@ -582,6 +661,8 @@ def handle_exits(workflow, do_atexit=True):
                 workflow.log.error('Workflow %s has a status of running atexit!' % workflow)
                 workflow.terminate(due_to_failure=True)
                 # raise SystemExit('Workflow terminated due to the python interpreter exiting')
+
+            workflow.log.info('Ceased work on %s: this is its final log message', workflow)
 
 
 def _copy_graph(graph):

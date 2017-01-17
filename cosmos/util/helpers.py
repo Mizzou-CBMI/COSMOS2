@@ -1,7 +1,6 @@
 import pprint
 import logging
 import itertools as it
-import subprocess as sp
 import signal
 import os
 import random
@@ -111,7 +110,7 @@ def confirm(prompt=None, default=False, timeout=0):
 def mkdir(path):
     global created_already
     #sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
-    if not os.path.exists(path):
+    if path and not os.path.exists(path):
         #created_already.add(path)
         os.makedirs(path)
 

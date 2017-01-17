@@ -3,7 +3,7 @@ import re
 import os
 from collections import OrderedDict
 import time
-from .util import div, convert_size_to_kb
+from .util import div, convert_size_to_kb, exit_process_group
 
 from more_itertools import grouper
 from .DRM_Base import DRM
@@ -24,7 +24,7 @@ class DRM_GE(DRM):
                                                                                     ns=ns)
 
         out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                              env=os.environ, preexec_fn=preexec_function, shell=True)
+                              env=os.environ, preexec_fn=exit_process_group, shell=True)
 
         drm_jobID = unicode(re.search('job (\d+) ', out).group(1))
         return drm_jobID
@@ -154,7 +154,7 @@ class DRM_GE(DRM):
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: unicode(t.drm_jobID), group))
-            sp.Popen(['qdel', pids], preexec_fn=preexec_function)
+            sp.call(['qdel', pids], preexec_fn=exit_process_group)
 
 
 def _is_corrupt(qacct_dict):
@@ -197,7 +197,7 @@ def _qacct_raw(task, timeout=600):
             if time.time() - start > timeout:
                 raise ValueError('Could not qacct -j %s' % task.drm_jobID)
             try:
-                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], stderr=DEVNULL)
+                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=DEVNULL)
                 if len(qacct_out.strip()):
                     break
                 else:
@@ -239,7 +239,7 @@ def _qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['qstat'], preexec_fn=preexec_function).strip().split('\n')
+        lines = sp.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     keys = re.split("\s+", lines[0])
@@ -250,9 +250,3 @@ def _qstat_all():
     return bjobs
 
 
-def preexec_function():
-    # Ignore the SIGINT signal by setting the handler to the standard
-    # signal handler SIG_IGN.  This allows Cosmos to cleanly
-    # terminate jobs when there is a ctrl+c event
-    os.setpgrp()
-    return os.setsid
