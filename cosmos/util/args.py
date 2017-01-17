@@ -17,3 +17,5 @@ def add_workflow_args(p, require_name=True):
                    help="Completely restart the workflow.  Note this will delete all record of the workflow in the database")
     p.add_argument('--skip_confirm', '--skip-confirm', '-y', action='store_true',
                    help="Do not use confirmation prompts before restarting or deleting, and assume answer is always yes")
+    p.add_argument('--fail-fast', '--fail_fast', action='store_true',
+                   help="terminate the entire workflow the first time a Task fails")
