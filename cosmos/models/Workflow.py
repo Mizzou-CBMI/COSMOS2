@@ -10,7 +10,6 @@ import types
 import funcsigs
 import subprocess as sp
 import threading
-import traceback
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
@@ -102,7 +101,6 @@ class SignalWatcher(object):
         print >>sys.stderr, msg
         sys.stderr.flush()
         self.workflow.log.info(msg)
-        traceback.print_stack(frame, file=sys.stderr)
 
     def flag_signal_receipt(self, signum, frame):
         self.log_signal(signum, frame)
