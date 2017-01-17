@@ -611,7 +611,7 @@ def _run(workflow, session, task_queue):
         if watcher.caught_signal():
             workflow.log.info('Interrupting workflow to handle signal %d', watcher.last_signal)
             workflow.terminate(due_to_failure=False)
-            break
+            return
 
 
 import networkx as nx
