@@ -582,6 +582,12 @@ def _run(workflow, session, task_queue):
 
         for task in _process_finished_tasks(workflow.jobmanager):
             if task.status == TaskStatus.failed and task.must_succeed:
+
+                if workflow.info['fail_fast']:
+                    workflow.log.info('Exiting run loop at first Task failure')
+                    workflow.terminate(due_to_failure=True)
+                    return
+
                 # pop all descendents when a task fails; the rest of the graph can still execute
                 remove_nodes = descendants(task_queue, task).union({task, })
                 # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
@@ -605,7 +611,7 @@ def _run(workflow, session, task_queue):
         if watcher.caught_signal():
             workflow.log.info('Interrupting workflow to handle signal %d', watcher.last_signal)
             workflow.terminate(due_to_failure=False)
-            break
+            return
 
 
 import networkx as nx

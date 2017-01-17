@@ -117,7 +117,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, restart=False, skip_confirm=False, primary_log_path=None):
+    def start(self, name, restart=False, skip_confirm=False, primary_log_path=None, fail_fast=False):
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
@@ -126,6 +126,8 @@ class Cosmos(object):
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
         :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
           stderr.
+        :param bool fail_fast: If True, terminate the workflow the first time a Task fails.
+        Otherwise, run all Tasks except those downstream of a failure.
 
         :returns: An Workflow instance.
         """
@@ -202,6 +204,8 @@ class Cosmos(object):
 
         wf.info['last_cmd_executed'] = get_last_cmd_executed()
         wf.info['cwd'] = os.getcwd()
+        wf.info['fail_fast'] = fail_fast
+
         wf.log.info('Execution Command: %s' % get_last_cmd_executed())
         session.commit()
         session.expunge_all()
