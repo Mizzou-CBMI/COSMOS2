@@ -34,6 +34,7 @@ def default_prepend(task):
     return '#!/bin/bash\n' \
            'set -e\n' \
            'set -o pipefail\n' \
+           'trap \'\' USR1 USR2 XCPU\n' \
            '\n'
 
 # def default_cmd_append(task):
