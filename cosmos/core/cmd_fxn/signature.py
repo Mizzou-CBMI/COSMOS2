@@ -30,7 +30,16 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
 import decorator
 
 
-def default_prepend(task):
+def default_prepend(task):  # pylint: disable=unused-argument
+    """
+    Set common error- and signal-handling behavior for Cosmos Tasks.
+
+    With these options, Tasks that run multiple commands will error out at the
+    first sign of failure, even if the failure occurs in a multiple-step pipe.
+
+    In addition, Tasks ignore three SGE signals that are handled by the Cosmos
+    runtime (see commment on Workflow.py:SignalWatcher for more details).
+    """
     return '#!/bin/bash\n' \
            'set -e\n' \
            'set -o pipefail\n' \
