@@ -34,10 +34,10 @@ def default_prepend(task):  # pylint: disable=unused-argument
     """
     Set common error- and signal-handling behavior for Cosmos Tasks.
 
-    With these options, Tasks that run multiple commands will error out at the
+    set -e and set -o will cause Tasks that run multiple commands to error out at the
     first sign of failure, even if the failure occurs in a multiple-step pipe.
 
-    In addition, Tasks ignore three SGE signals that are handled by the Cosmos
+    the trap command is so that Tasks ignore three SGE signals that are handled by the Cosmos
     runtime (see commment on Workflow.py:SignalWatcher for more details).
     """
     return '#!/bin/bash\n' \
