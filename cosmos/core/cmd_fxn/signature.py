@@ -30,10 +30,20 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
 import decorator
 
 
-def default_prepend(task):
+def default_prepend(task):  # pylint: disable=unused-argument
+    """
+    Set common error- and signal-handling behavior for Cosmos Tasks.
+
+    set -e and set -o will cause Tasks that run multiple commands to error out at the
+    first sign of failure, even if the failure occurs in a multiple-step pipe.
+
+    the trap command is so that Tasks ignore three SGE signals that are handled by the Cosmos
+    runtime (see commment on Workflow.py:SignalWatcher for more details).
+    """
     return '#!/bin/bash\n' \
            'set -e\n' \
            'set -o pipefail\n' \
+           'trap \'\' USR1 USR2 XCPU\n' \
            '\n'
 
 # def default_cmd_append(task):
