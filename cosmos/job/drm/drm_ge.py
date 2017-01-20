@@ -191,11 +191,14 @@ def _qacct_raw(task, timeout=600):
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
+    num_retries = timeout / 10
 
     with open(os.devnull, 'w') as DEVNULL:
+        i = 0
         while True:
-            if time.time() - start > timeout:
-                raise ValueError('Could not qacct -j %s' % task.drm_jobID)
+            if i > num_retries:
+                raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
+                                 (task.drm_jobID, i, time.time() - start))
             try:
                 qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=DEVNULL)
                 if len(qacct_out.strip()):
