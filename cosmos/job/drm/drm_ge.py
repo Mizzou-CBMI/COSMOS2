@@ -204,10 +204,13 @@ def _qacct_raw(task, timeout=600):
                 if len(qacct_out.strip()):
                     break
                 else:
-                    task.workflow.log.warn('`qacct -j %s` returned an empty string for %s' % (task.drm_jobID, task))
-            except sp.CalledProcessError:
-                pass
-            time.sleep(5)
+                    task.workflow.log.error('`qacct -j %s` returned an empty string for %s' %
+                                            (task.drm_jobID, task))
+            except sp.CalledProcessError as err:
+                task.workflow.log.error('`qacct -j %s` returned error code %d for %s' %
+                                        (task.drm_jobID, err.returncode, task))
+                task.workflow.log.error(err.output)
+            time.sleep(10)
 
     for line in qacct_out.strip().split('\n'):
         if line.startswith('='):
@@ -224,7 +227,7 @@ def _qacct_raw(task, timeout=600):
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s with drm_jobID=%s has corrupt qacct output:\n%s' %
+            raise EnvironmentError('%s with drm_jobID=%s has unparseable qacct output:\n%s' %
                                    (task, task.drm_jobID, qacct_out))
 
         curr_qacct_dict[k] = v.strip()
