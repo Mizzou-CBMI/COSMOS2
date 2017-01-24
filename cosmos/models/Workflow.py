@@ -9,6 +9,7 @@ import types
 import funcsigs
 import threading
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
@@ -663,12 +664,21 @@ def handle_exits(workflow, do_atexit=True):
     if do_atexit:
         @atexit.register
         def cleanup_check():
-            if workflow.status == WorkflowStatus.running:
-                workflow.log.error('Workflow %s has a status of running atexit!' % workflow)
-                workflow.terminate(due_to_failure=True)
-                # raise SystemExit('Workflow terminated due to the python interpreter exiting')
+            try:
+                should_terminate = False
+                try:
+                    if workflow.status == WorkflowStatus.running:
+                        msg = 'Workflow %s has a status of running atexit!' % workflow
+                        should_terminate = True
+                except SQLAlchemyError:
+                    msg = 'Workflow %s has unknown status (sql error)!' % workflow
+                    should_terminate = True
 
-            workflow.log.info('Ceased work on %s: this is its final log message', workflow)
+                if should_terminate:
+                    workflow.log.error(msg)
+                    workflow.terminate(due_to_failure=True)
+            finally:
+                workflow.log.info('Ceased work on %s: this is its final log message', workflow)
 
 
 def _copy_graph(graph):
