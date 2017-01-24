@@ -75,8 +75,8 @@ class SignalWatcher(object):
 
     def __init__(self,
                  workflow,
-                 lethal_signals=frozenset(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
-                 benign_signals=frozenset(signal.SIGUSR1,),
+                 lethal_signals=frozenset([signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU]),
+                 benign_signals=frozenset([signal.SIGUSR1]),
                  explanations={
                      signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
                      signal.SIGUSR2: 'SGE is about to send a SIGKILL',
@@ -92,7 +92,7 @@ class SignalWatcher(object):
         self.lock = threading.RLock()
         self.locked_signals = set()
 
-        for sig in self.lethal_signals + self.benign_signals:
+        for sig in self.lethal_signals | self.benign_signals:
             self._check_existing_handler(sig)
             signal.signal(sig, self.signal_handler)
 
