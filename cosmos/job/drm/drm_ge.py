@@ -212,6 +212,7 @@ def _qacct_raw(task, timeout=600):
                                         (task.drm_jobID, err.returncode, task))
                 task.workflow.log.error(err.output)
             time.sleep(10)
+            i += 1
 
     for line in qacct_out.strip().split('\n'):
         if line.startswith('='):
