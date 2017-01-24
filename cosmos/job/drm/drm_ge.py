@@ -1,4 +1,5 @@
 import subprocess as sp
+import json
 import re
 import os
 from collections import OrderedDict
@@ -109,7 +110,7 @@ class DRM_GE(DRM):
             task.workflow.log.warn('`qacct -j %s` (for task %s) shows %s:\n%s' %
                                    (task.drm_jobID, task,
                                     'corrupt data' if data_are_corrupt else 'job failure',
-                                    d))
+                                    json.dumps(d, indent=4, sort_keys=True)))
 
         processed_data = dict(
             exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
