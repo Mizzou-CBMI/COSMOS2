@@ -75,26 +75,26 @@ class SignalWatcher(object):
 
     def __init__(self,
                  workflow,
-                 target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
-                 ignored_signals=(signal.SIGUSR1,),
+                 lethal_signals=frozenset(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
+                 benign_signals=frozenset(signal.SIGUSR1,),
                  explanations={
                      signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
                      signal.SIGUSR2: 'SGE is about to send a SIGKILL',
                      signal.SIGXCPU: 'SGE resource limit has been exceeded'}):
 
         self.workflow = workflow
+        self.lethal_signals = lethal_signals
+        self.benign_signals = benign_signals
         self.explanations = explanations
 
         self.signal_event = threading.Event()
-        self.last_signal = None
 
-        for sig in target_signals:
-            self._check_existing_handler(sig)
-            signal.signal(sig, self.flag_signal_receipt)
+        self.lock = threading.RLock()
+        self.locked_signals = set()
 
-        for sig in ignored_signals:
+        for sig in self.lethal_signals + self.benign_signals:
             self._check_existing_handler(sig)
-            signal.signal(sig, self.log_signal)
+            signal.signal(sig, self.signal_handler)
 
     @staticmethod
     def _check_existing_handler(sig):
@@ -114,15 +114,14 @@ class SignalWatcher(object):
         else:
             return ' or '.join(names)
 
-    def log_signal(self, signum, frame):    # pylint: disable=unused-argument
-        msg = "Caught signal %d (%s)" % (signum, self.explain(signum))
-        print >>sys.stderr, msg
-        sys.stderr.flush()
-        self.workflow.log.info(msg)
+    def make_log_msg(self, signum):
+        return "Caught signal %d (%s)" % (signum, self.explain(signum))
 
-    def flag_signal_receipt(self, signum, frame):
-        self.log_signal(signum, frame)
-        self.last_signal = signum
+    def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
+        print >>sys.stderr, self.make_log_msg(signum)
+        sys.stderr.flush()
+        with self.lock:
+            self.locked_signals.add(signum)
         self.signal_event.set()
 
     def wait(self, timeout=None):
@@ -130,6 +129,14 @@ class SignalWatcher(object):
 
     def caught_signal(self):
         return self.signal_event.is_set()
+
+    def has_lethal_signal(self):
+        with self.lock:
+            return self.locked_signals & self.lethal_signals
+
+    def clear_benign_signals(self):
+        with self.lock:
+            self.locked_signals -= self.benign_signals
 
 
 class Workflow(Base):
@@ -610,9 +617,16 @@ def _run(workflow, session, task_queue):
         session.commit()
         watcher.wait(.3)
         if watcher.caught_signal():
-            workflow.log.info('Interrupting workflow to handle signal %d', watcher.last_signal)
-            workflow.terminate(due_to_failure=False)
-            return
+            with watcher.lock:
+                do_teardown = watcher.has_lethal_signal()
+                for sig in watcher.locked_signals:
+                    workflow.log.info(watcher.make_log_msg(sig))
+                watcher.clear_benign_signals()
+
+            if do_teardown:
+                workflow.log.info('Interrupting workflow to handle lethal signal')
+                workflow.terminate(due_to_failure=False)
+                return
 
 
 import networkx as nx
