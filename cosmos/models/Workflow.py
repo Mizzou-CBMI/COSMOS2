@@ -123,8 +123,6 @@ class SignalWatcher(object):
         return "Caught signal %d (%s)" % (signum, self.explain(signum))
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
-        print >>sys.stderr, self.make_log_msg(signum)
-        sys.stderr.flush()
         with self.lock:
             self.locked_signals.add(signum)
         self.signal_event.set()
