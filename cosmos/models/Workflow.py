@@ -92,14 +92,14 @@ class SignalWatcher(object):
         self.benign_signals = benign_signals
         self.explanations = explanations
 
-        self.signal_event = threading.Event()
+        self._signal_event = threading.Event()
 
         self.lock = threading.RLock()
         self.locked_signals = set()
 
         for sig in self.lethal_signals | self.benign_signals:
             self._check_existing_handler(sig)
-            signal.signal(sig, self.signal_handler)
+            signal.signal(sig, self._signal_handler)
 
     @staticmethod
     def _check_existing_handler(sig):
@@ -107,7 +107,7 @@ class SignalWatcher(object):
         if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
             raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
 
-    def explain(self, signum):
+    def _explain(self, signum):
         names = []
         for k, v in signal.__dict__.iteritems():
             if k.startswith('SIG') and v == signum:
@@ -119,19 +119,19 @@ class SignalWatcher(object):
         else:
             return ' or '.join(names)
 
-    def make_log_msg(self, signum):
-        return "Caught signal %d (%s)" % (signum, self.explain(signum))
-
-    def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
+    def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         with self.lock:
             self.locked_signals.add(signum)
-        self.signal_event.set()
+        self._signal_event.set()
+
+    def make_log_msg(self, signum):
+        return "Caught signal %d (%s)" % (signum, self._explain(signum))
 
     def wait(self, timeout=None):
-        self.signal_event.wait(timeout)
+        self._signal_event.wait(timeout)
 
-    def caught_signal(self):
-        return self.signal_event.is_set()
+    def has_caught_signal(self):
+        return self._signal_event.is_set()
 
     def has_lethal_signal(self):
         with self.lock:
@@ -617,7 +617,7 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
         watcher.wait(.3)
-        if watcher.caught_signal():
+        if watcher.has_caught_signal():
             with watcher.lock:
                 do_teardown = watcher.has_lethal_signal()
                 for sig in watcher.locked_signals:
@@ -625,9 +625,11 @@ def _run(workflow, session, task_queue):
                 watcher.clear_benign_signals()
 
             if do_teardown:
-                workflow.log.info('Interrupting workflow to handle lethal signal')
+                workflow.log.info('Interrupting workflow to handle lethal signal(s)')
                 workflow.terminate(due_to_failure=False)
                 return
+            else:
+                workflow.log.info('Ignoring benign signal(s)')
 
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
