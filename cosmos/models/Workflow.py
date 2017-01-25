@@ -1,14 +1,19 @@
-from sqlalchemy import orm
+"""
+Tools for defining, running and terminating Cosmos workflows.
+"""
+
 import atexit
-import sys
 import datetime
 import os
 import re
 import signal
-import types
-import funcsigs
+import sys
 import threading
+import types
 
+import funcsigs
+
+from sqlalchemy import orm
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
@@ -24,10 +29,10 @@ from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
 
-opj = os.path.join
-
 from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
 from .Task import Task
+
+opj = os.path.join
 
 
 def default_task_log_output_dir(task, subdir=''):
@@ -374,8 +379,6 @@ class Workflow(Base):
         self.successful = False
 
         if self.started_on is None:
-            import datetime
-
             self.started_on = datetime.datetime.now()
 
         task_graph = self.task_graph()
@@ -629,9 +632,6 @@ def _run(workflow, session, task_queue):
                 return
 
 
-import networkx as nx
-
-
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
     ready_tasks = [task for task, degree in task_queue.in_degree().items() if
@@ -696,7 +696,6 @@ def handle_exits(workflow, do_atexit=True):
 
 
 def _copy_graph(graph):
-    import networkx as nx
 
     graph2 = nx.DiGraph()
     graph2.add_edges_from(graph.edges())
