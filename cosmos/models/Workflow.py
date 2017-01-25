@@ -92,10 +92,9 @@ class SignalWatcher(object):
         self.benign_signals = benign_signals
         self.explanations = explanations
 
-        self._signal_event = threading.Event()
-
-        self.lock = threading.RLock()
-        self.locked_signals = set()
+        self._lock = threading.RLock()
+        self._locked_signals = set()
+        self._locked_event = threading.Event()
 
         for sig in self.lethal_signals | self.benign_signals:
             self._check_existing_handler(sig)
@@ -106,6 +105,11 @@ class SignalWatcher(object):
         prev_handler = signal.getsignal(sig)
         if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
             raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
+
+    def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
+        with self._lock:
+            self._locked_signals.add(signum)
+            self._locked_event.set()
 
     def _explain(self, signum):
         names = []
@@ -119,27 +123,36 @@ class SignalWatcher(object):
         else:
             return ' or '.join(names)
 
-    def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
-        with self.lock:
-            self.locked_signals.add(signum)
-        self._signal_event.set()
+    def _log_signal_receipt(self, sigs):
+        for sig in sigs:
+            self.workflow.log.info("Caught signal %d (%s)" %
+                                   (sig, self._explain(sig)))
 
-    def make_log_msg(self, signum):
-        return "Caught signal %d (%s)" % (signum, self._explain(signum))
+    def _signals_are_lethal(self, sigs):
+        return sigs & self.lethal_signals
 
-    def wait(self, timeout=None):
-        self._signal_event.wait(timeout)
+    def _clear_benign_signals(self):
+        with self._lock:
+            self._locked_signals -= self.benign_signals
 
-    def has_caught_signal(self):
-        return self._signal_event.is_set()
+    def end_workflow_if_signaled(self, timeout=None):
+        """
+        Tear workflow down and return true if a lethal signal has been received.
+        """
+        if self._locked_event.wait(timeout):
+            with self._lock:
+                signals_received = self._locked_signals.copy()
+                self._clear_benign_signals()
+                self._locked_event.clear()
 
-    def has_lethal_signal(self):
-        with self.lock:
-            return self.locked_signals & self.lethal_signals
-
-    def clear_benign_signals(self):
-        with self.lock:
-            self.locked_signals -= self.benign_signals
+            self._log_signal_receipt(signals_received)
+            if self._signals_are_lethal(signals_received):
+                self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
+                self.workflow.terminate(due_to_failure=False)
+                return True
+            else:
+                self.workflow.log.info('Ignoring benign signal(s)')
+                return False
 
 
 class Workflow(Base):
@@ -616,21 +629,8 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        watcher.wait(.3)
-        if watcher.has_caught_signal():
-            with watcher.lock:
-                do_teardown = watcher.has_lethal_signal()
-                for sig in watcher.locked_signals:
-                    workflow.log.info(watcher.make_log_msg(sig))
-                watcher.clear_benign_signals()
-
-            if do_teardown:
-                workflow.log.info('Interrupting workflow to handle lethal signal(s)')
-                workflow.terminate(due_to_failure=False)
-                return
-            else:
-                workflow.log.info('Ignoring benign signal(s)')
-
+        if watcher.end_workflow_if_signaled(.3):
+            return
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
