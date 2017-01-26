@@ -61,7 +61,7 @@ class DRM_GE(DRM):
                 data, data_are_corrupt = self._get_task_return_data(task)
                 if data_are_corrupt:
                     task.workflow.log.warn(
-                        'corrupt qstat/qacct output for %s means it may still be running' % task)
+                        '%s Corrupt SGE qstat/qacct output means it may still be running', task)
                     corrupt_data[task] = data
                 else:
                     yield task, data
@@ -71,12 +71,12 @@ class DRM_GE(DRM):
         if num_cleanly_running_jobs > 0:
             for task in corrupt_data.keys():
                 task.workflow.log.info(
-                    'temporarily masking corrupt SGE data for %s since %d other jobs are running cleanly' %
+                    '%s Temporarily masking corrupt SGE output since %d other jobs are running cleanly' %
                     (task, num_cleanly_running_jobs))
         else:
             for task, data in corrupt_data.items():
                 task.workflow.log.error(
-                    'all outstanding drm_ge tasks had corrupt SGE data: giving up on %s' % task)
+                    '%s All outstanding drm_ge tasks have corrupt SGE output: giving up on this one' % task)
                 yield task, data
 
     def drm_statuses(self, tasks):
@@ -109,8 +109,8 @@ class DRM_GE(DRM):
         data_are_corrupt = _is_corrupt(d)
 
         if job_failed or data_are_corrupt:
-            task.workflow.log.warn('`qacct -j %s` (for task %s) shows %s:\n%s' %
-                                   (task.drm_jobID, task,
+            task.workflow.log.warn('%s SGE (qacct -j %s) reports %s:\n%s' %
+                                   (task, task.drm_jobID,
                                     'corrupt data' if data_are_corrupt else 'job failure',
                                     json.dumps(d, indent=4, sort_keys=True)))
 
@@ -209,23 +209,21 @@ def _qacct_raw(task, timeout=600, quantum=10):
                 if len(qacct_stdout_str.strip()):
                     break
                 else:
-                    task.workflow.log.error('`qacct -j %s` returned an empty string when called on %s' %
-                                            (task.drm_jobID, task))
+                    task.workflow.log.error('%s SGE (qacct -j %s) returned an empty string', task, task.drm_jobID)
             except sp.CalledProcessError as err:
-                task.workflow.log.error('`qacct -j %s` returned error code %d for %s' %
-                                        (task.drm_jobID, err.returncode, task))
+                task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d' %
+                                        (task, task.drm_jobID, err.returncode))
                 if err.output:
-                    pretty_stdout = '\n'.join('> %s' % line for line in err.output.strip().split('\n') if line)
-                    task.workflow.log.error('`qacct -j %s` printed the following to stdout when called on %s', task.drm_jobID, task)
-                    task.workflow.log.error(pretty_stdout)
+                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following to stdout', task, task.drm_jobID)
+                    task.workflow.log.error('"%s"', err.output.strip())
             finally:
                 qacct_stderr_fd.seek(0)
-                pretty_stderr = '\n'.join('> %s' % line for line in qacct_stderr_fd if line).strip()
-                if pretty_stderr:
-                    task.workflow.log.error('`qacct -j %s` printed the following to stderr when called on %s', task.drm_jobID, task)
-                    task.workflow.log.error(pretty_stderr)
+                qacct_stderr_str = qacct_stderr_fd.read().strip()
+                if qacct_stderr_str:
+                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following to stderr', task, task.drm_jobID)
+                    task.workflow.log.error('"%s"', qacct_stderr_str)
 
-        task.workflow.log.info('will retry after %d sec', quantum)
+        task.workflow.log.info('%s Will recheck job status after %d sec', task, quantum)
         time.sleep(quantum)
         i += 1
 
