@@ -183,7 +183,7 @@ def _is_corrupt(qacct_dict):
         qacct_dict.get('end_time', None) == '-/-'
 
 
-def _qacct_raw(task, timeout=600):
+def _qacct_raw(task, timeout=600, quantum=10):
     """
     Parse qacct output into key/value pairs.
 
@@ -194,7 +194,7 @@ def _qacct_raw(task, timeout=600):
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
-    num_retries = timeout / 10
+    num_retries = timeout / quantum
 
     with open(os.devnull, 'w') as DEVNULL:
         i = 0
@@ -220,12 +220,13 @@ def _qacct_raw(task, timeout=600):
                         task.workflow.log.error(err.output)
                 finally:
                     qacct_stderr_fd.seek(0)
-                    qacct_stderr = '\n'.join(line for line in qacct_stderr_fd)
+                    qacct_stderr = '\n'.join(line for line in qacct_stderr_fd).strip()
                     if qacct_stderr:
                         task.workflow.log.error('`qacct -j %s` printed the following to stderr when called on %s', task.drm_jobID, task)
                         task.workflow.log.error(qacct_stderr)
 
-            time.sleep(10)
+            task.workflow.log.info('will retry after %d sec', quantum)
+            time.sleep(quantum)
             i += 1
 
     for line in qacct_stdout.strip().split('\n'):
