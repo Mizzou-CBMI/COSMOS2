@@ -1,9 +1,11 @@
+import contextlib
 import subprocess as sp
 import json
 import re
 import os
 from collections import OrderedDict
 import time
+import StringIO
 from .util import div, convert_size_to_kb, exit_process_group
 
 from more_itertools import grouper
@@ -200,21 +202,31 @@ def _qacct_raw(task, timeout=600):
             if i > num_retries:
                 raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
                                  (task.drm_jobID, i, time.time() - start))
-            try:
-                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=DEVNULL)
-                if len(qacct_out.strip()):
-                    break
-                else:
-                    task.workflow.log.error('`qacct -j %s` returned an empty string for %s' %
-                                            (task.drm_jobID, task))
-            except sp.CalledProcessError as err:
-                task.workflow.log.error('`qacct -j %s` returned error code %d for %s' %
-                                        (task.drm_jobID, err.returncode, task))
-                task.workflow.log.error(err.output)
+
+            with contextlib.closing(StringIO.StringIO()) as qacct_stderr:
+                try:
+                    qacct_stdout = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr)
+
+                    if len(qacct_stdout.strip()):
+                        break
+                    else:
+                        task.workflow.log.error('`qacct -j %s` returned an empty string when called on %s' %
+                                                (task.drm_jobID, task))
+                except sp.CalledProcessError as err:
+                    task.workflow.log.error('`qacct -j %s` returned error code %d for %s' %
+                                            (task.drm_jobID, err.returncode, task))
+                    if err.output:
+                        task.workflow.log.error('`qacct -j %s` printed the following to stdout when called on %s', task.drm_jobID, task)
+                        task.workflow.log.error(err.output)
+                finally:
+                    if qacct_stderr:
+                        task.workflow.log.error('`qacct -j %s` printed the following to stderr when called on %s', task.drm_jobID, task)
+                        task.workflow.log.error(qacct_stderr)
+
             time.sleep(10)
             i += 1
 
-    for line in qacct_out.strip().split('\n'):
+    for line in qacct_stdout.strip().split('\n'):
         if line.startswith('='):
             if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
                 #
@@ -230,7 +242,7 @@ def _qacct_raw(task, timeout=600):
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
             raise EnvironmentError('%s with drm_jobID=%s has unparseable qacct output:\n%s' %
-                                   (task, task.drm_jobID, qacct_out))
+                                   (task, task.drm_jobID, qacct_stdout))
 
         curr_qacct_dict[k] = v.strip()
 
