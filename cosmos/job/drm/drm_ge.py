@@ -4,8 +4,8 @@ import json
 import re
 import os
 from collections import OrderedDict
+import tempfile
 import time
-import StringIO
 from .util import div, convert_size_to_kb, exit_process_group
 
 from more_itertools import grouper
@@ -203,9 +203,9 @@ def _qacct_raw(task, timeout=600):
                 raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
                                  (task.drm_jobID, i, time.time() - start))
 
-            with contextlib.closing(StringIO.StringIO()) as qacct_stderr:
+            with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
                 try:
-                    qacct_stdout = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr)
+                    qacct_stdout = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
 
                     if len(qacct_stdout.strip()):
                         break
@@ -219,6 +219,8 @@ def _qacct_raw(task, timeout=600):
                         task.workflow.log.error('`qacct -j %s` printed the following to stdout when called on %s', task.drm_jobID, task)
                         task.workflow.log.error(err.output)
                 finally:
+                    qacct_stderr_fd.seek(0)
+                    qacct_stderr = '\n'.join(line for line in qacct_stderr_fd)
                     if qacct_stderr:
                         task.workflow.log.error('`qacct -j %s` printed the following to stderr when called on %s', task.drm_jobID, task)
                         task.workflow.log.error(qacct_stderr)
