@@ -205,9 +205,9 @@ def _qacct_raw(task, timeout=600, quantum=10):
 
             with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
                 try:
-                    qacct_stdout = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
+                    qacct_stdout_str = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
 
-                    if len(qacct_stdout.strip()):
+                    if len(qacct_stdout_str.strip()):
                         break
                     else:
                         task.workflow.log.error('`qacct -j %s` returned an empty string when called on %s' %
@@ -216,20 +216,21 @@ def _qacct_raw(task, timeout=600, quantum=10):
                     task.workflow.log.error('`qacct -j %s` returned error code %d for %s' %
                                             (task.drm_jobID, err.returncode, task))
                     if err.output:
+                        pretty_stdout = '\n'.join('> %s' % line for line in err.output.strip().split('\n') if line)
                         task.workflow.log.error('`qacct -j %s` printed the following to stdout when called on %s', task.drm_jobID, task)
-                        task.workflow.log.error(err.output)
+                        task.workflow.log.error(pretty_stdout)
                 finally:
                     qacct_stderr_fd.seek(0)
-                    qacct_stderr = '\n'.join(line for line in qacct_stderr_fd).strip()
-                    if qacct_stderr:
+                    pretty_stderr = '\n'.join('> %s' % line for line in qacct_stderr_fd if line).strip()
+                    if pretty_stderr:
                         task.workflow.log.error('`qacct -j %s` printed the following to stderr when called on %s', task.drm_jobID, task)
-                        task.workflow.log.error(qacct_stderr)
+                        task.workflow.log.error(pretty_stderr)
 
             task.workflow.log.info('will retry after %d sec', quantum)
             time.sleep(quantum)
             i += 1
 
-    for line in qacct_stdout.strip().split('\n'):
+    for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
             if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
                 #
@@ -245,7 +246,7 @@ def _qacct_raw(task, timeout=600, quantum=10):
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
             raise EnvironmentError('%s with drm_jobID=%s has unparseable qacct output:\n%s' %
-                                   (task, task.drm_jobID, qacct_stdout))
+                                   (task, task.drm_jobID, qacct_stdout_str))
 
         curr_qacct_dict[k] = v.strip()
 
