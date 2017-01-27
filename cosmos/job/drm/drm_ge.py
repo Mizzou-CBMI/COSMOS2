@@ -196,12 +196,7 @@ def _qacct_raw(task, timeout=600, quantum=10):
     good_qacct_dict = None
     num_retries = timeout / quantum
 
-    i = 0
-    while True:
-        if i > num_retries:
-            raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
-                             (task.drm_jobID, i, time.time() - start))
-
+    for i in xrange(num_retries):
         with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
             try:
                 qacct_stdout_str = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
@@ -225,7 +220,10 @@ def _qacct_raw(task, timeout=600, quantum=10):
 
         task.workflow.log.info('%s Will recheck job status after %d sec', task, quantum)
         time.sleep(quantum)
-        i += 1
+    else:
+        # fallthrough: all retries failed
+        raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
+                         (task.drm_jobID, i, time.time() - start))
 
     for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
