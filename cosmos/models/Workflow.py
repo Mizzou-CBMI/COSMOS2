@@ -51,8 +51,6 @@ def _workflow_status_changed(ex):
         ex.successful = True
         ex.finished_on = datetime.datetime.now()
 
-    ex.session.commit()
-
 
 class SignalWatcher(object):
     """

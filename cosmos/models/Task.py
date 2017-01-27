@@ -82,15 +82,12 @@ def task_status_changed(task):
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
-                # task.session.commit()
 
     elif task.status == TaskStatus.successful:
         task.successful = True
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
-
-            # task.session.commit()
 
 
 # task_edge_table = Table('task_edge', Base.metadata,
