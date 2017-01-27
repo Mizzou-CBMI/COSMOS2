@@ -1,6 +1,8 @@
 import os
+import stat
 
 opj = os.path.join
+
 from ..util.helpers import mkdir
 from .drm.drm_local import DRM_Local
 from .drm.drm_lsf import DRM_LSF
@@ -116,7 +118,8 @@ def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""
     with open(task.output_command_script_path, 'wb') as f:
         f.write(command)
-    os.system('chmod 755 "{0}"'.format(task.output_command_script_path))
+    os.chmod(task.output_command_script_path,
+             stat.S_IREAD|stat.S_IWUSR|stat.S_IEXEC)
 
     for p in [task.output_stdout_path, task.output_stderr_path]:
         if os.path.exists(p):
