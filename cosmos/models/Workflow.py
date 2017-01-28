@@ -92,11 +92,18 @@ class SignalWatcher(object):
 
         self._lock = threading.RLock()
         self._locked_signals = set()
+        self._locked_signal_cnt = 0
         self._locked_event = threading.Event()
 
         for sig in self.lethal_signals | self.benign_signals:
             self._check_existing_handler(sig)
             signal.signal(sig, self._signal_handler)
+
+        @atexit.register
+        def signal_report():        # pylint:disable=unused-variable
+            with self._lock:
+                self.workflow.log.info('%s Received %d signal(s) while running',
+                                       self.workflow, self._locked_signal_cnt)
 
     @staticmethod
     def _check_existing_handler(sig):
@@ -107,6 +114,7 @@ class SignalWatcher(object):
     def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         with self._lock:
             self._locked_signals.add(signum)
+            self._locked_signal_cnt += 1
             self._locked_event.set()
 
     def _explain(self, signum):
@@ -690,7 +698,7 @@ def handle_exits(workflow, do_atexit=True):
                     workflow.log.error(msg)
                     workflow.terminate(due_to_failure=True)
             finally:
-                workflow.log.info('Ceased work on %s: this is its final log message', workflow)
+                workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
 
 def _copy_graph(graph):
