@@ -90,42 +90,35 @@ class SignalWatcher(object):
         self.benign_signals = benign_signals
         self.explanations = explanations
 
-        self._home_thread = threading.current_thread()
-
+        self._prev_handlers = dict()
         self._recd_signals = set()
         self._recd_signal_cnt = 0
         self._recd_event = threading.Event()
 
+    def __enter__(self):
         for sig in self.lethal_signals | self.benign_signals:
-            self._check_existing_handler(sig)
+            self._cache_existing_handler(sig)
             signal.signal(sig, self._signal_handler)
+        return self
 
-        @atexit.register
-        def signal_report():        # pylint:disable=unused-variable
-            self._check_thread_safety()
-            self.workflow.log.info('%s Received %d signal(s) while running',
-                                   self.workflow, self._recd_signal_cnt)
+    def __exit__(self, exc_type, exc_value, traceback):
+        for sig, handler in self._prev_handlers.items():
+            signal.signal(sig, handler)
 
-    @staticmethod
-    def _check_existing_handler(sig):
-        prev_handler = signal.getsignal(sig)
-        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
-            raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
-
-    def _check_thread_safety(self):
-        """
-        Only perform signal() operations in the main thread of execution.
-
-        cf. https://docs.python.org/2/library/signal.html
-        """
-        assert threading.current_thread() == self._home_thread, \
-            "this method can only be called on the thread this object was created on"
+        self._prev_handlers.clear()
+        self.workflow.log.info('%s Received %d signal(s) while running',
+                               self.workflow, self._recd_signal_cnt)
 
     def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
-        self._check_thread_safety()
         self._recd_signals.add(signum)
         self._recd_signal_cnt += 1
         self._recd_event.set()
+
+    def _cache_existing_handler(self, sig):
+        prev_handler = signal.getsignal(sig)
+        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+            raise RuntimeError("a signal handler already exists for signal %d (%s): %s" % (sig, self._explain(sig), prev_handler))
+        self._prev_handlers[sig] = prev_handler
 
     def _explain(self, signum):
         names = []
@@ -144,21 +137,13 @@ class SignalWatcher(object):
             self.workflow.log.info("Caught signal %d (%s)" %
                                    (sig, self._explain(sig)))
 
-    def _contains_lethal_signal(self, sigs):
-        return sigs & self.lethal_signals
-
-    def _clear_benign_signals(self):
-        self._check_thread_safety()
-        self._recd_signals -= self.benign_signals
-
     def end_workflow_if_signaled(self, timeout=None):
         """
         Tear workflow down and return true if a lethal signal has been received.
         """
-        self._check_thread_safety()
         if self._recd_event.wait(timeout):
             signals_received = self._recd_signals.copy()
-            self._clear_benign_signals()
+            self._recd_signals -= self.benign_signals
             self._recd_event.clear()
         else:
             # nothing to do
@@ -166,7 +151,7 @@ class SignalWatcher(object):
 
         self._log_signal_receipt(signals_received)
 
-        if self._contains_lethal_signal(signals_received):
+        if signals_received & self.lethal_signals:
             self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
             self.workflow.terminate(due_to_failure=False)
             return True
@@ -602,55 +587,43 @@ def _run(workflow, session, task_queue):
     Do the workflow!
     """
     workflow.log.info('Executing TaskGraph')
-
-    watcher = SignalWatcher(workflow)
-
-    # graph_failed = nx.DiGraph()
-    #
-    # def handler(signal, frame):
-    #     task_queue.add_edges(graph_failed.edges())
-    #     for task in graph_failed.nodes():
-    #         task.attempt +=1
-    #         task.status = TaskStatus.no_attempt
-    #     graph_failed.remove_nodes_from(graph_failed.nodes())
-
-    # signal.signal(signal.SIGUSR1, handler)
-
     available_cores = True
-    while len(task_queue) > 0:
-        if available_cores:
-            _run_queued_and_ready_tasks(task_queue, workflow)
-            available_cores = False
 
-        for task in _process_finished_tasks(workflow.jobmanager):
-            if task.status == TaskStatus.failed and task.must_succeed:
+    with SignalWatcher(workflow) as watcher:
+        while len(task_queue) > 0:
+            if available_cores:
+                _run_queued_and_ready_tasks(task_queue, workflow)
+                available_cores = False
 
-                if workflow.info['fail_fast']:
-                    workflow.log.info('Exiting run loop at first Task failure')
-                    workflow.terminate(due_to_failure=True)
-                    return
+            for task in _process_finished_tasks(workflow.jobmanager):
+                if task.status == TaskStatus.failed and task.must_succeed:
 
-                # pop all descendents when a task fails; the rest of the graph can still execute
-                remove_nodes = descendants(task_queue, task).union({task, })
-                # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
+                    if workflow.info['fail_fast']:
+                        workflow.log.info('Exiting run loop at first Task failure')
+                        workflow.terminate(due_to_failure=True)
+                        return
 
-                task_queue.remove_nodes_from(remove_nodes)
-                workflow.status = WorkflowStatus.failed_but_running
-                workflow.log.info('%s tasks left in the queue' % len(task_queue))
-            elif task.status == TaskStatus.successful:
-                # just pop this task
-                task_queue.remove_node(task)
-            elif task.status == TaskStatus.no_attempt:
-                # the task must have failed, and is being reattempted
-                pass
-            else:
-                raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
-            available_cores = True
+                    # pop all descendents when a task fails; the rest of the graph can still execute
+                    remove_nodes = descendants(task_queue, task).union({task, })
+                    # graph_failed.add_edges(task_queue.subgraph(remove_nodes).edges())
 
-        # only commit Task changes after processing a batch of finished ones
-        session.commit()
-        if watcher.end_workflow_if_signaled(timeout=0.3):
-            return
+                    task_queue.remove_nodes_from(remove_nodes)
+                    workflow.status = WorkflowStatus.failed_but_running
+                    workflow.log.info('%s tasks left in the queue' % len(task_queue))
+                elif task.status == TaskStatus.successful:
+                    # just pop this task
+                    task_queue.remove_node(task)
+                elif task.status == TaskStatus.no_attempt:
+                    # the task must have failed, and is being reattempted
+                    pass
+                else:
+                    raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
+                available_cores = True
+
+            # only commit Task changes after processing a batch of finished ones
+            session.commit()
+            if watcher.end_workflow_if_signaled(timeout=0.3):
+                return
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
