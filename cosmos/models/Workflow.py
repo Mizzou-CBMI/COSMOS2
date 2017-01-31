@@ -73,17 +73,36 @@ class SignalWatcher(object):
     > can be caught by the job.... If s_vmem is exceeded, the job
     > is sent a SIGXCPU signal which can be caught by the job....
     > If s_rss is exceeded, the job is sent a SIGXCPU signal which
-      can be caught by the job
+    > can be caught by the job....
+
+    Unfortunately, SIGUSR1 can mean two different things. As above, when -notify
+    is set, it means a SIGSTOP is imminent. However, and less frequently, it can
+    also mean a job is about to be killed. See, again, ``man queue_conf``:
+
+    > If h_rt is exceeded by a job running in the queue, it is aborted via the
+    > SIGKILL signal (see kill(1)). If s_rt is exceeded, the job is first
+    > "warned"  via the SIGUSR1 signal (which can be caught by the job) and
+    > finally aborted after the notification time defined in the queue
+    > configuration parameter notify (see above) has passed.
+
+    SIGUSR1 signals, then, are more likely than not to be a benign indication
+    that a job is about to be paused (since timeouts are far rarer than pauses).
+    However, when one is caught, we log that it may be a sign the job is about
+    to die.
     """
+
+    # TODO Is it worth making signals configurable based on the caller's SGE
+    # TODO configuration? e.g. PRE_QDEL_SIGNAL=SIGUSR2, PRE_SUSP_SIGNAL=SIGUSR1,
+    # TODO PRE_TIME_EXC_SIGNAL=SIGUSR1, PRE_CPU_EXC_SIGNAL=SIGXCPU.
 
     def __init__(self,
                  workflow,
                  lethal_signals=frozenset([signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU]),
                  benign_signals=frozenset([signal.SIGUSR1]),
                  explanations={
-                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
+                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP, or, if a time limit has been exceeded, a SIGKILL',
                      signal.SIGUSR2: 'SGE is about to send a SIGKILL',
-                     signal.SIGXCPU: 'SGE resource limit has been exceeded'}):
+                     signal.SIGXCPU: 'SGE is about to send a SIGKILL, because a cpu resource limit has been exceeded'}):
 
         self.workflow = workflow
         self.lethal_signals = lethal_signals
