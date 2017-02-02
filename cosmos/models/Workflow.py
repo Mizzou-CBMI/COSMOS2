@@ -3,6 +3,7 @@ Tools for defining, running and terminating Cosmos workflows.
 """
 
 import atexit
+import collections
 import datetime
 import os
 import re
@@ -110,8 +111,8 @@ class SignalWatcher(object):
         self.explanations = explanations
 
         self._prev_handlers = dict()
-        self._recd_signals = set()
-        self._recd_signal_cnt = 0
+        self._signals_caught = collections.Counter()
+        self._signals_processed = collections.Counter()
         self._recd_event = threading.Event()
 
     def __enter__(self):
@@ -125,12 +126,12 @@ class SignalWatcher(object):
             signal.signal(sig, handler)
 
         self._prev_handlers.clear()
-        self.workflow.log.info('%s Received %d signal(s) while running',
-                               self.workflow, self._recd_signal_cnt)
+        self.workflow.log.info('%s Caught/processed %d signal(s) while running',
+                               self.workflow, sum(self._signals_caught.values()),
+                               sum(self._signals_processed.values()))
 
     def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
-        self._recd_signals.add(signum)
-        self._recd_signal_cnt += 1
+        self._signals_caught[signum] += 1
         self._recd_event.set()
 
     def _cache_existing_handler(self, sig):
@@ -151,26 +152,27 @@ class SignalWatcher(object):
         else:
             return ' or '.join(names)
 
-    def _log_signal_receipt(self, sigs):
-        for sig in sigs:
-            self.workflow.log.info("Caught signal %d (%s)" %
-                                   (sig, self._explain(sig)))
+    def _log_signal_receipt(self, signal_counter):
+        for sig, cnt in signal_counter.items():
+            self.workflow.log.info("Caught signal %d %s(%s)" %
+                                   (sig, '%d times ' % cnt if cnt > 1 else '',
+                                    self._explain(sig)))
 
     def end_workflow_if_signaled(self, timeout=None):
         """
         Tear workflow down and return true if a lethal signal has been received.
         """
         if self._recd_event.wait(timeout):
-            signals_received = self._recd_signals.copy()
-            self._recd_signals -= self.benign_signals
+            new_signals = self._signals_caught - self._signals_processed
             self._recd_event.clear()
         else:
             # nothing to do
             return False
 
-        self._log_signal_receipt(signals_received)
+        self._log_signal_receipt(new_signals)
+        self._signals_processed += new_signals
 
-        if signals_received & self.lethal_signals:
+        if set(new_signals) & self.lethal_signals:
             self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
             self.workflow.terminate(due_to_failure=False)
             return True
