@@ -163,8 +163,8 @@ class SignalWatcher(object):
         Tear workflow down and return true if a lethal signal has been received.
         """
         if self._recd_event.wait(timeout):
-            new_signals = self._signals_caught - self._signals_processed
             self._recd_event.clear()
+            new_signals = self._signals_caught - self._signals_processed
         else:
             # nothing to do
             return False
@@ -176,8 +176,16 @@ class SignalWatcher(object):
             self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
             self.workflow.terminate(due_to_failure=False)
             return True
-        else:
+        elif set(new_signals):
             self.workflow.log.info('Ignoring benign signal(s)')
+            return False
+        else:
+            #
+            # A signal arrived in the middle of a previous call to this method,
+            # between _recd_event.clear() and the assignment of new_signals.
+            # (Should be very rare, worth noting only for curiosity's sake.)
+            #
+            self.workflow.log.info('Woke up on an Event, but received no signal')
             return False
 
 
