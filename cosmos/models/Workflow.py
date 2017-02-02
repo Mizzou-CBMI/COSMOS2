@@ -154,9 +154,9 @@ class SignalWatcher(object):
 
     def _log_signal_receipt(self, signal_counter):
         for sig, cnt in signal_counter.items():
-            self.workflow.log.info("%s Caught signal %d %s(%s)",
-                                   (self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
-                                    self._explain(sig)))
+            self.workflow.log.info('%s Caught signal %d %s(%s)',
+                                   self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
+                                   self._explain(sig))
 
     def end_workflow_if_signaled(self, timeout=None):
         """
