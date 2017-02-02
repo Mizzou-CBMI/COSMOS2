@@ -171,7 +171,7 @@ class SignalWatcher(object):
         if new_signals:
             if not event_raised:
                 self.workflow.log.warning('Race condition? Event.set() did not fire but should have. '
-                                          'We can still do the right thing')
+                                          'We can still do the right thing and process caught signals')
             self._log_signal_receipt(new_signals)
             self._signals_processed += new_signals
 
@@ -184,7 +184,7 @@ class SignalWatcher(object):
                 self.workflow.log.info('Ignoring benign signal(s)')
             elif event_raised:
                 self.workflow.log.warning('Race condition? Event.set() should not have fired. '
-                                          'We can still do the right thing')
+                                          'We can still do the right thing and continue execution')
             return False
 
 
