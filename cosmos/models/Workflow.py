@@ -126,7 +126,7 @@ class SignalWatcher(object):
             signal.signal(sig, handler)
 
         self._prev_handlers.clear()
-        self.workflow.log.info('%s Caught/processed %d signal(s) while running',
+        self.workflow.log.info('%s Caught/processed %d/%d signal(s) while running',
                                self.workflow, sum(self._signals_caught.values()),
                                sum(self._signals_processed.values()))
 
