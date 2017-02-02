@@ -154,8 +154,8 @@ class SignalWatcher(object):
 
     def _log_signal_receipt(self, signal_counter):
         for sig, cnt in signal_counter.items():
-            self.workflow.log.info("Caught signal %d %s(%s)" %
-                                   (sig, '%d times ' % cnt if cnt > 1 else '',
+            self.workflow.log.info("%s Caught signal %d %s(%s)",
+                                   (self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
                                     self._explain(sig)))
 
     def end_workflow_if_signaled(self, timeout=None):
@@ -170,21 +170,23 @@ class SignalWatcher(object):
 
         if new_signals:
             if not event_raised:
-                self.workflow.log.warning('Race condition? Event.set() did not fire but should have. '
-                                          'We can still do the right thing and process caught signals')
+                self.workflow.log.warning('%s Race condition? Event.set() did not fire but should have. '
+                                          'We can still do the right thing and process caught signals',
+                                          self.workflow)
             self._log_signal_receipt(new_signals)
             self._signals_processed += new_signals
 
         if set(new_signals) & self.lethal_signals:
-            self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
+            self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
             self.workflow.terminate(due_to_failure=False)
             return True
         else:
             if new_signals:
-                self.workflow.log.info('Ignoring benign signal(s)')
+                self.workflow.log.info('%s Ignoring benign signal(s)', self.workflow)
             elif event_raised:
-                self.workflow.log.warning('Race condition? Event.set() should not have fired. '
-                                          'We can still do the right thing and continue execution')
+                self.workflow.log.warning('%s Race condition? Event.set() should not have fired. '
+                                          'We can still do the right thing and continue execution',
+                                          self.workflow)
             return False
 
 
