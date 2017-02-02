@@ -162,30 +162,29 @@ class SignalWatcher(object):
         """
         Tear workflow down and return true if a lethal signal has been received.
         """
-        if self._recd_event.wait(timeout):
+        event_raised = self._recd_event.wait(timeout)
+        if event_raised:
             self._recd_event.clear()
-            new_signals = self._signals_caught - self._signals_processed
-        else:
-            # nothing to do
-            return False
 
-        self._log_signal_receipt(new_signals)
-        self._signals_processed += new_signals
+        new_signals = self._signals_caught - self._signals_processed
+
+        if new_signals:
+            if not event_raised:
+                self.workflow.log.warning('Race condition? Event.set() did not fire but should have. '
+                                          'We can still do the right thing')
+            self._log_signal_receipt(new_signals)
+            self._signals_processed += new_signals
 
         if set(new_signals) & self.lethal_signals:
             self.workflow.log.info('Interrupting workflow to handle lethal signal(s)')
             self.workflow.terminate(due_to_failure=False)
             return True
-        elif set(new_signals):
-            self.workflow.log.info('Ignoring benign signal(s)')
-            return False
         else:
-            #
-            # A signal arrived in the middle of a previous call to this method,
-            # between _recd_event.clear() and the assignment of new_signals.
-            # (Should be very rare, worth noting only for curiosity's sake.)
-            #
-            self.workflow.log.info('Woke up on an Event, but received no signal')
+            if new_signals:
+                self.workflow.log.info('Ignoring benign signal(s)')
+            elif event_raised:
+                self.workflow.log.warning('Race condition? Event.set() should not have fired. '
+                                          'We can still do the right thing')
             return False
 
 
