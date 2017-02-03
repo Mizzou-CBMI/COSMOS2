@@ -158,7 +158,7 @@ class SignalWatcher(object):
                                    self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
                                    self._explain(sig))
 
-    def end_workflow_if_signaled(self, timeout=None):
+    def end_workflow_if_signaled(self, timeout):
         """
         Tear workflow down and return true if a lethal signal has been received.
         """
