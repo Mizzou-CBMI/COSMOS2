@@ -164,9 +164,12 @@ class SignalWatcher(object):
         """
         if self._recd_event.wait(timeout):
             self._recd_event.clear()
+
         #
         # Check for new signals, even when the Event didn't fire. There's a race
         # condition immediately above (Python has no Event.wait_and_clear() method).
+        # In the common case with no race, the Event helps handle signals more
+        # promptly by returning control before the specified timeout occurs.
         #
         new_signals = self._signals_caught - self._signals_processed
 
