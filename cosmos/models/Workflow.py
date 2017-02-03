@@ -177,12 +177,12 @@ class SignalWatcher(object):
             self._log_signal_receipt(new_signals)
             self._signals_processed += new_signals
 
-        if set(new_signals) & self.lethal_signals:
-            self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
-            self.workflow.terminate(due_to_failure=False)
-            return True
-        elif new_signals:
-            self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
+            if set(new_signals) & self.lethal_signals:
+                self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
+                self.workflow.terminate(due_to_failure=False)
+                return True
+            else:
+                self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
 
         return False
 
