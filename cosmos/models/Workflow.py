@@ -162,17 +162,15 @@ class SignalWatcher(object):
         """
         Tear workflow down and return true if a lethal signal has been received.
         """
-        event_raised = self._recd_event.wait(timeout)
-        if event_raised:
+        if self._recd_event.wait(timeout):
             self._recd_event.clear()
-
+        #
+        # Check for new signals, even when the Event didn't fire. There's a race
+        # condition immediately above (Python has no Event.wait_and_clear() method).
+        #
         new_signals = self._signals_caught - self._signals_processed
 
         if new_signals:
-            if not event_raised:
-                self.workflow.log.warning('%s Race condition? Event.set() did not fire but should have. '
-                                          'We can still do the right thing and process caught signals',
-                                          self.workflow)
             self._log_signal_receipt(new_signals)
             self._signals_processed += new_signals
 
@@ -180,14 +178,10 @@ class SignalWatcher(object):
             self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
             self.workflow.terminate(due_to_failure=False)
             return True
-        else:
-            if new_signals:
-                self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
-            elif event_raised:
-                self.workflow.log.warning('%s Race condition? Event.set() should not have fired. '
-                                          'We can still do the right thing and continue execution',
-                                          self.workflow)
-            return False
+        elif new_signals:
+            self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
+
+        return False
 
 
 class Workflow(Base):
