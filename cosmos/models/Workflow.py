@@ -112,13 +112,13 @@ class SignalWatcher(object):
 
         self._prev_handlers = dict()
         self._signals_caught = collections.Counter()
-        self._signals_processed = collections.Counter()
         self._recd_event = threading.Event()
+        self._signals_logged = collections.Counter()
 
     def __enter__(self):
         for sig in self.lethal_signals | self.benign_signals:
             self._cache_existing_handler(sig)
-            signal.signal(sig, self._signal_handler)
+            signal.signal(sig, self.signal_handler)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -128,9 +128,9 @@ class SignalWatcher(object):
         self._prev_handlers.clear()
         self.workflow.log.info('%s Caught/processed %d/%d signal(s) while running',
                                self.workflow, sum(self._signals_caught.values()),
-                               sum(self._signals_processed.values()))
+                               sum(self._signals_logged.values()))
 
-    def _signal_handler(self, signum, frame):    # pylint: disable=unused-argument
+    def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
         self._recd_event.set()
 
@@ -175,7 +175,7 @@ class SignalWatcher(object):
 
         if new_signals:
             self._log_signal_receipt(new_signals)
-            self._signals_processed += new_signals
+            self._signals_logged += new_signals
 
             if set(new_signals) & self.lethal_signals:
                 self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
