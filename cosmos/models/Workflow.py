@@ -189,6 +189,9 @@ class SignalWatcher(object):
             else:
                 self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
 
+        if self._logging_done:
+            return
+
 
 class Workflow(Base):
     """
