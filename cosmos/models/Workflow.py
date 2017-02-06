@@ -140,8 +140,8 @@ class SignalWatcher(object):
         self._logging_event.set()
         self._logging_daemon.join(timeout=1)
 
-        self.workflow.log.info('%s Caught/processed %d/%d signal(s) while running',
-                               self.workflow, sum(self._signals_caught.values()),
+        self.workflow.log.info('Caught/processed %d/%d signal(s) while running',
+                               sum(self._signals_caught.values()),
                                sum(self._signals_logged.values()))
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
@@ -171,8 +171,8 @@ class SignalWatcher(object):
 
     def _log_signal_receipt(self, signal_counter):
         for sig, cnt in signal_counter.items():
-            self.workflow.log.info('%s Caught signal %d %s(%s)',
-                                   self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
+            self.workflow.log.info('Caught signal %d %s(%s)',
+                                   sig, '%d times ' % cnt if cnt > 1 else '',
                                    self._explain(sig))
 
     def logging_daemon(self):
@@ -185,9 +185,9 @@ class SignalWatcher(object):
             self._signals_logged += new_signals
 
             if self.workflow.terminate_when_safe:
-                self.workflow.log.info('%s Early-termination flag has been set', self.workflow)
+                self.workflow.log.info('Early-termination flag has been set')
             else:
-                self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
+                self.workflow.log.debug('Ignoring benign signal(s)')
 
         if self._logging_done:
             return
