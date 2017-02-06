@@ -120,9 +120,11 @@ class SignalWatcher(object):
         self._logging_done = False
 
     def __enter__(self):
-
-        self._logging_daemon = threading.Thread(target=self._log_signal_receipt)
+        self._logging_done = False
+        self._logging_event = threading.Event()
+        self._logging_daemon = threading.Thread(target=self.logging_daemon)
         self._logging_daemon.daemon = True
+
         self._logging_daemon.start()
 
         for sig in self.lethal_signals | self.benign_signals:
