@@ -10,6 +10,7 @@ import re
 import signal
 import sys
 import threading
+import time
 import types
 
 import funcsigs
@@ -134,6 +135,9 @@ class SignalWatcher(object):
         self._signals_caught[signum] += 1
         self._recd_event.set()
 
+        if signum in self.lethal_signals:
+            self.workflow.terminate_when_safe = True
+
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
         if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
@@ -213,6 +217,7 @@ class Workflow(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
+    terminate_when_safe = False
 
     @declared_attr
     def status(cls):
@@ -649,7 +654,11 @@ def _run(workflow, session, task_queue):
 
             # only commit Task changes after processing a batch of finished ones
             session.commit()
-            if watcher.end_workflow_if_signaled(timeout=0.3):
+
+            time.sleep(.3)
+            if workflow.terminate_when_safe:
+                workflow.log.info('%s Stopping workflow due to signal(s)', workflow)
+                workflow.terminate(due_to_failure=False)
                 return
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
