@@ -113,10 +113,18 @@ class SignalWatcher(object):
 
         self._prev_handlers = dict()
         self._signals_caught = collections.Counter()
-        self._recd_event = threading.Event()
         self._signals_logged = collections.Counter()
 
+        self._logging_daemon = None
+        self._logging_event = None
+        self._logging_done = False
+
     def __enter__(self):
+
+        self._logging_daemon = threading.Thread(target=self._log_signal_receipt)
+        self._logging_daemon.daemon = True
+        self._logging_daemon.start()
+
         for sig in self.lethal_signals | self.benign_signals:
             self._cache_existing_handler(sig)
             signal.signal(sig, self.signal_handler)
@@ -127,13 +135,18 @@ class SignalWatcher(object):
             signal.signal(sig, handler)
 
         self._prev_handlers.clear()
+
+        self._logging_done = True
+        self._logging_event.set()
+        self._logging_daemon.join(timeout=1)
+
         self.workflow.log.info('%s Caught/processed %d/%d signal(s) while running',
                                self.workflow, sum(self._signals_caught.values()),
                                sum(self._signals_logged.values()))
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
-        self._recd_event.set()
+        self._logging_event.set()
 
         if signum in self.lethal_signals:
             self.workflow.terminate_when_safe = True
@@ -162,33 +175,19 @@ class SignalWatcher(object):
                                    self.workflow, sig, '%d times ' % cnt if cnt > 1 else '',
                                    self._explain(sig))
 
-    def end_workflow_if_signaled(self, timeout):
-        """
-        Tear workflow down and return true if a lethal signal has been received.
-        """
-        if self._recd_event.wait(timeout):
-            self._recd_event.clear()
-
-        #
-        # Check for new signals, even when the Event didn't fire. There's a race
-        # condition immediately above (Python has no Event.wait_and_clear() method).
-        # In the common case with no race, the Event helps handle signals more
-        # promptly by returning control before the specified timeout occurs.
-        #
-        new_signals = self._signals_caught - self._signals_processed
+    def logging_daemon(self):
+        self._logging_event.wait()
+        new_signals = self._signals_caught - self._signals_logged
+        self._logging_event.clear()
 
         if new_signals:
             self._log_signal_receipt(new_signals)
             self._signals_logged += new_signals
 
-            if set(new_signals) & self.lethal_signals:
-                self.workflow.log.info('%s Interrupting workflow to handle lethal signal(s)', self.workflow)
-                self.workflow.terminate(due_to_failure=False)
-                return True
+            if self.workflow.terminate_when_safe:
+                self.workflow.log.info('%s Early-termination flag has been set', self.workflow)
             else:
                 self.workflow.log.debug('%s Ignoring benign signal(s)', self.workflow)
-
-        return False
 
 
 class Workflow(Base):
@@ -621,7 +620,7 @@ def _run(workflow, session, task_queue):
     workflow.log.info('Executing TaskGraph')
     available_cores = True
 
-    with SignalWatcher(workflow) as watcher:
+    with SignalWatcher(workflow):
         while len(task_queue) > 0:
             if available_cores:
                 _run_queued_and_ready_tasks(task_queue, workflow)
