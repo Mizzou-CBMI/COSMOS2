@@ -204,19 +204,26 @@ def _qacct_raw(task, timeout=600, quantum=10):
                 if len(qacct_stdout_str.strip()):
                     break
                 else:
-                    task.workflow.log.error('%s SGE (qacct -j %s) returned an empty string', task, task.drm_jobID)
+                    task.workflow.log.error('%s SGE (qacct -j %s) returned an empty string',
+                                            task, task.drm_jobID)
             except sp.CalledProcessError as err:
+                qacct_stdout_str = err.output.strip()
                 task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d' %
                                         (task, task.drm_jobID, err.returncode))
-                if err.output:
-                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following to stdout', task, task.drm_jobID)
-                    task.workflow.log.error('"%s"', err.output.strip())
             finally:
                 qacct_stderr_fd.seek(0)
                 qacct_stderr_str = qacct_stderr_fd.read().strip()
-                if qacct_stderr_str:
-                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following to stderr', task, task.drm_jobID)
-                    task.workflow.log.error('"%s"', qacct_stderr_str)
+
+                if re.match(r'error: job id \d+ not found', qacct_stderr_str):
+                    task.workflow.log.info('%s SGE (qacct -j %s) found no job; either '
+                                           'qacct is slow or the job never made it out of \'qw\'',
+                                           task, task.drm_jobID)
+                elif qacct_stdout_str or qacct_stderr_str:
+                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
+                    if qacct_stdout_str:
+                        task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
+                    if qacct_stderr_str:
+                        task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
 
         task.workflow.log.info('%s Will recheck job status after %d sec', task, quantum)
         time.sleep(quantum)
