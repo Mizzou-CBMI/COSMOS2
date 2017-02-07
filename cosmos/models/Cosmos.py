@@ -60,11 +60,6 @@ class Cosmos(object):
         assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa'], 'unsupported drm: %s' % default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
-        # ignore SGE courtesy signals until we run() workflow(s)
-        signal.signal(signal.SIGUSR1, signal.SIG_IGN)
-        signal.signal(signal.SIGUSR2, signal.SIG_IGN)
-        signal.signal(signal.SIGXCPU, signal.SIG_IGN)
-
         # self.futures_executor = futures.ThreadPoolExecutor(10)
         if flask_app:
             self.flask_app = flask_app
