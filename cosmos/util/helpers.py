@@ -8,12 +8,6 @@ import string
 
 import time
 
-try:
-    from functools import lru_cache
-except ImportError:
-    from backports.functools_lru_cache import lru_cache
-
-
 def random_str(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
@@ -173,7 +167,6 @@ def formatError(txt, dict, error_text=''):
     print s
 
 
-@lru_cache()
 def get_logger(name, path=None):
     """
     Gets a logger of name `name` that prints to stderr and to root_path

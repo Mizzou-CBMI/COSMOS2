@@ -25,7 +25,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 
 install_requires = [
-    "backports.functools-lru-cache",
     "decorator",
     "flask",
     'funcsigs',
