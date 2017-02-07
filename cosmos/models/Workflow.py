@@ -115,12 +115,12 @@ class SignalWatcher(object):
         self._signals_caught = collections.Counter()
         self._signals_logged = collections.Counter()
 
-        self._logging_daemon = None
+        self._logging_enabled = False
         self._logging_event = None
-        self._logging_done = False
+        self._logging_daemon = None
 
     def __enter__(self):
-        self._logging_done = False
+        self._logging_enabled = True
         self._logging_event = threading.Event()
         self._logging_daemon = threading.Thread(target=self.logging_daemon)
         self._logging_daemon.daemon = True
@@ -138,7 +138,7 @@ class SignalWatcher(object):
 
         self._prev_handlers.clear()
 
-        self._logging_done = True
+        self._logging_enabled = False
         self._logging_event.set()
         self._logging_daemon.join(timeout=1)
 
@@ -178,21 +178,19 @@ class SignalWatcher(object):
                                    self._explain(sig))
 
     def logging_daemon(self):
-        self._logging_event.wait()
-        new_signals = self._signals_caught - self._signals_logged
-        self._logging_event.clear()
+        while self._logging_enabled:
+            self._logging_event.wait()
+            new_signals = self._signals_caught - self._signals_logged
+            self._logging_event.clear()
 
-        if new_signals:
-            self._log_signal_receipt(new_signals)
-            self._signals_logged += new_signals
+            if new_signals:
+                self._log_signal_receipt(new_signals)
+                self._signals_logged += new_signals
 
-            if self.workflow.terminate_when_safe:
-                self.workflow.log.info('Early-termination flag has been set')
-            else:
-                self.workflow.log.debug('Ignoring benign signal(s)')
-
-        if self._logging_done:
-            return
+                if self.workflow.terminate_when_safe:
+                    self.workflow.log.info('Early-termination flag has been set')
+                else:
+                    self.workflow.log.debug('Ignoring benign signal(s)')
 
 
 class Workflow(Base):
