@@ -98,10 +98,16 @@ class SGESignalWrapper(object):
         self._signals_caught = collections.Counter()
         self._signals_logged = collections.Counter()
 
-        self._log = self.workflow.log
         self._logging_enabled = False
         self._logging_event = None
         self._logging_daemon = None
+
+        #
+        # SQLAlchemy prohibits accessing these properties from the logging thread,
+        # so let's cache them when we know we're running on the main thread.
+        #
+        self._log = self.workflow.log
+        self._workflow_name = str(self.workflow)
 
     def __enter__(self):
         self._logging_enabled = True
@@ -126,7 +132,8 @@ class SGESignalWrapper(object):
         self._logging_event.set()
         self._logging_daemon.join(timeout=1)
 
-        self._log.info('Caught/processed %d/%d signal(s) while running',
+        self._log.info('%s Caught/processed %d/%d signal(s) while running',
+                       self._workflow_name,
                        sum(self._signals_caught.values()),
                        sum(self._signals_logged.values()))
 
@@ -159,8 +166,9 @@ class SGESignalWrapper(object):
 
     def _log_signal_receipt(self, signal_counter):
         for sig, cnt in signal_counter.items():
-            self._log.info('Caught signal %d %s(%s)',
-                           sig, '%d times ' % cnt if cnt > 1 else '',
+            self._log.info('%s Caught signal %d %s(%s)',
+                           self._workflow_name, sig,
+                           '%d times ' % cnt if cnt > 1 else '',
                            self._explain(sig))
 
     def logging_daemon(self):
@@ -174,6 +182,7 @@ class SGESignalWrapper(object):
                 self._signals_logged += new_signals
 
                 if self.workflow.terminate_when_safe:
-                    self._log.info('Early-termination flag has been set')
+                    self._log.info('%s Early-termination flag has been set',
+                                   self._workflow_name)
                 else:
-                    self._log.debug('Ignoring benign signal(s)')
+                    self._log.debug('%s Ignoring benign signal(s)', self._workflow_name)
