@@ -514,10 +514,10 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-        time.sleep(.3)      # returns early if we catch a signal
+        time.sleep(.3)   # conveniently, this returns early if we catch a signal
 
         if workflow.terminate_when_safe:
-            workflow.log.info('%s Stopping workflow due to signal(s)', workflow)
+            workflow.log.info('%s Early termination requested: stopping workflow', workflow)
             workflow.terminate(due_to_failure=False)
             return
 
@@ -571,14 +571,14 @@ def handle_exits(workflow, do_atexit=True):
                 should_terminate = False
                 try:
                     if workflow.status == WorkflowStatus.running:
-                        msg = 'Workflow %s has a status of running atexit!' % workflow
+                        msg = '%s Still running when atexit() was called' % workflow
                         should_terminate = True
                 except SQLAlchemyError:
-                    msg = 'Workflow %s has unknown status (sql error)!' % workflow
+                    msg = '%s Unknown status when atexit() was called (sql error)' % workflow
                     should_terminate = True
 
                 if should_terminate:
-                    workflow.log.error(msg)
+                    workflow.log.error(msg + ', terminating')
                     workflow.terminate(due_to_failure=True)
             finally:
                 workflow.log.info('%s Ceased work: this is its final log message', workflow)
