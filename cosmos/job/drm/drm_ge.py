@@ -205,7 +205,7 @@ def _qacct_raw(task, timeout=600, quantum=10):
                 if len(qacct_stdout_str.strip()):
                     break
                 else:
-                    task.workflow.log.error('%s SGE (qacct -j %s) returned an empty string',
+                    task.workflow.log.error('%s SGE (qacct -j %s) succeeded, but printed nothing',
                                             task, task.drm_jobID)
             except sp.CalledProcessError as err:
                 qacct_stdout_str = err.output.strip()
@@ -216,9 +216,9 @@ def _qacct_raw(task, timeout=600, quantum=10):
                 qacct_stderr_str = qacct_stderr_fd.read().strip()
 
                 if re.match(r'error: job id \d+ not found', qacct_stderr_str):
-                    task.workflow.log.info('%s SGE (qacct -j %s) found no job; either '
-                                           'qacct is slow or the job never made it out of \'qw\'',
-                                           task, task.drm_jobID)
+                    task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                                           'qacct is merely slow, or %s died in the \'qw\' state',
+                                           task, task.drm_jobID, task.drm_jobID)
                 elif qacct_stdout_str or qacct_stderr_str:
                     task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
                     if qacct_stdout_str:
