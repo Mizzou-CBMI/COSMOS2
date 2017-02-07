@@ -86,6 +86,7 @@ class SGESignalWrapper(object):
         self._signals_caught = collections.Counter()
         self._signals_logged = collections.Counter()
 
+        self._log = self.workflow.log
         self._logging_enabled = False
         self._logging_event = None
         self._logging_daemon = None
@@ -113,9 +114,9 @@ class SGESignalWrapper(object):
         self._logging_event.set()
         self._logging_daemon.join(timeout=1)
 
-        self.workflow.log.info('Caught/processed %d/%d signal(s) while running',
-                               sum(self._signals_caught.values()),
-                               sum(self._signals_logged.values()))
+        self._log.info('Caught/processed %d/%d signal(s) while running',
+                       sum(self._signals_caught.values()),
+                       sum(self._signals_logged.values()))
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
@@ -146,9 +147,9 @@ class SGESignalWrapper(object):
 
     def _log_signal_receipt(self, signal_counter):
         for sig, cnt in signal_counter.items():
-            self.workflow.log.info('Caught signal %d %s(%s)',
-                                   sig, '%d times ' % cnt if cnt > 1 else '',
-                                   self._explain(sig))
+            self._log.info('Caught signal %d %s(%s)',
+                           sig, '%d times ' % cnt if cnt > 1 else '',
+                           self._explain(sig))
 
     def logging_daemon(self):
         while self._logging_enabled:
@@ -161,6 +162,6 @@ class SGESignalWrapper(object):
                 self._signals_logged += new_signals
 
                 if self.workflow.terminate_when_safe:
-                    self.workflow.log.info('Early-termination flag has been set')
+                    self._log.info('Early-termination flag has been set')
                 else:
-                    self.workflow.log.debug('Ignoring benign signal(s)')
+                    self._log.debug('Ignoring benign signal(s)')
