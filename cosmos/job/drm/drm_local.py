@@ -1,12 +1,11 @@
 import os
-
 import psutil
+import time
 
 from .DRM_Base import DRM
 from .util import exit_process_group
-
 from ...api import TaskStatus
-import time
+from ...util.signals import sleep_through_signals
 
 
 class DRM_Local(DRM):
@@ -84,7 +83,7 @@ class DRM_Local(DRM):
     def kill_tasks(self, tasks):
         for t in tasks:
             self.terminate(t)
-        time.sleep(1)
+        sleep_through_signals(1)
         for t in tasks:
             self.kill(t)
 

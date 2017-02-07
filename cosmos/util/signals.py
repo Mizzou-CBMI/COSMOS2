@@ -37,6 +37,7 @@ to die.
 import collections
 import signal
 import threading
+import time
 
 
 def handle_sge_signals():
@@ -46,6 +47,17 @@ def handle_sge_signals():
     signal.signal(signal.SIGUSR1, signal.SIG_IGN)
     signal.signal(signal.SIGUSR2, signal.SIG_IGN)
     signal.signal(signal.SIGXCPU, signal.SIG_IGN)
+
+
+def sleep_through_signals(timeout):
+    """
+    If time.sleep() is interrupted by a signal, go back to sleep until timeout is exceeded.
+    """
+    start_tm = time.time()
+    elapsed_tm = time.time() - start_tm
+    while elapsed_tm < timeout:
+        time.sleep(timeout - elapsed_tm)
+        elapsed_tm = time.time() - start_tm
 
 
 class SGESignalWrapper(object):

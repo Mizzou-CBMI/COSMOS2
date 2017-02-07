@@ -514,7 +514,8 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-        time.sleep(.3)
+        time.sleep(.3)      # returns early if we catch a signal
+
         if workflow.terminate_when_safe:
             workflow.log.info('%s Stopping workflow due to signal(s)', workflow)
             workflow.terminate(due_to_failure=False)

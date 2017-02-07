@@ -7,6 +7,7 @@ from collections import OrderedDict
 import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
+from ...util.signals import sleep_through_signals
 
 from more_itertools import grouper
 from .DRM_Base import DRM
@@ -226,7 +227,7 @@ def _qacct_raw(task, timeout=600, quantum=10):
                         task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
 
         task.workflow.log.info('%s Will recheck job status after %d sec', task, quantum)
-        time.sleep(quantum)
+        sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
         raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
