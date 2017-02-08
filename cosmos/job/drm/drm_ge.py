@@ -184,7 +184,7 @@ def _is_corrupt(qacct_dict):
         qacct_dict.get('end_time', None) == '-/-'
 
 
-def _qacct_raw(task, timeout=600, quantum=10):
+def _qacct_raw(task, timeout=600, quantum=15):
     """
     Parse qacct output into key/value pairs.
 
@@ -212,9 +212,10 @@ def _qacct_raw(task, timeout=600, quantum=10):
             qacct_stderr_str = qacct_stderr_fd.read().strip()
 
             if re.match(r'error: job id \d+ not found', qacct_stderr_str):
-                task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
-                                       'qacct is merely slow, or %s died in the \'qw\' state',
-                                       task, task.drm_jobID, task.drm_jobID)
+                if i > 0:
+                    task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                                           'qacct is merely slow, or %s died in the \'qw\' state',
+                                           task, task.drm_jobID, task.drm_jobID)
             else:
                 task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
                                         task, task.drm_jobID, qacct_returncode)
@@ -225,8 +226,12 @@ def _qacct_raw(task, timeout=600, quantum=10):
                     if qacct_stderr_str:
                         task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
 
-        task.workflow.log.info('%s Will recheck job status after %d sec', task, quantum)
-        sleep_through_signals(timeout=quantum)
+        if i > 0:
+            task.workflow.log.info('%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
+                                   task, task.drm_jobID, i + 1, time.time() - start, quantum,
+                                   '. Will recheck job status after %d sec' if i + 1 < num_retries else '')
+        if i + 1 < num_retries:
+            sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
         raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
