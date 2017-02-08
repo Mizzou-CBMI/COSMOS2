@@ -227,9 +227,10 @@ def _qacct_raw(task, timeout=600, quantum=15):
                         task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
 
         if i > 0:
-            task.workflow.log.info('%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
-                                   task, task.drm_jobID, i + 1, time.time() - start, quantum,
-                                   '. Will recheck job status after %d sec' if i + 1 < num_retries else '')
+            task.workflow.log.info(
+                '%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
+                task, task.drm_jobID, i + 1, time.time() - start,
+                '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
         if i + 1 < num_retries:
             sleep_through_signals(timeout=quantum)
     else:
