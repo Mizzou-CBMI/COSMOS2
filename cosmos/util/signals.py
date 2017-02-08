@@ -77,6 +77,7 @@ class SGESignalWrapper(object):
             with SGESignalWrapper(workflow):
                 workflow.run()
     """
+
     def __init__(
         self, workflow,
         lethal_signals=frozenset([signal.SIGINT, signal.SIGTERM,
