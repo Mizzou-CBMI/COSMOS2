@@ -198,28 +198,27 @@ def _qacct_raw(task, timeout=600, quantum=10):
     num_retries = timeout / quantum
 
     for i in xrange(num_retries):
+        qacct_returncode = 0
         with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
             try:
                 qacct_stdout_str = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
-
                 if len(qacct_stdout_str.strip()):
                     break
-                else:
-                    task.workflow.log.error('%s SGE (qacct -j %s) succeeded, but printed nothing',
-                                            task, task.drm_jobID)
             except sp.CalledProcessError as err:
                 qacct_stdout_str = err.output.strip()
-                task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d' %
-                                        (task, task.drm_jobID, err.returncode))
-            finally:
-                qacct_stderr_fd.seek(0)
-                qacct_stderr_str = qacct_stderr_fd.read().strip()
+                qacct_returncode = err.returncode
 
-                if re.match(r'error: job id \d+ not found', qacct_stderr_str):
-                    task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
-                                           'qacct is merely slow, or %s died in the \'qw\' state',
-                                           task, task.drm_jobID, task.drm_jobID)
-                elif qacct_stdout_str or qacct_stderr_str:
+            qacct_stderr_fd.seek(0)
+            qacct_stderr_str = qacct_stderr_fd.read().strip()
+
+            if re.match(r'error: job id \d+ not found', qacct_stderr_str):
+                task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                                       'qacct is merely slow, or %s died in the \'qw\' state',
+                                       task, task.drm_jobID, task.drm_jobID)
+            else:
+                task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
+                                        task, task.drm_jobID, qacct_returncode)
+                if qacct_stdout_str or qacct_stderr_str:
                     task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
                     if qacct_stdout_str:
                         task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
