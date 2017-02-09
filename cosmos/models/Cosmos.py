@@ -1,5 +1,5 @@
-from flask import Flask, g
-
+from flask import Flask
+import signal
 import sys
 import os
 from ..util.helpers import get_logger, mkdir, confirm, str_format

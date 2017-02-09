@@ -13,7 +13,7 @@ import datetime
 
 
 @signal_stage_status_change.connect
-def task_status_changed(stage):
+def stage_status_changed(stage):
     stage.log.info('%s %s (%s/%s Tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
 
     if stage.status == StageStatus.successful:
@@ -23,8 +23,6 @@ def task_status_changed(stage):
         stage.started_on = datetime.datetime.now()
     elif stage.status in [StageStatus.successful, StageStatus.failed, StageStatus.killed]:
         stage.finished_on = datetime.datetime.now()
-
-    stage.session.commit()
 
 
 class StageEdge(Base):

@@ -1,14 +1,19 @@
-from sqlalchemy import orm
+"""
+Tools for defining, running and terminating Cosmos workflows.
+"""
+
 import atexit
-import sys
 import datetime
 import os
 import re
-import signal
+import sys
+import time
 import types
-import funcsigs
-import threading
 
+import funcsigs
+
+from sqlalchemy import orm
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
@@ -23,10 +28,10 @@ from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
 
-opj = os.path.join
-
 from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
 from .Task import Task
+
+opj = os.path.join
 
 
 def default_task_log_output_dir(task, subdir=''):
@@ -44,91 +49,6 @@ def _workflow_status_changed(ex):
     if ex.status == WorkflowStatus.successful:
         ex.successful = True
         ex.finished_on = datetime.datetime.now()
-
-    ex.session.commit()
-
-
-class SignalWatcher(object):
-    """
-    Monitors the specified signals and sets an Event when one is caught.
-
-    Depending on its configuration, SGE can send a SIGUSR1, SIGUSR2, and/or
-    SIGXCPU before sending SIGSTOP/SIGKILL signals which cannot be caught.
-
-    According to ``man qsub`` (search for -notify), SGE can:
-
-    > send "warning" signals to a running job prior to sending the
-    > signals themselves. If a SIGSTOP is pending, the job will
-    > receive a SIGUSR1 several seconds before the SIGSTOP. If a
-    > SIGKILL is pending, the job will receive a SIGUSR2 several
-    > seconds before the SIGKILL.
-
-    acording to ``man queue_conf``, SGE additionally can:
-
-    > If s_cpu is exceeded, the job is sent a SIGXCPU signal which
-    > can be caught by the job.... If s_vmem is exceeded, the job
-    > is sent a SIGXCPU signal which can be caught by the job....
-    > If s_rss is exceeded, the job is sent a SIGXCPU signal which
-      can be caught by the job
-    """
-
-    def __init__(self,
-                 workflow,
-                 target_signals=(signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU),
-                 ignored_signals=(signal.SIGUSR1,),
-                 explanations={
-                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP',
-                     signal.SIGUSR2: 'SGE is about to send a SIGKILL',
-                     signal.SIGXCPU: 'SGE resource limit has been exceeded'}):
-
-        self.workflow = workflow
-        self.explanations = explanations
-
-        self.signal_event = threading.Event()
-        self.last_signal = None
-
-        for sig in target_signals:
-            self._check_existing_handler(sig)
-            signal.signal(sig, self.flag_signal_receipt)
-
-        for sig in ignored_signals:
-            self._check_existing_handler(sig)
-            signal.signal(sig, self.log_signal)
-
-    @staticmethod
-    def _check_existing_handler(sig):
-        prev_handler = signal.getsignal(sig)
-        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
-            raise RuntimeError("a custom signal handler has already been set for signal %d: %s" % (sig, prev_handler))
-
-    def explain(self, signum):
-        names = []
-        for k, v in signal.__dict__.iteritems():
-            if k.startswith('SIG') and v == signum:
-                names.append(k)
-        names.sort()
-
-        if signum in self.explanations:
-            return ': '.join((' or '.join(names), self.explanations[signum]))
-        else:
-            return ' or '.join(names)
-
-    def log_signal(self, signum, frame):    # pylint: disable=unused-argument
-        msg = "Caught signal %d (%s)" % (signum, self.explain(signum))
-        print >>sys.stderr, msg
-        sys.stderr.flush()
-        self.workflow.log.info(msg)
-
-    def flag_signal_receipt(self, signum, frame):
-        self.log_signal(signum, frame)
-        self.last_signal = signum
-        self.signal_event.set()
-
-    def wait(self, timeout=None):
-        self.signal_event.wait(timeout)
-
-    def caught_signal(self):
-        return self.signal_event.is_set()
 
 
 class Workflow(Base):
@@ -157,6 +77,7 @@ class Workflow(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
+    terminate_when_safe = False
 
     @declared_attr
     def status(cls):
@@ -366,8 +287,6 @@ class Workflow(Base):
         self.successful = False
 
         if self.started_on is None:
-            import datetime
-
             self.started_on = datetime.datetime.now()
 
         task_graph = self.task_graph()
@@ -560,21 +479,8 @@ def _run(workflow, session, task_queue):
     Do the workflow!
     """
     workflow.log.info('Executing TaskGraph')
-
-    watcher = SignalWatcher(workflow)
-
-    # graph_failed = nx.DiGraph()
-    #
-    # def handler(signal, frame):
-    #     task_queue.add_edges(graph_failed.edges())
-    #     for task in graph_failed.nodes():
-    #         task.attempt +=1
-    #         task.status = TaskStatus.no_attempt
-    #     graph_failed.remove_nodes_from(graph_failed.nodes())
-
-    # signal.signal(signal.SIGUSR1, handler)
-
     available_cores = True
+
     while len(task_queue) > 0:
         if available_cores:
             _run_queued_and_ready_tasks(task_queue, workflow)
@@ -607,15 +513,13 @@ def _run(workflow, session, task_queue):
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
-        watcher.wait(.3)
-        if watcher.caught_signal():
-            workflow.log.info('Interrupting workflow to handle signal %d', watcher.last_signal)
+
+        time.sleep(.3)   # conveniently, this returns early if we catch a signal
+
+        if workflow.terminate_when_safe:
+            workflow.log.info('%s Early termination requested: stopping workflow', workflow)
             workflow.terminate(due_to_failure=False)
             return
-
-
-import networkx as nx
-
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
@@ -663,16 +567,24 @@ def handle_exits(workflow, do_atexit=True):
     if do_atexit:
         @atexit.register
         def cleanup_check():
-            if workflow.status == WorkflowStatus.running:
-                workflow.log.error('Workflow %s has a status of running atexit!' % workflow)
-                workflow.terminate(due_to_failure=True)
-                # raise SystemExit('Workflow terminated due to the python interpreter exiting')
+            try:
+                should_terminate = False
+                try:
+                    if workflow.status == WorkflowStatus.running:
+                        msg = '%s Still running when atexit() was called' % workflow
+                        should_terminate = True
+                except SQLAlchemyError:
+                    msg = '%s Unknown status when atexit() was called (sql error)' % workflow
+                    should_terminate = True
 
-            workflow.log.info('Ceased work on %s: this is its final log message', workflow)
+                if should_terminate:
+                    workflow.log.error(msg + ', terminating')
+                    workflow.terminate(due_to_failure=True)
+            finally:
+                workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
 
 def _copy_graph(graph):
-    import networkx as nx
 
     graph2 = nx.DiGraph()
     graph2.add_edges_from(graph.edges())

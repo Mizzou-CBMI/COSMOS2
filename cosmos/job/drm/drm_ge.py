@@ -1,9 +1,13 @@
+import contextlib
 import subprocess as sp
+import json
 import re
 import os
 from collections import OrderedDict
+import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
+from ...util.signals import sleep_through_signals
 
 from more_itertools import grouper
 from .DRM_Base import DRM
@@ -58,7 +62,7 @@ class DRM_GE(DRM):
                 data, data_are_corrupt = self._get_task_return_data(task)
                 if data_are_corrupt:
                     task.workflow.log.warn(
-                        'corrupt qstat/qacct output for %s means it may still be running' % task)
+                        '%s Corrupt SGE qstat/qacct output means it may still be running', task)
                     corrupt_data[task] = data
                 else:
                     yield task, data
@@ -68,12 +72,12 @@ class DRM_GE(DRM):
         if num_cleanly_running_jobs > 0:
             for task in corrupt_data.keys():
                 task.workflow.log.info(
-                    'temporarily masking corrupt SGE data for %s since %d other jobs are running cleanly' %
+                    '%s Temporarily masking corrupt SGE output since %d other jobs are running cleanly' %
                     (task, num_cleanly_running_jobs))
         else:
             for task, data in corrupt_data.items():
                 task.workflow.log.error(
-                    'all outstanding drm_ge tasks had corrupt SGE data: giving up on %s' % task)
+                    '%s All outstanding drm_ge tasks have corrupt SGE output: giving up on this one' % task)
                 yield task, data
 
     def drm_statuses(self, tasks):
@@ -106,10 +110,10 @@ class DRM_GE(DRM):
         data_are_corrupt = _is_corrupt(d)
 
         if job_failed or data_are_corrupt:
-            task.workflow.log.warn('`qacct -j %s` (for task %s) shows %s:\n%s' %
-                                   (task.drm_jobID, task,
+            task.workflow.log.warn('%s SGE (qacct -j %s) reports %s:\n%s' %
+                                   (task, task.drm_jobID,
                                     'corrupt data' if data_are_corrupt else 'job failure',
-                                    d))
+                                    json.dumps(d, indent=4, sort_keys=True)))
 
         processed_data = dict(
             exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
@@ -180,7 +184,7 @@ def _is_corrupt(qacct_dict):
         qacct_dict.get('end_time', None) == '-/-'
 
 
-def _qacct_raw(task, timeout=600):
+def _qacct_raw(task, timeout=600, quantum=15):
     """
     Parse qacct output into key/value pairs.
 
@@ -191,22 +195,50 @@ def _qacct_raw(task, timeout=600):
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
+    num_retries = timeout / quantum
 
-    with open(os.devnull, 'w') as DEVNULL:
-        while True:
-            if time.time() - start > timeout:
-                raise ValueError('Could not qacct -j %s' % task.drm_jobID)
+    for i in xrange(num_retries):
+        qacct_returncode = 0
+        with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
             try:
-                qacct_out = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=DEVNULL)
-                if len(qacct_out.strip()):
+                qacct_stdout_str = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
+                if len(qacct_stdout_str.strip()):
                     break
-                else:
-                    task.workflow.log.warn('`qacct -j %s` returned an empty string for %s' % (task.drm_jobID, task))
-            except sp.CalledProcessError:
-                pass
-            time.sleep(5)
+            except sp.CalledProcessError as err:
+                qacct_stdout_str = err.output.strip()
+                qacct_returncode = err.returncode
 
-    for line in qacct_out.strip().split('\n'):
+            qacct_stderr_fd.seek(0)
+            qacct_stderr_str = qacct_stderr_fd.read().strip()
+
+            if re.match(r'error: job id \d+ not found', qacct_stderr_str):
+                if i > 0:
+                    task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                                           'qacct is merely slow, or %s died in the \'qw\' state',
+                                           task, task.drm_jobID, task.drm_jobID)
+            else:
+                task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
+                                        task, task.drm_jobID, qacct_returncode)
+                if qacct_stdout_str or qacct_stderr_str:
+                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
+                    if qacct_stdout_str:
+                        task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
+                    if qacct_stderr_str:
+                        task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
+
+        if i > 0:
+            task.workflow.log.info(
+                '%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
+                task, task.drm_jobID, i + 1, time.time() - start,
+                '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
+        if i + 1 < num_retries:
+            sleep_through_signals(timeout=quantum)
+    else:
+        # fallthrough: all retries failed
+        raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
+                         (task.drm_jobID, i, time.time() - start))
+
+    for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
             if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
                 #
@@ -221,8 +253,8 @@ def _qacct_raw(task, timeout=600):
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s with drm_jobID=%s has corrupt qacct output:\n%s' %
-                                   (task, task.drm_jobID, qacct_out))
+            raise EnvironmentError('%s with drm_jobID=%s has unparseable qacct output:\n%s' %
+                                   (task, task.drm_jobID, qacct_stdout_str))
 
         curr_qacct_dict[k] = v.strip()
 
