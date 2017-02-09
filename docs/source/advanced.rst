@@ -61,3 +61,24 @@ COSMOS uses `blinker <https://pythonhosted.org/blinker/>`_ for signals.
                     if any('ERROR' in line for line in fp):
                         task.workflow.terminate()
 
+
+SGE Signals
++++++++++++++
+
+A useful context manager is available to cleanly handle SGE signals.
+
+.. code-block:: python
+
+    from cosmos.util.signals import SGESignalHandler, handle_sge_signals
+
+    def main():
+        handle_sge_signals()
+        ...
+        # create a dag and workflow, etc.
+        ...
+        with SGESignalHandler(workflow):
+            workflow.run()
+
+.. automodule:: cosmos.signal_handlers
+    :members:
+

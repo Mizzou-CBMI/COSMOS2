@@ -7,7 +7,7 @@ from collections import OrderedDict
 import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
-from ...util.signals import sleep_through_signals
+from ...util.signal_handlers import sleep_through_signals
 
 from more_itertools import grouper
 from .DRM_Base import DRM
