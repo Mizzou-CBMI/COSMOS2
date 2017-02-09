@@ -5,7 +5,7 @@ import time
 from .DRM_Base import DRM
 from .util import exit_process_group
 from ...api import TaskStatus
-from ...util.signals import sleep_through_signals
+from ...util.signal_handlers import sleep_through_signals
 
 
 class DRM_Local(DRM):

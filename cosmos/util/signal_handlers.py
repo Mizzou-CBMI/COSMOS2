@@ -68,7 +68,7 @@ def sleep_through_signals(timeout):
         elapsed_tm = time.time() - start_tm
 
 
-class SGESignalWrapper(object):
+class SGESignalHandler(object):
     """
     Monitors signals and sets a flag on the workflow when a fatal one is caught.
 
@@ -82,7 +82,7 @@ class SGESignalWrapper(object):
             ...
             # create a dag and workflow, etc.
             ...
-            with SGESignalWrapper(workflow):
+            with SGESignalHandler(workflow):
                 workflow.run()
     """
 

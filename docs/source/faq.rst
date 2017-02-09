@@ -28,3 +28,6 @@ How can I be more efficient with I/O?  Writing all the files back and forth to o
     this involves a Cosmos pipeline submitting another Cosmos pipeline as a job.  This is what we do in production, and has other advantages such as modularizing
     different aspects of our pipeline.  It had the added benefit of greatly increasing I/O for the jobs that are reading from local disc, rather than the shared file system.
 
+How can I modify the DAG based on the output of a Task?
+    Run Workflow.run() after adding the Task that outputs the information you need to construct the rest of your DAG.  Then modify the DAG as normal using
+    Workflow.add_task(), and once finished call Workflow.run() for a second time to run the rest of the Tasks.

@@ -10,6 +10,7 @@ from cosmos.util.args import add_workflow_args
 from cosmos.util.relationship_patterns import group
 from cosmos.util.helpers import make_dict
 from cosmos.util.iterstuff import only_one
+from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
 
 from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 import funcsigs
