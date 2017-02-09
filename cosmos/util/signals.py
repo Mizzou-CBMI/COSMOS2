@@ -36,17 +36,25 @@ to die.
 
 import collections
 import signal
+import sys
 import threading
 import time
 
 
+def die(signum, frame):    # pylint: disable=unused-argument
+    """
+    Immediately exit and set the error code to the signal number received.
+    """
+    sys.exit(signum)
+
+
 def handle_sge_signals():
     """
-    Ignore SGE courtesy signals until a SignalWrapper is ready to handle them.
+    Respond to SGE signals simply, until a SignalWrapper is ready to handle them.
     """
-    signal.signal(signal.SIGUSR1, signal.SIG_IGN)
-    signal.signal(signal.SIGUSR2, signal.SIG_IGN)
-    signal.signal(signal.SIGXCPU, signal.SIG_IGN)
+    signal.signal(signal.SIGUSR1, signal.SIG_IGN)   # SIGSTOP (probably) is coming, ignore
+    signal.signal(signal.SIGUSR2, die)              # SIGKILL is coming, die
+    signal.signal(signal.SIGXCPU, die)              # SIGKILL is coming, die
 
 
 def sleep_through_signals(timeout):
@@ -147,7 +155,7 @@ class SGESignalWrapper(object):
 
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
-        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+        if prev_handler not in (die, signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
             raise RuntimeError(
                 "a signal handler is already set for signal %d (%s): %s" %
                 (sig, self._explain(sig), prev_handler))
