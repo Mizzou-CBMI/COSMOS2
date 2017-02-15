@@ -75,6 +75,12 @@ class SGESignalHandler(object):
     Default responses and explanations are per an out-of-the-box SGE
     installation, but these can be configured with constructor parameters.
 
+    A quick primer on SGE courtesy signals:
+
+    If you submit a job with qsub -notify, SGE will send a SIGUSR1 or SIGUSR2 60 seconds before it sends the “real” signal if the job is qdeled.
+    Most of the time, SIGUSR1 means a SIGSTOP will be arriving.
+    SIGUSR2 and SIGXCPU always mean a SIGKILL is on the way.
+
     Easiest way to use this class is to wrap a call to run() in a with-statement:
 
         def main():
