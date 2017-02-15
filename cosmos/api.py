@@ -30,7 +30,7 @@ def load_input(out_file): pass
 
 def arg_to_str(name, value):
     if value:
-        if value == True:
+        if value is True:
             return name
         else:
             return '%s %s' % (name, value)
