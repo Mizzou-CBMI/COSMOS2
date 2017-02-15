@@ -7,7 +7,6 @@ from cosmos.models.Workflow import Workflow, default_task_log_output_dir
 from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
 
 from cosmos.util.args import add_workflow_args
-from cosmos.util.relationship_patterns import group
 from cosmos.util.helpers import make_dict
 from cosmos.util.iterstuff import only_one
 from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
