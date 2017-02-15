@@ -47,8 +47,9 @@ def args_to_str(*args):
     >>> x = 'bar'
     >>> y = None
     >>> z = 123
-    >>> args_to_str(('--foo', x))
-    '--foo bar'
+    >>> f = True
+    >>> args_to_str(('--foo', x), ('--flag', f))
+    '--foo bar --flag'
 
     >>> args_to_str(('--skip-me', y), ('--use-me', z))
     '--use-me 123'
