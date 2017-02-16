@@ -42,7 +42,7 @@ for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_, a leading clinical genetic sequencing diagnostics laboratory.
+`Invitae <http://invitae.com>`_, a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production.
 
 Features
 _________
