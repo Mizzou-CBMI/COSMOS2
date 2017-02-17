@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.util.signal_handlers &mdash; Cosmos 2.2.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Cosmos 2.2.5 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Cosmos
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.2.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../1_introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../3_getting_started.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/initializing.html">4. Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/workflows.html">6. Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">7. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../shell.html">8. Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">9. FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced.html">10. Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glossary.html">11. Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">Cosmos</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>cosmos.util.signal_handlers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cosmos.util.signal_handlers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions and classes useful for handling signals in an SGE environment.</span>
+
+<span class="sd">Depending on its configuration, SGE can send a SIGUSR1, SIGUSR2, and/or SIGXCPU</span>
+<span class="sd">before sending SIGSTOP/SIGKILL signals (which cannot be caught).</span>
+
+<span class="sd">According to ``man qsub`` (search for -notify), SGE can:</span>
+
+<span class="sd">&gt; send &quot;warning&quot; signals to a running job prior to sending the signals</span>
+<span class="sd">&gt; themselves. If a SIGSTOP is pending, the job will receive a SIGUSR1 several</span>
+<span class="sd">&gt; seconds before the SIGSTOP. If a SIGKILL is pending, the job will receive a</span>
+<span class="sd">&gt; SIGUSR2 several seconds before the SIGKILL.</span>
+
+<span class="sd">In addition, according to ``man queue_conf``:</span>
+
+<span class="sd">&gt; If s_cpu is exceeded, the job is sent a SIGXCPU signal which can be caught by</span>
+<span class="sd">&gt; the job.... If s_vmem is exceeded, the job is sent a SIGXCPU signal which can</span>
+<span class="sd">&gt; be caught by the job.... If s_rss is exceeded, the job is sent a SIGXCPU</span>
+<span class="sd">&gt; signal which can be caught by the job....</span>
+
+<span class="sd">Unfortunately, SIGUSR1 can mean two different things. As above, when -notify is</span>
+<span class="sd">set, it means a SIGSTOP is imminent. However, and less frequently, it can also</span>
+<span class="sd">mean a job is about to be killed. See, again, ``man queue_conf``:</span>
+
+<span class="sd">&gt; If h_rt is exceeded by a job running in the queue, it is aborted via the</span>
+<span class="sd">&gt; SIGKILL signal (see kill(1)). If s_rt is exceeded, the job is first &quot;warned&quot;</span>
+<span class="sd">&gt; via the SIGUSR1 signal (which can be caught by the job) and finally aborted</span>
+<span class="sd">&gt; after the notification time defined in the queue configuration parameter</span>
+<span class="sd">&gt; notify (see above) has passed.</span>
+
+<span class="sd">SIGUSR1 signals, then, are more likely than not to be a benign indication</span>
+<span class="sd">that a job is about to be paused (since timeouts are far rarer than pauses).</span>
+<span class="sd">However, when one is caught, we log that it may be a sign the job is about</span>
+<span class="sd">to die.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="die"><a class="viewcode-back" href="../../../advanced.html#cosmos.util.signal_handlers.die">[docs]</a><span class="k">def</span> <span class="nf">die</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>    <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Immediately exit and set the error code to the signal number received.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">signum</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_sge_signals"><a class="viewcode-back" href="../../../advanced.html#cosmos.util.signal_handlers.handle_sge_signals">[docs]</a><span class="k">def</span> <span class="nf">handle_sge_signals</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Respond to SGE signals simply, until a SignalWrapper is ready to handle them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR1</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">)</span>   <span class="c1"># SIGSTOP (probably) is coming, ignore</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR2</span><span class="p">,</span> <span class="n">die</span><span class="p">)</span>              <span class="c1"># SIGKILL is coming, die</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGXCPU</span><span class="p">,</span> <span class="n">die</span><span class="p">)</span>              <span class="c1"># SIGKILL is coming, die</span></div>
+
+
+<div class="viewcode-block" id="sleep_through_signals"><a class="viewcode-back" href="../../../advanced.html#cosmos.util.signal_handlers.sleep_through_signals">[docs]</a><span class="k">def</span> <span class="nf">sleep_through_signals</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If time.sleep() is interrupted by a signal, go back to sleep until timeout is exceeded.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">elapsed_tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_tm</span>
+    <span class="k">while</span> <span class="n">elapsed_tm</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timeout</span> <span class="o">-</span> <span class="n">elapsed_tm</span><span class="p">)</span>
+        <span class="n">elapsed_tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_tm</span></div>
+
+
+<div class="viewcode-block" id="SGESignalHandler"><a class="viewcode-back" href="../../../advanced.html#cosmos.util.signal_handlers.SGESignalHandler">[docs]</a><span class="k">class</span> <span class="nc">SGESignalHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Monitors signals and sets a flag on the workflow when a fatal one is caught.</span>
+
+<span class="sd">    Default responses and explanations are per an out-of-the-box SGE</span>
+<span class="sd">    installation, but these can be configured with constructor parameters.</span>
+
+<span class="sd">    A quick primer on SGE courtesy signals:</span>
+
+<span class="sd">    If you submit a job with qsub -notify, SGE will send a SIGUSR1 or SIGUSR2 60 seconds before it sends the &quot;real&quot; signal if the job is qdeled.</span>
+<span class="sd">    Most of the time, SIGUSR1 means a SIGSTOP (suspend the process) will be arriving.</span>
+<span class="sd">    SIGUSR2 and SIGXCPU always mean a SIGKILL is on the way.</span>
+
+<span class="sd">    Easiest way to use this class is to wrap a call to run() in a with-statement:</span>
+
+<span class="sd">        def main():</span>
+<span class="sd">            handle_sge_signals()</span>
+<span class="sd">            ...</span>
+<span class="sd">            # create a dag and workflow, etc.</span>
+<span class="sd">            ...</span>
+<span class="sd">            with SGESignalHandler(workflow):</span>
+<span class="sd">                workflow.run()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SGESignalHandler.__init__"><a class="viewcode-back" href="../../../advanced.html#cosmos.util.signal_handlers.SGESignalHandler.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">workflow</span><span class="p">,</span>
+        <span class="n">lethal_signals</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span>
+                                  <span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR2</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIGXCPU</span><span class="p">]),</span>
+        <span class="n">benign_signals</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">([</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR1</span><span class="p">]),</span>
+        <span class="n">explanations</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR1</span><span class="p">:</span> <span class="s1">&#39;SGE is about to send a SIGSTOP, or, &#39;</span>
+                            <span class="s1">&#39;if a time limit has been exceeded, a SIGKILL&#39;</span><span class="p">,</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">SIGUSR2</span><span class="p">:</span> <span class="s1">&#39;SGE is about to send a SIGKILL&#39;</span><span class="p">,</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">SIGXCPU</span><span class="p">:</span> <span class="s1">&#39;SGE is about to send a SIGKILL, &#39;</span>
+                            <span class="s1">&#39;because a cpu resource limit has been exceeded&#39;</span><span class="p">}):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="o">=</span> <span class="n">workflow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lethal_signals</span> <span class="o">=</span> <span class="n">lethal_signals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">benign_signals</span> <span class="o">=</span> <span class="n">benign_signals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prev_handlers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signals_caught</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signals_logged</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_daemon</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># SQLAlchemy prohibits accessing these properties from the logging thread,</span>
+        <span class="c1"># so let&#39;s cache them when we know we&#39;re running on the main thread.</span>
+        <span class="c1">#</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">log</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_daemon</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logging_daemon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_daemon</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_daemon</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">sig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lethal_signals</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">benign_signals</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_existing_handler</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_handler</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sig</span><span class="p">,</span> <span class="n">handler</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_handlers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">handler</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prev_handlers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_daemon</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Caught/processed </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> signal(s) while running&#39;</span><span class="p">,</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_name</span><span class="p">,</span>
+                       <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_signals_caught</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                       <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_signals_logged</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">signal_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>    <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signals_caught</span><span class="p">[</span><span class="n">signum</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">signum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lethal_signals</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">terminate_when_safe</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_cache_existing_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sig</span><span class="p">):</span>
+        <span class="n">prev_handler</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">getsignal</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prev_handler</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">die</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_IGN</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">default_int_handler</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;a signal handler is already set for signal </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_explain</span><span class="p">(</span><span class="n">sig</span><span class="p">),</span> <span class="n">prev_handler</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prev_handlers</span><span class="p">[</span><span class="n">sig</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_handler</span>
+
+    <span class="k">def</span> <span class="nf">_explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signum</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">signal</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;SIG&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">==</span> <span class="n">signum</span><span class="p">:</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">names</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">signum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanations</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;: &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s1">&#39; or &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">explanations</span><span class="p">[</span><span class="n">signum</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39; or &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_log_signal_receipt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal_counter</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sig</span><span class="p">,</span> <span class="n">cnt</span> <span class="ow">in</span> <span class="n">signal_counter</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Caught signal </span><span class="si">%d</span><span class="s1"> </span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_name</span><span class="p">,</span> <span class="n">sig</span><span class="p">,</span>
+                           <span class="s1">&#39;</span><span class="si">%d</span><span class="s1"> times &#39;</span> <span class="o">%</span> <span class="n">cnt</span> <span class="k">if</span> <span class="n">cnt</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_explain</span><span class="p">(</span><span class="n">sig</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">logging_daemon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logging_enabled</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="n">new_signals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signals_caught</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signals_logged</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logging_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">new_signals</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log_signal_receipt</span><span class="p">(</span><span class="n">new_signals</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_signals_logged</span> <span class="o">+=</span> <span class="n">new_signals</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">terminate_when_safe</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Early-termination flag has been set&#39;</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_name</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Ignoring benign signal(s)&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workflow_name</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Erik Gafni.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'2.2.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

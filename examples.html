@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>7. Examples &mdash; Cosmos 2.0.14 documentation</title>
+  <title>7. Examples &mdash; Cosmos 2.2.5 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Cosmos 2.0.14 documentation" href="index.html"/>
+    <link rel="top" title="Cosmos 2.2.5 documentation" href="index.html"/>
         <link rel="next" title="8. Shell" href="shell.html"/>
         <link rel="prev" title="6. Workflows" href="workflows/workflows.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.0.14
+                2.2.5
               </div>
             
           
@@ -159,6 +159,7 @@ like other workflow managers - we&#8217;ve found that works most of the time; th
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="k">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">default_get_submit_args</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 
@@ -178,16 +179,20 @@ like other workflow managers - we&#8217;ve found that works most of the time; th
 <span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">)</span>
 
 
-<span class="n">t</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">say</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Hello World&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s1">&#39;out.txt&#39;</span><span class="p">,</span> <span class="n">core_req</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;my_task&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">say</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Hello World&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s1">&#39;out.txt&#39;</span><span class="p">,</span> <span class="n">core_req</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;my_task&#39;</span><span class="p">,</span> <span class="n">time_req</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <span class="nb">print</span> <span class="s1">&#39;task.params&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">params</span>
 <span class="nb">print</span> <span class="s1">&#39;task.input_map&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">input_map</span>
 <span class="nb">print</span> <span class="s1">&#39;task.output_map&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">output_map</span>
 <span class="nb">print</span> <span class="s1">&#39;task.core_req&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">core_req</span>
+<span class="nb">print</span> <span class="s1">&#39;task.time_req&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">time_req</span>
 <span class="nb">print</span> <span class="s1">&#39;task.drm&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">drm</span>
 <span class="nb">print</span> <span class="s1">&#39;task.uid&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">uid</span>
 
 <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">successful</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+
 </pre></div>
 </div>
 <p>Running the above file...</p>
@@ -221,6 +226,7 @@ INFO: 2016-11-02 17:29:54: &lt;Workflow<span class="o">[</span>1<span class="o">
 <p>Here is the source code of the <code class="file docutils literal"><span class="pre">example_workflows/ex2.py</span></code> you ran in <a class="reference internal" href="3_getting_started.html#getting-started"><span class="std std-ref">Getting Started</span></a>.</p>
 <p><code class="file docutils literal"><span class="pre">examples/ex2.py</span></code></p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="k">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">Dependency</span><span class="p">,</span> <span class="n">draw_stage_graph</span><span class="p">,</span> <span class="n">draw_task_graph</span><span class="p">,</span> \
     <span class="n">pygraphviz_available</span><span class="p">,</span> <span class="n">default_get_submit_args</span>
@@ -241,33 +247,33 @@ INFO: 2016-11-02 17:29:54: &lt;Workflow<span class="o">[</span>1<span class="o">
         <span class="n">word</span> <span class="o">=</span> <span class="n">echo_task</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;word&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
             <span class="n">cat_task</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-                    <span class="n">func</span><span class="o">=</span><span class="n">cat</span><span class="p">,</span>
-                    <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">echo_task</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;out_txt&#39;</span><span class="p">]],</span>
-                                <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/cat.txt&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
-                    <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">echo_task</span><span class="p">],</span>
-                    <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+                <span class="n">func</span><span class="o">=</span><span class="n">cat</span><span class="p">,</span>
+                <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">echo_task</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;out_txt&#39;</span><span class="p">]],</span>
+                            <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/cat.txt&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span>
+                <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">echo_task</span><span class="p">],</span>
+                <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 
             <span class="c1"># Count the words in the previous stage.  An example of a simple one2one relationship</span>
             <span class="c1"># For each task in StageA, there is a single dependent task in StageB.</span>
             <span class="n">word_count_task</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-                    <span class="n">func</span><span class="o">=</span><span class="n">word_count</span><span class="p">,</span>
-                    <span class="c1"># Dependency instances allow you to specify an input and parent simultaneously</span>
-                    <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">Dependency</span><span class="p">(</span><span class="n">cat_task</span><span class="p">,</span> <span class="s1">&#39;out_txt&#39;</span><span class="p">)],</span>
-                                <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/wc.txt&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span>
-                                <span class="n">chars</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                    <span class="c1"># parents=[cat_task], &lt;-- not necessary!</span>
-                    <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="p">)</span>
+                <span class="n">func</span><span class="o">=</span><span class="n">word_count</span><span class="p">,</span>
+                <span class="c1"># Dependency instances allow you to specify an input and parent simultaneously</span>
+                <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">Dependency</span><span class="p">(</span><span class="n">cat_task</span><span class="p">,</span> <span class="s1">&#39;out_txt&#39;</span><span class="p">)],</span>
+                            <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/wc.txt&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span>
+                            <span class="n">chars</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="c1"># parents=[cat_task], &lt;-- not necessary!</span>
+                <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="p">)</span>
             <span class="n">word_count_tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word_count_task</span><span class="p">)</span>
 
     <span class="c1"># Cat the contents of all word_counts into one file.  Only one node is being created who&#39;s</span>
     <span class="c1"># parents are all of the WordCounts (a many2one relationship, aka a reduce operation).</span>
     <span class="n">summarize_task</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
-            <span class="n">func</span><span class="o">=</span><span class="n">cat</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">Dependency</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out_txt&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">word_count_tasks</span><span class="p">],</span>
-                        <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;summary.txt&#39;</span><span class="p">),</span>
-            <span class="n">parents</span><span class="o">=</span><span class="n">word_count_tasks</span><span class="p">,</span>
-            <span class="n">stage_name</span><span class="o">=</span><span class="s1">&#39;Summary_Analysis&#39;</span><span class="p">,</span>
-            <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># It&#39;s the only Task in this Stage, so doesn&#39;t need a specific uid</span>
+        <span class="n">func</span><span class="o">=</span><span class="n">cat</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txts</span><span class="o">=</span><span class="p">[</span><span class="n">Dependency</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out_txt&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">word_count_tasks</span><span class="p">],</span>
+                    <span class="n">out_txt</span><span class="o">=</span><span class="s1">&#39;summary.txt&#39;</span><span class="p">),</span>
+        <span class="n">parents</span><span class="o">=</span><span class="n">word_count_tasks</span><span class="p">,</span>
+        <span class="n">stage_name</span><span class="o">=</span><span class="s1">&#39;Summary_Analysis&#39;</span><span class="p">,</span>
+        <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># It&#39;s the only Task in this Stage, so doesn&#39;t need a specific uid</span>
 
 
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
@@ -275,12 +281,15 @@ INFO: 2016-11-02 17:29:54: &lt;Workflow<span class="o">[</span>1<span class="o">
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-drm&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;local&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;local&#39;</span><span class="p">,</span> <span class="s1">&#39;drmaa:ge&#39;</span><span class="p">,</span> <span class="s1">&#39;ge&#39;</span><span class="p">))</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-q&#39;</span><span class="p">,</span> <span class="s1">&#39;--queue&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Submit to this queue of the DRM supports it&#39;</span><span class="p">)</span>
+
     <span class="n">args</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///</span><span class="si">%s</span><span class="s1">/sqlite.db&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)),</span>
                     <span class="c1"># example of how to change arguments if you&#39;re NOT using default_drm=&#39;local&#39;</span>
                     <span class="n">get_submit_args</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">default_get_submit_args</span><span class="p">,</span> <span class="n">parallel_env</span><span class="o">=</span><span class="s1">&#39;smp&#39;</span><span class="p">),</span>
-                    <span class="n">default_drm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">drm</span><span class="p">)</span>
+                    <span class="n">default_drm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">drm</span><span class="p">,</span>
+                    <span class="n">default_queue</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">queue</span><span class="p">)</span>
     <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
 
     <span class="n">sp</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="s1">&#39;mkdir -p analysis_output/ex2&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -299,6 +308,8 @@ INFO: 2016-11-02 17:29:54: &lt;Workflow<span class="o">[</span>1<span class="o">
         <span class="n">draw_task_graph</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">task_graph</span><span class="p">(),</span> <span class="s1">&#39;/tmp/ex1_stage_graph.png&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span> <span class="s1">&#39;Pygraphviz is not available :(&#39;</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">successful</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Here&#8217;s the <a class="reference internal" href="glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> that was created.  If you use the web-interface, the nodes are convenient links
@@ -402,7 +413,7 @@ is too large for a visualization to be useful:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2.0.14',
+            VERSION:'2.2.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

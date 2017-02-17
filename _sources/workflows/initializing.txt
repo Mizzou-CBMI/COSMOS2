@@ -3,20 +3,25 @@
 Initializing
 ===============
 
-Cosmos is initialized using the :class:`cosmos.Cosmos` object, which is subsequently used to start instances of :class:`Workflow`
-which contain the entire structure of a workflow.
+Cosmos is initialized by instantiating a :class:`cosmos.Cosmos` instance, which represents a connection to a SQL database.  The Cosmos instance can then
+be used to start a Workflow.  If a Workflow already exists with the same name, it will be resumed and all failed Tasks will be deleted from the database.
+
 
 .. code-block:: python
 
     from cosmos import Cosmos
-    cosmos = Cosmos('sqlite:///my_cosmos_db.sqlite')
-    cosmos.initdb()
-    workflow = cosmos.start('My_Workflow')
+    cosmos = Cosmos(database_url='sqlite:///my_cosmos_db.sqlite')
+    cosmos.initdb() # creates the tables, if they already exist this does nothing
+    workflow = cosmos.start(name='My_Workflow')
 
-You will likely have to install the python package required to use the driver you'd like. For example, if you are using
+You may have to install the python package required to use the driver you'd like. For example, if you are using
 ``postgres+psycopg2:///``, make sure you ``pip install psycopg2``.  See `SQLAlchemy Engines <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_
 for more details.
 
+.. note::
+
+    If is often very useful to maintain a one SQLite databsae per Workflow (especially for production environment), stored in the output directory of that Workflow.
+    This way, Workflows are completely atomic and all their provenance is nicely packed in a single location.
 
 API
 -----------

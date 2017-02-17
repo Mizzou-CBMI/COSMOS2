@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4. Initializing &mdash; Cosmos 2.0.14 documentation</title>
+  <title>4. Initializing &mdash; Cosmos 2.2.5 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Cosmos 2.0.14 documentation" href="../index.html"/>
+    <link rel="top" title="Cosmos 2.2.5 documentation" href="../index.html"/>
         <link rel="next" title="5. Task Functions" href="task_func.html"/>
         <link rel="prev" title="3. Getting Started" href="../3_getting_started.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.0.14
+                2.2.5
               </div>
             
           
@@ -145,27 +145,32 @@
             
   <div class="section" id="initializing">
 <span id="id1"></span><h1>4. Initializing<a class="headerlink" href="#initializing" title="Permalink to this headline">¶</a></h1>
-<p>Cosmos is initialized using the <code class="xref py py-class docutils literal"><span class="pre">cosmos.Cosmos</span></code> object, which is subsequently used to start instances of <code class="xref py py-class docutils literal"><span class="pre">Workflow</span></code>
-which contain the entire structure of a workflow.</p>
+<p>Cosmos is initialized by instantiating a <code class="xref py py-class docutils literal"><span class="pre">cosmos.Cosmos</span></code> instance, which represents a connection to a SQL database.  The Cosmos instance can then
+be used to start a Workflow.  If a Workflow already exists with the same name, it will be resumed and all failed Tasks will be deleted from the database.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span>
-<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///my_cosmos_db.sqlite&#39;</span><span class="p">)</span>
-<span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">)</span>
+<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="n">database_url</span><span class="o">=</span><span class="s1">&#39;sqlite:///my_cosmos_db.sqlite&#39;</span><span class="p">)</span>
+<span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span> <span class="c1"># creates the tables, if they already exist this does nothing</span>
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You will likely have to install the python package required to use the driver you&#8217;d like. For example, if you are using
+<p>You may have to install the python package required to use the driver you&#8217;d like. For example, if you are using
 <code class="docutils literal"><span class="pre">postgres+psycopg2:///</span></code>, make sure you <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">psycopg2</span></code>.  See <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html">SQLAlchemy Engines</a>
 for more details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If is often very useful to maintain a one SQLite databsae per Workflow (especially for production environment), stored in the output directory of that Workflow.
+This way, Workflows are completely atomic and all their provenance is nicely packed in a single location.</p>
+</div>
 <div class="section" id="api">
 <h2>4.1. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="cosmos">
 <h3>4.1.1. Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="cosmos.api.Cosmos">
-<em class="property">class </em><code class="descclassname">cosmos.api.</code><code class="descname">Cosmos</code><span class="sig-paren">(</span><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cosmos.api.</code><code class="descname">Cosmos</code><span class="sig-paren">(</span><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="cosmos.api.Cosmos.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em>default_drm='local'</em>, <em>flask_app=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>database_url='sqlite:///:memory:'</em>, <em>get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em>default_drm='local'</em>, <em>default_queue=None</em>, <em>flask_app=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -186,23 +191,30 @@ requirements or the queue to submit to.  See <a class="reference internal" href=
 
 <dl class="method">
 <dt id="cosmos.api.Cosmos.start">
-<code class="descname">start</code><span class="sig-paren">(</span><em>name</em>, <em>restart=False</em>, <em>skip_confirm=False</em>, <em>primary_log_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
+<code class="descname">start</code><span class="sig-paren">(</span><em>name</em>, <em>restart=False</em>, <em>skip_confirm=False</em>, <em>primary_log_path=None</em>, <em>fail_fast=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; A name for the workflow.  Must be unique for this Cosmos session.</li>
 <li><strong>restart</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True and the workflow exists, delete it first.</li>
 <li><strong>skip_confirm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; (If True, do not prompt the shell for input before deleting workflows or files.</li>
 <li><strong>primary_log_path</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
 stderr.</li>
+<li><strong>fail_fast</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, terminate the workflow the first time a Task fails.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An Workflow instance.</p>
-</td>
+</tbody>
+</table>
+<p>Otherwise, run all Tasks except those downstream of a failure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An Workflow instance.</td>
 </tr>
 </tbody>
 </table>
@@ -232,7 +244,7 @@ stderr.</li>
 
 <dl class="function">
 <dt id="cosmos.api.default_get_submit_args">
-<code class="descclassname">cosmos.api.</code><code class="descname">default_get_submit_args</code><span class="sig-paren">(</span><em>task</em>, <em>default_queue=None</em>, <em>parallel_env='orte'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cosmos.api.</code><code class="descname">default_get_submit_args</code><span class="sig-paren">(</span><em>task</em>, <em>parallel_env='orte'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default method for determining the extra arguments to pass to the DRM.
 For example, returning <cite>&#8220;-n 3&#8221; if</cite> <cite>task.drm == &#8220;lsf&#8221;</cite> would cause all jobs
 to be submitted with <cite>bsub -n 3</cite>.</p>
@@ -240,14 +252,9 @@ to be submitted with <cite>bsub -n 3</cite>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>task</strong> (<em>cosmos.api.Task</em>) &#8211; The Task being submitted.</li>
-<li><strong>default_queue</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The default_queue to submit to</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>task</strong> (<em>cosmos.api.Task</em>) &#8211; The Task being submitted.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)">str</a></p>
-</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)">str</a></td>
 </tr>
 </tbody>
 </table>
@@ -298,7 +305,7 @@ to be submitted with <cite>bsub -n 3</cite>.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'2.0.14',
+            VERSION:'2.2.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

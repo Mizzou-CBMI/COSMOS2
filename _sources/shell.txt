@@ -4,7 +4,7 @@ Shell
 The Cosmos shell is an interactive IPython session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
 your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
 
-For example, **wf** will be the most recent Workflow.
+As an example, **wf** will be the most recent Workflow when you launch into the shell.
 
 To launch the shell, just run:
 
