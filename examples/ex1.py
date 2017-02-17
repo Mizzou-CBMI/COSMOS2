@@ -3,6 +3,7 @@ Basic demonstration the structure of a Task instance
 """
 import subprocess as sp
 import os
+import sys
 from cosmos.api import Cosmos, default_get_submit_args
 from functools import partial
 
@@ -33,3 +34,6 @@ print 'task.drm', t.drm
 print 'task.uid', t.uid
 
 workflow.run()
+
+sys.exit(0 if workflow.successful else 1)
+

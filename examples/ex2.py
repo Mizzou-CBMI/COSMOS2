@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess as sp
 from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
     pygraphviz_available, default_get_submit_args
@@ -80,3 +81,5 @@ if __name__ == '__main__':
         draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
         print 'Pygraphviz is not available :('
+
+    sys.exit(0 if workflow.successful else 1)
