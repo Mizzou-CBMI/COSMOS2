@@ -47,6 +47,11 @@ _________
 * Monitor and debug running workflows, and a history of all workflows via a web dashboard.
 * Alter and resume failed workflows.
 
+Web Dashboard
+_______________
+.. figure:: docs/source/_static/imgs/web_interface.png
+   :align: center
+   
 Multi-platform Support
 +++++++++++++++++++++++
 * Support for DRMS such as SGE, LSF and DRMAA.  Adding support for more DRMs is very straightforward.
