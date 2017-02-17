@@ -22,7 +22,8 @@ Introduction
 ============
 Cosmos is a python workflow management library primarily intended to process Big Data through scientific pipelines on a distributed computing cluster. 
 It is used in production by large companies and researchers, and is popular in the bioinformatics community yet general enough for any distributed computing application.
- It allows you to efficiently program extremely complex workflows that are still readable and accessible to other software engineers,
+
+It allows you to efficiently program extremely complex workflows that are still readable and accessible to other software engineers,
  and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
 able to automatically process large amounts of data by utilizing traditional cluster such as LSF or GridEngine and a shared filesystem, which do not come
 with the limitations of map reduce frameworks like Hadoop and Spark.  It is especially
