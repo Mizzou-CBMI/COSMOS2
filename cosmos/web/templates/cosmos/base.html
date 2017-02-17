@@ -120,6 +120,10 @@
 
         });
 
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
         $('table tbody tr').hover(function () {
             prependClass(this, 'row_highlight');
         }, function () {

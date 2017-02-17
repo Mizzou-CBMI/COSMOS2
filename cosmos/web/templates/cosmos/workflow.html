@@ -127,12 +127,15 @@
                         <td>
                             <div class="btn-group btn-group-xs" role="group" aria-label="button group">
                                 <a href="{{ url_for('cosmos.stage_delete', ex_id=s.workflow_id, stage_name=s.name, delete_descendants=0) }}"
-                                   onclick="return confirm('Are you sure? This will delete all Tasks in this stage.')" class="btn btn-warning btn-secondary">
+                                   onclick="return confirm('Are you sure? This will delete all Tasks in this stage.')" class="btn btn-warning btn-secondary"
+                                   data-toggle="tooltip" data-placement="top" title="Delete Stage">
                                     <span class="glyphicon glyphicon-remove"> </span>
                                 </a>
                                 <a href="{{ url_for('cosmos.stage_delete', ex_id=s.workflow_id, stage_name=s.name, delete_descendants=1) }}"
                                    onclick="return confirm('Are you sure? This will also delete all descendant/dependent tasks')"
-                                   class="btn btn-danger btn-secondary">
+                                   class="btn btn-danger btn-secondary"
+                                   data-toggle="tooltip" data-placement="top" title="Delete Stage and Descendants"
+                                >
                                     <span class="glyphicon glyphicon-remove-sign"> </span>
                                 </a>
                             </div>
