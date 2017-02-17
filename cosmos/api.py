@@ -42,7 +42,7 @@ def args_to_str(*args):
     """
     Turn a set of arguments into a string to be passed to a command line tool
 
-    :param args: A number of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.
+    :param args: An iterable of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.
 
     >>> x = 'bar'
     >>> y = None
