@@ -65,8 +65,7 @@ ____________
 Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>`_.
 
 Testing
---------
-
+__________
 .. code-block:: bash
 
     py.test
