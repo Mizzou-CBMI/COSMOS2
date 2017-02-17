@@ -48,12 +48,12 @@ def args_to_str(*args):
     >>> y = None
     >>> z = 123
     >>> f = True
-    >>> args_to_str(('--foo', x), ('--flag', f))
-    '--foo bar \\\n--flag'
-
+    >>> args_to_str(('--foo', x))
+    '--foo bar'
+    >>> args_to_str(('--flag', f))
+    '--flag'
     >>> args_to_str(('--skip-me', y), ('--use-me', z))
     '--use-me 123'
-
     """
     return " \\\n".join(arg_to_str(k, v) for k, v in args if arg_to_str(k, v) != '')
 
