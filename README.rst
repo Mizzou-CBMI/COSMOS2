@@ -32,7 +32,7 @@ for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where the author is currently employed, and where Cosmos is deployed in production and processes thousands of samples per month.  It is used by researchers around the world; if you use it for cool stuff please let us know!
+`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and processes thousands of samples per month.  It is also used by various research groups around the world; if you use it for cool stuff please let us know!
 
 Features
 _________
