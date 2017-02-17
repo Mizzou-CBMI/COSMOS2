@@ -24,12 +24,14 @@ and comprehensions are a great way to do this in a very readable way.
     cosmos.initdb()
     workflow = cosmos.start('My_Workflow', 'out_dir')
 
-    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt=f)) for f in ('a.txt','b.txt') ]
+    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt=f),
+                                                           uid=str(i))
+                 for i,f in enumerate(('a.txt','b.txt')) ]
 
 
 Each call to :meth:`Workflow.add_task` does the following:
 
-1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `cmd_fxn`)
+1) Gets the corresponding Stage based on stage_name (which defaults to the name of of the `task function`, in this case "word_count")
 2) Checks to see if a Task with the same *uid* already completed successfully in that stage
 3) If `2)` is True, then return the successful Task instance (it will also be skipped when the `DAG` is run)
 4) if `2)` is False, then create and return a new Task instance
@@ -73,7 +75,7 @@ For each parent task in StageA, two or more new children are generated in StageB
             stageB_tasks = workflow.add_task(tool_b,
                                              params=dict(j=j, **task.params),
                                              parents=[stageA_task],
-                                              uid='%s_%s'%(i,j))
+                                             uid='%s_%s' % (i, j))
     draw_task_graph(workflow.task_graph(), 'one2many.png')
 
 
