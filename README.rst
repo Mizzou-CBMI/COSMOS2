@@ -20,10 +20,9 @@ Install
 
 Introduction
 ============
-Cosmos is a python workflow management library primarily intended to process Big Data through scientific pipelines on a distributed computing cluster. It is used in production by large companies and researchers, and is popular in the bioinformatics community yet general enough for any distributed computing application.  It allows you to efficiently program extremely complex workflows that are still readable and accessible to other software engineers, and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is able to automatically process large amounts of data by utilizing traditional cluster such as LSF or GridEngine and a shared filesystem, which do not come with the limitations of map reduce frameworks like Hadoop and Spark.  It is especially powerful when combined with spot instances on `Amazon Web Services <aws.amazon.com>`_ and `StarCluster <http://star.mit.edu/cluster/>`_ where we have processed hundreds of terrabytes in parallel in a single workflow.
+Cosmos is a python library for creating scientific pipelines that run on a distributed computing cluster.  It is primarily designed and used for bioinformatics pipelines, but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.  A Cosmos pipeline can run locally on a single machine or a traditional computing cluster like GridEngine, LSF, Condor, PBS/Torque, SLURM or any other Distributed Resource Manager (DRM) that supports _`DRMAA <https://www.drmaa.org/>`__.  Adding support for other DRMs is very straightforward, and support for __`AWS Batch <https://aws.amazon.com/batch/>`__ is in the works.  For those who want to use AWS, it pairs very well with AWS' new  __`<https://aws.amazon.com/hpc/cfncluster/>`__.
 
-Cosmos provides a simple but
-flexible api to specify complex job DAGs, a way to resume modified or failed workflows, and make debugging and provenance as easy as possible.
+Cosmos provides a simple but flexible api to specify complex job DAGs, a way to resume modified or failed workflows, and make debugging and provenance as easy as possible.  It is worth pointing out that it is different from libraries such as __`Luigi <https://github.com/spotify/luigi>`__ or __`Airflow <http://airbnb.io/projects/airflow/>`__ which are simultaneously trying to solve the problem of things such as scheduling recurring tasks and listening for events.  Cosmos is very focused on creating reproducible scientific pipelines which take advantage of distributed computing.  It has a very simple api, and because it's state is so simple, debugging problems is as straightforward as possible.  It is intended and useful for both one-off analyses and production software.
 
 
 History
@@ -35,7 +34,7 @@ for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_, a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production.
+`Invitae <http://invitae.com>`_, a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and processes thousands of samples.
 
 Features
 _________
@@ -49,11 +48,10 @@ _________
 
 Multi-platform Support
 +++++++++++++++++++++++
-
 * Support for DRMS such as SGE, LSF and DRMAA.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
 * Well suited for cloud computing 
-* Ability to run workflows on your local computing, which is often great for testing.
+* Ability to run workflows on your local computer, which is often great for testing.
 
 Bug Reports
 ____________
