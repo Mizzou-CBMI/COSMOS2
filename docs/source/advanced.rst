@@ -65,11 +65,11 @@ COSMOS uses `blinker <https://pythonhosted.org/blinker/>`_ for signals.
 SGE Signals
 +++++++++++++
 
-A useful context manager is available to cleanly handle SGE signals.
+A useful context manager is available to cleanly handle SGE signals provided by `qsub -notify`.
 
 .. code-block:: python
 
-    from cosmos.util.signals import SGESignalHandler, handle_sge_signals
+    from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
 
     def main():
         handle_sge_signals()
@@ -78,7 +78,4 @@ A useful context manager is available to cleanly handle SGE signals.
         ...
         with SGESignalHandler(workflow):
             workflow.run()
-
-.. automodule:: cosmos.signal_handlers
-    :members:
 

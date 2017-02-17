@@ -22,11 +22,12 @@ How can I be more efficient with I/O?  Writing all the files back and forth to o
     This is the most common failure point for large production workflows on a traditional cluster (Hadoop and Spark get around this by using HDFS, but then
     you are limited to the map reduce framework).  To reduce the amount of shared filesystem I/O of your pipeline, you can make sub-pipelines that are themselves jobs, that run using drm='local' on
     a single node, utilize (fast) disk local on the node for scratch space, and only push final results back to the shared file system.
-    For example, a sub-workflow
-    might contain 10 Tasks.  The first Task may pull a large file to local disk that Tasks 2-8, reducing the number of times the large file has to be read
-    *from the shared filesystem* to once.  The last Task will push the final output back to the shared filesystem, and likely delete some intermediate/temporary files.  To be clear,
-    this involves a Cosmos pipeline submitting another Cosmos pipeline as a job.  This is what we do in production, and has other advantages such as modularizing
-    different aspects of our pipeline.  It had the added benefit of greatly increasing I/O for the jobs that are reading from local disc, rather than the shared file system.
+
+    For example, a child Workflow using drm='local'
+    might contain 10 Tasks.  The first Task would pull a large file to local disk that Tasks 2-8 process, reducing the number of times the large file has to be read
+    *from the shared filesystem* to once since Tasks 2-8 are reading off the local disc.  The last Task will push the final output back to the shared filesystem, and likely delete or copy intermediate/temporary files.  To be clear,
+    this involves a Cosmos pipeline submitting another Cosmos pipeline as a job.  This is what people do in production, and has other advantages such as modularizing
+    different aspects of a pipeline.  It had the added benefit of greatly increasing raw I/O for the jobs that are reading from local disc, rather than the shared file system.
 
 How can I modify the DAG based on the output of a Task?
     Run Workflow.run() after adding the Task that outputs the information you need to construct the rest of your DAG.  Then modify the DAG as normal using
