@@ -85,7 +85,7 @@ Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if
 
 .. warning::
 
-    The webserver is **NOT** secure.  If you need it secured, you'll have to set it up in a production
+    `cosmos runweb` uses the Flask development webserver which is **NOT** secure.  If you need it secured, you'll have to set it up in a production
     Flask web server environment, see `Deploying Flask <http://flask.pocoo.org/docs/0.10/deploying/>`_.
 
 Terminating a Workflow

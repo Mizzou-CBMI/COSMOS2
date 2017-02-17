@@ -17,6 +17,9 @@ Install
 
     pip install Cosmos-wfm
 
+    # Optional, recommended for visualizing Workflows:
+    sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
+    pip install pygraphviz # requires graphviz
 
 Introduction
 ============
