@@ -42,7 +42,7 @@ Since the original publication, it has been re-written and open-sourced by the o
 
 Features
 _________
-* Written in python which is easy to learn, powerful, and popular.  A reearcher or programmer with limited experience can begin writing Cosmos workflows right away.
+* Written in python which is easy to learn, powerful, and popular.  A researcher or programmer with limited experience can begin writing Cosmos workflows right away.
 * Powerful syntax for the creation of complex and highly parallelized workflows.
 * Reusable recipes and definitions of tools and sub workflows allows for DRY code.
 * Keeps track of workflows, job information, and resource utilization and provenance in an SQL database.
