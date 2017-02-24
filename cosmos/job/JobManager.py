@@ -118,8 +118,9 @@ def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""
     with open(task.output_command_script_path, 'wb') as f:
         f.write(command)
-    os.chmod(task.output_command_script_path,
-             stat.S_IREAD|stat.S_IWUSR|stat.S_IEXEC)
+
+    st = os.stat(task.output_command_script_path)
+    os.chmod(task.output_command_script_path, st.st_mode | stat.S_IEXEC)
 
     for p in [task.output_stdout_path, task.output_stderr_path]:
         if os.path.exists(p):
