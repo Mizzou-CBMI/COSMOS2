@@ -15,7 +15,7 @@ Install
 
 .. code-block:: python
 
-    pip install Cosmos-wfm
+    pip install cosmos-wfm
 
     # Optional, recommended for visualizing Workflows:
     sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
