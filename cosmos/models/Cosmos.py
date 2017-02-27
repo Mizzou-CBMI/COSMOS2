@@ -252,14 +252,17 @@ class Cosmos(object):
 
         IPython.embed()
 
+    def init_flask(self):
+        from cosmos.web.views import gen_bprint
+        self.cosmos_bprint = gen_bprint(self.session)
+        self.flask_app.register_blueprint(self.cosmos_bprint)
+        return self.flask_app
+
     def runweb(self, host, port, debug=True):
         """
         Starts the web dashboard
         :param str host: Host name to bind to.  Default is local host, but commonly 0.0.0.0 to allow outside internet traffic.
         :param int port: Port to bind to.
         """
-        from cosmos.web.views import gen_bprint
-        self.cosmos_bprint = gen_bprint(self.session)
-        self.flask_app.register_blueprint(self.cosmos_bprint)
-
+        self.init_flask()
         return self.flask_app.run(debug=debug, host=host, port=port)

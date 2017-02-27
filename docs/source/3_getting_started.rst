@@ -86,7 +86,8 @@ Visit `<http://servername:8080>`_ to access it (or `<http://localhost:8080>`_ if
 .. warning::
 
     `cosmos runweb` uses the Flask development webserver which is **NOT** secure.  If you need it secured, you'll have to set it up in a production
-    Flask web server environment, see `Deploying Flask <http://flask.pocoo.org/docs/0.10/deploying/>`_.
+    Flask web server environment, see `Deploying Flask <http://flask.pocoo.org/docs/0.10/deploying/>`_.  For example, you can use
+    `gunicorn 'cosmos.web.gunicorn:make_app("sqlite:///examples/sqlite.db")' -w 6 -b 0.0.0.0:3232`
 
 Terminating a Workflow
 ______________________
