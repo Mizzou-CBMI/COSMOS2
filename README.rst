@@ -76,9 +76,9 @@ __________
 Repositories using Cosmos
 ___________________________
 
-*  __`GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
-*  _`PV-Key  <https://github.com/LPM-HMS/PvKey>`__
-* __`MC-Key <https://bitbucket.org/shazly/mcgk>`__
+*  `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
+*  `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
+* `MC-Key <https://bitbucket.org/shazly/mcgk>`__
 
 Publications using Cosmos
 __________________________
