@@ -73,6 +73,26 @@ __________
 
     py.test
 
+Repositories using Cosmos
+___________________________
+
+*  `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
+*  `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
+* `MC-Key <https://bitbucket.org/shazly/mcgk>`__
+
+Publications using Cosmos
+__________________________
+
+1) Elshazly H, Souilmi Y, Tonellato PJ, Wall DP, Abouelhoda M (2017) MC-GenomeKey: a multicloud system for the detection and annotation of genomic variants. BMC Bioinformatics, 18(1), 49.
+
+2) Souilmi Y, Lancaster AK, Jung JY, Rizzo E, Hawkins JB, Powles R, Amzazi S, Ghazal H, Tonellato PJ, Wall DP (2015) Scalable and cost-effective NGS genotyping in the cloud. BMC Medical Genomics, 8(1), 64.
+
+3) Souilmi Y., Jung J-Y., Lancaster AK, Gafni E., Amzazi S., Ghazal H., Wall DP., Tonellato, P. (2015). COSMOS: cloud enabled NGS analysis. BMC Bioinformatics, 16(Suppl 2), A2. doi: 10.1186/1471-2105- 16-S2- A2
+
+4) Gafni E, Luquette LJ, Lancaster AK, Hawkins JB, Jung J-Y, Souilmi Y, Wall DP, Tonellato PJ: COSMOS: Python library for massively parallel workflows. Bioinformatics (2014) 30 (20): 2956-2958. doi: 10.1093/bioinformatics/btu385
+
+5) Hawkins JB, Souilmi Y, Powles R, Jung JY, Wall DP, Tonellato PJ (2013) COSMOS: NGS Analysis in the Cloud. AMIA TBI. BMC Medical Genomics
+
 Changelog
 __________
 
