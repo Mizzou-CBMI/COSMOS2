@@ -10,7 +10,7 @@ To chat with the author/other users (many of which use Cosmos to make bioinforma
 Documentation
 ==============
 
-`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
+`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_
 
 
 Install
