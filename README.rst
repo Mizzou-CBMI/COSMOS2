@@ -1,14 +1,17 @@
 .. image:: https://travis-ci.org/LPM-HMS/COSMOS2.svg?branch=master
     :target: https://travis-ci.org/LPM-HMS/COSMOS2
 
-For more information and the full documentation please visit
-`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
-
 To chat with the author/other users (many of which use Cosmos to make bioinformatics NGS workflows), use gitter:
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/LPM-HMS/COSMOS2
    :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+Documentation
+==============
+
+`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_. 
+
 
 Install
 ==========
