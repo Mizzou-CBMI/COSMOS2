@@ -159,13 +159,12 @@
 <dl class="function">
 <dt id="cosmos.api.args_to_str">
 <code class="descclassname">cosmos.api.</code><code class="descname">args_to_str</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#args_to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.args_to_str" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><p>Turn a set of arguments into a string to be passed to a command line tool</p>
+<dd><p>Turn a set of arguments into a string to be passed to a command line tool</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">param args:</th><td class="field-body">A number of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce &#8211;{arg_flag} {value}.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; An iterable of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce &#8211;{arg_flag} {value}.</td>
 </tr>
 </tbody>
 </table>
@@ -173,13 +172,11 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="mi">123</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--flag&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
-<span class="go">&#39;--foo bar \</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p>&#8211;flag&#8217;</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--skip-me&#39;</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--use-me&#39;</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--foo&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+<span class="go">&#39;--foo bar&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--flag&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+<span class="go">&#39;--flag&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--skip-me&#39;</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--use-me&#39;</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
 <span class="go">&#39;--use-me 123&#39;</span>
 </pre></div>
 </div>

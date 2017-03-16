@@ -219,7 +219,8 @@ in front of the server.  You can get around it by using <strong>ssh port forward
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last"><cite>cosmos runweb</cite> uses the Flask development webserver which is <strong>NOT</strong> secure.  If you need it secured, you&#8217;ll have to set it up in a production
-Flask web server environment, see <a class="reference external" href="http://flask.pocoo.org/docs/0.10/deploying/">Deploying Flask</a>.</p>
+Flask web server environment, see <a class="reference external" href="http://flask.pocoo.org/docs/0.10/deploying/">Deploying Flask</a>.  For example, you can use
+<cite>gunicorn &#8216;cosmos.web.gunicorn:make_app(&#8220;sqlite:///examples/sqlite.db&#8221;)&#8217; -w 6 -b 0.0.0.0:3232</cite></p>
 </div>
 </div>
 <div class="section" id="terminating-a-workflow">

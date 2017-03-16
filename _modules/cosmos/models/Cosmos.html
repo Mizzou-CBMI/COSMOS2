@@ -263,11 +263,9 @@
 <span class="sd">        :param str name: A name for the workflow.  Must be unique for this Cosmos session.</span>
 <span class="sd">        :param bool restart: If True and the workflow exists, delete it first.</span>
 <span class="sd">        :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.</span>
-<span class="sd">        :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to</span>
-<span class="sd">          stderr.</span>
+<span class="sd">        :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to stderr.</span>
 <span class="sd">        :param bool fail_fast: If True, terminate the workflow the first time a Task fails.</span>
 <span class="sd">        Otherwise, run all Tasks except those downstream of a failure.</span>
-
 <span class="sd">        :returns: An Workflow instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">.Workflow</span> <span class="k">import</span> <span class="n">Workflow</span>
@@ -391,16 +389,19 @@
 
         <span class="n">IPython</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
 
+    <span class="k">def</span> <span class="nf">init_flask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">cosmos.web.views</span> <span class="k">import</span> <span class="n">gen_bprint</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span> <span class="o">=</span> <span class="n">gen_bprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span>
+
 <div class="viewcode-block" id="Cosmos.runweb"><a class="viewcode-back" href="../../../workflows/initializing.html#cosmos.api.Cosmos.runweb">[docs]</a>    <span class="k">def</span> <span class="nf">runweb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts the web dashboard</span>
 <span class="sd">        :param str host: Host name to bind to.  Default is local host, but commonly 0.0.0.0 to allow outside internet traffic.</span>
 <span class="sd">        :param int port: Port to bind to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">cosmos.web.views</span> <span class="k">import</span> <span class="n">gen_bprint</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span> <span class="o">=</span> <span class="n">gen_bprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cosmos_bprint</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_flask</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flask_app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span></div></div>
 </pre></div>
 

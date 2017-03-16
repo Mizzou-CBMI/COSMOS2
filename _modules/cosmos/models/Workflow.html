@@ -198,9 +198,7 @@
 
     <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">VARCHAR</span><span class="p">(</span><span class="mi">200</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># description = Column(String(255))</span>
     <span class="n">successful</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1"># output_dir = Column(String(255), nullable=False)</span>
     <span class="n">created_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
     <span class="n">started_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
     <span class="n">finished_on</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
@@ -209,7 +207,6 @@
 
     <span class="n">max_attempts</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">MutableDict</span><span class="o">.</span><span class="n">as_mutable</span><span class="p">(</span><span class="n">JSONEncodedDict</span><span class="p">))</span>
-    <span class="c1"># recipe_graph = Column(PickleType)</span>
     <span class="n">_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Enum34_ColumnType</span><span class="p">(</span><span class="n">WorkflowStatus</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="n">WorkflowStatus</span><span class="o">.</span><span class="n">no_attempt</span><span class="p">)</span>
     <span class="n">stages</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Stage&quot;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all, merge, delete-orphan&quot;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s2">&quot;Stage.number&quot;</span><span class="p">,</span> <span class="n">passive_deletes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                           <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;workflow&#39;</span><span class="p">)</span>
@@ -431,30 +428,6 @@
         <span class="n">task_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_graph</span><span class="p">()</span>
         <span class="n">stage_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage_graph</span><span class="p">()</span>
 
-        <span class="c1"># def assert_no_duplicate_taskfiles():</span>
-        <span class="c1"># taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)</span>
-        <span class="c1">#     f = lambda tf: tf.path</span>
-        <span class="c1">#     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):</span>
-        <span class="c1">#         group = list(group)</span>
-        <span class="c1">#         if len(group) &gt; 1:</span>
-        <span class="c1">#             t1 = group[0].task_output_for</span>
-        <span class="c1">#             tf1 = group[0]</span>
-        <span class="c1">#             t2 = group[1].task_output_for</span>
-        <span class="c1">#             tf2 = group[1]</span>
-        <span class="c1">#             div = &quot;-&quot; * 72 + &quot;\n&quot;</span>
-        <span class="c1">#             self.log.error(&quot;Duplicate taskfiles paths detected:\n &quot;</span>
-        <span class="c1">#                            &quot;{div}&quot;</span>
-        <span class="c1">#                            &quot;{t1}\n&quot;</span>
-        <span class="c1">#                            &quot;* {tf1}\n&quot;</span>
-        <span class="c1">#                            &quot;{div}&quot;</span>
-        <span class="c1">#                            &quot;{t2}\n&quot;</span>
-        <span class="c1">#                            &quot;* {tf2}\n&quot;</span>
-        <span class="c1">#                            &quot;{div}&quot;.format(**locals()))</span>
-        <span class="c1">#</span>
-        <span class="c1">#             raise ValueError(&#39;Duplicate taskfile paths&#39;)</span>
-        <span class="c1">#</span>
-        <span class="c1"># assert_no_duplicate_taskfiles()</span>
-
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">),</span> <span class="s1">&#39;duplicate stage name detected: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">next</span><span class="p">(</span><span class="n">duplicates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stages</span><span class="p">)))</span>
 
@@ -467,12 +440,8 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">stage_graph_no_cycles</span><span class="p">)):</span>
             <span class="n">s</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
 
-
-        <span class="c1"># Add final taskgraph to session</span>
-        <span class="c1"># session.expunge_all()</span>
+        <span class="c1"># Make sure everything is in the sqlalchemy session</span>
         <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="c1"># session.add_all(stage_g.nodes())</span>
-        <span class="c1"># session.add_all(task_g.nodes())</span>
         <span class="n">successful</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">successful</span><span class="p">,</span> <span class="n">task_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
 
         <span class="c1"># print stages</span>
@@ -485,19 +454,6 @@
         <span class="n">task_queue</span><span class="o">.</span><span class="n">remove_nodes_from</span><span class="p">(</span><span class="n">successful</span><span class="p">)</span>
 
         <span class="n">handle_exits</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="c1"># self.log.info(&#39;Checking stage status...&#39;)</span>
-
-        <span class="c1"># def check_stage_status():</span>
-        <span class="c1">#     &quot;&quot;&quot;Update stage attributes if new tasks were added to them&quot;&quot;&quot;</span>
-        <span class="c1">#     from .. import StageStatus</span>
-        <span class="c1">#     for stage in self.stages:</span>
-        <span class="c1">#         if stage.status != StageStatus.no_attempt and any(not task.successful for task in stage.tasks):</span>
-        <span class="c1">#             stage.successful = False</span>
-        <span class="c1">#             stage.finished_on = None</span>
-        <span class="c1">#             stage.status = StageStatus.running</span>
-        <span class="c1">#</span>
-        <span class="c1"># check_stage_status()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Ensuring there are enough cores...&#39;</span><span class="p">)</span>
@@ -653,12 +609,13 @@
         <span class="c1"># only commit Task changes after processing a batch of finished ones</span>
         <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">3</span><span class="p">)</span>   <span class="c1"># conveniently, this returns early if we catch a signal</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># conveniently, this returns early if we catch a signal</span>
 
         <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">terminate_when_safe</span><span class="p">:</span>
             <span class="n">workflow</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Early termination requested: stopping workflow&#39;</span><span class="p">,</span> <span class="n">workflow</span><span class="p">)</span>
             <span class="n">workflow</span><span class="o">.</span><span class="n">terminate</span><span class="p">(</span><span class="n">due_to_failure</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">return</span>
+
 
 <span class="k">def</span> <span class="nf">_run_queued_and_ready_tasks</span><span class="p">(</span><span class="n">task_queue</span><span class="p">,</span> <span class="n">workflow</span><span class="p">):</span>
     <span class="n">max_cores</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">max_cores</span>
@@ -724,7 +681,6 @@
 
 
 <span class="k">def</span> <span class="nf">_copy_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">):</span>
-
     <span class="n">graph2</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
     <span class="n">graph2</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
     <span class="n">graph2</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>

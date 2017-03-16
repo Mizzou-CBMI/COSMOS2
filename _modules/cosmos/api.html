@@ -181,18 +181,18 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Turn a set of arguments into a string to be passed to a command line tool</span>
 
-<span class="sd">    :param args: A number of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.</span>
+<span class="sd">    :param args: An iterable of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.</span>
 
 <span class="sd">    &gt;&gt;&gt; x = &#39;bar&#39;</span>
 <span class="sd">    &gt;&gt;&gt; y = None</span>
 <span class="sd">    &gt;&gt;&gt; z = 123</span>
 <span class="sd">    &gt;&gt;&gt; f = True</span>
-<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--foo&#39;, x), (&#39;--flag&#39;, f))</span>
-<span class="sd">    &#39;--foo bar \\\n--flag&#39;</span>
-
+<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--foo&#39;, x))</span>
+<span class="sd">    &#39;--foo bar&#39;</span>
+<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--flag&#39;, f))</span>
+<span class="sd">    &#39;--flag&#39;</span>
 <span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--skip-me&#39;, y), (&#39;--use-me&#39;, z))</span>
 <span class="sd">    &#39;--use-me 123&#39;</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
 
