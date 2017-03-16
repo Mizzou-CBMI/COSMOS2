@@ -124,11 +124,9 @@ class Cosmos(object):
         :param str name: A name for the workflow.  Must be unique for this Cosmos session.
         :param bool restart: If True and the workflow exists, delete it first.
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
-        :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to
-          stderr.
+        :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to stderr.
         :param bool fail_fast: If True, terminate the workflow the first time a Task fails.
         Otherwise, run all Tasks except those downstream of a failure.
-
         :returns: An Workflow instance.
         """
         from .Workflow import Workflow
