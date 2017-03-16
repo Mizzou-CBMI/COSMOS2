@@ -46,21 +46,23 @@ from there.  This avoids a lot of unnecessary re-computation of Stages that were
 
 .. code-block:: python
 
-    >>> wf.stages[4].delete(delete_files=True, delete_descendants=True)
-    # or, if your DAG is simple
+    >>> wf.stages[4].delete(descendants=True)
+    # or
     >>> for stage in wf.stages[4:]: stage.delete()
+    # or
+    >>> wf.stages[2].task.delete(descendants=True)
 
 Note that setting delete_files=True can be slow if there are a lot of files to delete.  Usually it's better (especially in development) to set
 delete_files=False and just have the next run overwrite the files.
 
 
-Getting a Stage's Descendants
-------------------------------
+Getting a Stage or Tasks Descendants
+---------------------------------------
 
 .. code-block:: python
 
     >>> wf.stages[4].descendants(include_self=True)
-
+    >>> wf.stages[3].tasks[0].descendants(include_self=True)
 
 
 Manually Altering Attributes
