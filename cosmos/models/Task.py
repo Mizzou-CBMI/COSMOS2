@@ -2,6 +2,7 @@ import os
 import itertools as it
 import shutil
 import codecs
+import networkx as nx
 import subprocess as sp
 from sqlalchemy.orm import relationship, synonym, backref
 from sqlalchemy.ext.declarative import declared_attr
@@ -108,7 +109,7 @@ def readfile(path):
     try:
         with codecs.open(path, "r", "utf-8") as fh:
             s = fh.read(2 ** 20)
-            if len(s) == 2**20:
+            if len(s) == 2 ** 20:
                 s += '\n*****TRUNCATED, check log file for full output*****'
             return s
     except:
@@ -277,26 +278,21 @@ class Task(Base):
         # return self.command
         return readfile(self.output_command_script_path).strip() or self.command
 
-    def all_predecessors(self, as_dict=False):
+    def descendants(self, include_self=False):
         """
-        :return: (list) all tasks that descend from this task in the task_graph
+        :return: (list) all stages that descend from this stage in the stage_graph
         """
-        d = breadth_first_search.bfs_predecessors(self.workflow.task_graph().reverse(copy=False), self)
-        if as_dict:
-            return d
-        return set(d.values())
-
-    def all_successors(self):
-        """
-        :return: (list) all tasks that descend from this task in the task_graph
-        """
-        return set(breadth_first_search.bfs_successors(self.workflow.task_graph(), self).values())
+        x = nx.descendants(self.workflow.task_graph(), self)
+        if include_self:
+            return sorted({self}.union(x), key=lambda task: task.stage.number)
+        else:
+            return x
 
     @property
     def label(self):
         """Label used for the taskgraph image"""
         params = '' if len(self.params) == 0 else "\\n {0}".format(
-                "\\n".join(["{0}: {1}".format(k, v) for k, v in self.params.items()]))
+            "\\n".join(["{0}: {1}".format(k, v) for k, v in self.params.items()]))
 
         return "[%s] %s%s" % (self.id, self.stage.name, params)
 
@@ -305,15 +301,16 @@ class Task(Base):
 
         return urllib.urlencode(self.params)
 
-    def delete(self, delete_files=False):
-        self.log.debug('Deleting %s' % self)
-        if delete_files:
-            for tf in self.output_files:
-                os.unlink(tf)
-            if os.path.exists(self.log_dir):
-                shutil.rmtree(self.log_dir)
+    def delete(self, descendants=False):
+        if descendants:
+            tasks_to_delete = self.descendants(include_self=True)
+            self.log.debug('Deleting %s and %s of its descendants' % (self, len(tasks_to_delete) - 1))
+            for t in tasks_to_delete:
+                self.session.delete(t)
+        else:
+            self.log.debug('Deleting %s' % self)
+            self.session.delete(self)
 
-        self.session.delete(self)
         self.session.commit()
 
     @property
@@ -330,9 +327,9 @@ class Task(Base):
 
     def __repr__(self):
         return "<Task[%s] %s(uid='%s')>" % (self.id or 'id_%s' % id(self),
-                                      self.stage.name if self.stage else '',
-                                      self.uid
-                                      )
+                                            self.stage.name if self.stage else '',
+                                            self.uid
+                                            )
 
     def __str__(self):
         return self.__repr__()
