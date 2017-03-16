@@ -115,23 +115,23 @@ class Stage(Base):
     def log(self):
         return self.workflow.log
 
-    def delete(self, delete_files=False, delete_descendants=False):
+    def delete(self, descendants=False):
         """
         Deletes this stage
         :param delete_files: Delete all files (will be slow if there are a lot of files)
-        :param delete_descendants: Also delete all delete_descendants of this stage
+        :param descendants: Also delete all delete_descendants of this stage
         :return: None
         """
-        if delete_descendants:
-            self.log.info('Deleting all delete_descendants of %s' % self)
-            for stage in reversed(list(self.descendants())):
-                stage.delete(delete_files)
 
-        self.log.info('Deleting %s. delete_files=%s' % (self, delete_files))
-        if delete_files:
-            for t in self.tasks:
-                t.delete(delete_files=True)
-        self.session.delete(self)
+        if descendants:
+            stages_to_delete = self.descendants(include_self=True)
+            self.log.info('Deleting %s and all of its descendants: %s' % (self, stages_to_delete))
+            for stage in stages_to_delete:
+                self.session.delete(stage)
+        else:
+            self.log.info('Deleting %s' % self)
+            self.session.delete(self)
+
         self.session.commit()
 
     def filter_tasks(self, **filter_by):

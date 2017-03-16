@@ -68,7 +68,7 @@ def gen_bprint(session):
         s = session.query(Stage).filter(Stage.workflow_id == ex_id, Stage.name == stage_name).one()
         flash('Deleted %s' % s)
         ex_url = s.workflow.url
-        s.delete(delete_files=False, delete_descendants=delete_descendants)
+        s.delete(delete_files=False, descendants=delete_descendants)
         return redirect(ex_url)
 
     # @bprint.route('/task/<int:id>/')
