@@ -516,7 +516,8 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-        time.sleep(.3)   # conveniently, this returns early if we catch a signal
+        # conveniently, this returns early if we catch a signal
+        time.sleep(workflow.jobmanager.poll_interval)
 
         if workflow.terminate_when_safe:
             workflow.log.info('%s Early termination requested: stopping workflow', workflow)
