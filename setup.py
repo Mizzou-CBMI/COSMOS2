@@ -34,7 +34,6 @@ install_requires = [
     'networkx',
     "enum34",
     "six",
-    "SQLAlchemy-Utils<=0.32.12", # there is a bug in 0.32.13-4, which is the latest version of this lib
     'psutil',
     "drmaa",
     'more_itertools'
