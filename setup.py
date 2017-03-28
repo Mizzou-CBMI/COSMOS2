@@ -31,11 +31,10 @@ install_requires = [
     'blinker',
     "sqlalchemy",
     "black_magic>=0.0.10",  # to get a signature preserving partial() in cosmos.api
-    'flask-sqlalchemy',
     'networkx',
     "enum34",
     "six",
-    "SQLAlchemy-Utils",
+    "SQLAlchemy-Utils<=0.32.12", # there is a bug in 0.32.13-4, which is the latest version of this lib
     'psutil',
     "drmaa",
     'more_itertools'
