@@ -300,6 +300,8 @@ class Workflow(Base):
             stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
         for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
             s.number = i + 1
+            if s.status != StageStatus.successful:
+                s.status = StageStatus.no_attempt
 
         # Make sure everything is in the sqlalchemy session
         session.add(self)
