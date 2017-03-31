@@ -14,7 +14,8 @@ import datetime
 
 @signal_stage_status_change.connect
 def stage_status_changed(stage):
-    stage.log.info('%s %s (%s/%s Tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
+    if stage.status not in [StageStatus.no_attempt]:
+        stage.log.info('%s %s (%s/%s Tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
 
     if stage.status == StageStatus.successful:
         stage.successful = True
@@ -47,13 +48,13 @@ class Stage(Base):
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
-    name = Column(String(255))
+    name = Column(String(255), nullable=False)
     started_on = Column(DateTime)
     workflow_id = Column(ForeignKey('workflow.id', ondelete="CASCADE"), nullable=False, index=True)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt)
+    _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt, nullable=False)
     parents = relationship("Stage",
                            secondary=StageEdge.__table__,
                            primaryjoin=id == StageEdge.parent_id,
