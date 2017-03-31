@@ -166,6 +166,9 @@ def _qacct_has_suspicious_stats(qacct_dict):
     """
     qacct may return multiple records for a job, some/all with suspicious values.
 
+    This method returns true when (a) qacct is spewing nonsense and (b) we don't
+    yet know how to recover from it.
+
     This was allegedly fixed in 6.0u10 but we've seen it in UGE 8.3.1 and 8.4.3.
 
     http://osdir.com/ml/clustering.gridengine.users/2007-11/msg00397.html
@@ -180,11 +183,25 @@ def _qacct_has_suspicious_stats(qacct_dict):
     so we check for dates within 24 hours of it. Another issue we see is start
     and/or end times with the dummy value of "-/-".
     """
-    return \
+    looks_suspicious = \
         qacct_dict.get('qsub_time', '').startswith('12/31/1969') or \
         qacct_dict.get('qsub_time', '').startswith('01/01/1970') or \
         qacct_dict.get('start_time', None) == '-/-' or \
         qacct_dict.get('end_time', None) == '-/-'
+
+    #
+    # ldap/authentication/automount/??? issues can fail jobs even before they
+    # start running. In that case, qacct output looks like this. Even though
+    # this output is definitely spurious, we can recover from it elsewhere,
+    # so don't flag it as such.
+    #
+    failure_reason = qacct_dict.get('failed', '')
+    if looks_suspicious and \
+       failure_reason.startswith('26') and \
+       'opening input/output file' in failure_reason:
+        looks_suspicious = '0.0' in qacct_dict.get('ru_wallclock', '')
+
+    return looks_suspicious
 
 
 def _qacct_raw(task, timeout=600, quantum=15):
