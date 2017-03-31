@@ -5,6 +5,7 @@ Tools for defining, running and terminating Cosmos workflows.
 import atexit
 import datetime
 import os
+import random
 import re
 import sys
 import time
@@ -24,6 +25,7 @@ from networkx.algorithms.dag import descendants, topological_sort
 
 from ..util.iterstuff import only_one
 from ..util.helpers import duplicates, get_logger, mkdir
+from ..util.signal_handlers import sleep_through_signals
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from ..db import Base
 from ..core.cmd_fxn import signature
@@ -522,6 +524,17 @@ def _process_finished_tasks(jobmanager):
         if task.NOOP or task.exit_status == 0:
             task.status = TaskStatus.successful
             yield task
+        elif task.scheduling_error:
+            #
+            # Wait 5-10 sec before retrying to
+            # (a) avoid kicking the scheduler when it's having trouble, and
+            # (b) give transient gremlins time to hopefully resolve themselves.
+            #
+            timeout = 5 * (random.random() + 1)
+            task.log.warn('%s failed to schedule, will retry in %.1f sec', task, timeout)
+            sleep_through_signals(timeout)
+            task.scheduling_error = False
+            task.status = TaskStatus.no_attempt
         else:
             task.status = TaskStatus.failed
             yield task

@@ -149,6 +149,10 @@ class DRM_GE(DRM):
             memory=float(d['mem']),
         )
 
+        # check if the job failed before being scheduled
+        if processed_data['wall_time'] == 0.0 and processed_data['exit_status'] == 26:
+            processed_data['scheduling_error'] = True
+
         return processed_data, data_are_suspicious
 
     def kill(self, task):
