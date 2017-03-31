@@ -58,15 +58,15 @@ class Workflow(Base):
     __tablename__ = 'workflow'
 
     id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(200), unique=True)
-    successful = Column(Boolean, nullable=False, default=False)
+    name = Column(VARCHAR(200), unique=True, nullable=False)
+    successful = Column(Boolean, nullable=False)
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
     primary_log_path = Column(String(255))
 
-    max_attempts = Column(Integer, default=1)
+    max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
