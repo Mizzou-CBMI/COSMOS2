@@ -523,7 +523,6 @@ def _process_finished_tasks(jobmanager):
     for task in jobmanager.get_finished_tasks():
         if task.NOOP or task.exit_status == 0:
             task.status = TaskStatus.successful
-            yield task
         elif task.scheduling_error:
             #
             # Wait 5-10 sec before retrying to
@@ -537,7 +536,8 @@ def _process_finished_tasks(jobmanager):
             task.status = TaskStatus.no_attempt
         else:
             task.status = TaskStatus.failed
-            yield task
+
+        yield task
 
 
 def handle_exits(workflow, do_atexit=True):
