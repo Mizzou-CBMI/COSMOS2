@@ -37,17 +37,17 @@ class DRM_GE(DRM):
         """
         Yield a dictionary of SGE job metadata for each task that has completed.
 
-        This method tries to be defensive against corrupt qstat and qacct output.
-        If qstat reports that a job has finished, but qacct output looks
+        This method tries to be defensive against suspicious qstat and qacct
+        output. If qstat reports that a job has finished, but qacct output looks
         suspicious, we try to give the job, and/or SGE, time to complete and/or
         recover.
 
-        This method will only yield corrupt qacct data if every outstanding task
-        has been affected by this SGE bug.
+        This method will only yield suspicious qacct data if every outstanding
+        task has been affected by this SGE bug.
         """
         if len(tasks):
             qjobs = _qstat_all()
-            corrupt_data = {}
+            suspicious_data = {}
 
         for task in tasks:
             jid = unicode(task.drm_jobID)
@@ -57,27 +57,28 @@ class DRM_GE(DRM):
                 # If the job doesn't appear in qstat (or is tagged with 'e' or 'E'),
                 # it *probably* has completed. However, SGE's qmaster may have
                 # simply lost track of it for a little while, in which case qacct
-                # will output corrupt data when it is interrogated.
+                # will sometimes, temporarily, output suspicious data when it is
+                # interrogated.
                 #
-                data, data_are_corrupt = self._get_task_return_data(task)
-                if data_are_corrupt:
+                data, data_are_suspicious = self._get_task_return_data(task)
+                if data_are_suspicious:
                     task.workflow.log.warn(
-                        '%s Corrupt SGE qstat/qacct output means it may still be running', task)
-                    corrupt_data[task] = data
+                        '%s Suspicious SGE qstat/qacct output means it may still be running', task)
+                    suspicious_data[task] = data
                 else:
                     yield task, data
 
-        num_cleanly_running_jobs = len(tasks) - len(corrupt_data)
+        num_cleanly_running_jobs = len(tasks) - len(suspicious_data)
 
         if num_cleanly_running_jobs > 0:
-            for task in corrupt_data.keys():
+            for task in suspicious_data.keys():
                 task.workflow.log.info(
-                    '%s Temporarily masking corrupt SGE output since %d other jobs are running cleanly' %
+                    '%s Temporarily masking suspicious SGE output since %d other jobs are running cleanly' %
                     (task, num_cleanly_running_jobs))
         else:
-            for task, data in corrupt_data.items():
+            for task, data in suspicious_data.items():
                 task.workflow.log.error(
-                    '%s All outstanding drm_ge tasks have corrupt SGE output: giving up on this one' % task)
+                    '%s All outstanding drm_ge tasks have suspicious SGE output: giving up on this one' % task)
                 yield task, data
 
     def drm_statuses(self, tasks):
@@ -102,17 +103,17 @@ class DRM_GE(DRM):
         Returns a 2-tuple comprising:
         [0] a dictionary of job metadata,
         [1] a boolean indicating whether the metadata in [0] are affected by an
-            SGE bug that causes qacct to occasionally return corrupt results.
+            SGE bug that causes qacct to occasionally return suspicious results.
         """
         d = _qacct_raw(task)
 
         job_failed = d['failed'][0] != '0'
-        data_are_corrupt = _is_corrupt(d)
+        data_are_suspicious = _qacct_has_suspicious_stats(d)
 
-        if job_failed or data_are_corrupt:
+        if job_failed or data_are_suspicious:
             task.workflow.log.warn('%s SGE (qacct -j %s) reports %s:\n%s' %
                                    (task, task.drm_jobID,
-                                    'corrupt data' if data_are_corrupt else 'job failure',
+                                    'suspicious data' if data_are_suspicious else 'job failure',
                                     json.dumps(d, indent=4, sort_keys=True)))
 
         processed_data = dict(
@@ -148,7 +149,7 @@ class DRM_GE(DRM):
             memory=float(d['mem']),
         )
 
-        return processed_data, data_are_corrupt
+        return processed_data, data_are_suspicious
 
     def kill(self, task):
         "Terminates a task"
@@ -161,21 +162,23 @@ class DRM_GE(DRM):
             sp.call(['qdel', pids], preexec_fn=exit_process_group)
 
 
-def _is_corrupt(qacct_dict):
+def _qacct_has_suspicious_stats(qacct_dict):
     """
-    qacct may return multiple records for a job. They may all be corrupt. Yuk.
+    qacct may return multiple records for a job, some/all with suspicious values.
 
-    This was allegedly fixed in 6.0u10 but we've seen it in UGE 8.3.1.
+    This was allegedly fixed in 6.0u10 but we've seen it in UGE 8.3.1 and 8.4.3.
 
     http://osdir.com/ml/clustering.gridengine.users/2007-11/msg00397.html
 
-    When multiple records are returned, the first one(s) may have corrupt data.
+    When multiple records are returned, the first one(s) usually have suspicious data.
     UPDATE: this can happen even when only one block is returned, and we've also
     seen cases where multiple blocks are returned and not one is reliable. This
-    function checks for values whose presence means an entire block is corrupt.
+    function checks for values whose presence means an entire block is suspicious.
 
-    Note that qacct may return a date that precedes the Epoch (!), depending on
-    the $TZ env. variable. To be safe we check for dates within 24 hours of it.
+    The most common suspicious value is a qsub_time of the Epoch (1/1/1970).
+    Depending on the $TZ env. var this date may even *precede* the Epoch,
+    so we check for dates within 24 hours of it. Another issue we see is start
+    and/or end times with the dummy value of "-/-".
     """
     return \
         qacct_dict.get('qsub_time', '').startswith('12/31/1969') or \
@@ -190,7 +193,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
 
     If qacct reports results in multiple blocks (separated by a row of ===='s),
     the most recently-generated block with valid data is returned. If no such
-    block exists, then return the most recently-generated block of corrupt data.
+    block exists, then return the most recently-generated block of suspicious data.
     """
     start = time.time()
     curr_qacct_dict = None
@@ -240,10 +243,10 @@ def _qacct_raw(task, timeout=600, quantum=15):
 
     for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
-            if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
+            if curr_qacct_dict and not _qacct_has_suspicious_stats(curr_qacct_dict):
                 #
-                # Cache this non-corrupt block of qacct data just
-                # in case all the more recent blocks are corrupt.
+                # Cache this non-suspicious block of qacct data just in
+                # case all the more recent blocks contain suspicious stats.
                 #
                 good_qacct_dict = curr_qacct_dict
 
@@ -259,7 +262,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
         curr_qacct_dict[k] = v.strip()
 
     # if the last block of qacct data looks good, promote it
-    if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
+    if curr_qacct_dict and not _qacct_has_suspicious_stats(curr_qacct_dict):
         good_qacct_dict = curr_qacct_dict
 
     return good_qacct_dict if good_qacct_dict else curr_qacct_dict
