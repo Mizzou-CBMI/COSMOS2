@@ -155,9 +155,9 @@ class Task(Base):
     # output_dir = Column(String(255))
     _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt, nullable=False)
     successful = Column(Boolean, nullable=False)
-    started_on = Column(DateTime, nullable=False)  # FIXME this should probably be deleted.  Too hard to determine.
-    submitted_on = Column(DateTime, nullable=False)
-    finished_on = Column(DateTime, nullable=False)
+    started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
+    submitted_on = Column(DateTime)
+    finished_on = Column(DateTime)
     attempt = Column(Integer, nullable=False)
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
