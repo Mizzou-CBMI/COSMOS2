@@ -30,7 +30,6 @@ install_requires = [
     'funcsigs',
     'blinker',
     "sqlalchemy",
-    "black_magic>=0.0.10",  # to get a signature preserving partial() in cosmos.api
     'networkx',
     "enum34",
     "six",
