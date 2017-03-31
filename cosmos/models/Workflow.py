@@ -59,9 +59,7 @@ class Workflow(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(VARCHAR(200), unique=True)
-    # description = Column(String(255))
     successful = Column(Boolean, nullable=False, default=False)
-    # output_dir = Column(String(255), nullable=False)
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
@@ -70,7 +68,6 @@ class Workflow(Base):
 
     max_attempts = Column(Integer, default=1)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
-    # recipe_graph = Column(PickleType)
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='workflow')
@@ -292,30 +289,6 @@ class Workflow(Base):
         task_graph = self.task_graph()
         stage_graph = self.stage_graph()
 
-        # def assert_no_duplicate_taskfiles():
-        # taskfiles = (tf for task in task_g.nodes() for tf in task.output_files if not tf.duplicate_ok)
-        #     f = lambda tf: tf.path
-        #     for path, group in it.groupby(sorted(filter(lambda tf: not tf.task_output_for.NOOP, taskfiles), key=f), f):
-        #         group = list(group)
-        #         if len(group) > 1:
-        #             t1 = group[0].task_output_for
-        #             tf1 = group[0]
-        #             t2 = group[1].task_output_for
-        #             tf2 = group[1]
-        #             div = "-" * 72 + "\n"
-        #             self.log.error("Duplicate taskfiles paths detected:\n "
-        #                            "{div}"
-        #                            "{t1}\n"
-        #                            "* {tf1}\n"
-        #                            "{div}"
-        #                            "{t2}\n"
-        #                            "* {tf2}\n"
-        #                            "{div}".format(**locals()))
-        #
-        #             raise ValueError('Duplicate taskfile paths')
-        #
-        # assert_no_duplicate_taskfiles()
-
         assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
             next(duplicates(self.stages)))
 
@@ -330,12 +303,8 @@ class Workflow(Base):
             if s.status != StageStatus.successful:
                 s.status = StageStatus.no_attempt
 
-
-        # Add final taskgraph to session
-        # session.expunge_all()
+        # Make sure everything is in the sqlalchemy session
         session.add(self)
-        # session.add_all(stage_g.nodes())
-        # session.add_all(task_g.nodes())
         successful = filter(lambda t: t.successful, task_graph.nodes())
 
         # print stages
@@ -348,19 +317,6 @@ class Workflow(Base):
         task_queue.remove_nodes_from(successful)
 
         handle_exits(self)
-
-        # self.log.info('Checking stage status...')
-
-        # def check_stage_status():
-        #     """Update stage attributes if new tasks were added to them"""
-        #     from .. import StageStatus
-        #     for stage in self.stages:
-        #         if stage.status != StageStatus.no_attempt and any(not task.successful for task in stage.tasks):
-        #             stage.successful = False
-        #             stage.finished_on = None
-        #             stage.status = StageStatus.running
-        #
-        # check_stage_status()
 
         if self.max_cores is not None:
             self.log.info('Ensuring there are enough cores...')
@@ -516,12 +472,13 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-        time.sleep(.3)   # conveniently, this returns early if we catch a signal
+        time.sleep(.3)  # conveniently, this returns early if we catch a signal
 
         if workflow.terminate_when_safe:
             workflow.log.info('%s Early termination requested: stopping workflow', workflow)
             workflow.terminate(due_to_failure=False)
             return
+
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
@@ -587,7 +544,6 @@ def handle_exits(workflow, do_atexit=True):
 
 
 def _copy_graph(graph):
-
     graph2 = nx.DiGraph()
     graph2.add_edges_from(graph.edges())
     graph2.add_nodes_from(graph.nodes())
