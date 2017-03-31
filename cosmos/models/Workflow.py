@@ -58,15 +58,15 @@ class Workflow(Base):
     __tablename__ = 'workflow'
 
     id = Column(Integer, primary_key=True)
-    name = Column(VARCHAR(200), unique=True)
-    successful = Column(Boolean, nullable=False, default=False)
+    name = Column(VARCHAR(200), unique=True, nullable=False)
+    successful = Column(Boolean, nullable=False)
     created_on = Column(DateTime)
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
     primary_log_path = Column(String(255))
 
-    max_attempts = Column(Integer, default=1)
+    max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
@@ -176,7 +176,7 @@ class Workflow(Base):
         # Get the right Stage
         stage = only_one((s for s in self.stages if s.name == stage_name), None)
         if stage is None:
-            stage = Stage(workflow=self, name=stage_name)
+            stage = Stage(workflow=self, name=stage_name, status=StageStatus.no_attempt)
             self.session.add(stage)
 
         # Check if task is already in stage
@@ -230,7 +230,11 @@ class Workflow(Base):
                         must_succeed=must_succeed,
                         core_req=params_or_signature_default_or('core_req', 1),
                         mem_req=params_or_signature_default_or('mem_req', None),
-                        time_req=time_req)
+                        time_req=time_req,
+                        successful=False,
+                        attempt=1,
+                        NOOP=False
+                        )
 
             task.cmd_fxn = func
 

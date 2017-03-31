@@ -10,7 +10,7 @@ def get_last_cmd_executed():
 def add_workflow_args(p, require_name=True):
     p.add_argument('--name', '-n', help="A name for this workflow", required=require_name)
     p.add_argument('--max_cores', '--max-cores', '-c', type=int,
-                   help="Maximum number (based on the sum of cpu_requirement) of cores to use at once.  0 means unlimited", default=None)
+                   help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited", default=None)
     p.add_argument('--max_attempts', '--max-attempts', '-a', type=int,
                    help="Maximum number of times to try running a Task that must succeed before the workflow fails", default=1)
     p.add_argument('--restart', '-r', action='store_true',

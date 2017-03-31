@@ -196,7 +196,7 @@ class Cosmos(object):
             # if check_output_dir:
             #     assert not os.path.exists(output_dir), 'Workflow.output_dir `%s` already exists.' % (output_dir)
 
-            wf = Workflow(id=old_id, name=name, primary_log_path=primary_log_path, manual_instantiation=False)
+            wf = Workflow(id=old_id, name=name, primary_log_path=primary_log_path, manual_instantiation=False, successful=False)
             # mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(wf)
 

@@ -15,7 +15,6 @@ from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_avai
 import funcsigs
 import re
 
-from black_magic.decorator import partial
 from decorator import decorator
 
 
