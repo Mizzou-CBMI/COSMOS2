@@ -186,6 +186,8 @@ class Workflow(Base):
             # if task is already in stage, but unsuccessful, raise an error (duplicate params) since unsuccessful tasks
             # were already removed on workflow load
             if task.successful:
+                # If the user manually edited the dag and this a resume, parents might need to be-readded
+                task.parents.extend(set(parents).difference(set(task.parents)))
                 return task
             else:
                 # TODO check for duplicate params here?  would be a lot faster at Workflow.run
