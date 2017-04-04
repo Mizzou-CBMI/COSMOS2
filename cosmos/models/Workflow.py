@@ -33,6 +33,11 @@ from ..core.cmd_fxn import signature
 from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
 from .Task import Task
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
 opj = os.path.join
 
 
@@ -116,6 +121,7 @@ class Workflow(Base):
         self.dont_garbage_collect = []
 
     @property
+    @lru_cache()
     def log(self):
         return get_logger('cosmos-%s' % self.name, (self.primary_log_path or 'workflow.log'))
 
