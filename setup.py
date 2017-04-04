@@ -26,6 +26,7 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 install_requires = [
     "backports.functools-lru-cache",
+    "black_magic>=0.0.10",  # to get a signature preserving partial() in cosmos.api
     "decorator",
     "flask",
     'funcsigs',
