@@ -1,6 +1,10 @@
+import json
+import six
+
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
-import six
+from sqlalchemy.types import TypeDecorator
+
 
 class Enum34_ColumnType(types.TypeDecorator):
     """
@@ -55,11 +59,6 @@ def get_or_create(session, model, **kwargs):
         instance = model(**kwargs)
         # session.add(instance)
         return instance, True
-
-
-from sqlalchemy.types import TypeDecorator, VARCHAR
-import json
-
 
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."
