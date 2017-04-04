@@ -240,6 +240,7 @@ class Workflow(Base):
                         mem_req=params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
+                        scheduling_error=False,
                         attempt=1,
                         NOOP=False
                         )
