@@ -19,6 +19,8 @@ import pprint
 
 opj = os.path.join
 
+MAX_SCHEDULER_RETRIES = 2
+
 
 class ExpectedError(Exception): pass
 
@@ -65,18 +67,20 @@ def task_status_changed(task):
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
-        if task.scheduling_error:
+        if task.scheduling_error and task.attempt < MAX_SCHEDULER_RETRIES:
             #
             # Wait 5-10 sec before retrying to
             # (a) avoid kicking the scheduler when it's having trouble, and
             # (b) give transient gremlins time to hopefully resolve themselves.
             #
             timeout = 5 * (random.random() + 1)
-            task.log.warn('%s failed to schedule, will retry in %.1f sec', task, timeout)
+            task.log.warn('%s attempt #%s failed to schedule, will retry in %.1f sec',
+                          task, task.attempt, timeout)
             sleep_through_signals(timeout)
             task.scheduling_error = False
+            task.attempt += 1
             task.status = TaskStatus.no_attempt
-        if not task.must_succeed:
+        elif not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_failed_printout.format(task))
             task.finished_on = datetime.datetime.now()
