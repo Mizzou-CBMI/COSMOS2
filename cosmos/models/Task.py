@@ -1,5 +1,6 @@
 import os
 import codecs
+import random
 import networkx as nx
 import subprocess as sp
 from sqlalchemy.orm import relationship, synonym
@@ -12,6 +13,7 @@ from ..db import Base
 from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
 from .. import TaskStatus, StageStatus, signal_task_status_change
 from ..util.helpers import wait_for_file
+from ..util.signal_handlers import sleep_through_signals
 import datetime
 import pprint
 
@@ -63,6 +65,17 @@ def task_status_changed(task):
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
+        if task.scheduling_error:
+            #
+            # Wait 5-10 sec before retrying to
+            # (a) avoid kicking the scheduler when it's having trouble, and
+            # (b) give transient gremlins time to hopefully resolve themselves.
+            #
+            timeout = 5 * (random.random() + 1)
+            task.log.warn('%s failed to schedule, will retry in %.1f sec', task, timeout)
+            sleep_through_signals(timeout)
+            task.scheduling_error = False
+            task.status = TaskStatus.no_attempt
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_failed_printout.format(task))
