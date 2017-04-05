@@ -552,6 +552,7 @@ def handle_exits(workflow, do_atexit=True):
         @atexit.register
         def cleanup_check():
             try:
+                msg = None
                 should_terminate = False
                 try:
                     if workflow.status == WorkflowStatus.running:
@@ -560,10 +561,16 @@ def handle_exits(workflow, do_atexit=True):
                 except SQLAlchemyError:
                     msg = '%s Unknown status when atexit() was called (sql error)' % workflow
                     should_terminate = True
+                except AttributeError:
+                    # at this point literally nothing can be done
+                    msg = '%s Cannot access workflow fields within atexit()' % workflow
+                    should_terminate = False
 
                 if should_terminate:
                     workflow.log.error(msg + ', terminating')
                     workflow.terminate(due_to_failure=True)
+                elif msg:
+                    workflow.log.error(msg + ', exiting IMMEDIATELY without cleaning up')
             finally:
                 workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
