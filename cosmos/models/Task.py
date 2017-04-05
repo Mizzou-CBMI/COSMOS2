@@ -74,7 +74,7 @@ def task_status_changed(task):
             # (b) give transient gremlins time to hopefully resolve themselves.
             #
             timeout = 5 * (random.random() + 1)
-            task.log.warn('%s attempt #%s failed to schedule, will retry in %.1f sec',
+            task.log.warn('%s attempt #%s failed to schedule, will pause for %.1f sec',
                           task, task.attempt, timeout)
             sleep_through_signals(timeout)
             task.scheduling_error = False
