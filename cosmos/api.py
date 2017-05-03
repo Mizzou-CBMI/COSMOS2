@@ -28,13 +28,12 @@ def load_input(out_file): pass
 
 
 def arg_to_str(name, value):
-    if value:
-        if value is True:
-            return name
-        else:
-            return '%s %s' % (name, value)
-    else:
+    if value is None:
         return ''
+    if isinstance(value, bool):
+        return name if value else ''
+    else:
+        return '%s %s' % (name, value)
 
 
 def args_to_str(*args):
