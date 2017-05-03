@@ -127,8 +127,9 @@ class Stage(Base):
         if descendants:
             stages_to_delete = self.descendants(include_self=False)
             self.log.info('Deleting %s and all of its descendants: %s' % (self, stages_to_delete))
-            for stage in stages_to_delete + [self]:
+            for stage in stages_to_delete:
                 self.session.delete(stage)
+            self.session.delete(self)
         else:
             self.log.info('Deleting %s' % self)
             self.session.delete(self)
