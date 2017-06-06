@@ -117,7 +117,7 @@ class Workflow(Base):
     @property
     def log(self):
         if self._log is None:
-            self._log = get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
+            self._log = get_logger('cosmos-%s' % self.id, self.primary_log_path)
         return self._log
 
     def make_output_dirs(self):
@@ -550,7 +550,10 @@ def handle_exits(workflow, do_atexit=True):
                     workflow.log.error(msg + ', terminating')
                     workflow.terminate(due_to_failure=True)
             finally:
-                workflow.log.info('%s Ceased work: this is its final log message', workflow)
+                try:
+                    workflow.log.info('%s Ceased work: this is its final log message', workflow)
+                except SQLAlchemyError:
+                    print >> sys.stderr, 'Ceased work, but encountered SQLALchemyError.  This is the final log message'
 
 
 def _copy_graph(graph):

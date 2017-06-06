@@ -117,7 +117,7 @@ class Cosmos(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def start(self, name, restart=False, skip_confirm=False, primary_log_path=None, fail_fast=False):
+    def start(self, name, restart=False, skip_confirm=False, primary_log_path='workflow.log', fail_fast=False):
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
 
