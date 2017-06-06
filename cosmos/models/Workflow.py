@@ -539,7 +539,7 @@ def handle_exits(workflow, do_atexit=True):
             try:
                 should_terminate = False
                 try:
-                    if workflow.status == WorkflowStatus.running:
+                    if workflow.status in [WorkflowStatus.running, WorkflowStatus.failed_but_running]:
                         msg = '%s Still running when atexit() was called' % workflow
                         should_terminate = True
                 except SQLAlchemyError:
