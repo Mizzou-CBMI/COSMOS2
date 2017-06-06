@@ -537,23 +537,15 @@ def handle_exits(workflow, do_atexit=True):
         @atexit.register
         def cleanup_check():
             try:
-                should_terminate = False
                 try:
                     if workflow.status in [WorkflowStatus.running, WorkflowStatus.failed_but_running]:
-                        msg = '%s Still running when atexit() was called' % workflow
-                        should_terminate = True
+                        workflow.log.error('%s still running when atexit() was called, terminating' % workflow)
+                        workflow.terminate(due_to_failure=True)
                 except SQLAlchemyError:
-                    msg = '%s Unknown status when atexit() was called (sql error)' % workflow
-                    should_terminate = True
-
-                if should_terminate:
-                    workflow.log.error(msg + ', terminating')
+                    workflow.log.error('%s Unknown status when atexit() was called (sql error), terminating' % workflow)
                     workflow.terminate(due_to_failure=True)
             finally:
-                try:
-                    workflow.log.info('%s Ceased work: this is its final log message', workflow)
-                except SQLAlchemyError:
-                    print >> sys.stderr, 'Ceased work, but encountered SQLALchemyError.  This is the final log message'
+                workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
 
 def _copy_graph(graph):
