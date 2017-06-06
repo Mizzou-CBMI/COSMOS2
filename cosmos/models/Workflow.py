@@ -65,6 +65,7 @@ class Workflow(Base):
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
     primary_log_path = Column(String(255))
+    _log = None
 
     max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
@@ -115,7 +116,9 @@ class Workflow(Base):
 
     @property
     def log(self):
-        return get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
+        if self._log is None:
+            self._log = get_logger('cosmos-%s' % Workflow.name, (self.primary_log_path or 'workflow.log'))
+        return self._log
 
     def make_output_dirs(self):
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
@@ -536,7 +539,7 @@ def handle_exits(workflow, do_atexit=True):
             try:
                 should_terminate = False
                 try:
-                    if workflow.status == WorkflowStatus.running:
+                    if workflow.status in [WorkflowStatus.running, WorkflowStatus.failed_but_running]:
                         msg = '%s Still running when atexit() was called' % workflow
                         should_terminate = True
                 except SQLAlchemyError:
