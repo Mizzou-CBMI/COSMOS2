@@ -117,7 +117,7 @@ class Workflow(Base):
     @property
     def log(self):
         if self._log is None:
-            self._log = get_logger('cosmos-%s' % self.id, self.primary_log_path)
+            self._log = get_logger('%s' % self, self.primary_log_path)
         return self._log
 
     def make_output_dirs(self):
