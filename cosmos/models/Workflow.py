@@ -125,7 +125,8 @@ class Workflow(Base):
         for d in dirs:
             mkdir(d)
 
-    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, queue=None, must_succeed=True, time_req=None):
+    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
+                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -142,6 +143,10 @@ class Workflow(Base):
         :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
+        :param int cpu_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
+            Warning!  In future versions, this will be the only way to set it.
+        :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
+            Warning!  In future versions, this will be the only way to set it.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -233,8 +238,8 @@ class Workflow(Base):
                         drm=drm or self.cosmos_app.default_drm,
                         queue=queue or self.cosmos_app.default_queue,
                         must_succeed=must_succeed,
-                        core_req=params_or_signature_default_or('core_req', 1),
-                        mem_req=params_or_signature_default_or('mem_req', None),
+                        core_req=core_req if core_req is not None else params_or_signature_default_or('core_req', 1),
+                        mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
                         attempt=1,

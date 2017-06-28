@@ -109,7 +109,7 @@ class Cosmos(object):
     #     return self.Session()
 
     def close(self):
-        self.futures_executor.close()
+        self.session.close()
 
     def __enter__(self):
         return self
