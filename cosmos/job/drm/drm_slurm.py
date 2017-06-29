@@ -184,9 +184,9 @@ def _qstat_all():
         lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
-    keys = re.split("\s+", lines[0].strip())
+    keys = re.split("\s+", lines[1].strip())
     bjobs = {}
-    for l in lines[1:]:
+    for l in lines[2:]:
         items = re.split("\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
