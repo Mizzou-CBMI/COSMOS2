@@ -44,13 +44,18 @@ class DRM_SLURM(DRM):
 
         for task in tasks:
             jid = unicode(task.drm_jobID)
-            if jid not in qjobs or \
-               any(finished_state in qjobs[jid]['ST'] for finished_state in
-                   ['F', 'BF', 'CA', 'CD', 'NF', 'PR', 'R', 'TO']):
-                #
-                # If the job doesn't appear in qstat (or is tagged with any of the exit codes),
-                # it has completed.
+            if jid not in qjobs or qjobs[jid]['STATE'] == 'COMPLETED':
+                # if job does not appear in squeue or has "COMPLETED" status assume it's done with exit code 0 (unless
+                # scontrol show jobid says otherwise)
                 data = self._get_task_return_data(task)
+                data['exit_status'] = (0 if data['exit_status'] is None else data['exit_status'])
+                yield task, data
+            elif any(finished_state in qjobs[jid]['STATE'] for finished_state in
+                   ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']):
+                # If the job is tagged with any of the "failure" exit codes, it has completed with exit code > 0
+                data = self._get_task_return_data(task)
+                data['exit_status'] = (1 if (data['exit_status'] is None or data['exit_status'] == 0)
+                                       else data['exit_status'])
                 yield task, data
 
 
@@ -63,7 +68,7 @@ class DRM_SLURM(DRM):
             qjobs = _qstat_all()
 
             def f(task):
-                return qjobs.get(unicode(task.drm_jobID), dict()).get('ST', '???')
+                return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', '???')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -85,12 +90,8 @@ class DRM_SLURM(DRM):
             exit_code = (0 if d['DerivedExitCode'] == '0:0' else max(int(c) for c in d['DerivedExitCode'].split(":")))
         else:
             # scontrol show jobid -d -o did not find the job id (probably called too late) so we don't have exit code
-            # for now assume that if job_state is 'COMPLETED' then the return code is 0
             # TODO: Once accounting is configured I need to add call to sacct to get the job data, including ExitCode
-            if job_state == 'COMPLETED':
-                exit_code = 0
-            else:
-                exit_code = 1
+            exit_code = None
         d['exit_status'] = exit_code
         return d
 
@@ -180,7 +181,7 @@ def _qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['squeue'], preexec_fn=exit_process_group).strip().split('\n')
+        lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     keys = re.split("\s+", lines[0].strip())
