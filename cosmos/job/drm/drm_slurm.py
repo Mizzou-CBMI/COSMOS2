@@ -145,12 +145,18 @@ def _qacct_raw(task, timeout=600, quantum=15):
                          (task.drm_jobID, i, time.time() - start))
 
     acct_dict = {}
+    k, v = None, None
     for kv in qacct_stdout_str.strip().split():
         eq_pos = kv.find('=')
         if eq_pos == -1:
-            raise EnvironmentError('%s with drm_jobID=%s has unparseable "scontrol show jobid -d -o" output:\n%s\n'
-                                   'Could not find "=" in "%s"' %
-                                   (task, task.drm_jobID, qacct_stdout_str, kv))
+            # add the string to previous value - most likely the previous value contained a white space
+            if k is not None:
+                acct_dict[k] += (" " + kv)
+                continue
+            else:
+                raise EnvironmentError('%s with drm_jobID=%s has unparseable "scontrol show jobid -d -o" output:\n%s\n'
+                                       'Could not find "=" in "%s"' %
+                                       (task, task.drm_jobID, qacct_stdout_str, kv))
         k, v = kv[:eq_pos], kv[(eq_pos+1):]
         acct_dict[k] = v
 
