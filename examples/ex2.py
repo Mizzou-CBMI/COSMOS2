@@ -53,7 +53,7 @@ if __name__ == '__main__':
     import argparse
 
     p = argparse.ArgumentParser()
-    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge'))
+    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge', 'slurm'))
     p.add_argument('-q', '--queue', help='Submit to this queue of the DRM supports it')
 
     args = p.parse_args()
