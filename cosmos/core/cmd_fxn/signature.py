@@ -44,6 +44,8 @@ def default_prepend(task):  # pylint: disable=unused-argument
            'set -e\n' \
            'set -o pipefail\n' \
            'trap \'\' USR1 USR2 XCPU\n' \
+           'if ["$JOB_ID"]; then echo "Running under SGE job ${JOB_ID} on ${HOSTNAME} ' \
+           '(submitted from ${SGE_O_LOGNAME}@${SGE_O_HOST}:${SGE_O_WORKDIR})" >&2; fi\n' \
            '\n'
 
 # def default_cmd_append(task):
