@@ -4,9 +4,11 @@ import json
 import re
 import os
 from collections import OrderedDict
+from subprocess import CalledProcessError
 import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
+from ... import TaskStatus
 from ...util.signal_handlers import sleep_through_signals
 
 from more_itertools import grouper
@@ -23,15 +25,20 @@ class DRM_GE(DRM):
                 os.unlink(p)
 
         ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
-        qsub = 'qsub -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(stdout=task.output_stdout_path,
-                                                                                    stderr=task.output_stderr_path,
-                                                                                    ns=ns)
+        qsub = 'qsub -terse -o {stdout} -e {stderr} -b y -cwd -S /bin/bash -V{ns} '.format(
+            stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns)
 
-        out = sp.check_output('{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                              env=os.environ, preexec_fn=exit_process_group, shell=True)
+        try:
+            out = sp.check_output(
+                '{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
+                env=os.environ, preexec_fn=exit_process_group, shell=True)
 
-        drm_jobID = unicode(re.search('job (\d+) ', out).group(1))
-        return drm_jobID
+            task.drm_jobID = unicode(int(out))
+        except (CalledProcessError, ValueError):
+            task.log.error('%s failed submission to %s: %s' % (task, task.drm, out))
+            task.status = TaskStatus.failed
+        else:
+            task.status = TaskStatus.submitted
 
     def filter_is_done(self, tasks):
         """

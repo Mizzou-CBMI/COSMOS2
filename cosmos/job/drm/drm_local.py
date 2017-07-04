@@ -26,7 +26,8 @@ class DRM_Local(DRM):
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
-        return drm_jobID
+        task.drm_jobID = drm_jobID
+        task.status = TaskStatus.submitted
 
     def _is_done(self, task):
         try:
