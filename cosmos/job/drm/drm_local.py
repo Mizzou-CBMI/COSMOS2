@@ -1,5 +1,6 @@
 import os
 import psutil
+import signal
 import time
 
 from .DRM_Base import DRM
@@ -67,24 +68,36 @@ class DRM_Local(DRM):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
+    def _signal(self, task, sig):
+        """Send a signal to a local task and any child (background or pipe) processes."""
+        try:
+            pgid = os.getpgid(int(task.drm_jobID))
+            os.kill(int(task.drm_jobID), sig)
+            task.log.info("%s sent signal %s to pid %s" % (task, sig, task.drm_jobID))
+            os.killpg(pgid, sig)
+            task.log.info("%s sent signal %s to pgid %s" % (task, pgid, task.drm_jobID))
+        except OSError:
+            pass
+
+    def interrupt(self, task):
+        """Terminate a task using SIGINT."""
+        self._signal(task, signal.SIGINT)
+
     def terminate(self, task):
         """Terminate a task using SIGTERM."""
-        try:
-            psutil.Process(int(task.drm_jobID)).terminate()
-        except psutil.NoSuchProcess:
-            pass
+        self._signal(task, signal.SIGTERM)
 
     def kill(self, task):
         """Kill a task using SIGKILL."""
-        try:
-            psutil.Process(int(task.drm_jobID)).kill()
-        except psutil.NoSuchProcess:
-            pass
+        self._signal(task, signal.SIGKILL)
 
     def kill_tasks(self, tasks):
         for t in tasks:
+            self.interrupt(t)
+        sleep_through_signals(10)
+        for t in tasks:
             self.terminate(t)
-        sleep_through_signals(1)
+        sleep_through_signals(10)
         for t in tasks:
             self.kill(t)
 
