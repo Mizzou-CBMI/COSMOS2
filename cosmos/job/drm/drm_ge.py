@@ -4,7 +4,6 @@ import json
 import re
 import os
 from collections import OrderedDict
-from subprocess import CalledProcessError
 import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
@@ -31,11 +30,15 @@ class DRM_GE(DRM):
         try:
             out = sp.check_output(
                 '{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                env=os.environ, preexec_fn=exit_process_group, shell=True)
+                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=sp.STDOUT)
 
             task.drm_jobID = unicode(int(out))
-        except (CalledProcessError, ValueError):
-            task.log.error('%s failed submission to %s: %s' % (task, task.drm, out))
+        except sp.CalledProcessError as cpe:
+            task.log.error('%s submission to %s failed with error %s: %s' %
+                           (task, task.drm, cpe.returncode, cpe.output.strip()))
+            task.status = TaskStatus.failed
+        except ValueError:
+            task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
             task.status = TaskStatus.failed
         else:
             task.status = TaskStatus.submitted
