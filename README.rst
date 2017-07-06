@@ -83,12 +83,12 @@ __________
 Repositories using Cosmos
 ___________________________
 
-Please let us know if you're using Cosmos by sending a PR with your company or lab name, and @githandle or @gitrepository.
+Please let us know if you're using Cosmos by sending a PR with your company or lab name and any relevant information.
 
-* `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
-* `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
-* `MC-Key <https://bitbucket.org/shazly/mcgk>`__
-* `Invitae <http://invitae.com>`__
+* `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__ - A GATK best practices variant calling pipeline.
+* `PV-Key  <https://github.com/LPM-HMS/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
+* `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.
+* `Invitae <http://invitae.com>`__ - Clinical NGS sequencing laboratory.  Utilizes Cosmos for production variant calling pipelines and R&D analysis.
 
 
 Publications using Cosmos
