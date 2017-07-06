@@ -1,6 +1,7 @@
 import os
 import types
 import warnings
+import pprint
 
 from collections import namedtuple
 from sqlalchemy.exc import SAWarning
@@ -17,7 +18,7 @@ class Dependency(namedtuple('Dependency', 'task param')):
     def __new__(cls, task, param):
         from cosmos.api import Task
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
-        assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`' % (param, task)
+        assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`.  Available parameters are:\n%s' % (param, task, pprint.pformat(task.params, indent=2))
         return super(Dependency, cls).__new__(cls, task, param)
 
     def resolve(self):
