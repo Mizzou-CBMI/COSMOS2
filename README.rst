@@ -88,7 +88,7 @@ Please let us know if you're using Cosmos by sending a PR with your company or l
 * `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
 * `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__
-* `Invitae <http://invitae.com`__
+* `Invitae <http://invitae.com>`__
 
 
 Publications using Cosmos
