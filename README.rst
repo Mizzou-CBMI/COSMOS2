@@ -80,8 +80,9 @@ __________
 
     py.test
 
-Repositories using Cosmos
-___________________________
+
+Cosmos Users
+_________________
 
 Please let us know if you're using Cosmos by sending a PR with your company or lab name and any relevant information.
 
