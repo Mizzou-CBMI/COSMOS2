@@ -83,6 +83,8 @@ __________
 Repositories using Cosmos
 ___________________________
 
+Please let us know if you're using Cosmos by sending a PR with your company or lab name, and @githandle or @gitrepository.
+
 *  `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
 *  `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__
@@ -100,8 +102,10 @@ __________________________
 
 5) Hawkins JB, Souilmi Y, Powles R, Jung JY, Wall DP, Tonellato PJ (2013) COSMOS: NGS Analysis in the Cloud. AMIA TBI. BMC Medical Genomics
 
+
 Changelog
 __________
+
 
 2.0.1
 ++++++
@@ -117,3 +121,4 @@ This API is now considered to be much more stable.
 * Created Cosmos.api.Dependency, which provides a way to specify a parent and input at the same time.
 * Removed one2one, one2many, etc. helpers.  Found this just confused people more than helped.
 * Various stability improvements to the drmaa jobmanager module
+
