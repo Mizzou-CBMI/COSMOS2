@@ -1,7 +1,5 @@
-import re
-from ... import NOOP
+import decorator
 import funcsigs
-import os
 
 
 def get_call_kwargs(cmd_fxn, params, input_map, output_map):
@@ -25,9 +23,6 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
     #TODO dont format with params?
     kwargs = {k: v.format(**params) if isinstance(v, basestring) else v for k, v in gen_params()}
     return kwargs
-
-
-import decorator
 
 
 def default_prepend(task):  # pylint: disable=unused-argument
