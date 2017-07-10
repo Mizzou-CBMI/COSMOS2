@@ -4,6 +4,7 @@ import os
 
 from .DRM_Base import DRM
 from .util import exit_process_group
+from ... import TaskStatus
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),
@@ -26,14 +27,19 @@ class DRM_LSF(DRM):
         bsub = 'bsub -o {stdout} -e {stderr}{ns} '.format(stdout=task.output_stdout_path,
                                                           stderr=task.output_stderr_path,
                                                           ns=ns)
+        try:
+            out = sp.check_output('{bsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task),
+                                                              bsub=bsub),
+                                  env=os.environ,
+                                  preexec_fn=exit_process_group,
+                                  shell=True)
 
-        out = sp.check_output('{bsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task), bsub=bsub),
-                              env=os.environ,
-                              preexec_fn=exit_process_group,
-                              shell=True)
-
-        drm_jobID = int(re.search('Job <(\d+)>', out).group(1))
-        return drm_jobID
+            task.drm_jobID = unicode(int(re.search(r'Job <(\d+)>', out).group(1)))
+        except (sp.CalledProcessError, ValueError):
+            task.log.error('%s failed submission to %s: %s' % (task, task.drm, out))
+            task.status = TaskStatus.failed
+        else:
+            task.status = TaskStatus.submitted
 
     def filter_is_done(self, tasks):
         if len(tasks):
