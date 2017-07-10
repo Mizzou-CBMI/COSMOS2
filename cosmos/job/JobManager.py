@@ -1,8 +1,6 @@
 import os
 import stat
 
-opj = os.path.join
-
 from ..util.helpers import mkdir
 from .drm.drm_local import DRM_Local
 from .drm.drm_lsf import DRM_LSF
@@ -12,6 +10,7 @@ from .. import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
 from cosmos.models.Workflow import default_task_log_output_dir
+
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
@@ -52,18 +51,16 @@ class JobManager(object):
     def submit_task(self, task, command):
         if command == NOOP:
             task.NOOP = True
-        else:
-            task.log_dir = self.log_out_dir_func(task)
-            mkdir(task.log_dir)
-            _create_command_sh(task, command)
-            task.drm_native_specification = self.get_submit_args(task)
-            assert task.drm is not None, 'task has no drm set'
+            task.status = TaskStatus.submitted
+            return
 
-            drm_jobID = self.get_drm(task.drm).submit_job(task)
-            assert isinstance(drm_jobID, unicode)
-            task.drm_jobID = drm_jobID
+        task.log_dir = self.log_out_dir_func(task)
+        mkdir(task.log_dir)
+        _create_command_sh(task, command)
+        task.drm_native_specification = self.get_submit_args(task)
+        assert task.drm is not None, 'task has no drm set'
 
-        task.status = TaskStatus.submitted
+        self.get_drm(task.drm).submit_job(task)
 
     def run_tasks(self, tasks):
         self.running_tasks += tasks
@@ -125,4 +122,3 @@ def _create_command_sh(task, command):
     for p in [task.output_stdout_path, task.output_stderr_path]:
         if os.path.exists(p):
             os.unlink(p)
-

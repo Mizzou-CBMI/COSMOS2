@@ -3,6 +3,7 @@ import sys
 
 from .DRM_Base import DRM
 from .util import div, convert_size_to_kb
+from ... import TaskStatus
 
 _drmaa_session = None
 
@@ -32,14 +33,14 @@ class DRM_DRMAA(DRM):
             jt.nativeSpecification = task.drm_native_specification or ''
 
             try:
-                drm_jobID = get_drmaa_session().runJob(jt)
-            except BaseException:
-                print >>sys.stderr, \
-                    "Couldn't run %s with nativeSpecification=`%s`" % \
-                    (task, jt.nativeSpecification)
-                raise
-
-        return drm_jobID
+                task.drm_jobID = get_drmaa_session().runJob(jt)
+            except:     #pylint: disable=W0702
+                # python-drmaa can throw almost any exception! catch everything
+                task.log.error('%s failed submission to %s with nativeSpecification=`%s`' %
+                               (task, task.drm, jt.nativeSpecification))
+                task.status = TaskStatus.failed
+            else:
+                task.status = TaskStatus.submitted
 
     def filter_is_done(self, tasks):
         import drmaa
