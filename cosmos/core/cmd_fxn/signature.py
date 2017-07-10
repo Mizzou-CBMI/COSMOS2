@@ -34,20 +34,25 @@ def default_prepend(task):  # pylint: disable=unused-argument
     """
     Set common error- and signal-handling behavior for Cosmos Tasks.
 
-    set -e and set -o will cause Tasks that run multiple commands to error out at the
+    set -e and set -o pipefail will cause Tasks that run multiple commands to error out at the
     first sign of failure, even if the failure occurs in a multiple-step pipe.
 
     the trap command is so that Tasks ignore three SGE signals that are handled by the Cosmos
     runtime (see commment on Workflow.py:SignalWatcher for more details).
+
+    finally, one or two echo statements dump basic job/pid information to stderr.
     """
-    return '#!/bin/bash\n' \
-           'set -e\n' \
-           'set -o pipefail\n' \
-           'trap \'\' USR1 USR2 XCPU\n' \
-           'echo "This task is running as pid $$ on ${HOSTNAME}" >&2\n' \
-           'if [ "$JOB_ID" ]; then echo "Managed by SGE: job ${JOB_ID}, ' \
-           'submitted from ${SGE_O_LOGNAME}@${SGE_O_HOST}:${SGE_O_WORKDIR}" >&2; fi\n' \
-           '\n'
+    bash_prelude = '#!/bin/bash\n' \
+                   'set -e\n' \
+                   'set -o pipefail\n' \
+                   'trap \'\' USR1 USR2 XCPU\n' \
+                   'echo "This task is running as pid $$ on ${HOSTNAME}" >&2\n'
+
+    if task.drm == "ge":
+        bash_prelude += 'echo "Managed by SGE: job ${JOB_ID}, ' \
+            'submitted from ${SGE_O_LOGNAME}@${SGE_O_HOST}:${SGE_O_WORKDIR}" >&2\n'
+
+    return bash_prelude + '\n'
 
 # def default_cmd_append(task):
 #     return ''
