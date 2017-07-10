@@ -274,6 +274,10 @@ class Workflow(Base):
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
 
+        Returns 0 if all tasks in the workflow ran successfully. In case of
+        Task failure, returns the return code of the first failed task (if
+        available). Returns None if no task failure information is available
+        or if the `dry` parameter was set to True.
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
@@ -343,8 +347,14 @@ class Workflow(Base):
         # Run this thing!
         self.log.info('Committing to SQL db...')
         session.commit()
+
         if not dry:
-            _run(self, session, task_queue)
+            failed_tasks = _run(self, session, task_queue)
+            return_code = None
+            for ft in failed_tasks:
+                if ft.exit_status:
+                    return_code = ft.exit_status
+                    break
 
             # set status
             if self.status == WorkflowStatus.failed_but_running:
@@ -354,18 +364,19 @@ class Workflow(Base):
                     if s.status == StageStatus.running_but_failed:
                         s.status = StageStatus.failed
                 session.commit()
-                return False
+                return return_code or None
             elif self.status == WorkflowStatus.running:
                 if set_successful:
                     self.status = WorkflowStatus.successful
                 session.commit()
-                return True
+                return 0
             else:
                 self.log.warning('Workflow exited with status %s', self.status)
                 session.commit()
-                return False
+                return return_code or None
         else:
             self.log.info('Workflow dry run is complete')
+            return None
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -451,9 +462,13 @@ class Workflow(Base):
 def _run(workflow, session, task_queue):
     """
     Do the workflow!
+
+    Returns a list of failed tasks.
     """
     workflow.log.info('Executing TaskGraph')
     available_cores = True
+
+    failed_tasks = []
 
     while len(task_queue) > 0:
         if available_cores:
@@ -461,12 +476,15 @@ def _run(workflow, session, task_queue):
             available_cores = False
 
         for task in _process_finished_tasks(workflow.jobmanager):
+            if task.status == TaskStatus.failed:
+                failed_tasks.append(task)
+
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
                     workflow.log.info('Exiting run loop at first Task failure')
                     workflow.terminate(due_to_failure=True)
-                    return
+                    return failed_tasks
 
                 # pop all descendents when a task fails; the rest of the graph can still execute
                 remove_nodes = descendants(task_queue, task).union({task, })
@@ -494,7 +512,9 @@ def _run(workflow, session, task_queue):
         if workflow.terminate_when_safe:
             workflow.log.info('%s Early termination requested: stopping workflow', workflow)
             workflow.terminate(due_to_failure=False)
-            return
+            return failed_tasks
+
+    return failed_tasks
 
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
