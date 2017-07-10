@@ -353,6 +353,8 @@ class Workflow(Base):
             return_code = None
             for ft in failed_tasks:
                 if ft.exit_status:
+                    self.log.warning("%s inheriting exit code %d from first failed task %s",
+                                     self, ft.exit_status, ft)
                     return_code = ft.exit_status
                     break
 
@@ -371,7 +373,7 @@ class Workflow(Base):
                 session.commit()
                 return 0
             else:
-                self.log.warning('Workflow exited with status %s', self.status)
+                self.log.warning('%s exited with status "%s"', self, self.status)
                 session.commit()
                 return return_code or None
         else:
