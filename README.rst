@@ -35,7 +35,8 @@ Cosmos is a python library for creating scientific pipelines that run on a distr
 Cosmos provides a simple api to specify complex job DAGs, a way to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
 It is different from libraries such as `Luigi <https://github.com/spotify/luigi>`__ or `Airflow <http://airbnb.io/projects/airflow/>`__ which are simultaneously trying to solve problems such as scheduling recurring tasks and listening for events.
 Cosmos is very focused only on reproducible scientific pipelines, allowing it to have a very simple state.  There is a single process per Workflow which is a python script, and single process per Task which is a command inside a bash script.  When a Task fails, reproducing the exact
-environment of a Task is as simple as re-running the bash script.  Cosmos is intended and useful for both one-off analyses and production software.
+environment of a Task is as simple as re-running the bash script.  Cosmos is intended and useful for both one-off analyses and production software.  Users have reported analyzing >100 whole genomes (~50TB and tens of thousands of jobs) in
+a single Workflow without issue.
 
 History
 ___________
