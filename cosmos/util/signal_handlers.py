@@ -157,7 +157,7 @@ class SGESignalHandler(object):
         self._logging_event.set()
 
         if signum in self.lethal_signals:
-            self.workflow.terminate_when_safe = True
+            self.workflow.termination_signal = signum
 
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
@@ -196,8 +196,8 @@ class SGESignalHandler(object):
                 self._log_signal_receipt(new_signals)
                 self._signals_logged += new_signals
 
-                if self.workflow.terminate_when_safe:
-                    self._log.info('%s Early-termination flag has been set',
-                                   self._workflow_name)
+                if self.workflow.termination_signal:
+                    self._log.info('%s Early-termination flag (%d) has been set',
+                                   self._workflow_name, self.workflow.termination_signal)
                 else:
                     self._log.debug('%s Ignoring benign signal(s)', self._workflow_name)

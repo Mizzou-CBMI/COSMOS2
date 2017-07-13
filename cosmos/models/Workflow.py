@@ -76,7 +76,7 @@ class Workflow(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
-    terminate_when_safe = False
+    termination_signal = None
 
     @declared_attr
     def status(cls):
@@ -274,6 +274,8 @@ class Workflow(Base):
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
 
+        Returns True if all tasks in the workflow ran successfully, False otherwise.
+        If dry is specified, returns None.
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
@@ -361,11 +363,12 @@ class Workflow(Base):
                 session.commit()
                 return True
             else:
-                self.log.warning('Workflow exited with status %s', self.status)
+                self.log.warning('%s exited with status "%s"', self, self.status)
                 session.commit()
                 return False
         else:
             self.log.info('Workflow dry run is complete')
+            return None
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -443,6 +446,17 @@ class Workflow(Base):
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
+    def get_first_failed_task(self, key=lambda t: t.finished_on):
+        """
+        Return the first failed Task (chronologically).
+
+        If no Task failed, return None.
+        """
+        for t in sorted([t for t in self.tasks if key(t) is not None], key=key):
+            if t.exit_status:
+                return t
+        return None
+
 
 # @event.listens_for(Workflow, 'before_delete')
 # def before_delete(mapper, connection, target):
@@ -464,7 +478,8 @@ def _run(workflow, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
-                    workflow.log.info('Exiting run loop at first Task failure')
+                    workflow.log.info('%s Exiting run loop at first Task failure, error %s: %s',
+                                      workflow, task.exit_status, task)
                     workflow.terminate(due_to_failure=True)
                     return
 
@@ -491,8 +506,9 @@ def _run(workflow, session, task_queue):
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)
 
-        if workflow.terminate_when_safe:
-            workflow.log.info('%s Early termination requested: stopping workflow', workflow)
+        if workflow.termination_signal:
+            workflow.log.info('%s Early termination requested (%d): stopping workflow',
+                              workflow, workflow.termination_signal)
             workflow.terminate(due_to_failure=False)
             return
 
