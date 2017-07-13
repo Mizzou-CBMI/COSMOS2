@@ -34,8 +34,6 @@ from .Task import Task
 
 opj = os.path.join
 
-DISTANT_FUTURE = datetime.datetime(datetime.MAXYEAR, 12, 31)
-
 
 def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
@@ -448,13 +446,13 @@ class Workflow(Base):
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
-    def get_first_failed_task(self, key=lambda t: t.finished_on or DISTANT_FUTURE):
+    def get_first_failed_task(self, key=lambda t: t.finished_on):
         """
         Return the first failed Task (chronologically).
 
         If no Task failed, return None.
         """
-        for t in sorted(self.task_graph(), key=key):
+        for t in sorted([t for t in self.tasks if key(t) is not None], key=key):
             if t.exit_status:
                 return t
         return None
