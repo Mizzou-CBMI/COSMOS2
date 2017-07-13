@@ -446,17 +446,15 @@ class Workflow(Base):
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
-    def exit_status(self):
+    def get_first_failed_task(self, key=lambda t: t.finished_on):
         """
-        Return the exit status of the first failed Task (topologically, not chronologically).
+        Return the first failed Task (chronologically).
 
         If no Task failed, return None.
         """
-        for t in self.task_graph():
+        for t in sorted(self.task_graph(), key=key):
             if t.exit_status:
-                self.log.warning("%s took exit status %s from %s (%s)",
-                                 self, t.exit_status, t, t.status)
-                return t.exit_status
+                return t
         return None
 
 
