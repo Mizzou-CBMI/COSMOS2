@@ -34,6 +34,8 @@ from .Task import Task
 
 opj = os.path.join
 
+DISTANT_FUTURE = datetime.datetime(datetime.MAXYEAR, 12, 31)
+
 
 def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
@@ -446,7 +448,7 @@ class Workflow(Base):
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
-    def get_first_failed_task(self, key=lambda t: t.finished_on):
+    def get_first_failed_task(self, key=lambda t: t.finished_on or DISTANT_FUTURE):
         """
         Return the first failed Task (chronologically).
 
@@ -478,7 +480,7 @@ def _run(workflow, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
-                    workflow.log.info('Exiting run loop at first Task failure')
+                    workflow.log.info('%s Exiting run loop at first Task failure: %s, error %s', workflow, task, task.exit_status)
                     workflow.terminate(due_to_failure=True)
                     return
 
