@@ -35,7 +35,8 @@ Cosmos is a python library for creating scientific pipelines that run on a distr
 Cosmos provides a simple api to specify complex job DAGs, a way to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
 It is different from libraries such as `Luigi <https://github.com/spotify/luigi>`__ or `Airflow <http://airbnb.io/projects/airflow/>`__ which are simultaneously trying to solve problems such as scheduling recurring tasks and listening for events.
 Cosmos is very focused only on reproducible scientific pipelines, allowing it to have a very simple state.  There is a single process per Workflow which is a python script, and single process per Task which is a command inside a bash script.  When a Task fails, reproducing the exact
-environment of a Task is as simple as re-running the bash script.  Cosmos is intended and useful for both one-off analyses and production software.
+environment of a Task is as simple as re-running the bash script.  Cosmos is intended and useful for both one-off analyses and production software.  Users have reported analyzing >100 whole genomes (~50TB and tens of thousands of jobs) in
+a single Workflow without issue.
 
 History
 ___________
@@ -80,12 +81,17 @@ __________
 
     py.test
 
-Repositories using Cosmos
-___________________________
 
-*  `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__
-*  `PV-Key  <https://github.com/LPM-HMS/PvKey>`__
-* `MC-Key <https://bitbucket.org/shazly/mcgk>`__
+Cosmos Users
+_________________
+
+Please let us know if you're using Cosmos by sending a PR with your company or lab name and any relevant information.
+
+* `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__ - A GATK best practices variant calling pipeline.
+* `PV-Key  <https://github.com/LPM-HMS/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
+* `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.
+* `Invitae <http://invitae.com>`__ - Clinical NGS sequencing laboratory.  Utilizes Cosmos for production variant calling pipelines and R&D analysis.
+
 
 Publications using Cosmos
 __________________________
@@ -100,8 +106,10 @@ __________________________
 
 5) Hawkins JB, Souilmi Y, Powles R, Jung JY, Wall DP, Tonellato PJ (2013) COSMOS: NGS Analysis in the Cloud. AMIA TBI. BMC Medical Genomics
 
+
 Changelog
 __________
+
 
 2.0.1
 ++++++
@@ -117,3 +125,4 @@ This API is now considered to be much more stable.
 * Created Cosmos.api.Dependency, which provides a way to specify a parent and input at the same time.
 * Removed one2one, one2many, etc. helpers.  Found this just confused people more than helped.
 * Various stability improvements to the drmaa jobmanager module
+
