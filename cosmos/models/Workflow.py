@@ -457,6 +457,26 @@ class Workflow(Base):
                 return t
         return None
 
+    def get_exit_code(self):
+        """
+        Return an integer callers can use as a POSIX exit code.
+        """
+        if self.successful:
+            return 0
+
+        # if killed by a signal, return the signal number that did us in
+        if self.termination_signal:
+            return self.termination_signal
+
+        # return the exit code of the first failed job that provided one
+        ft = self.get_first_failed_task()
+        if ft is not None:
+            return ft.exit_status
+
+        self.log.warning("%s unable to pinpoint cause of failure, returning %d",
+                         self, os.EX_SOFTWARE)
+        return os.EX_SOFTWARE
+
 
 # @event.listens_for(Workflow, 'before_delete')
 # def before_delete(mapper, connection, target):
