@@ -78,7 +78,7 @@ class Workflow(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
-    terminate_when_safe = False
+    termination_signal = None
 
     @declared_attr
     def status(cls):
@@ -480,7 +480,8 @@ def _run(workflow, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
-                    workflow.log.info('%s Exiting run loop at first Task failure: %s, error %s', workflow, task, task.exit_status)
+                    workflow.log.info('%s Exiting run loop at first Task failure, error %s: %s',
+                                      workflow, task.exit_status, task)
                     workflow.terminate(due_to_failure=True)
                     return
 
@@ -507,8 +508,9 @@ def _run(workflow, session, task_queue):
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)
 
-        if workflow.terminate_when_safe:
-            workflow.log.info('%s Early termination requested: stopping workflow', workflow)
+        if workflow.termination_signal:
+            workflow.log.info('%s Early termination requested (%d): stopping workflow',
+                              workflow, workflow.termination_signal)
             workflow.terminate(due_to_failure=False)
             return
 
