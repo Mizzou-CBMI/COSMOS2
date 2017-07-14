@@ -248,7 +248,7 @@ class Task(Base):
 
     @property
     def finished(self):
-        return self.status in [TaskStatus.successful, TaskStatus.failed]
+        return self.status in {TaskStatus.successful, TaskStatus.killed, TaskStatus.failed}
 
     _cache_profile = None
 
