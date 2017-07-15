@@ -24,7 +24,7 @@ class DRM_GE(DRM):
                 os.unlink(p)
 
         ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
-        qsub = 'qsub -terse -o {stdout} -e {stderr} -b y -w v -cwd -S /bin/bash -V{ns} '.format(
+        qsub = 'qsub -terse -o {stdout} -e {stderr} -b y -w e -cwd -S /bin/bash -V{ns} '.format(
             stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns)
 
         try:
