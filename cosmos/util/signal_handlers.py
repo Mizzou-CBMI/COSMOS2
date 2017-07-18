@@ -110,20 +110,24 @@ class SGESignalHandler(object):
                 workflow.run()
     """
 
-    def __init__(self, workflow,
-                 lethal_signals=frozenset([signal.SIGINT, signal.SIGTERM,
-                                           signal.SIGUSR2, signal.SIGXCPU]),
-                 benign_signals=frozenset([signal.SIGCONT, signal.SIGUSR1]),
-                 explanations={
-                     signal.SIGUSR1: 'SGE is about to send a SIGSTOP, or, '
-                                     'if a time limit has been exceeded, a SIGKILL',
-                     signal.SIGUSR2: 'SGE is about to send a SIGKILL',
-                     signal.SIGXCPU: 'SGE is about to send a SIGKILL, '
-                                     'because a cpu resource limit has been exceeded'}):
+    def __init__(self, workflow, lethal_signals=None,
+                 benign_signals=None, explanations=None):
+
+        if lethal_signals is None:
+            lethal_signals = {signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU}
+        if benign_signals is None:
+            benign_signals = {signal.SIGCONT, signal.SIGUSR1}
+        if explanations is None:
+            explanations = {
+                signal.SIGUSR1: 'SGE is about to send a SIGSTOP, or, '
+                                'if a time limit has been exceeded, a SIGKILL',
+                signal.SIGUSR2: 'SGE is about to send a SIGKILL',
+                signal.SIGXCPU: 'SGE is about to send a SIGKILL, '
+                                'because a cpu resource limit has been exceeded'}
 
         self.workflow = workflow
-        self.lethal_signals = lethal_signals
-        self.benign_signals = benign_signals
+        self.lethal_signals = frozenset(lethal_signals)
+        self.benign_signals = frozenset(benign_signals)
         self.explanations = explanations
 
         self._prev_handlers = dict()
