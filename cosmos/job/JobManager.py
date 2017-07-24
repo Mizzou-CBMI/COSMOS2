@@ -14,12 +14,13 @@ from cosmos.models.Workflow import default_task_log_output_dir
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = dict(local=DRM_Local(self))  # always support local workflow
+        self.drms = dict()
+        self.drms['local'] = DRM_Local(self)  # always support local workflow
         self.drms['lsf'] = DRM_LSF(self)
         self.drms['ge'] = DRM_GE(self)
         self.drms['drmaa'] = DRM_DRMAA(self)
 
-        self.local_drm = DRM_Local(self)
+        # self.local_drm = DRM_Local(self)
         self.running_tasks = []
         self.get_submit_args = get_submit_args
         self.cmd_wrapper = cmd_wrapper
