@@ -199,3 +199,23 @@ def get_logger(name, path=None):
 
     return log
 
+
+def derive_exit_code_from_workflow(workflow):
+    """
+    Return an integer suitable for use as a CLI script's exit code.
+    """
+    if workflow.successful:
+        return 0
+
+    # if killed by a signal, return the signal number that terminated the workflow
+    if workflow.termination_signal:
+        return workflow.termination_signal
+
+    # otherwise return the exit code of the first failed job that provided one
+    ft = workflow.get_first_failed_task()
+    if ft is not None:
+        return ft.exit_status
+
+    workflow.log.warning("%s unable to pinpoint cause of failure, returning %d",
+                         workflow, os.EX_SOFTWARE)
+    return os.EX_SOFTWARE

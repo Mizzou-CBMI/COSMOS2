@@ -4,6 +4,7 @@ Tools for defining, running and terminating Cosmos workflows.
 
 import atexit
 import datetime
+import getpass
 import os
 import re
 import sys
@@ -75,7 +76,7 @@ class Workflow(Base):
 
     exclude_from_dict = ['info']
     dont_garbage_collect = None
-    terminate_when_safe = False
+    termination_signal = None
 
     @declared_attr
     def status(cls):
@@ -117,7 +118,7 @@ class Workflow(Base):
     @property
     def log(self):
         if self._log is None:
-            self._log = get_logger('cosmos-%s' % self.id, self.primary_log_path)
+            self._log = get_logger('%s' % self, self.primary_log_path)
         return self._log
 
     def make_output_dirs(self):
@@ -125,7 +126,8 @@ class Workflow(Base):
         for d in dirs:
             mkdir(d)
 
-    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None, queue=None, must_succeed=True, time_req=None):
+    def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
+                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -142,6 +144,10 @@ class Workflow(Base):
         :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
+        :param int cpu_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
+            Warning!  In future versions, this will be the only way to set it.
+        :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
+            Warning!  In future versions, this will be the only way to set it.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -233,8 +239,8 @@ class Workflow(Base):
                         drm=drm or self.cosmos_app.default_drm,
                         queue=queue or self.cosmos_app.default_queue,
                         must_succeed=must_succeed,
-                        core_req=params_or_signature_default_or('core_req', 1),
-                        mem_req=params_or_signature_default_or('mem_req', None),
+                        core_req=core_req if core_req is not None else params_or_signature_default_or('core_req', 1),
+                        mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
                         attempt=1,
@@ -268,6 +274,8 @@ class Workflow(Base):
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
 
+        Returns True if all tasks in the workflow ran successfully, False otherwise.
+        If dry is specified, returns None.
         """
         assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
@@ -278,6 +286,7 @@ class Workflow(Base):
         session = self.session
         self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
             self, self.cosmos_app.default_drm, os.getcwd()))
+        self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
         self.max_cores = max_cores
         self.max_attempts = max_attempts
@@ -354,11 +363,12 @@ class Workflow(Base):
                 session.commit()
                 return True
             else:
-                self.log.warning('Workflow exited with status %s', self.status)
+                self.log.warning('%s exited with status "%s"', self, self.status)
                 session.commit()
                 return False
         else:
             self.log.info('Workflow dry run is complete')
+            return None
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
@@ -436,6 +446,17 @@ class Workflow(Base):
         self.session.commit()
         print >> sys.stderr, '%s Deleted' % self
 
+    def get_first_failed_task(self, key=lambda t: t.finished_on):
+        """
+        Return the first failed Task (chronologically).
+
+        If no Task failed, return None.
+        """
+        for t in sorted([t for t in self.tasks if key(t) is not None], key=key):
+            if t.exit_status:
+                return t
+        return None
+
 
 # @event.listens_for(Workflow, 'before_delete')
 # def before_delete(mapper, connection, target):
@@ -457,7 +478,8 @@ def _run(workflow, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
-                    workflow.log.info('Exiting run loop at first Task failure')
+                    workflow.log.info('%s Exiting run loop at first Task failure, error %s: %s',
+                                      workflow, task.exit_status, task)
                     workflow.terminate(due_to_failure=True)
                     return
 
@@ -484,8 +506,9 @@ def _run(workflow, session, task_queue):
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)
 
-        if workflow.terminate_when_safe:
-            workflow.log.info('%s Early termination requested: stopping workflow', workflow)
+        if workflow.termination_signal:
+            workflow.log.info('%s Early termination requested (%d): stopping workflow',
+                              workflow, workflow.termination_signal)
             workflow.terminate(due_to_failure=False)
             return
 

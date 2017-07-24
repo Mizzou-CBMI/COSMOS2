@@ -36,6 +36,7 @@ to die.
 
 import collections
 import signal
+import subprocess
 import sys
 import threading
 import time
@@ -68,6 +69,23 @@ def sleep_through_signals(timeout):
         elapsed_tm = time.time() - start_tm
 
 
+def hms_to_sec(time_str):
+    h, m, s = time_str.split(':')
+    return (int(h) * 3600) + (int(m) * 60) + int(s)
+
+
+def get_notify_sec():
+    """
+    Get the time, in sec, between when an SGE courtesy signal is sent and the real one.
+    """
+    try:
+        time_str = subprocess.check_output(
+            'qconf -sq $QUEUE | grep notify', shell=True).strip().split(" ")[-1]
+        return hms_to_sec(time_str)
+    except (AttributeError, IndexError, ValueError, subprocess.CalledProcessError):
+        return 0
+
+
 class SGESignalHandler(object):
     """
     Monitors signals and sets a flag on the workflow when a fatal one is caught.
@@ -92,26 +110,34 @@ class SGESignalHandler(object):
                 workflow.run()
     """
 
-    def __init__(
-        self, workflow,
-        lethal_signals=frozenset([signal.SIGINT, signal.SIGTERM,
-                                  signal.SIGUSR2, signal.SIGXCPU]),
-        benign_signals=frozenset([signal.SIGUSR1]),
-        explanations={
-            signal.SIGUSR1: 'SGE is about to send a SIGSTOP, or, '
-                            'if a time limit has been exceeded, a SIGKILL',
-            signal.SIGUSR2: 'SGE is about to send a SIGKILL',
-            signal.SIGXCPU: 'SGE is about to send a SIGKILL, '
-                            'because a cpu resource limit has been exceeded'}):
+    def __init__(self, workflow, lethal_signals=None,
+                 benign_signals=None, explanations=None):
+
+        if lethal_signals is None:
+            lethal_signals = {signal.SIGINT, signal.SIGTERM, signal.SIGUSR2, signal.SIGXCPU}
+        if benign_signals is None:
+            benign_signals = {signal.SIGCONT, signal.SIGUSR1}
+        if explanations is None:
+            explanations = {
+                signal.SIGUSR1: 'SGE is about to send a SIGSTOP, or, '
+                                'if a time limit has been exceeded, a SIGKILL',
+                signal.SIGUSR2: 'SGE is about to send a SIGKILL',
+                signal.SIGXCPU: 'SGE is about to send a SIGKILL, '
+                                'because a cpu resource limit has been exceeded'}
 
         self.workflow = workflow
-        self.lethal_signals = lethal_signals
-        self.benign_signals = benign_signals
+        self.lethal_signals = frozenset(lethal_signals)
+        self.benign_signals = frozenset(benign_signals)
         self.explanations = explanations
 
         self._prev_handlers = dict()
         self._signals_caught = collections.Counter()
         self._signals_logged = collections.Counter()
+
+        self._notify_sec = get_notify_sec()
+        self._susp_tm = None
+        self._total_susp_events = 0
+        self._total_susp_sec = 0.0
 
         self._logging_enabled = False
         self._logging_event = None
@@ -151,19 +177,24 @@ class SGESignalHandler(object):
                        self._workflow_name,
                        sum(self._signals_caught.values()),
                        sum(self._signals_logged.values()))
+        if self._total_susp_sec:
+            self._log.info('%s Was suspended by SGE %d time(s) for approx. %.0f sec',
+                           self._workflow_name,
+                           self._total_susp_events,
+                           self._total_susp_sec)
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
         self._logging_event.set()
 
         if signum in self.lethal_signals:
-            self.workflow.terminate_when_safe = True
+            self.workflow.termination_signal = signum
 
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
         if prev_handler not in (die, signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
             raise RuntimeError(
-                "a signal handler is already set for signal %d (%s): %s" %
+                'a signal handler is already set for signal %d (%s): %s' %
                 (sig, self._explain(sig), prev_handler))
         self._prev_handlers[sig] = prev_handler
 
@@ -192,12 +223,30 @@ class SGESignalHandler(object):
             new_signals = self._signals_caught - self._signals_logged
             self._logging_event.clear()
 
+            #
+            # If this daemon is running, we're obviously not suspended.
+            # If we were previously suspended, log that we have resumed.
+            #
+            if self._susp_tm is not None:
+                susp_sec = time.time() - self._susp_tm
+                self._susp_tm = None
+                if susp_sec > 0:
+                    self._log.info('%s Resumed after being suspended for approx. %.0f sec',
+                                   self._workflow_name, susp_sec)
+                    self._total_susp_events += 1
+                    self._total_susp_sec += susp_sec
+
             if new_signals:
                 self._log_signal_receipt(new_signals)
                 self._signals_logged += new_signals
 
-                if self.workflow.terminate_when_safe:
-                    self._log.info('%s Early-termination flag has been set',
-                                   self._workflow_name)
+                if self.workflow.termination_signal:
+                    self._log.info('%s Early-termination flag (%d) has been set',
+                                   self._workflow_name, self.workflow.termination_signal)
                 else:
                     self._log.debug('%s Ignoring benign signal(s)', self._workflow_name)
+
+                if signal.SIGUSR1 in new_signals:
+                    # SIGUSR1 means SIGSTOP (which we can't trap) is coming soon
+                    if self._susp_tm is None:
+                        self._susp_tm = time.time() + self._notify_sec

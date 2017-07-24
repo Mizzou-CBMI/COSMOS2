@@ -1,5 +1,6 @@
 import os
 import psutil
+import signal
 import time
 
 from .DRM_Base import DRM
@@ -26,7 +27,8 @@ class DRM_Local(DRM):
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
-        return drm_jobID
+        task.drm_jobID = drm_jobID
+        task.status = TaskStatus.submitted
 
     def _is_done(self, task):
         try:
@@ -66,26 +68,46 @@ class DRM_Local(DRM):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
-    def terminate(self, task):
-        """Terminate a task using SIGTERM."""
+    def _signal(self, task, sig):
+        """Send the signal to a task and its child (background or pipe) processes."""
         try:
-            psutil.Process(int(task.drm_jobID)).terminate()
-        except psutil.NoSuchProcess:
+            pgid = os.getpgid(int(task.drm_jobID))
+            os.kill(int(task.drm_jobID), sig)
+            task.log.info("%s sent signal %s to pid %s" % (task, sig, task.drm_jobID))
+            os.killpg(pgid, sig)
+            task.log.info("%s sent signal %s to pgid %s" % (task, sig, pgid))
+        except OSError:
             pass
 
-    def kill(self, task):
-        """Kill a task using SIGKILL."""
+    @staticmethod
+    def is_running_locally(task):
+        """Return true if a task is running locally."""
         try:
-            psutil.Process(int(task.drm_jobID)).kill()
+            proc = psutil.Process(int(task.drm_jobID))
+            return proc.is_running() and proc.status() != psutil.STATUS_ZOMBIE
         except psutil.NoSuchProcess:
-            pass
+            return False
 
     def kill_tasks(self, tasks):
+        """
+        Progressively send stronger kill signals to the specified tasks.
+        """
+        for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):
+            signal_sent = False
+            for t in tasks:
+                if self.is_running_locally(t):
+                    self._signal(t, sig)
+                    signal_sent = True
+
+            if not signal_sent:
+                break
+            sleep_through_signals(10)
+
         for t in tasks:
-            self.terminate(t)
-        sleep_through_signals(1)
-        for t in tasks:
-            self.kill(t)
+            if self.is_running_locally(t):
+                t.log.warning("%s is still running locally!", t)
+            else:
+                t.log.info("%s has exited", t)
 
 
 class JobStatusError(Exception):
