@@ -32,6 +32,7 @@ class DRM_SLURM(DRM):
         out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True)
 
         drm_jobID = unicode(re.search('job (\d+)', out).group(1))
+        task.workflow.log.info("Submit command: '%s'\nSubmit return output: '%s'\ndrm job id: '%s'" % (sub, out, drm_jobID))
         return drm_jobID
 
 
