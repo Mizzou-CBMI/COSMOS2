@@ -8,6 +8,7 @@ import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
 from ...util.signal_handlers import sleep_through_signals
+from ... import TaskStatus
 
 from more_itertools import grouper
 from .DRM_Base import DRM
@@ -29,11 +30,18 @@ class DRM_SLURM(DRM):
             ns=ns,
             cmd_str=task.output_command_script_path)
 
-        out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True)
-
-        drm_jobID = unicode(re.search('job (\d+)', out).group(1))
-        task.workflow.log.info("Submit command: '%s'\nSubmit return output: '%s'\ndrm job id: '%s'" % (sub, out, drm_jobID))
-        return drm_jobID
+        try:
+            out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True)
+            task.drm_jobID = unicode(re.search('job (\d+)', out).group(1))
+        except sp.CalledProcessError as cpe:
+            task.log.error('%s submission to %s failed with error %s: %s' %
+                           (task, task.drm, cpe.returncode, cpe.output.strip()))
+            task.status = TaskStatus.failed
+        except ValueError:
+            task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
+            task.status = TaskStatus.failed
+        else:
+            task.status = TaskStatus.submitted
 
 
     def filter_is_done(self, tasks):
