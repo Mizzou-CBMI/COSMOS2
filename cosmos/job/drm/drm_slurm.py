@@ -113,8 +113,8 @@ class DRM_SLURM(DRM):
     def kill_tasks(self, tasks):
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = ' '.join(map(lambda t: unicode(t.drm_jobID), group))
-            sp.call(['scancel', '-Q', pids], preexec_fn=exit_process_group)
+            pids = map(lambda t: unicode(t.drm_jobID), group)
+            sp.call(['scancel', '-Q'] + pids, preexec_fn=exit_process_group)
 
 
 def _qacct_raw(task, timeout=600, quantum=15):
