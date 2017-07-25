@@ -102,6 +102,7 @@ class DRM_SLURM(DRM):
             # TODO: Once accounting is configured I need to add call to sacct to get the job data, including ExitCode
             exit_code = None
         d['exit_status'] = exit_code
+        task.workflow.log.info("Task %s returned with exit code: '%s'" % (task, str(exit_code)))
         return d
 
 
