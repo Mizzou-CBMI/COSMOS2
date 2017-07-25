@@ -95,8 +95,10 @@ class DRM_SLURM(DRM):
             task.workflow.log.warn('%s Slurm (scontrol show jobid -d -o %s) reports JobState %s:\n%s' %
                                    (task, task.drm_jobID, job_state,
                                     json.dumps(d, indent=4, sort_keys=True)))
-        if 'DerivedExitCode' in d:
-            exit_code = (0 if d['DerivedExitCode'] == '0:0' else max(int(c) for c in d['DerivedExitCode'].split(":")))
+        if 'DerivedExitCode' in d and 'ExitCode' in d:
+            exit_code = (0 if d['DerivedExitCode'] == '0:0' and d['ExitCode'] == '0:0'
+                         else max(max(int(c) for c in d['DerivedExitCode'].split(":")),
+                                  max(int(c) for c in d['ExitCode'].split(":"))))
         else:
             # scontrol show jobid -d -o did not find the job id (probably called too late) so we don't have exit code
             # TODO: Once accounting is configured I need to add call to sacct to get the job data, including ExitCode
