@@ -8,6 +8,9 @@ from setuptools import find_packages
 with open(os.path.join(os.path.dirname(__file__), 'cosmos/VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
 
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = f.read()
+
 
 def find_all(path, reg_expr, inverse=False, remove_prefix=False):
     if not path.endswith('/'):
@@ -51,6 +54,7 @@ setup(
     version=__version__,
     scripts=['bin/cosmos'],
     description="Workflow Management System",
+    long_description=long_description,
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
     author_email="egafni@gmail.com",
@@ -75,5 +79,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development',
         'Topic :: Utilities',
-    ]
+    ],
+    keywords='workflow pipeline ngs manager management distributed sge slurm',
 )
