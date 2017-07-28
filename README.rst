@@ -65,7 +65,7 @@ _______________
    
 Multi-platform Support
 +++++++++++++++++++++++
-* Support for DRMS such as SGE, LSF and DRMAA.  Adding support for more DRMs is very straightforward.
+* Support for DRMS such as SGE, LSF, SLURM and others via DRMAA.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
 * Well suited for cloud computing 
 * Ability to run workflows on your local computer, which is often great for testing.
@@ -91,7 +91,7 @@ Please let us know if you're using Cosmos by sending a PR with your company or l
 * `PV-Key  <https://github.com/LPM-HMS/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.
 * `Invitae <http://invitae.com>`__ - Clinical NGS sequencing laboratory.  Utilizes Cosmos for production variant calling pipelines and R&D analysis.
-
+* `NGXBIO <https://ngxbio.com/`__ - NGS Sequencing as a Service.
 
 Publications using Cosmos
 __________________________
