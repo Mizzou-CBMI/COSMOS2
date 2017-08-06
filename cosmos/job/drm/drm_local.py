@@ -6,7 +6,6 @@ import time
 from .DRM_Base import DRM
 from .util import exit_process_group
 from ...api import TaskStatus
-from ...util.signal_handlers import sleep_through_signals
 
 
 class DRM_Local(DRM):
@@ -79,35 +78,30 @@ class DRM_Local(DRM):
         except OSError:
             pass
 
-    @staticmethod
-    def is_running_locally(task):
-        """Return true if a task is running locally."""
-        try:
-            proc = psutil.Process(int(task.drm_jobID))
-            return proc.is_running() and proc.status() != psutil.STATUS_ZOMBIE
-        except psutil.NoSuchProcess:
-            return False
-
     def kill_tasks(self, tasks):
         """
         Progressively send stronger kill signals to the specified tasks.
         """
         for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):
-            signal_sent = False
+            signaled_tasks = []
             for t in tasks:
-                if self.is_running_locally(t):
+                if not self._is_done(t):
                     self._signal(t, sig)
-                    signal_sent = True
+                    signaled_tasks.append(t)
 
-            if not signal_sent:
+            max_tm = 10 + time.time()
+            while signaled_tasks and time.time() < max_tm:
+                task = signaled_tasks[0]
+                if self._is_done(task, max_tm - time.time()):
+                    task.log.info("%s confirmed exit after receiving signal %s" % (task, sig))
+                    del signaled_tasks[0]
+
+            if not signaled_tasks:
                 break
-            sleep_through_signals(10)
 
         for t in tasks:
-            if self.is_running_locally(t):
+            if not self._is_done(t):
                 t.log.warning("%s is still running locally!", t)
-            else:
-                t.log.info("%s has exited", t)
 
     def kill(self, task):
         return self.kill_tasks([task])
