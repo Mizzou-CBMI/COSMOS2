@@ -53,7 +53,6 @@ class DRM_Local(DRM):
         """
         :returns: (dict) task.drm_jobID -> drm_status
         """
-
         def f(task):
             if task.drm_jobID is None:
                 return '!'
