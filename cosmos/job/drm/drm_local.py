@@ -109,6 +109,9 @@ class DRM_Local(DRM):
             else:
                 t.log.info("%s has exited", t)
 
+    def kill(self, task):
+        return self.kill_tasks([task])
+
 
 class JobStatusError(Exception):
     pass
