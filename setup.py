@@ -51,6 +51,8 @@ setup(
     version=__version__,
     scripts=['bin/cosmos'],
     description="Workflow Management System",
+    long_description='Cosmos is a library for writing analysis pipelines, and is particularly suited pipelines which analyze next generation sequencing genomic'
+                     'data. See https://github.com/LPM-HMS/COSMOS2 for details.',
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
     author_email="egafni@gmail.com",
@@ -75,5 +77,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development',
         'Topic :: Utilities',
-    ]
+    ],
+    keywords='workflow pipeline ngs manager management distributed sge slurm',
 )

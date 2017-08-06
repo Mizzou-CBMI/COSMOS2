@@ -4,7 +4,8 @@ from cosmos.models.Cosmos import Cosmos, default_get_submit_args
 from cosmos.models.Task import Task
 from cosmos.models.Stage import Stage
 from cosmos.models.Workflow import Workflow, default_task_log_output_dir
-from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, Dependency
+from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, \
+    Dependency
 
 from cosmos.util.args import add_workflow_args
 from cosmos.util.helpers import make_dict
@@ -16,13 +17,9 @@ import funcsigs
 import re
 
 from decorator import decorator
+import contextlib
+import os
 
-
-# from cosmos.core.cmd_fxn.io import _validate_input_mapping, unpack_if_cardinality_1
-
-
-# def load_input(in_file, out_file=forward('in_file')): pass
-# def load_inputs(in_files, out_files=forward('in_files')): pass
 
 def load_input(out_file): pass
 
@@ -55,12 +52,6 @@ def args_to_str(*args):
     """
     return " \\\n".join(arg_to_str(k, v) for k, v in args if arg_to_str(k, v) != '')
 
-# arg = _arg_to_str
-# args = args_to_str
-
-import contextlib
-import os
-
 
 @contextlib.contextmanager
 def cd(path):
@@ -73,21 +64,6 @@ def cd(path):
     yield
     os.chdir(prev_cwd)
 
-
-# def find2(regex, parents, n='==1'):
-#     if isinstance(parents, Task):
-#         parents = [parents]
-#     g = (file_path for p in parents for file_path in p.output_files)
-#     files = [file_path for file_path in g if re.search(regex, file_path)]
-#     # validate cardinality and unpack...
-#     _validate_input_mapping('cmd?', 'param?', find(regex,n), files, parents)
-#     return unpack_if_cardinality_1(find(regex, n), files)
-
-
-
-# def bash_call(func):
-#     func.bash_call = True
-#     return func
 
 @decorator
 def bash_call(func, *args, **kwargs):
@@ -145,30 +121,3 @@ EOF""".format(func=func,
               module_name=func.__name__,
               source_file=inspect.getsourcefile(func),
               param_str=pprint.pformat(kwargs, width=1, indent=1))
-
-# @decorator
-# def run(func, *args, **kwargs):
-#     """
-#     Similar to bash_call, but actually just returns a string that is the source code of this function instead of importing it.
-#     """
-#     import inspect
-#     import pprint
-#
-#     source = inspect.getsource(func)
-#
-#     sig = funcsigs.signature(func)
-#     kwargs = dict(zip(sig.parameters.keys(), args))
-#
-#     return r"""
-#
-# python - <<EOF
-#
-# {soource}
-#
-# {func.__name__}(**
-# {param_str}
-# )
-#
-# EOF""".format(func=func,
-#               source=source,
-#               param_str=pprint.pformat(kwargs, width=1, indent=1))
