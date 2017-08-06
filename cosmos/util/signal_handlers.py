@@ -77,9 +77,12 @@ class SGESignalHandler(object):
 
     A quick primer on SGE courtesy signals:
 
-    If you submit a job with qsub -notify, SGE will send a SIGUSR1 or SIGUSR2 60 seconds before it sends the "real" signal if the job is qdeled.
+    If you submit a job with qsub -notify, SGE will send a SIGUSR1 or SIGUSR2 60
+    seconds before it sends the "real" signal.
+
     Most of the time, SIGUSR1 means a SIGSTOP (suspend the process) will be arriving.
-    SIGUSR2 and SIGXCPU always mean a SIGKILL is on the way.
+    Rarely, SIGUSR1 precedes a SIGKILL (if the process has exceeded its time limit).
+    SIGUSR2 and SIGXCPU *always* mean a SIGKILL is on the way.
 
     Easiest way to use this class is to wrap a call to run() in a with-statement:
 
@@ -127,9 +130,10 @@ class SGESignalHandler(object):
     def __enter__(self):
         self._logging_enabled = True
         self._logging_event = threading.Event()
+
+        # create a logging thread: we can't safely log from within a signal handler
         self._logging_daemon = threading.Thread(target=self.logging_daemon)
         self._logging_daemon.daemon = True
-
         self._logging_daemon.start()
 
         for sig in self.lethal_signals | self.benign_signals:
@@ -187,6 +191,21 @@ class SGESignalHandler(object):
                            self._explain(sig))
 
     def logging_daemon(self):
+        """
+        Wait on an event triggered by signal_handler(), then log what it just did.
+
+        The signal handler itself does very little: it just sets a flag (which
+        is checked during the main workflow run loop, q.v.). This thread exists
+        solely to log what the signal handler does, which unfortunately it can't
+        do on its own:
+
+        https://docs.python.org/2/library/logging.html#thread-safety
+
+        > If you are implementing asynchronous signal handlers using the signal
+        > module, you may not be able to use logging from within such handlers.
+        > This is because lock implementations in the threading module are not
+        > always re-entrant, and so cannot be invoked from such signal handlers.
+        """
         while self._logging_enabled:
             self._logging_event.wait()
             new_signals = self._signals_caught - self._signals_logged
