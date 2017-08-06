@@ -30,10 +30,10 @@ class DRM_Local(DRM):
         task.drm_jobID = drm_jobID
         task.status = TaskStatus.submitted
 
-    def _is_done(self, task):
+    def _is_done(self, task, timeout=0):
         try:
             p = self.procs[task.drm_jobID]
-            p.wait(timeout=0)
+            p.wait(timeout=timeout)
             return True
         except psutil.TimeoutExpired:
             return False
