@@ -67,7 +67,8 @@ class DRM_Local(DRM):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
                     wall_time=time.time() - self.procs[task.drm_jobID].start_time)
 
-    def _signal(self, task, sig):
+    @staticmethod
+    def _signal(task, sig):
         """Send the signal to a task and its child (background or pipe) processes."""
         try:
             pgid = os.getpgid(int(task.drm_jobID))
