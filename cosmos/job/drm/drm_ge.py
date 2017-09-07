@@ -53,7 +53,7 @@ class DRM_GE(DRM):
         This method will only yield corrupt qacct data if every outstanding task
         has been affected by this SGE bug.
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
             corrupt_data = {}
 
@@ -93,7 +93,7 @@ class DRM_GE(DRM):
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
 
             def f(task):
@@ -124,7 +124,7 @@ class DRM_GE(DRM):
                                     json.dumps(d, indent=4, sort_keys=True)))
 
         processed_data = dict(
-            exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
+            exit_status=int(d['exit_status']) if not job_failed else int(re.search(r'^(\d+)', d['failed']).group(1)),
 
             percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
             wall_time=float(d['ru_wallclock']),
@@ -159,7 +159,7 @@ class DRM_GE(DRM):
         return processed_data, data_are_corrupt
 
     def kill(self, task):
-        "Terminates a task"
+        """Terminate a task"""
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
@@ -281,11 +281,9 @@ def _qstat_all():
         lines = sp.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
-    keys = re.split("\s+", lines[0])
+    keys = re.split(r"\s+", lines[0])
     bjobs = {}
     for l in lines[2:]:
-        items = re.split("\s+", l.strip())
+        items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
-
-
