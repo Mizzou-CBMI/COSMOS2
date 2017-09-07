@@ -7,7 +7,7 @@ class CosmosCalledProcessError(subprocess.CalledProcessError):
     Just like CalledProcessError, but includes stderr.
     """
     def __init__(self, returncode, cmd, output=None, stderr=None):
-        super(CosmosCalledProcessError, self).__init__(self, returncode, cmd, output)
+        super(CosmosCalledProcessError, self).__init__(returncode, cmd, output)
         self.stderr = stderr
 
 
