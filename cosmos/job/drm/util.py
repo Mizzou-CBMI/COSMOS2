@@ -2,6 +2,15 @@ import os
 import subprocess
 
 
+class CosmosCalledProcessError(subprocess.CalledProcessError):
+    """
+    Just like CalledProcessError, but includes stderr.
+    """
+    def __init__(self, returncode, cmd, output=None, stderr=None):
+        super(CosmosCalledProcessError, self).__init__(self, returncode, cmd, output)
+        self.stderr = stderr
+
+
 def check_output_and_stderr(*popenargs, **kwargs):
     """
     Run command with arguments and return its stdout and stderr as byte strings.
@@ -24,7 +33,7 @@ def check_output_and_stderr(*popenargs, **kwargs):
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
-        raise subprocess.CalledProcessError(retcode, cmd, output=output)
+        raise CosmosCalledProcessError(retcode, cmd, output=output, stderr=stderr)
     return output, stderr
 
 

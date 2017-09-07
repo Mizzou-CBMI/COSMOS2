@@ -4,7 +4,8 @@ import re
 import os
 from collections import OrderedDict
 import time
-from .util import check_output_and_stderr, convert_size_to_kb, div, exit_process_group
+from .util import CosmosCalledProcessError, check_output_and_stderr, \
+                  convert_size_to_kb, div, exit_process_group
 from ... import TaskStatus
 from ...util.signal_handlers import sleep_through_signals
 
@@ -213,9 +214,9 @@ def _qacct_raw(task, timeout=600, quantum=15):
                 preexec_fn=exit_process_group)
             if qacct_stdout_str.strip():
                 break
-        except sp.CalledProcessError as err:
+        except CosmosCalledProcessError as err:
             qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = None
+            qacct_stderr_str = err.stderr.strip()
             qacct_returncode = err.returncode
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
