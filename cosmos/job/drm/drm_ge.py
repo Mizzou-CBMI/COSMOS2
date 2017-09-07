@@ -218,7 +218,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
             qacct_stderr_str = None
             qacct_returncode = err.returncode
 
-        if re.match(r'error: job id \d+ not found', qacct_stderr_str):
+        if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
             if i > 0:
                 task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
                                        'qacct is merely slow, or %s died in the \'qw\' state',
