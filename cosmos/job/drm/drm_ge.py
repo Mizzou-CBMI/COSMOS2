@@ -1,12 +1,11 @@
-import contextlib
 import subprocess as sp
 import json
 import re
 import os
 from collections import OrderedDict
-import tempfile
 import time
-from .util import div, convert_size_to_kb, exit_process_group
+from .util import CosmosCalledProcessError, check_output_and_stderr, \
+                  convert_size_to_kb, div, exit_process_group
 from ... import TaskStatus
 from ...util.signal_handlers import sleep_through_signals
 
@@ -55,7 +54,7 @@ class DRM_GE(DRM):
         This method will only yield corrupt qacct data if every outstanding task
         has been affected by this SGE bug.
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
             corrupt_data = {}
 
@@ -95,7 +94,7 @@ class DRM_GE(DRM):
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
 
             def f(task):
@@ -126,7 +125,7 @@ class DRM_GE(DRM):
                                     json.dumps(d, indent=4, sort_keys=True)))
 
         processed_data = dict(
-            exit_status=int(d['exit_status']) if not job_failed else int(re.search('^(\d+)', d['failed']).group(1)),
+            exit_status=int(d['exit_status']) if not job_failed else int(re.search(r'^(\d+)', d['failed']).group(1)),
 
             percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
             wall_time=float(d['ru_wallclock']),
@@ -161,7 +160,7 @@ class DRM_GE(DRM):
         return processed_data, data_are_corrupt
 
     def kill(self, task):
-        "Terminates a task"
+        """Terminate a task."""
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
@@ -209,32 +208,31 @@ def _qacct_raw(task, timeout=600, quantum=15):
 
     for i in xrange(num_retries):
         qacct_returncode = 0
-        with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
-            try:
-                qacct_stdout_str = sp.check_output(['qacct', '-j', unicode(task.drm_jobID)], preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
-                if len(qacct_stdout_str.strip()):
-                    break
-            except sp.CalledProcessError as err:
-                qacct_stdout_str = err.output.strip()
-                qacct_returncode = err.returncode
+        try:
+            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
+                ['qacct', '-j', unicode(task.drm_jobID)],
+                preexec_fn=exit_process_group)
+            if qacct_stdout_str.strip():
+                break
+        except CosmosCalledProcessError as err:
+            qacct_stdout_str = err.output.strip()
+            qacct_stderr_str = err.stderr.strip()
+            qacct_returncode = err.returncode
 
-            qacct_stderr_fd.seek(0)
-            qacct_stderr_str = qacct_stderr_fd.read().strip()
-
-            if re.match(r'error: job id \d+ not found', qacct_stderr_str):
-                if i > 0:
-                    task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
-                                           'qacct is merely slow, or %s died in the \'qw\' state',
-                                           task, task.drm_jobID, task.drm_jobID)
-            else:
-                task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
-                                        task, task.drm_jobID, qacct_returncode)
-                if qacct_stdout_str or qacct_stderr_str:
-                    task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
-                    if qacct_stdout_str:
-                        task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
-                    if qacct_stderr_str:
-                        task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
+        if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
+            if i > 0:
+                task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                                       'qacct is merely slow, or %s died in the \'qw\' state',
+                                       task, task.drm_jobID, task.drm_jobID)
+        else:
+            task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
+                                    task, task.drm_jobID, qacct_returncode)
+            if qacct_stdout_str or qacct_stderr_str:
+                task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
+                if qacct_stdout_str:
+                    task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
+                if qacct_stderr_str:
+                    task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
 
         if i > 0:
             task.workflow.log.info(
@@ -284,11 +282,9 @@ def _qstat_all():
         lines = sp.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
-    keys = re.split("\s+", lines[0])
+    keys = re.split(r"\s+", lines[0])
     bjobs = {}
     for l in lines[2:]:
-        items = re.split("\s+", l.strip())
+        items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
-
-

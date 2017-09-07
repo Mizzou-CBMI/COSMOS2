@@ -1,12 +1,10 @@
-import contextlib
 import subprocess as sp
 import json
 import re
 import os
-from collections import OrderedDict
-import tempfile
 import time
-from cosmos.job.drm.util import div, convert_size_to_kb, exit_process_group
+from cosmos.job.drm.util import CosmosCalledProcessError, check_output_and_stderr, \
+                                exit_process_group
 from cosmos.util.signal_handlers import sleep_through_signals
 from cosmos import TaskStatus
 
@@ -32,7 +30,7 @@ class DRM_SLURM(DRM):
 
         try:
             out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True)
-            task.drm_jobID = unicode(re.search('job (\d+)', out).group(1))
+            task.drm_jobID = unicode(re.search(r'job (\d+)', out).group(1))
         except sp.CalledProcessError as cpe:
             task.log.error('%s submission to %s failed with error %s: %s' %
                            (task, task.drm, cpe.returncode, cpe.output.strip()))
@@ -43,12 +41,11 @@ class DRM_SLURM(DRM):
         else:
             task.status = TaskStatus.submitted
 
-
     def filter_is_done(self, tasks):
         """
         Yield a dictionary of Slurm job metadata for each task that has completed.
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
 
         for task in tasks:
@@ -60,20 +57,19 @@ class DRM_SLURM(DRM):
                 data['exit_status'] = (0 if data['exit_status'] is None else data['exit_status'])
                 yield task, data
             elif any(finished_state in qjobs[jid]['STATE'] for finished_state in
-                   ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']):
+                     ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']):
                 # If the job is tagged with any of the "failure" exit codes, it has completed with exit code > 0
                 data = self._get_task_return_data(task)
                 data['exit_status'] = (1 if (data['exit_status'] is None or data['exit_status'] == 0)
                                        else data['exit_status'])
                 yield task, data
 
-
     def drm_statuses(self, tasks):
         """
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status
         """
-        if len(tasks):
+        if tasks:
             qjobs = _qstat_all()
 
             def f(task):
@@ -82,7 +78,6 @@ class DRM_SLURM(DRM):
             return {task.drm_jobID: f(task) for task in tasks}
         else:
             return {}
-
 
     def _get_task_return_data(self, task):
         """
@@ -106,11 +101,9 @@ class DRM_SLURM(DRM):
         task.workflow.log.info("%s returned with exit code: '%s'" % (task, str(exit_code)))
         return d
 
-
     def kill(self, task):
-        "Terminates a task"
+        """Terminate a task."""
         raise NotImplementedError
-
 
     def kill_tasks(self, tasks):
         for group in grouper(50, tasks):
@@ -128,20 +121,18 @@ def _qacct_raw(task, timeout=600, quantum=15):
 
     for i in xrange(num_retries):
         qacct_returncode = 0
-        with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
-            try:
-                qacct_stdout_str = sp.check_output(['scontrol', 'show', 'jobid', '-d', '-o', unicode(task.drm_jobID)],
-                                                   preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
-                if len(qacct_stdout_str.strip()):
-                    break
-            except sp.CalledProcessError as err:
-                qacct_stdout_str = err.output.strip()
-                qacct_returncode = err.returncode
+        try:
+            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
+                ['scontrol', 'show', 'jobid', '-d', '-o', unicode(task.drm_jobID)],
+                preexec_fn=exit_process_group)
+            if qacct_stdout_str.strip():
+                break
+        except CosmosCalledProcessError as err:
+            qacct_stdout_str = err.output.strip()
+            qacct_stderr_str = err.stderr.strip()
+            qacct_returncode = err.returncode
 
-            qacct_stderr_fd.seek(0)
-            qacct_stderr_str = qacct_stderr_fd.read().strip()
-
-            if 'slurm_load_jobs error: Invalid job id specified' == qacct_stderr_str:
+            if qacct_stderr_str == 'slurm_load_jobs error: Invalid job id specified':
                 # too many jobs were scheduled since it finished and the job id was forgotten
                 return dict(JobId=task.drm_jobID)
             else:
@@ -195,11 +186,9 @@ def _qstat_all():
         lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
-    keys = re.split("\s+", lines[1].strip())
+    keys = re.split(r"\s+", lines[1].strip())
     bjobs = {}
     for l in lines[2:]:
-        items = re.split("\s+", l.strip())
+        items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
-
-
