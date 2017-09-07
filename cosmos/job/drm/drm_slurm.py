@@ -1,12 +1,10 @@
-import contextlib
 import subprocess as sp
 import json
 import re
 import os
-from collections import OrderedDict
-import tempfile
 import time
-from cosmos.job.drm.util import div, convert_size_to_kb, exit_process_group
+from cosmos.job.drm.util import CosmosCalledProcessError, check_output_and_stderr, \
+                                exit_process_group
 from cosmos.util.signal_handlers import sleep_through_signals
 from cosmos import TaskStatus
 
@@ -128,20 +126,18 @@ def _qacct_raw(task, timeout=600, quantum=15):
 
     for i in xrange(num_retries):
         qacct_returncode = 0
-        with contextlib.closing(tempfile.TemporaryFile()) as qacct_stderr_fd:
-            try:
-                qacct_stdout_str = sp.check_output(['scontrol', 'show', 'jobid', '-d', '-o', unicode(task.drm_jobID)],
-                                                   preexec_fn=exit_process_group, stderr=qacct_stderr_fd)
-                if len(qacct_stdout_str.strip()):
-                    break
-            except sp.CalledProcessError as err:
-                qacct_stdout_str = err.output.strip()
-                qacct_returncode = err.returncode
+        try:
+            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
+                ['scontrol', 'show', 'jobid', '-d', '-o', unicode(task.drm_jobID)],
+                preexec_fn=exit_process_group)
+            if qacct_stdout_str.strip():
+                break
+        except CosmosCalledProcessError as err:
+            qacct_stdout_str = err.output.strip()
+            qacct_stderr_str = err.stderr.strip()
+            qacct_returncode = err.returncode
 
-            qacct_stderr_fd.seek(0)
-            qacct_stderr_str = qacct_stderr_fd.read().strip()
-
-            if 'slurm_load_jobs error: Invalid job id specified' == qacct_stderr_str:
+            if qacct_stderr_str == 'slurm_load_jobs error: Invalid job id specified':
                 # too many jobs were scheduled since it finished and the job id was forgotten
                 return dict(JobId=task.drm_jobID)
             else:
