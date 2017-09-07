@@ -1,4 +1,31 @@
 import os
+import subprocess
+
+
+def check_output_and_stderr(*popenargs, **kwargs):
+    """
+    Run command with arguments and return its stdout and stderr as byte strings.
+
+    Lifted from the subprocess.check_output() implementation, to which it is
+    identical, save that it returns a (stdout, stderr) tuple as opposed to
+    simply stdout.
+
+    Note that the CalledProcessError object raised by this method does not
+    contain any stderr -- same (confusing) behavior as subprocess.check_output().
+    """
+    if 'stdout' in kwargs:
+        raise ValueError('stdout argument not allowed, it will be overridden.')
+    if 'stderr' in kwargs:
+        raise ValueError('stderr argument not allowed, it will be overridden.')
+    process = subprocess.Popen(stdout=subprocess.PIPE, stderr=subprocess.PIPE, *popenargs, **kwargs)
+    output, stderr = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        raise subprocess.CalledProcessError(retcode, cmd, output=output)
+    return output, stderr
 
 
 def convert_size_to_kb(size_str):
