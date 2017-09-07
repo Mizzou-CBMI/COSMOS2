@@ -160,7 +160,7 @@ class DRM_GE(DRM):
         return processed_data, data_are_corrupt
 
     def kill(self, task):
-        """Terminate a task"""
+        """Terminate a task."""
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
