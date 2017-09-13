@@ -127,7 +127,8 @@ class Workflow(Base):
             mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
-                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None):
+                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
+                 max_attempts=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -148,6 +149,11 @@ class Workflow(Base):
             Warning!  In future versions, this will be the only way to set it.
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
+        :param int max_attempts: The maximum number of times to retry a failed job.
+            Overrides the value set on the parent workflow. Can also be set in the
+            `params` dict or the default value of the Task function signature, but
+            this value takes predence. Warning! In future versions, this will be
+            the only way to set it.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -243,6 +249,7 @@ class Workflow(Base):
                         mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
+                        max_attempts=max_attempts if max_attempts is not None else params_or_signature_default_or('max_attempts', None),
                         attempt=1,
                         NOOP=False
                         )

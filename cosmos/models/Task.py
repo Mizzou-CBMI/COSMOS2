@@ -71,8 +71,9 @@ def task_status_changed(task):
             task.log.warn(task_failed_printout.format(task))
             task.finished_on = datetime.datetime.now()
         else:
-            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.workflow.max_attempts))
-            if task.attempt < task.workflow.max_attempts:
+            max_attempts_for_task = task.max_attempts if task.max_attempts is not None else task.workflow.max_attempts
+            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, max_attempts_for_task))
+            if task.attempt < max_attempts_for_task:
                 task.log.warn(task_failed_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
@@ -162,6 +163,7 @@ class Task(Base):
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
     queue = Column(String(255))
+    max_attempts = Column(Integer)
     parents = relationship("Task",
                            secondary=TaskEdge.__table__,
                            primaryjoin=id == TaskEdge.parent_id,
