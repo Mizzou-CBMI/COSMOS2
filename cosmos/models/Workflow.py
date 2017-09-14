@@ -262,14 +262,14 @@ class Workflow(Base):
 
         return task
 
-    def run(self, max_cores=None, default_max_attempts=1, dry=False, set_successful=True,
+    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir):
         """
         Runs this Workflow's DAG
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
-        :param int default_max_attempts: The maximum number of times to retry a failed job.
+        :param int max_attempts: The maximum number of times to retry a failed job.
              Can be overridden with on a per-Task basis with Workflow.add_task(..., max_attempts=N, ...)
         :param callable log_out_dir_func: A function that returns a Task's logging directory (must be unique).
              It receives one parameter: the Task instance.
@@ -294,7 +294,7 @@ class Workflow(Base):
         self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
         self.max_cores = max_cores
-        self.default_max_attempts = default_max_attempts
+        self.default_max_attempts = max_attempts
 
         from ..job.JobManager import JobManager
 

@@ -26,5 +26,5 @@ if __name__ == '__main__':
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)))
     cosmos.initdb()
 
-    workflow = cosmos.start('Example_Email', 'analysis_output/ex3', default_max_attempts=2, restart=True, skip_confirm=True)
+    workflow = cosmos.start('Example_Email', 'analysis_output/ex3', max_attempts=2, restart=True, skip_confirm=True)
     run_ex1(workflow)
