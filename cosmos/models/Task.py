@@ -79,7 +79,7 @@ def task_status_changed(task):
             # check is purely cosmetic, but if we do more here, then
             # FIXME we should have a DRM-agnostic way of determining timed-out tasks.
             #
-            if task.exit_status == 124 and 'timeout' in task.command_script_text:
+            if task.exit_status == 124:
                 exit_reason = 'timed out'
             else:
                 exit_reason = 'failed'
