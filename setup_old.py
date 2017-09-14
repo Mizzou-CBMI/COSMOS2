@@ -31,17 +31,18 @@ install_requires = [
     'networkx',
     "enum34",
     "six",
+    'psutil',
     "drmaa",
     'more_itertools'
 ]
-package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
-package_data = {}
 
 if sys.version_info < (3,):
+    # package_dir = {'': 'cosmos'}
+    package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
     install_requires += ['futures', 'configparser']
 else:
-    pass
     package_dir = {'': 'cosmos'}
+    package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
 setup(
     name="cosmos-wfm",
@@ -60,9 +61,9 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     packages=find_packages(),
+    # package_dir=package_dir,
     include_package_data=True,
     package_data=package_data,
-    package_dir = {'cosmos': 'cosmos'},
     classifiers=[
         'Programming Language :: Python :: 2.7',
         # 'Programming Language :: Python :: 3',
@@ -75,6 +76,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Utilities',
     ],
-    use_2to3=True,
     keywords='workflow pipeline ngs manager management distributed sge slurm',
 )

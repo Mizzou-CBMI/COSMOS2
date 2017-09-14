@@ -27,13 +27,13 @@ t = workflow.add_task(func=say,
                       params=dict(text='Hello World', out_file='out.txt',),
                       uid='my_task', time_req=2, core_req=1, mem_req=1024)
 
-print('task.params', t.params)
-print('task.input_map', t.input_map)
-print('task.output_map', t.output_map)
-print('task.core_req', t.core_req)
-print('task.time_req', t.time_req)
-print('task.drm', t.drm)
-print('task.uid', t.uid)
+print 'task.params', t.params
+print 'task.input_map', t.input_map
+print 'task.output_map', t.output_map
+print 'task.core_req', t.core_req
+print 'task.time_req', t.time_req
+print 'task.drm', t.drm
+print 'task.uid', t.uid
 
 workflow.run()
 

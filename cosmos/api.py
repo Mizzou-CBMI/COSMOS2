@@ -79,8 +79,8 @@ def bash_call(func, *args, **kwargs):
 
     >>> def echo(arg1, out_file='out.txt'):
     ...     with open(out_file) as fp:
-    ...         print >> fp, arg1
-    >>> print bash_call(echo)(arg1='hello world')
+    ...         print(arg1, file=fp)
+    >>> print(bash_call(echo)(arg1='hello world'))
     <BLANKLINE>
     python - <<EOF
     <BLANKLINE>
@@ -121,3 +121,4 @@ EOF""".format(func=func,
               module_name=func.__name__,
               source_file=inspect.getsourcefile(func),
               param_str=pprint.pformat(kwargs, width=1, indent=1))
+

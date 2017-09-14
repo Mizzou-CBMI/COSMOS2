@@ -4,7 +4,7 @@ import subprocess as sp
 from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
     pygraphviz_available, default_get_submit_args
 from functools import partial
-from .tools import echo, cat, word_count
+from tools import echo, cat, word_count
 
 
 def recipe(workflow):
@@ -80,6 +80,6 @@ if __name__ == '__main__':
         draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
         draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
-        print('Pygraphviz is not available :(')
+        print 'Pygraphviz is not available :('
 
     sys.exit(0 if workflow.successful else 1)
