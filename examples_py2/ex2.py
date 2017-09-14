@@ -4,27 +4,7 @@ import subprocess as sp
 from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
     pygraphviz_available, default_get_submit_args
 from functools import partial
-
-
-def echo(word, out_txt):
-    return r"""
-        echo {word} > {out_txt}
-    """.format(**locals())
-
-
-def cat(in_txts, out_txt):
-    return r"""
-        cat {input_str} > {out_txt}
-    """.format(input_str=' '.join(map(str, in_txts)),
-               **locals())
-
-
-def word_count(in_txts, out_txt, chars=False):
-    c = ' -c' if chars else ''
-    return r"""
-        wc{c} {input} > {out_txt}
-    """.format(input=' '.join(map(str, in_txts)),
-               **locals())
+from tools import echo, cat, word_count
 
 
 def recipe(workflow):
@@ -79,7 +59,7 @@ if __name__ == '__main__':
     args = p.parse_args()
 
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
-                    # example of how to change arguments if you're not using default_drm='local'
+                    # example of how to change arguments if you're NOT using default_drm='local'
                     get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
                     default_drm=args.drm,
                     default_queue=args.queue)
@@ -100,6 +80,6 @@ if __name__ == '__main__':
         draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
         draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
     else:
-        print('Pygraphviz is not available :(')
+        print 'Pygraphviz is not available :('
 
     sys.exit(0 if workflow.successful else 1)

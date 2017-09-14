@@ -3,13 +3,12 @@ import json
 import re
 import os
 import time
-from cosmos.job.drm.util import CosmosCalledProcessError, check_output_and_stderr, \
-                                exit_process_group
+from cosmos.job.drm import div, convert_size_to_kb, exit_process_group, CosmosCalledProcessError, check_output_and_stderr
 from cosmos.util.signal_handlers import sleep_through_signals
 from cosmos import TaskStatus
 
 from more_itertools import grouper
-from .DRM_Base import DRM
+from cosmos.job.drm.DRM_Base import DRM
 
 
 class DRM_SLURM(DRM):

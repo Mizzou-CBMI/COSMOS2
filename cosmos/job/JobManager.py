@@ -1,13 +1,13 @@
 import os
 import stat
 
-from ..util.helpers import mkdir
-from .drm.drm_local import DRM_Local
-from .drm.drm_lsf import DRM_LSF
-from .drm.drm_ge import DRM_GE
-from .drm.drm_drmaa import DRM_DRMAA
-from .drm.drm_slurm import DRM_SLURM
-from .. import TaskStatus, StageStatus, NOOP
+from cosmos.util.helpers import mkdir
+from cosmos.job.drm.drm_local import DRM_Local
+from cosmos.job.drm.drm_lsf import DRM_LSF
+from cosmos.job.drm.drm_ge import DRM_GE
+from cosmos.job.drm.drm_drmaa import DRM_DRMAA
+from cosmos.job.drm.drm_slurm import DRM_SLURM
+from cosmos import TaskStatus, StageStatus, NOOP
 import itertools as it
 from operator import attrgetter
 from cosmos.models.Workflow import default_task_log_output_dir
@@ -116,7 +116,7 @@ class JobManager(object):
 
 def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""
-    with open(task.output_command_script_path, 'wb') as f:
+    with open(task.output_command_script_path, 'w') as f:
         f.write(command)
 
     st = os.stat(task.output_command_script_path)

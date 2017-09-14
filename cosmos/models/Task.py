@@ -1,6 +1,4 @@
 import os
-import itertools as it
-import shutil
 import codecs
 import networkx as nx
 import subprocess as sp
@@ -9,12 +7,13 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
 from flask import url_for
-from networkx.algorithms import breadth_first_search
 
-from ..db import Base
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
-from .. import TaskStatus, StageStatus, signal_task_status_change
-from ..util.helpers import wait_for_file
+from cosmos.db import Base
+from cosmos.util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
+from cosmos import TaskStatus, StageStatus, signal_task_status_change
+from cosmos.util.helpers import wait_for_file
+
+
 import datetime
 import pprint
 

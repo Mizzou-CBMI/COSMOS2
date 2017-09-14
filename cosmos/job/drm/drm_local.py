@@ -1,11 +1,15 @@
 import os
-import psutil
 import signal
+import sys
+if sys.version_info < (3,):
+    import subprocess32 as sp
+else:
+    import subprocess as sp
 import time
 
-from .DRM_Base import DRM
-from .util import exit_process_group
-from ...api import TaskStatus
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.drm.util import exit_process_group
+from cosmos.api import TaskStatus
 
 
 class DRM_Local(DRM):
@@ -18,7 +22,7 @@ class DRM_Local(DRM):
 
     def submit_job(self, task):
 
-        p = psutil.Popen(task.output_command_script_path,
+        p = sp.Popen(task.output_command_script_path,
                          stdout=open(task.output_stderr_path, 'w'),
                          stderr=open(task.output_stdout_path, 'w'),
                          shell=False, env=os.environ,
@@ -34,12 +38,8 @@ class DRM_Local(DRM):
             p = self.procs[task.drm_jobID]
             p.wait(timeout=timeout)
             return True
-        except psutil.TimeoutExpired:
+        except sp.TimeoutExpired:
             return False
-        except psutil.NoSuchProcess:
-            # profile_output = json.load(open(task.output_profile_path, 'r'))
-            # exit_code = profile_output['exit_status']
-            return True
 
         return False
 
