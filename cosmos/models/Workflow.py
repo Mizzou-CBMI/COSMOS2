@@ -150,10 +150,7 @@ class Workflow(Base):
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
         :param int max_attempts: The maximum number of times to retry a failed job.
-            Overrides the value set on the parent workflow. Can also be set in the
-            `params` dict or the default value of the Task function signature, but
-            this value takes predence. Warning! In future versions, this will be
-            the only way to set it.
+            Overrides the value set on the parent workflow.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -249,7 +246,7 @@ class Workflow(Base):
                         mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
-                        max_attempts=max_attempts if max_attempts is not None else params_or_signature_default_or('max_attempts', None),
+                        max_attempts=max_attempts,
                         attempt=1,
                         NOOP=False
                         )
