@@ -37,7 +37,7 @@ install_requires = [
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
 if sys.version_info < (3,):
-    install_requires += ['futures', 'configparser']
+    install_requires += ['subprocess32']
 
 setup(
     name="cosmos-wfm",
