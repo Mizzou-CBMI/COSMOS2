@@ -73,7 +73,7 @@ if __name__ == '__main__':
     recipe(workflow)
 
     workflow.make_output_dirs()
-    workflow.run(max_attempts=1, max_cores=10)
+    workflow.run(max_cores=10)
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
