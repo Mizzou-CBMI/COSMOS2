@@ -70,8 +70,6 @@ def task_status_changed(task):
             task.log.warn(task_printout.format(task))
             task.finished_on = datetime.datetime.now()
         else:
-            max_attempts_for_task = task.max_attempts if task.max_attempts is not None else task.workflow.max_attempts
-
             #
             # By default /usr/bin/timeout returns 124 when it kills a job.
             # DRM_Local jobs that time out will usually have this error code.
@@ -84,9 +82,9 @@ def task_status_changed(task):
             else:
                 exit_reason = 'failed'
 
-            task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, max_attempts_for_task))
+            task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, task.max_attempts))
 
-            if task.attempt < max_attempts_for_task:
+            if task.attempt < task.max_attempts:
                 task.log.warn(task_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt

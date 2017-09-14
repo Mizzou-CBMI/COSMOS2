@@ -35,7 +35,7 @@ def shell(db_url_or_path_to_sqlite):
     cosmos_app.shell()
 
 
-def run(in_jobs, default_drm, default_queue, restart, max_cores, max_attempts):
+def run(in_jobs, default_drm, default_queue, restart, max_cores, default_max_attempts):
     """
     Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
     keyed by uid => command.
@@ -55,7 +55,7 @@ def run(in_jobs, default_drm, default_queue, restart, max_cores, max_attempts):
                     params=dict(cmd=cmd),
                     stage_name='lambda',
                     uid=uid)
-    wf.run(max_cores=max_cores, max_attempts=max_attempts)
+    wf.run(max_cores=max_cores, default_max_attempts=default_max_attempts)
 
 
 if __name__ == '__main__':

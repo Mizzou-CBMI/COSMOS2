@@ -68,7 +68,7 @@ class Workflow(Base):
     primary_log_path = Column(String(255))
     _log = None
 
-    max_attempts = Column(Integer)
+    default_max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
@@ -246,7 +246,7 @@ class Workflow(Base):
                         mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
-                        max_attempts=max_attempts,
+                        max_attempts=max_attempts if max_attempts is not None else self.default_max_attempts,
                         attempt=1,
                         NOOP=False
                         )
@@ -262,14 +262,15 @@ class Workflow(Base):
 
         return task
 
-    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True,
+    def run(self, max_cores=None, default_max_attempts=1, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir):
         """
         Runs this Workflow's DAG
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
-        :param int max_attempts: The maximum number of times to retry a failed job.
+        :param int default_max_attempts: The maximum number of times to retry a failed job.
+             Can be overridden with on a per-Task basis with Workflow.add_task(..., max_attempts=N, ...)
         :param callable log_out_dir_func: A function that returns a Task's logging directory (must be unique).
              It receives one parameter: the Task instance.
              By default a Task's log output is stored in log/stage_name/task_id.
@@ -293,7 +294,7 @@ class Workflow(Base):
         self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
         self.max_cores = max_cores
-        self.max_attempts = max_attempts
+        self.default_max_attempts = default_max_attempts
 
         from ..job.JobManager import JobManager
 
