@@ -82,6 +82,7 @@ if __name__ == '__main__':
                     # example of how to change arguments if you're not using default_drm='local'
                     get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
                     default_drm=args.drm,
+                    default_max_attempts=2,
                     default_queue=args.queue)
     cosmos.initdb()
 

@@ -113,6 +113,15 @@ __________________________
 Changelog
 __________
 
+2.5.1
+++++++
+
+API Change!
+
+* Removed Workflow.run(int: max_attempts) and replaced with Cosmos.start(int: default_max_attempts)
+* Added Workflow.add_task(int: max_attempts) to specify individual Task retry numbers
+
+
 2.5.0
 ++++++
 
