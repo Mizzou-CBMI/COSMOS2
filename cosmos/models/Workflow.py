@@ -68,7 +68,7 @@ class Workflow(Base):
     primary_log_path = Column(String(255))
     _log = None
 
-    max_attempts = Column(Integer)
+    default_max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
@@ -127,7 +127,8 @@ class Workflow(Base):
             mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
-                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None):
+                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
+                 max_attempts=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -148,6 +149,8 @@ class Workflow(Base):
             Warning!  In future versions, this will be the only way to set it.
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
+        :param int max_attempts: The maximum number of times to retry a failed job.
+            Overrides the value set on the parent workflow.
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -243,6 +246,7 @@ class Workflow(Base):
                         mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
+                        max_attempts=max_attempts if max_attempts is not None else self.default_max_attempts,
                         attempt=1,
                         NOOP=False
                         )
@@ -266,6 +270,7 @@ class Workflow(Base):
 
         :param int max_cores: The maximum number of cores to use at once.  A value of None indicates no maximum.
         :param int max_attempts: The maximum number of times to retry a failed job.
+             Can be overridden with on a per-Task basis with Workflow.add_task(..., max_attempts=N, ...)
         :param callable log_out_dir_func: A function that returns a Task's logging directory (must be unique).
              It receives one parameter: the Task instance.
              By default a Task's log output is stored in log/stage_name/task_id.
@@ -289,7 +294,7 @@ class Workflow(Base):
         self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
         self.max_cores = max_cores
-        self.max_attempts = max_attempts
+        self.default_max_attempts = max_attempts
 
         from ..job.JobManager import JobManager
 

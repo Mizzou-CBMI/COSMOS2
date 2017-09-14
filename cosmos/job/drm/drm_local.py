@@ -22,11 +22,16 @@ class DRM_Local(DRM):
 
     def submit_job(self, task):
 
-        p = sp.Popen(task.output_command_script_path,
-                         stdout=open(task.output_stderr_path, 'w'),
-                         stderr=open(task.output_stdout_path, 'w'),
-                         shell=False, env=os.environ,
-                         preexec_fn=exit_process_group)
+        if task.time_req is not None:
+            cmd = ['/usr/bin/timeout', '-k', '10', str(task.time_req), task.output_command_script_path]
+        else:
+            cmd = task.output_command_script_path
+
+        p = sp.Popen(cmd,
+                     stdout=open(task.output_stderr_path, 'w'),
+                     stderr=open(task.output_stdout_path, 'w'),
+                     shell=False, env=os.environ,
+                     preexec_fn=exit_process_group)
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p

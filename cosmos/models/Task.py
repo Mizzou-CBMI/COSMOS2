@@ -32,7 +32,7 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-task_failed_printout = u"""Failure Info:
+task_printout = u"""Task Info:
 <EXIT_STATUS="{0.exit_status}">
 <COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
 <PARAMS>
@@ -67,18 +67,31 @@ def task_status_changed(task):
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
-            task.log.warn(task_failed_printout.format(task))
+            task.log.warn(task_printout.format(task))
             task.finished_on = datetime.datetime.now()
         else:
-            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, task.workflow.max_attempts))
-            if task.attempt < task.workflow.max_attempts:
-                task.log.warn(task_failed_printout.format(task))
+            #
+            # By default /usr/bin/timeout returns 124 when it kills a job.
+            # DRM_Local jobs that time out will usually have this error code.
+            # Other DRM's may well have different error codes. Currently, this
+            # check is purely cosmetic, but if we do more here, then
+            # FIXME we should have a DRM-agnostic way of determining timed-out tasks.
+            #
+            if task.exit_status == 124:
+                exit_reason = 'timed out'
+            else:
+                exit_reason = 'failed'
+
+            task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, task.max_attempts))
+
+            if task.attempt < task.max_attempts:
+                task.log.warn(task_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
                 wait_for_file(task.workflow, task.output_stderr_path, 60)
 
-                task.log.warn(task_failed_printout.format(task))
+                task.log.warn(task_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
@@ -161,6 +174,7 @@ class Task(Base):
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
     queue = Column(String(255))
+    max_attempts = Column(Integer)
     parents = relationship("Task",
                            secondary=TaskEdge.__table__,
                            primaryjoin=id == TaskEdge.parent_id,
