@@ -72,7 +72,13 @@ def task_status_changed(task):
         else:
             max_attempts_for_task = task.max_attempts if task.max_attempts is not None else task.workflow.max_attempts
 
-            # by default /usr/bin/timeout returns 124 when it kills a job
+            #
+            # By default /usr/bin/timeout returns 124 when it kills a job.
+            # DRM_Local jobs that time out will usually have this error code.
+            # Other DRM's may well have different error codes. Currently, this
+            # check is purely cosmetic, but if we do more here, then
+            # FIXME we should have a DRM-agnostic way of determining timed-out tasks.
+            #
             if task.exit_status == 124 and 'timeout' in task.command_script_text:
                 exit_reason = 'timed out'
             else:
