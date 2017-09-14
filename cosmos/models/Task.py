@@ -32,7 +32,7 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-task_failed_printout = u"""Failure Info:
+task_printout = u"""Task Info:
 <EXIT_STATUS="{0.exit_status}">
 <COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
 <PARAMS>
@@ -67,19 +67,26 @@ def task_status_changed(task):
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
-            task.log.warn(task_failed_printout.format(task))
+            task.log.warn(task_printout.format(task))
             task.finished_on = datetime.datetime.now()
         else:
             max_attempts_for_task = task.max_attempts if task.max_attempts is not None else task.workflow.max_attempts
-            task.log.warn('%s attempt #%s failed (max_attempts=%s)' % (task, task.attempt, max_attempts_for_task))
+
+            if task.exit_status == 124 and 'timeout' in task.command_script_text:
+                exit_reason = 'timed out'
+            else:
+                exit_reason = 'failed'
+
+            task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, max_attempts_for_task))
+
             if task.attempt < max_attempts_for_task:
-                task.log.warn(task_failed_printout.format(task))
+                task.log.warn(task_printout.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
                 wait_for_file(task.workflow, task.output_stderr_path, 60)
 
-                task.log.warn(task_failed_printout.format(task))
+                task.log.warn(task_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
