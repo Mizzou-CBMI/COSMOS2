@@ -68,7 +68,6 @@ class Workflow(Base):
     primary_log_path = Column(String(255))
     _log = None
 
-    default_max_attempts = Column(Integer)
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
     _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
@@ -149,8 +148,7 @@ class Workflow(Base):
             Warning!  In future versions, this will be the only way to set it.
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
-        :param int max_attempts: The maximum number of times to retry a failed job.
-            Overrides the value set on the parent workflow.
+        :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
         :rtype: cosmos.api.Task
         """
         from cosmos.models.Stage import Stage
@@ -246,7 +244,7 @@ class Workflow(Base):
                         mem_req=mem_req if mem_req is not None else params_or_signature_default_or('mem_req', None),
                         time_req=time_req,
                         successful=False,
-                        max_attempts=max_attempts if max_attempts is not None else self.default_max_attempts,
+                        max_attempts=max_attempts if max_attempts is not None else self.cosmos_app.default_max_attempts,
                         attempt=1,
                         NOOP=False
                         )
@@ -262,7 +260,7 @@ class Workflow(Base):
 
         return task
 
-    def run(self, max_cores=None, max_attempts=1, dry=False, set_successful=True,
+    def run(self, max_cores=None, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir):
         """
@@ -294,7 +292,6 @@ class Workflow(Base):
         self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
         self.max_cores = max_cores
-        self.default_max_attempts = max_attempts
 
         from ..job.JobManager import JobManager
 

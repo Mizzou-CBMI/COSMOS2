@@ -50,6 +50,7 @@ class Cosmos(object):
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
                  default_queue=None,
+                 default_max_attempts=1,
                  flask_app=None):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
@@ -99,6 +100,7 @@ class Cosmos(object):
 
         self.default_drm = default_drm
         self.default_queue = default_queue
+        self.default_max_attempts = default_max_attempts
 
     # def configure_flask(self):
         # setup flask views
@@ -128,6 +130,8 @@ class Cosmos(object):
         :param bool skip_confirm: (If True, do not prompt the shell for input before deleting workflows or files.
         :param str primary_log_path: The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to stderr.
         :param bool fail_fast: If True, terminate the workflow the first time a Task fails.
+        :param int default_max_attempts: The default maximum number of times to attempt a Task.
+
         Otherwise, run all Tasks except those downstream of a failure.
         :returns: An Workflow instance.
         """
