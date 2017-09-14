@@ -72,6 +72,7 @@ def task_status_changed(task):
         else:
             max_attempts_for_task = task.max_attempts if task.max_attempts is not None else task.workflow.max_attempts
 
+            # by default /usr/bin/timeout returns 124 when it kills a job
             if task.exit_status == 124 and 'timeout' in task.command_script_text:
                 exit_reason = 'timed out'
             else:
