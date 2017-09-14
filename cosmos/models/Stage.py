@@ -1,3 +1,4 @@
+
 import re
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
@@ -5,9 +6,9 @@ from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
-from ..db import Base
-from ..util.sqla import Enum34_ColumnType
-from .. import StageStatus, signal_stage_status_change, TaskStatus
+from cosmos.db import Base
+from cosmos.util.sqla import Enum34_ColumnType
+from cosmos import StageStatus, signal_stage_status_change, TaskStatus
 import networkx as nx
 import datetime
 

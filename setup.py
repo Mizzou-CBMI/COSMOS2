@@ -23,7 +23,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 
 install_requires = [
-    "decorator",
     "flask",
     'funcsigs',
     'blinker',
@@ -32,16 +31,13 @@ install_requires = [
     "enum34",
     "six",
     "drmaa",
-    'more_itertools'
+    'more_itertools',
+    "decorator",
 ]
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
-package_data = {}
 
 if sys.version_info < (3,):
     install_requires += ['futures', 'configparser']
-else:
-    pass
-    package_dir = {'': 'cosmos'}
 
 setup(
     name="cosmos-wfm",
@@ -62,10 +58,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,
-    package_dir = {'cosmos': 'cosmos'},
+    # package_dir = {'cosmos': 'cosmos'},
     classifiers=[
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
@@ -76,5 +72,6 @@ setup(
         'Topic :: Utilities',
     ],
     use_2to3=True,
-    keywords='workflow pipeline ngs manager management distributed sge slurm',
+    use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
+    keywords='workflow pipeline ngs manager management distributed sge slurm genomics sequencing grid computing scientific',
 )

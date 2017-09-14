@@ -2,9 +2,9 @@ import subprocess as sp
 import re
 import os
 
-from .DRM_Base import DRM
-from .util import exit_process_group
-from ... import TaskStatus
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.drm.util import exit_process_group
+from cosmos import TaskStatus
 
 decode_lsf_state = dict([
     ('UNKWN', 'process status cannot be determined'),

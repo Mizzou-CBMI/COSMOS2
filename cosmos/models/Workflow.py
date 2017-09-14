@@ -23,14 +23,14 @@ from flask import url_for
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 
-from ..util.iterstuff import only_one
-from ..util.helpers import duplicates, get_logger, mkdir
-from ..util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
-from ..db import Base
-from ..core.cmd_fxn import signature
+from cosmos.util.iterstuff import only_one
+from cosmos.util.helpers import duplicates, get_logger, mkdir
+from cosmos.util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from cosmos.db import Base
+from cosmos.core.cmd_fxn import signature
 
-from .. import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
-from .Task import Task
+from cosmos import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
+from cosmos.models.Task import Task
 
 opj = os.path.join
 
@@ -515,7 +515,7 @@ def _run(workflow, session, task_queue):
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
-    ready_tasks = [task for task, degree in task_queue.in_degree().items() if
+    ready_tasks = [task for task, degree in task_queue.in_degree() if
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
     if max_cores is None:

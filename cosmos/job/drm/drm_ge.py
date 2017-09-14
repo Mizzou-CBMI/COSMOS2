@@ -7,11 +7,11 @@ from collections import OrderedDict
 import tempfile
 import time
 from .util import div, convert_size_to_kb, exit_process_group
-from ... import TaskStatus
-from ...util.signal_handlers import sleep_through_signals
+from cosmos import TaskStatus
+from cosmos.util.signal_handlers import sleep_through_signals
 
 from more_itertools import grouper
-from .DRM_Base import DRM
+from cosmos.job.drm.DRM_Base import DRM
 
 
 class DRM_GE(DRM):

@@ -7,9 +7,9 @@ else:
     import subprocess as sp
 import time
 
-from .DRM_Base import DRM
-from .util import exit_process_group
-from ...api import TaskStatus
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.drm.util import exit_process_group
+from cosmos.api import TaskStatus
 
 
 class DRM_Local(DRM):
