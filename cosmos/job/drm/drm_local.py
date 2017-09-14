@@ -23,10 +23,7 @@ class DRM_Local(DRM):
     def submit_job(self, task):
 
         if task.time_req is not None:
-            with open(task.output_command_script_path, 'r') as script:
-                firstline = script.readline()
-                shell = firstline[2:].strip() if firstline.startswith('#!') else '/bin/bash'
-            cmd = ['/usr/bin/timeout', '-k', '10', str(task.time_req), shell, task.output_command_script_path]
+            cmd = ['/usr/bin/timeout', '-k', '10', str(task.time_req), task.output_command_script_path]
         else:
             cmd = task.output_command_script_path
 
