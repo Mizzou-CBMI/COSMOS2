@@ -9,6 +9,9 @@ To chat with the author/other users (many of which use Cosmos to make bioinforma
     :alt: Join the chat at https://gitter.im/LPM-HMS/COSMOS2
     :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
+Python3
+=========
+Cosmos now supports python3!
 
 
 Documentation
@@ -110,6 +113,10 @@ __________________________
 Changelog
 __________
 
+2.5.0
+++++++
+
+* Added support for python3
 
 2.0.1
 ++++++

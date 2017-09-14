@@ -1,7 +1,3 @@
-#
-# Task stuff
-#
-
 from ..util.helpers import groupby2
 from .. import TaskStatus
 

@@ -1,9 +1,7 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 import os
 import re
 import sys
-
-from setuptools import find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'cosmos/VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
@@ -25,7 +23,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 
 install_requires = [
-    "decorator",
     "flask",
     'funcsigs',
     'blinker',
@@ -33,18 +30,14 @@ install_requires = [
     'networkx',
     "enum34",
     "six",
-    'psutil',
     "drmaa",
-    'more_itertools'
+    'more_itertools',
+    "decorator",
 ]
+package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
 if sys.version_info < (3,):
-    # package_dir = {'': 'cosmos'}
-    package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
-    install_requires += ['futures', 'configparser']
-else:
-    package_dir = {'': 'cosmos'}
-    package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
+    install_requires += ['subprocess32']
 
 setup(
     name="cosmos-wfm",
@@ -63,12 +56,12 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     packages=find_packages(),
-    # package_dir=package_dir,
     include_package_data=True,
     package_data=package_data,
+    # package_dir = {'cosmos': 'cosmos'},
     classifiers=[
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: MacOS',
@@ -78,5 +71,7 @@ setup(
         'Topic :: Software Development',
         'Topic :: Utilities',
     ],
-    keywords='workflow pipeline ngs manager management distributed sge slurm',
+    use_2to3=True,
+    use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
+    keywords='workflow pipeline ngs manager management distributed sge slurm genomics sequencing grid computing scientific',
 )

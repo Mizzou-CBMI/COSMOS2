@@ -1,9 +1,9 @@
 import os
 import sys
 
-from .DRM_Base import DRM
-from .util import div, convert_size_to_kb
-from ... import TaskStatus
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.drm.util import div, convert_size_to_kb
+from cosmos import TaskStatus
 
 _drmaa_session = None
 

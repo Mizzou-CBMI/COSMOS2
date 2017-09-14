@@ -4,13 +4,12 @@ import re
 import os
 from collections import OrderedDict
 import time
-from .util import CosmosCalledProcessError, check_output_and_stderr, \
-                  convert_size_to_kb, div, exit_process_group
-from ... import TaskStatus
-from ...util.signal_handlers import sleep_through_signals
+from cosmos import TaskStatus
+from cosmos.job.drm.util import div, convert_size_to_kb, exit_process_group, CosmosCalledProcessError, check_output_and_stderr
+from cosmos.util.signal_handlers import sleep_through_signals
 
 from more_itertools import grouper
-from .DRM_Base import DRM
+from cosmos.job.drm.DRM_Base import DRM
 
 
 class DRM_GE(DRM):
@@ -288,3 +287,5 @@ def _qstat_all():
         items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
+
+

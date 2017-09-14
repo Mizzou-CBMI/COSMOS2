@@ -1,3 +1,6 @@
+.eggs/
+analysis_output/
+ve3/
 */analysis_output/*
 ve/
 *.egg

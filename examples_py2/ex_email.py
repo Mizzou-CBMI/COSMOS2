@@ -1,5 +1,5 @@
 from cosmos.api import Cosmos, signal_workflow_status_change, WorkflowStatus
-from .ex1 import run_ex1
+from ex1 import run_ex1
 import os
 
 def run_ex3(workflow):
