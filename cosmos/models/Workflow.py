@@ -517,7 +517,7 @@ def _run(workflow, session, task_queue):
 
 def _run_queued_and_ready_tasks(task_queue, workflow):
     max_cores = workflow.max_cores
-    ready_tasks = [task for task, degree in task_queue.in_degree().iteritems() if
+    ready_tasks = [task for task, degree in list(task_queue.in_degree()) if
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
     if max_cores is None:
