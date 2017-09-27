@@ -198,6 +198,11 @@ class Workflow(Base):
             if task.successful:
                 # If the user manually edited the dag and this a resume, parents might need to be-readded
                 task.parents.extend(set(parents).difference(set(task.parents)))
+
+                for p in parents:
+                    if p.stage not in stage.parents:
+                        stage.parents.append(p.stage)
+
                 return task
             else:
                 # TODO check for duplicate params here?  would be a lot faster at Workflow.run
