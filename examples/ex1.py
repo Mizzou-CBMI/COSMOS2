@@ -25,7 +25,7 @@ def say(text, out_file):
 
 t = workflow.add_task(func=say,
                       params=dict(text='Hello World', out_file='out.txt',),
-                      uid='my_task', time_req=2, core_req=1, mem_req=1024)
+                      uid='my_task', time_req=None, core_req=1, mem_req=1024)
 
 print('task.params', t.params)
 print('task.input_map', t.input_map)
