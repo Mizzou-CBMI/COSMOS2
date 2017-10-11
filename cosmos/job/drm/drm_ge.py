@@ -188,11 +188,11 @@ def _is_corrupt(qacct_dict):
     Note that qacct may return a date that precedes the Epoch (!), depending on
     the $TZ env. variable. To be safe we check for dates within 24 hours of it.
     """
-    return \
-        qacct_dict.get('qsub_time', '').startswith('12/31/1969') or \
-        qacct_dict.get('qsub_time', '').startswith('01/01/1970') or \
-        qacct_dict.get('start_time', None) == '-/-' or \
-        qacct_dict.get('end_time', None) == '-/-'
+    return (qacct_dict.get('qsub_time', '').startswith('12/31/1969') or \
+            qacct_dict.get('qsub_time', '').startswith('01/01/1970') or \
+            qacct_dict.get('start_time', None) == '-/-' or \
+            qacct_dict.get('end_time', None) == '-/-') and \
+           ("before writing exit_status" not in qacct_dict.get('failed', ''))
 
 
 def _qacct_raw(task, timeout=600, quantum=15):
@@ -290,5 +290,3 @@ def _qstat_all():
         items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
-
-
