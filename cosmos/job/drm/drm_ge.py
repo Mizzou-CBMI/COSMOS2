@@ -1,15 +1,18 @@
-import subprocess as sp
 import json
-import re
 import os
-from collections import OrderedDict
+import re
+import subprocess
 import time
-from cosmos import TaskStatus
-from cosmos.job.drm.util import div, convert_size_to_kb, exit_process_group, CosmosCalledProcessError, check_output_and_stderr
-from cosmos.util.signal_handlers import sleep_through_signals
+
+from collections import OrderedDict
 
 from more_itertools import grouper
+
+from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.drm.util import (check_output_and_stderr, convert_size_to_kb, div,
+                                 exit_process_group, CosmosCalledProcessError)
+from cosmos.util.signal_handlers import sleep_through_signals
 
 
 class DRM_GE(DRM):
@@ -26,12 +29,12 @@ class DRM_GE(DRM):
             stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns)
 
         try:
-            out = sp.check_output(
+            out = subprocess.check_output(
                 '{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=sp.STDOUT)
+                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=subprocess.STDOUT)
 
             task.drm_jobID = unicode(int(out))
-        except sp.CalledProcessError as cpe:
+        except subprocess.CalledProcessError as cpe:
             task.log.error('%s submission to %s failed with error %s: %s' %
                            (task, task.drm, cpe.returncode, cpe.output.strip()))
             task.status = TaskStatus.failed
@@ -166,7 +169,7 @@ class DRM_GE(DRM):
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
             pids = ','.join(map(lambda t: unicode(t.drm_jobID), group))
-            sp.call(['qdel', pids], preexec_fn=exit_process_group)
+            subprocess.call(['qdel', pids], preexec_fn=exit_process_group)
 
 
 def _is_corrupt(qacct_dict):
@@ -278,8 +281,8 @@ def _qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
-    except (sp.CalledProcessError, OSError):
+        lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
+    except (subprocess.CalledProcessError, OSError):
         return {}
     keys = re.split(r"\s+", lines[0])
     bjobs = {}
