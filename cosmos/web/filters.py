@@ -27,7 +27,7 @@ def add_filters(bprint_or_app, type_='bprint'):
             return '{0:.0%}'.format(val)
         elif 'mem' in field_name:
             return format_memory_kb(val)
-        elif type(val) in [int, long]:
+        elif type(val) in [int, float]:
             return intWithCommas(val)
         return str(val)
 
@@ -80,7 +80,7 @@ def add_filters(bprint_or_app, type_='bprint'):
 def intWithCommas(x):
     if x is None:
         return ''
-    if type(x) not in [type(0), type(0L)]:
+    if type(x) not in [type(0), type(float)]:
         #raise TypeError("Parameter must be an integer.")
         return x
     if x < 0:
