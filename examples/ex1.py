@@ -4,11 +4,9 @@ Basic demonstration the structure of a Task instance
 import subprocess as sp
 import os
 import sys
-from cosmos.api import Cosmos, default_get_submit_args
-from functools import partial
+from cosmos.api import Cosmos
 
 cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
-                get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
                 default_drm='local')
 cosmos.initdb()
 

@@ -4,6 +4,7 @@ import subprocess as sp
 from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
     pygraphviz_available, default_get_submit_args
 from functools import partial
+import argparse
 
 
 def echo(word, out_txt):
@@ -46,11 +47,11 @@ def recipe(workflow):
                 parents=[echo_task],
                 uid='%s_%s' % (word, n))
 
-            # Count the words in the previous stage.  An example of a simple one2one relationship
+            # Count the words in the previous stage.  An example of a simple one2one relationship.
             # For each task in StageA, there is a single dependent task in StageB.
             word_count_task = workflow.add_task(
                 func=word_count,
-                # Dependency instances allow you to specify an input and parent simultaneously
+                # Dependency instances allow you to specify an input and parent simultaneously.
                 params=dict(in_txts=[Dependency(cat_task, 'out_txt')],
                             out_txt='%s/%s/wc.txt' % (word, n),
                             chars=True),
@@ -70,8 +71,6 @@ def recipe(workflow):
 
 
 if __name__ == '__main__':
-    import argparse
-
     p = argparse.ArgumentParser()
     p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge', 'slurm'))
     p.add_argument('-q', '--queue', help='Submit to this queue of the DRM supports it')
