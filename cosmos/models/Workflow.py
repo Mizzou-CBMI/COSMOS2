@@ -103,7 +103,7 @@ class Workflow(Base):
         # FIXME provide the cosmos_app instance?
 
         if manual_instantiation:
-            raise TypeError, 'Do not instantiate an Workflow manually.  Use the Cosmos.start method.'
+            raise TypeError('Do not instantiate an Workflow manually.  Use the Cosmos.start method.')
         super(Workflow, self).__init__(*args, **kwargs)
         # assert self.output_dir is not None, 'output_dir cannot be None'
         if self.info is None:
@@ -121,6 +121,9 @@ class Workflow(Base):
         return self._log
 
     def make_output_dirs(self):
+        """
+        Create directory paths of all output files
+        """
         dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
         for d in dirs:
             mkdir(d)
@@ -278,6 +281,7 @@ class Workflow(Base):
              It receives one parameter: the Task instance.
              By default a Task's log output is stored in log/stage_name/task_id.
              See _default_task_log_output_dir for more info.
+        :param callable cmd_wrapper: A decorator which will be applied to every Task's cmd_fxn.
         :param bool dry: If True, do not actually run any jobs.
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.

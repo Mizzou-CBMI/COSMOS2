@@ -54,14 +54,11 @@ def default_prepend(task):  # pylint: disable=unused-argument
 #     return ''
 
 
-def default_cmd_fxn_wrapper(task, stage_name, input_map, output_map, cd_to_task_output_dir=True):
+def default_cmd_fxn_wrapper(task):
     """
-    WARNING this function signature is not set in stone yet and may change, replace at your own risk.
-
-    :param task:
-    :param input_map:
-    :param output_map:
-    :return:
+    A default decorator that gets called each time a Task's command function is called.
+    Generally useful for prepending/appending things to your commands.  Could also be used
+    for automatically uploading/download inputs/outputs from an object store.
     """
 
     def real_decorator(fxn, *args, **kwargs):

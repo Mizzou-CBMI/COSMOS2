@@ -43,7 +43,7 @@ class JobManager(object):
         thread_local_task = task
 
         if self.cmd_wrapper:
-            fxn = self.cmd_wrapper(thread_local_task, task.stage.name, task.input_map, task.output_map)(task.cmd_fxn)
+            fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
         else:
             fxn = task.cmd_fxn
 
