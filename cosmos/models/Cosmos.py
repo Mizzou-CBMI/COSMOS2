@@ -1,15 +1,15 @@
-
-from flask import Flask
-import sys
 import os
-import itertools as it
-from cosmos.db import Base
-from cosmos import __version__
-from cosmos import WorkflowStatus
-from cosmos.util.args import get_last_cmd_executed
-from cosmos.util.helpers import confirm
+import sys
 # from concurrent import futures
 from datetime import datetime
+
+from flask import Flask
+
+from cosmos import WorkflowStatus
+from cosmos import __version__
+from cosmos.db import Base
+from cosmos.util.args import get_last_cmd_executed
+from cosmos.util.helpers import confirm
 
 
 def default_get_submit_args(task, parallel_env='orte'):
@@ -36,7 +36,8 @@ def default_get_submit_args(task, parallel_env='orte'):
         return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{queue}'.format(
             priority=priority, queue=queue, jobname=jobname, core_req=task.core_req, parallel_env=parallel_env)
     elif task.drm == 'slurm':
-        return '-p {partition} -c {cores} -J {jobname}'.format(
+        return '-p {partition} -c {cores} -J {jobname}{mem_str}'.format(
+            mem_str=' --mem %s' if task.mem_req is not None else '',
             partition=task.queue, cores=task.core_req, jobname=jobname)
     elif task.drm == 'local':
         return None
@@ -60,7 +61,8 @@ class Cosmos(object):
         :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
-        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa', 'slurm'], 'unsupported drm: %s' % default_drm.split(':')[0]
+        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa', 'slurm'], 'unsupported drm: %s' % \
+                                                                                      default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
         # self.futures_executor = futures.ThreadPoolExecutor(10)
@@ -102,7 +104,7 @@ class Cosmos(object):
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
 
-    # def configure_flask(self):
+        # def configure_flask(self):
         # setup flask views
         # from cosmos.web.admin import add_cosmos_admin
 
@@ -137,7 +139,7 @@ class Cosmos(object):
         """
         from .Workflow import Workflow
         assert os.path.exists(
-                os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
+            os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         # output_dir = os.path.abspath(output_dir)
         # output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         # prefix_dir = os.path.split(output_dir)[0]
@@ -193,7 +195,7 @@ class Cosmos(object):
                 for t in failed_tasks:
                     session.delete(t)
 
-            for stage in it.ifilter(lambda s: len(s.tasks) == 0, wf.stages):
+            for stage in filter(lambda s: len(s.tasks) == 0, wf.stages):
                 wf.log.info('Deleting stage %s, since it has 0 successful Tasks' % stage)
                 session.delete(stage)
 

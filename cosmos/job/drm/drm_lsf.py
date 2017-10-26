@@ -29,10 +29,10 @@ class DRM_LSF(DRM):
                                                           ns=ns)
         try:
             out = sp.check_output('{bsub} "{cmd_str}"'.format(cmd_str=self.jobmanager.get_command_str(task),
-                                                              bsub=bsub),
+                                                              bsub=bsub).decode(),
                                   env=os.environ,
                                   preexec_fn=exit_process_group,
-                                  shell=True)
+                                  shell=True).decode()
 
             task.drm_jobID = unicode(int(re.search(r'Job <(\d+)>', out).group(1)))
         except (sp.CalledProcessError, ValueError):
@@ -89,7 +89,7 @@ def bjobs_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['bjobs', '-a'], preexec_function=exit_process_group).split('\n')
+        lines = sp.check_output(['bjobs', '-a'], preexec_function=exit_process_group).decode().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     bjobs = {}

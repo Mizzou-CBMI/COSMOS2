@@ -33,8 +33,8 @@ def check_output_and_stderr(*popenargs, **kwargs):
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
-        raise CosmosCalledProcessError(retcode, cmd, output=output, stderr=stderr)
-    return output, stderr
+        raise CosmosCalledProcessError(retcode, cmd, output=output.decode(), stderr=stderr.decode())
+    return output.decode(), stderr.decode()
 
 
 def convert_size_to_kb(size_str):

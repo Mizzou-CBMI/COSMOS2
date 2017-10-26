@@ -28,11 +28,11 @@ class DRM_SLURM(DRM):
             cmd_str=task.output_command_script_path)
 
         try:
-            out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True)
+            out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True).decode()
             task.drm_jobID = unicode(re.search(r'job (\d+)', out).group(1))
         except sp.CalledProcessError as cpe:
             task.log.error('%s submission to %s failed with error %s: %s' %
-                           (task, task.drm, cpe.returncode, cpe.output.strip()))
+                           (task, task.drm, cpe.returncode, cpe.output.decode().strip()))
             task.status = TaskStatus.failed
         except ValueError:
             task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
@@ -116,7 +116,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
     Parse "scontrol show jobid" output into key/value pairs.
     """
     start = time.time()
-    num_retries = timeout / quantum
+    num_retries = int(timeout / quantum)
 
     for i in xrange(num_retries):
         qacct_returncode = 0
@@ -127,8 +127,8 @@ def _qacct_raw(task, timeout=600, quantum=15):
             if qacct_stdout_str.strip():
                 break
         except CosmosCalledProcessError as err:
-            qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = err.stderr.strip()
+            qacct_stdout_str = err.output.decode().strip()
+            qacct_stderr_str = err.stderr.decode().strip()
             qacct_returncode = err.returncode
 
             if qacct_stderr_str == 'slurm_load_jobs error: Invalid job id specified':
@@ -182,7 +182,7 @@ def _qstat_all():
     information about the job
     """
     try:
-        lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).strip().split('\n')
+        lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).decode().strip().split('\n')
     except (sp.CalledProcessError, OSError):
         return {}
     keys = re.split(r"\s+", lines[1].strip())

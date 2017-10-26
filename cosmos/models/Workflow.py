@@ -158,12 +158,12 @@ class Workflow(Base):
         from cosmos import recursive_resolve_dependency
 
         # parents
-        if isinstance(parents, types.GeneratorType):
-            parents = list(parents)
         if parents is None:
             parents = []
-        if isinstance(parents, Task):
+        elif isinstance(parents, Task):
             parents = [parents]
+        else:
+            parents = list(parents)
 
         # params
         if params is None:

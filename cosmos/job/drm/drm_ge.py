@@ -31,12 +31,12 @@ class DRM_GE(DRM):
         try:
             out = subprocess.check_output(
                 '{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=subprocess.STDOUT)
+                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=subprocess.STDOUT).decode()
 
             task.drm_jobID = unicode(int(out))
         except subprocess.CalledProcessError as cpe:
             task.log.error('%s submission to %s failed with error %s: %s' %
-                           (task, task.drm, cpe.returncode, cpe.output.strip()))
+                           (task, task.drm, cpe.returncode, cpe.output.decode().strip()))
             task.status = TaskStatus.failed
         except ValueError:
             task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
@@ -206,7 +206,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
-    num_retries = timeout / quantum
+    num_retries = int(timeout / quantum)
 
     for i in xrange(num_retries):
         qacct_returncode = 0
@@ -217,8 +217,8 @@ def _qacct_raw(task, timeout=600, quantum=15):
             if qacct_stdout_str.strip():
                 break
         except CosmosCalledProcessError as err:
-            qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = err.stderr.strip()
+            qacct_stdout_str = err.output.decode().strip()
+            qacct_stderr_str = err.stderr.decode().strip()
             qacct_returncode = err.returncode
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
@@ -281,7 +281,7 @@ def _qstat_all():
     information about the job
     """
     try:
-        lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).strip().split('\n')
+        lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).decode().strip().split('\n')
     except (subprocess.CalledProcessError, OSError):
         return {}
     keys = re.split(r"\s+", lines[0])
