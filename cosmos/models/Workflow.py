@@ -124,7 +124,10 @@ class Workflow(Base):
         """
         Create directory paths of all output files
         """
-        dirs = {os.path.dirname(p) for t in self.tasks for p in t.output_map.values() if p is not None}
+        dirs = {p if k.endswith('dir') else os.path.dirname(p)
+                for t in self.tasks for k, p in t.output_map.iteritems()
+                if p is not None}
+
         for d in dirs:
             mkdir(d)
 

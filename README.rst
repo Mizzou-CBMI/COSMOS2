@@ -95,6 +95,7 @@ Please let us know if you're using Cosmos by sending a PR with your company or l
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.
 * `Invitae <http://invitae.com>`__ - Clinical NGS sequencing laboratory.  Utilizes Cosmos for production variant calling pipelines and R&D analysis.
 * `NGXBIO <https://ngxbio.com/>`__ - NGS Sequencing as a Service.
+* `EnGenome <https://engenome.com/en/>`__ - Bioinformatics and NGS Analysis.
 
 Publications using Cosmos
 __________________________

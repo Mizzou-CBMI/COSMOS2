@@ -42,7 +42,8 @@ def default_prepend(task):  # pylint: disable=unused-argument
                    'set -e\n' \
                    'set -o pipefail\n' \
                    'trap \'\' USR1 USR2 XCPU\n' \
-                   'echo "This task is running as pid $$ on ${HOSTNAME}" >&2\n'
+                   'echo "This task is running as pid $$ on ${HOSTNAME}" >&2\n' \
+                   'echo "CWD is `pwd`" >&2\n'
 
     if task.drm == "ge":
         bash_prelude += 'echo "Managed by SGE: job ${JOB_ID}, ' \
@@ -54,7 +55,7 @@ def default_prepend(task):  # pylint: disable=unused-argument
 #     return ''
 
 
-def default_cmd_fxn_wrapper(task):
+def default_cmd_fxn_wrapper(task, extra_prepend='', extra_append=''):
     """
     A default decorator that gets called each time a Task's command function is called.
     Generally useful for prepending/appending things to your commands.  Could also be used
@@ -67,6 +68,6 @@ def default_cmd_fxn_wrapper(task):
         if r is None:
             return None
         else:
-            return default_prepend(task) + r
+            return default_prepend(task) + extra_prepend + r + extra_append
 
     return decorator.decorator(real_decorator)

@@ -25,8 +25,6 @@ def default_get_submit_args(task, parallel_env='orte'):
     use_mem_req = False
 
     jobname = '%s[%s]' % (task.stage.name, task.uid.replace('/', '_'))
-    queue = ' -q %s' % task.queue or ''
-    priority = ' -p %s' % default_job_priority if default_job_priority else ''
 
     if task.drm in ['lsf', 'drmaa:lsf']:
         rusage = '-R "rusage[mem={mem}] ' if task.mem_req and use_mem_req else ''
@@ -34,11 +32,17 @@ def default_get_submit_args(task, parallel_env='orte'):
         return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
     elif task.drm in ['ge', 'drmaa:ge']:
         return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{queue}'.format(
-            priority=priority, queue=queue, jobname=jobname, core_req=task.core_req, parallel_env=parallel_env)
+            priority=' -p %s' % default_job_priority if default_job_priority else '',
+            queue=' -q %s' % task.queue or '',
+            jobname=jobname,
+            core_req=task.core_req,
+            parallel_env=parallel_env)
     elif task.drm == 'slurm':
-        return '-p {partition} -c {cores} -J {jobname}{mem_str}'.format(
-            mem_str=' --mem %s' if task.mem_req is not None else '',
-            partition=task.queue, cores=task.core_req, jobname=jobname)
+        return '-c {cores} -J {partition}{jobname}{mem_str}'.format(
+            mem_str=(' --mem %s' % task.mem_req) if task.mem_req is not None else '',
+            partition=' -p %s' % task.queue if task.queue else '',
+            cores=task.core_req,
+            jobname=jobname)
     elif task.drm == 'local':
         return None
     else:
@@ -135,6 +139,7 @@ class Cosmos(object):
         :param int default_max_attempts: The default maximum number of times to attempt a Task.
 
         Otherwise, run all Tasks except those downstream of a failure.
+        :rtype Workflow:
         :returns: An Workflow instance.
         """
         from .Workflow import Workflow

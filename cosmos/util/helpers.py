@@ -106,12 +106,8 @@ def confirm(prompt=None, default=False, timeout=0):
             return default
 
 
-#created_already = set()
 def mkdir(path):
-    global created_already
-    #sp.check_output('mkdir -p "{0}"'.format(path), shell=True)
     if path and not os.path.exists(path):
-        #created_already.add(path)
         os.makedirs(path)
 
 
