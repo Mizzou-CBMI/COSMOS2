@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -8,8 +9,7 @@ from more_itertools import grouper
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import exit_process_group, CosmosCalledProcessError, check_output_and_stderr, div, \
-    convert_size_to_kb
+from cosmos.job.drm.util import exit_process_group, CosmosCalledProcessError, check_output_and_stderr
 from cosmos.util.signal_handlers import sleep_through_signals
 
 
@@ -26,6 +26,10 @@ def parse_slurm_time(s, default=0):
         time = p[0]
     hours, mins, secs = time.split(':')
     return int(days) * 24 * 60 * 60 + int(hours) * 60 * 60 + int(mins) * 60 + int(secs)
+
+
+def parse_slurm_time2(s):
+    return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
 
 
 class DRM_SLURM(DRM):
@@ -121,7 +125,7 @@ class DRM_SLURM(DRM):
 
 
         d['exit_status'] = exit_code
-        # d['wall_time'] = parse_slurm_time(d2.get('Elapsed', 1))
+        d['wall_time'] = (parse_slurm_time2(d['EndTime']) - parse_slurm_time2(d['StartTime'])).total_seconds()
         # d['cpu_time'] = parse_slurm_time(d2['AveCPU'])
         # d['percent_cpu'] = div(float(d['cpu_time']), float(d['wall_time']))
         # d['avg_rss_mem'] = convert_size_to_kb(d2['AveRSS'])
@@ -224,7 +228,8 @@ def _qstat_all():
 
 def get_resource_usage(job_id):
     # there's a lag between when a job finishes and when sacct is available :(Z
-    parts = sp.check_output('sacct --format="CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,Elapsed" -j %s' % job_id, shell=True).decode().strip().split("\n")
+    parts = sp.check_output('sacct --format="CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,Elapsed" -j %s' % job_id,
+                            shell=True).decode().strip().split("\n")
     keys = parts[0].split()
     values = parts[-1].split()
     return dict(zip(keys, values))

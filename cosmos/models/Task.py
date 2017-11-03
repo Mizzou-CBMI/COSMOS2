@@ -51,17 +51,14 @@ task_printout = u"""Task Info:
 
 @signal_task_status_change.connect
 def task_status_changed(task):
-    if task.status in [TaskStatus.successful]:
-        if not task.NOOP:
-            task.log.info('%s %s' % (task, task.status))
-
     if task.status == TaskStatus.waiting:
         task.started_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.submitted:
         task.stage.status = StageStatus.running
         if not task.NOOP:
-            task.log.info('%s %s. drm=%s; drm_jobid=%s' % (task, task.status, repr(task.drm), repr(task.drm_jobID)))
+            task.log.info('%s %s. drm=%s; drm_jobid=%s; queue=%s' % (task, task.status, repr(task.drm),
+                                                               repr(task.drm_jobID), repr(task.queue)))
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
@@ -98,6 +95,8 @@ def task_status_changed(task):
 
     elif task.status == TaskStatus.successful:
         task.successful = True
+        if not task.NOOP:
+            task.log.info('%s %s, wall_time: %s' % (task, task.status, datetime.timedelta(seconds=task.wall_time)))
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful

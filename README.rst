@@ -80,6 +80,8 @@ Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>
 
 Testing
 __________
+python setup.py test
+
 .. code-block:: bash
 
     py.test
