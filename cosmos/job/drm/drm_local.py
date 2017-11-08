@@ -28,8 +28,8 @@ class DRM_Local(DRM):
             cmd = task.output_command_script_path
 
         p = sp.Popen(cmd,
-                     stdout=open(task.output_stderr_path, 'w'),
-                     stderr=open(task.output_stdout_path, 'w'),
+                     stdout=open(task.output_stdout_path, 'w'),
+                     stderr=open(task.output_stderr_path, 'w'),
                      shell=False, env=os.environ,
                      preexec_fn=exit_process_group)
         p.start_time = time.time()

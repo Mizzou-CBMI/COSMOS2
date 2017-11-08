@@ -37,7 +37,11 @@ def args_to_str(*args):
     """
     Turn a set of arguments into a string to be passed to a command line tool
 
-    :param args: An iterable of (str arg_flag, value) tuples.  If value is None or False it will be ignored.  Otherwise produce --{arg_flag} {value}.
+    If value is None or False it will be ignored.
+    If value is True, emit --{arg_flag} without specifing a value.
+    Otherwise emit --{arg_flag} {value}.
+
+    :param args: An iterable of (str arg_flag, value) tuples.
 
     >>> x = 'bar'
     >>> y = None
@@ -55,9 +59,9 @@ def args_to_str(*args):
 
 @contextlib.contextmanager
 def cd(path):
-    """A context manager which changes the working directory to the given
+    """
+    A context manager which changes the working directory to the given
     path, and then changes it back to its previous value on exit.
-
     """
     prev_cwd = os.getcwd()
     os.chdir(path)
