@@ -124,16 +124,26 @@ class Workflow(Base):
         """
         Create directory paths of all output files
         """
-        dirs = {p if k.endswith('dir') else os.path.dirname(p)
-                for t in self.tasks for k, p in t.output_map.iteritems()
-                if p is not None}
+        dirs = set()
+
+        for task in self.tasks:
+            for out_name, v in task.output_map.iteritems():
+                dirname = lambda p: p if out_name.endswith('dir') or p is None else os.path.dirname(p)
+
+                if isinstance(v, (tuple, list)):
+                    dirs.update(map(dirname, v))
+                elif isinstance(v, dict):
+                    raise NotImplemented()
+                else:
+                    dirs.add(dirname(v))
 
         for d in dirs:
-            mkdir(d)
+            if d is not None:
+                mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
                  queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
-                 max_attempts=None):
+                 max_attempts=None, noop=False):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -257,7 +267,7 @@ class Workflow(Base):
                         successful=False,
                         max_attempts=max_attempts if max_attempts is not None else self.cosmos_app.default_max_attempts,
                         attempt=1,
-                        NOOP=False
+                        NOOP=noop
                         )
 
             task.cmd_fxn = func
@@ -492,7 +502,7 @@ def _run(workflow, session, task_queue):
             if task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
-                    workflow.log.info('%s Exiting run loop at first Task failure, error %s: %s',
+                    workflow.log.info('%s Exiting run loop at first Task failure, exit_status: %s: %s',
                                       workflow, task.exit_status, task)
                     workflow.terminate(due_to_failure=True)
                     return

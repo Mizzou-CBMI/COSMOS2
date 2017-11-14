@@ -1,9 +1,9 @@
 import os
+import pprint
 import types
 import warnings
-import pprint
-
 from collections import namedtuple
+
 from sqlalchemy.exc import SAWarning
 
 # turn SQLAlchemy warnings into errors
@@ -18,7 +18,8 @@ class Dependency(namedtuple('Dependency', 'task param')):
     def __new__(cls, task, param):
         from cosmos.api import Task
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
-        assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`.  Available parameters are:\n%s' % (param, task, pprint.pformat(task.params, indent=2))
+        assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`.  Available parameters are:\n%s' % (
+        param, task, pprint.pformat(task.params, indent=2))
         return super(Dependency, cls).__new__(cls, task, param)
 
     def resolve(self):
@@ -35,30 +36,18 @@ def recursive_resolve_dependency(parameter):
         return parameter, set()
     elif type(parameter) == list:
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
-        return list(rds for (rds, _) in tuple_list), set.union(*[tasks for _, tasks in tuple_list]) if len(tuple_list) else set()
+        return list(rds for (rds, _) in tuple_list), set.union(*[tasks for _, tasks in tuple_list]) if len(
+            tuple_list) else set()
     elif type(parameter) == tuple:
         tuple_tuple = tuple(recursive_resolve_dependency(v) for v in parameter)
-        return tuple(rds for (rds, _) in tuple_tuple), set.union(*[tasks for _, tasks in tuple_tuple]) if len(tuple_tuple) else set()
+        return tuple(rds for (rds, _) in tuple_tuple), set.union(*[tasks for _, tasks in tuple_tuple]) if len(
+            tuple_tuple) else set()
     elif type(parameter) == dict:
         tuple_dict = {k: recursive_resolve_dependency(v) for k, v in parameter.iteritems()}
         return ({k: rds for k, (rds, _) in tuple_dict.iteritems()},
                 set.union(*[tasks for _, tasks in tuple_dict.itervalues()]) if len(tuple_dict) else set())
     else:
         raise ValueError('Cannot handle parameter of type {}'.format(type(parameter)))
-
-
-# class Dependency(namedtuple('Dependency', 'task param metadata')):
-#     def __new__(self, task, param, metadata=None):
-#         if metadata is None:
-#             metadata = dict()
-#         assert param in task.params, 'Cannot create Dependency, %s does not exist %s.params' % (param, task)
-#         return super(Dependency, self).__new__(self,task, param, metadata)
-
-
-# class _non_jsonable_value(object):
-#     def __repr__(self):
-#         return ''
-
 
 
 #########################################################################################################################

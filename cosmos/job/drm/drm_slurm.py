@@ -130,7 +130,7 @@ class DRM_SLURM(DRM):
         # d['percent_cpu'] = div(float(d['cpu_time']), float(d['wall_time']))
         # d['avg_rss_mem'] = convert_size_to_kb(d2['AveRSS'])
         # d['avg_vms_mem'] = convert_size_to_kb(d2['AveVMSize'])
-        task.workflow.log.info("%s returned with exit code: '%s'" % (task, str(exit_code)))
+        # task.workflow.log.info("%s returned with exit code: '%s'" % (task, str(exit_code)))
         return d
 
     def kill(self, task):
