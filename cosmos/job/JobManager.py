@@ -52,9 +52,6 @@ class JobManager(object):
         return command
 
     def submit_task(self, task, command):
-        task.log_dir = self.log_out_dir_func(task)
-        mkdir(task.log_dir)
-
         for p in [task.output_stdout_path, task.output_stderr_path, task.output_command_script_path]:
             if os.path.exists(p):
                 os.unlink(p)
@@ -64,6 +61,9 @@ class JobManager(object):
             task.status = TaskStatus.submitted
             return
         else:
+            task.log_dir = self.log_out_dir_func(task)
+            mkdir(task.log_dir)
+
             _create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task)
             assert task.drm is not None, 'task has no drm set'
