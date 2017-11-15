@@ -69,7 +69,7 @@ class DRM_Local(DRM):
 
     def _get_task_return_data(self, task):
         return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
-                    wall_time=time.time() - self.procs[task.drm_jobID].start_time)
+                    wall_time=round(int(time.time() - self.procs[task.drm_jobID].start_time)))
 
     @staticmethod
     def _signal(task, sig):

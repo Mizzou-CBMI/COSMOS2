@@ -52,16 +52,18 @@ class JobManager(object):
         return command
 
     def submit_task(self, task, command):
+        task.log_dir = self.log_out_dir_func(task)
         for p in [task.output_stdout_path, task.output_stderr_path, task.output_command_script_path]:
             if os.path.exists(p):
                 os.unlink(p)
 
-        if command == NOOP:
+        if command is NOOP:
             task.NOOP = True
+
+        if task.NOOP:
             task.status = TaskStatus.submitted
             return
         else:
-            task.log_dir = self.log_out_dir_func(task)
             mkdir(task.log_dir)
 
             _create_command_sh(task, command)
