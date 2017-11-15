@@ -138,7 +138,7 @@ class Workflow(Base):
                     dirs.add(dirname(v))
 
         for d in dirs:
-            if d is not None:
+            if d is not None and '://' not in d:
                 mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,

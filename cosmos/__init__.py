@@ -14,16 +14,31 @@ opj = os.path.join
 
 # ACCEPTABLE_TAG_TYPES = {unicode, str, int, float, bool, type(None), list, tuple}
 
-class Dependency(namedtuple('Dependency', 'task param')):
-    def __new__(cls, task, param):
+class Dependency(namedtuple('Dependency', 'task param path')):
+    def __new__(cls, task, param=None, path=None):
+        """
+        A way to specify a Task and parameter Dependency as one unit.
+
+        :param task: The Dependent Task
+        :param param: The dependent parameter of Task, ex 'out_tsv'
+        :param path: The path to a file if it is not a Task parameter.  Cannot be specified if 'param' is specified.
+        :return:
+        """
+        assert bool(param) ^ bool(path), 'cannot specify both `param` and `path`'.format(**locals())
+
         from cosmos.api import Task
         assert isinstance(task, Task), 'task parameter must be an instance of Task, not %s' % type(task)
-        assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`.  Available parameters are:\n%s' % (
-        param, task, pprint.pformat(task.params, indent=2))
-        return super(Dependency, cls).__new__(cls, task, param)
+        if param:
+            assert param in task.params, 'Invalid Dependency, param `%s` is not a parameter of `%s`.  ' \
+                                         'Available parameters are:\n%s' % (param, task, pprint.pformat(task.params,
+                                                                                                        indent=2))
+        return super(Dependency, cls).__new__(cls, task, param, path)
 
     def resolve(self):
-        return self.task.params[self.param]
+        if self.param:
+            return self.task.params[self.param]
+        else:
+            return self.path
 
 
 def recursive_resolve_dependency(parameter):

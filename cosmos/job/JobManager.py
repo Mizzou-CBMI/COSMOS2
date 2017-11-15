@@ -52,18 +52,23 @@ class JobManager(object):
         return command
 
     def submit_task(self, task, command):
+        task.log_dir = self.log_out_dir_func(task)
+        mkdir(task.log_dir)
+
+        for p in [task.output_stdout_path, task.output_stderr_path, task.output_command_script_path]:
+            if os.path.exists(p):
+                os.unlink(p)
+
         if command == NOOP:
             task.NOOP = True
             task.status = TaskStatus.submitted
             return
+        else:
+            _create_command_sh(task, command)
+            task.drm_native_specification = self.get_submit_args(task)
+            assert task.drm is not None, 'task has no drm set'
 
-        task.log_dir = self.log_out_dir_func(task)
-        mkdir(task.log_dir)
-        _create_command_sh(task, command)
-        task.drm_native_specification = self.get_submit_args(task)
-        assert task.drm is not None, 'task has no drm set'
-
-        self.get_drm(task.drm).submit_job(task)
+            self.get_drm(task.drm).submit_job(task)
 
     def run_tasks(self, tasks):
         self.running_tasks += tasks
@@ -121,7 +126,3 @@ def _create_command_sh(task, command):
 
     st = os.stat(task.output_command_script_path)
     os.chmod(task.output_command_script_path, st.st_mode | stat.S_IEXEC)
-
-    for p in [task.output_stdout_path, task.output_stderr_path]:
-        if os.path.exists(p):
-            os.unlink(p)
