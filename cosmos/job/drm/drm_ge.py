@@ -217,8 +217,8 @@ def _qacct_raw(task, timeout=600, quantum=15):
             if qacct_stdout_str.strip():
                 break
         except CosmosCalledProcessError as err:
-            qacct_stdout_str = err.output.decode().strip()
-            qacct_stderr_str = err.stderr.decode().strip()
+            qacct_stdout_str = err.output.strip()
+            qacct_stderr_str = err.stderr.strip()
             qacct_returncode = err.returncode
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
