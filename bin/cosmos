@@ -34,7 +34,7 @@ def shell(db_url_or_path_to_sqlite):
     cosmos_app = Cosmos(database_url=database_url)
     cosmos_app.shell()
 
-
+    
 def run(in_jobs, default_drm, default_queue, restart, max_cores):
     """
     Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
@@ -60,17 +60,16 @@ def run(in_jobs, default_drm, default_queue, restart, max_cores):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
-    sps = p.add_subparsers(title="Commands")
+    sps = p.add_subparsers(title="Commands", dest='cmd')
+    sps.required = True
 
     sp = sps.add_parser('runweb')
     sp.add_argument('db_url_or_path_to_sqlite')
     sp.add_argument('--host', '-H', default='0.0.0.0')
     sp.add_argument('--port', '-p', default=3232, type=int)
-    sp.set_defaults(func=runweb)
 
     sp = sps.add_parser('shell')
     sp.add_argument('db_url_or_path_to_sqlite')
-    sp.set_defaults(func=shell)
 
     sp = sps.add_parser('run')
     sp.add_argument('in_jobs')
@@ -81,10 +80,9 @@ if __name__ == '__main__':
                     help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited.", default=None)
     sp.add_argument('--restart', '-r', action='store_true',
                     help="Completely restart the Workflow.  Note this will delete all record of the Workflow in the database.")
-    sp.set_defaults(func=run)
 
     args = p.parse_args()
+    print(vars(args))
     kwargs = dict(args._get_kwargs())
-    command_func = kwargs.pop('func')
-
-    command_func(**kwargs)
+    cmd = kwargs.pop('cmd')
+    globals()[cmd](**kwargs)
