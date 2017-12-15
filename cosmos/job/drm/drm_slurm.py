@@ -209,15 +209,22 @@ def _qacct_raw(task, timeout=600, quantum=15):
     return acct_dict
 
 
-def _qstat_all():
+def _qstat_all(log, timeout=60 * 10):
     """
     returns a dict keyed by lsf job ids, who's values are a dict of bjob
     information about the job
     """
-    try:
-        lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).decode().strip().split('\n')
-    except (sp.CalledProcessError, OSError):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).decode().strip().split('\n')
+        except (sp.CalledProcessError, OSError) as e:
+            # sometimes slurm goes quiet
+            log.info('Error running squeue: %s' % e)
+        time.sleep(10)
+    else:
         return {}
+
     keys = re.split(r"\s+", lines[1].strip())
     bjobs = {}
     for l in lines[2:]:
