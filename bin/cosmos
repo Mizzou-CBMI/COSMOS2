@@ -4,20 +4,27 @@
 Cosmos Script
 """
 
-from cosmos.api import Cosmos, default_get_submit_args
 import argparse
-import os
-import re
 import json
+import os
 from functools import partial
 
+from cosmos.api import Cosmos, default_get_submit_args
 
-def runweb(db_url_or_path_to_sqlite, host, port):
+
+def get_db_url_or_path_to_sqlite(db_url_or_path_to_sqlite):
     if '://' not in db_url_or_path_to_sqlite:
-        assert os.path.exists(db_url_or_path_to_sqlite), '`%s` does not exist on the filesystem' % db_url_or_path_to_sqlite
+        assert os.path.exists(
+            db_url_or_path_to_sqlite), '`%s` does not exist on the filesystem' % db_url_or_path_to_sqlite
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
 
     database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
+
+    return database_url
+
+
+def runweb(db_url_or_path_to_sqlite, host, port):
+    database_url = get_db_url_or_path_to_sqlite(db_url_or_path_to_sqlite)
 
     cosmos_app = Cosmos(database_url=database_url)
 
@@ -25,16 +32,12 @@ def runweb(db_url_or_path_to_sqlite, host, port):
 
 
 def shell(db_url_or_path_to_sqlite):
-    if '://' not in db_url_or_path_to_sqlite:
-        if not os.path.exists(db_url_or_path_to_sqlite):
-            raise IOError('`%s` does not exist' % db_url_or_path_to_sqlite)
-        db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
-    database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
+    database_url = get_db_url_or_path_to_sqlite(db_url_or_path_to_sqlite)
 
     cosmos_app = Cosmos(database_url=database_url)
     cosmos_app.shell()
 
-    
+
 def run(in_jobs, default_drm, default_queue, restart, max_cores):
     """
     Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
@@ -77,7 +80,8 @@ if __name__ == '__main__':
     sp.add_argument('--queue', '-q')
 
     sp.add_argument('--max_cores', '--max-cores', '-c', type=int,
-                    help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited.", default=None)
+                    help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited.",
+                    default=None)
     sp.add_argument('--restart', '-r', action='store_true',
                     help="Completely restart the Workflow.  Note this will delete all record of the Workflow in the database.")
 
