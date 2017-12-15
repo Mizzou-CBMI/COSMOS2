@@ -66,7 +66,7 @@ class DRM_SLURM(DRM):
         Yield a dictionary of Slurm job metadata for each task that has completed.
         """
         if tasks:
-            qjobs = _qstat_all()
+            qjobs = _qstat_all(tasks[0].workflow.log)
 
         for task in tasks:
             jid = unicode(task.drm_jobID)
@@ -218,6 +218,7 @@ def _qstat_all(log, timeout=60 * 10):
     while time.time() - start < timeout:
         try:
             lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).decode().strip().split('\n')
+            break
         except (sp.CalledProcessError, OSError) as e:
             # sometimes slurm goes quiet
             log.info('Error running squeue: %s' % e)
