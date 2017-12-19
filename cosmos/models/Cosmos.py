@@ -41,7 +41,7 @@ def default_get_submit_args(task, parallel_env='orte'):
         return '-c {cores} {partition}{jobname_str}{mem_str}'.format(
             mem_str=(' --mem %s' % task.mem_req) if task.mem_req is not None else '',
             partition=' -p %s' % task.queue if task.queue else '',
-            jobname_str=' -J {jobname}' if jobname else '',
+            jobname_str=' -J %s' % jobname if jobname else '',
             cores=task.core_req,
             jobname=jobname)
     elif task.drm == 'local':
