@@ -75,6 +75,11 @@ if __name__ == '__main__':
     workflow.make_output_dirs()
     workflow.run(max_cores=10)
 
+    # Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG
+    # you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.
+    # Yes, it does require running all Tasks in the dag to get the outputs of any Task, and we hope to address
+    # that limitation at some point in the future.
+
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
         draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
