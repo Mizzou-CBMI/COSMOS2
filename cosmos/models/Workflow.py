@@ -543,13 +543,13 @@ def _run_queued_and_ready_tasks(task_queue, workflow):
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
     if max_cores is None:
-        submittable_tasks = ready_tasks
+        submittable_tasks = sorted(ready_tasks, key=lambda t: t.id)
     else:
         cores_used = sum([t.core_req for t in workflow.jobmanager.running_tasks])
         cores_left = max_cores - cores_used
 
         submittable_tasks = []
-        ready_tasks = sorted(ready_tasks, key=lambda t: t.core_req)
+        ready_tasks = sorted(ready_tasks, key=lambda t: (t.core_req, t.id))
         while len(ready_tasks) > 0:
             task = ready_tasks[0]
             there_are_cores_left = task.core_req <= cores_left
