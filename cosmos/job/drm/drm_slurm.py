@@ -12,6 +12,8 @@ from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group, CosmosCalledProcessError, check_output_and_stderr
 from cosmos.util.signal_handlers import sleep_through_signals
 
+FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
+
 
 def parse_slurm_time(s, default=0):
     if s.strip() == '':
@@ -71,18 +73,16 @@ class DRM_SLURM(DRM):
         for task in tasks:
             jid = unicode(task.drm_jobID)
 
-            if jid not in qjobs or qjobs[jid]['STATE'] == 'COMPLETED':
-                # if job does not appear in squeue or has "COMPLETED" status assume it's done with exit code 0 (unless
-                # scontrol show jobid says otherwise)
+            if jid not in qjobs or qjobs[jid]['STATE'] == 'COMPLETED' or qjobs[jid]['STATE'] in FAILED_STATES:
+                # job is done
                 data = self._get_task_return_data(task)
-                data['exit_status'] = (0 if data['exit_status'] is None else data['exit_status'])
-                yield task, data
-            elif any(finished_state in qjobs[jid]['STATE'] for finished_state in
-                     ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']):
-                # If the job is tagged with any of the "failure" exit codes, it has completed with exit code > 0
-                data = self._get_task_return_data(task)
-                data['exit_status'] = (1 if (data['exit_status'] is None or data['exit_status'] == 0)
-                                       else data['exit_status'])
+
+                if data['JobState'] in FAILED_STATES:
+                    data['exit_status'] = (1 if (data['exit_status'] is None or data['exit_status'] == 0)
+                                           else data['exit_status'])
+                else:
+                    data['exit_status'] = (0 if data['exit_status'] is None else data['exit_status'])
+
                 yield task, data
 
     def drm_statuses(self, tasks):
@@ -105,7 +105,7 @@ class DRM_SLURM(DRM):
         Convert raw qacct job data into Cosmos's more portable format.
         Returns a dictionary of job metadata
         """
-        d = _qacct_raw(task)
+        d = _scontrol_raw(task)
         job_state = d.get("JobState", 'COMPLETED')
         if job_state != 'COMPLETED':
             task.workflow.log.warn('%s Slurm (scontrol show jobid -d -o %s) reports JobState %s:\n%s' %
@@ -122,7 +122,6 @@ class DRM_SLURM(DRM):
         # there's a delay before sacct info is available.  To keep things fast should we just update all the jobs
         # at the end of workflow.run?
         # d2 = get_resource_usage(task.drm_jobID)
-
 
         d['exit_status'] = exit_code
         d['wall_time'] = (parse_slurm_time2(d['EndTime']) - parse_slurm_time2(d['StartTime'])).total_seconds()
@@ -144,7 +143,7 @@ class DRM_SLURM(DRM):
             sp.call(['scancel', '-Q'] + pids, preexec_fn=exit_process_group)
 
 
-def _qacct_raw(task, timeout=600, quantum=15):
+def _scontrol_raw(task, timeout=600, quantum=15):
     """
     Parse "scontrol show jobid" output into key/value pairs.
     """
