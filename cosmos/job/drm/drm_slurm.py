@@ -91,7 +91,7 @@ class DRM_SLURM(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = _qstat_all()
+            qjobs = _qstat_all(tasks[0].workflow.log)
 
             def f(task):
                 return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', '???')
