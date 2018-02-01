@@ -85,13 +85,13 @@ class DRM_SLURM(DRM):
 
                 yield task, data
 
-    def drm_statuses(self, tasks):
+    def drm_statuses(self, tasks, log_errors=True):
         """
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = _qstat_all(tasks[0].workflow.log)
+            qjobs = _qstat_all(log=tasks[0].workflow.log if log_errors else None)
 
             def f(task):
                 return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', '???')
@@ -208,7 +208,7 @@ def _scontrol_raw(task, timeout=600, quantum=15):
     return acct_dict
 
 
-def _qstat_all(log, timeout=60 * 10):
+def _qstat_all(log=None, timeout=60 * 10):
     """
     returns a dict keyed by lsf job ids, who's values are a dict of bjob
     information about the job
@@ -220,7 +220,8 @@ def _qstat_all(log, timeout=60 * 10):
             break
         except (sp.CalledProcessError, OSError) as e:
             # sometimes slurm goes quiet
-            log.info('Error running squeue: %s' % e)
+            if log:
+                log.info('Error running squeue: %s' % e)
         time.sleep(10)
     else:
         return {}
