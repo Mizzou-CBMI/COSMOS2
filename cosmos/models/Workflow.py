@@ -406,6 +406,8 @@ class Workflow(Base):
         else:
             self.status = WorkflowStatus.killed
 
+        self.session.commit()
+
     @property
     def tasks(self):
         return [t for s in self.stages for t in s.tasks]

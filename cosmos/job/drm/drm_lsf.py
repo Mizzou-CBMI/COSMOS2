@@ -67,7 +67,7 @@ class DRM_LSF(DRM):
             bjobs = bjobs_all()
 
             def f(task):
-                return bjobs.get(str(task.drm_jobID), dict()).get('STAT', '???')
+                return bjobs.get(str(task.drm_jobID), dict()).get('STAT', 'UNK_JOB_STATE')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:

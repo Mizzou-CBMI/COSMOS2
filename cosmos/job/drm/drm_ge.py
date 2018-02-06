@@ -100,7 +100,7 @@ class DRM_GE(DRM):
             qjobs = _qstat_all()
 
             def f(task):
-                return qjobs.get(unicode(task.drm_jobID), dict()).get('state', '???')
+                return qjobs.get(unicode(task.drm_jobID), dict()).get('state', 'UNK_JOB_STATE')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:

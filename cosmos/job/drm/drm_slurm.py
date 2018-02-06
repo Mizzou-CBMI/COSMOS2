@@ -94,7 +94,7 @@ class DRM_SLURM(DRM):
             qjobs = _qstat_all(log=tasks[0].workflow.log if log_errors else None)
 
             def f(task):
-                return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', '???')
+                return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', 'UNK_JOB_STATE')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
