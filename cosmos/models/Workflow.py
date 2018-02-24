@@ -25,7 +25,7 @@ from networkx.algorithms.dag import descendants, topological_sort
 
 from cosmos.util.iterstuff import only_one
 from cosmos.util.helpers import duplicates, get_logger, mkdir
-from cosmos.util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict
+from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 from cosmos.db import Base
 from cosmos.core.cmd_fxn import signature
 
@@ -69,7 +69,7 @@ class Workflow(Base):
     _log = None
 
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
-    _status = Column(Enum34_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
+    _status = Column(Enum_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='workflow')
 

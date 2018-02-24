@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from flask import url_for
 
 from cosmos.db import Base
-from cosmos.util.sqla import Enum34_ColumnType
+from cosmos.util.sqla import Enum_ColumnType
 from cosmos import StageStatus, signal_stage_status_change, TaskStatus
 import networkx as nx
 import datetime
@@ -55,7 +55,7 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum34_ColumnType(StageStatus), default=StageStatus.no_attempt, nullable=False)
+    _status = Column(Enum_ColumnType(StageStatus), default=StageStatus.no_attempt, nullable=False)
     parents = relationship("Stage",
                            secondary=StageEdge.__table__,
                            primaryjoin=id == StageEdge.parent_id,

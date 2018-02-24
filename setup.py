@@ -28,7 +28,6 @@ install_requires = [
     'blinker',
     "sqlalchemy",
     'networkx',
-    "enum34",
     "six",
     "drmaa",
     'more_itertools',

@@ -9,7 +9,7 @@ from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
 from flask import url_for
 
 from cosmos.db import Base
-from cosmos.util.sqla import Enum34_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
+from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
 from cosmos import TaskStatus, StageStatus, signal_task_status_change
 from cosmos.util.helpers import wait_for_file
 
@@ -164,7 +164,7 @@ class Task(Base):
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     # output_dir = Column(String(255))
-    _status = Column(Enum34_ColumnType(TaskStatus), default=TaskStatus.no_attempt, nullable=False)
+    _status = Column(Enum_ColumnType(TaskStatus), default=TaskStatus.no_attempt, nullable=False)
     successful = Column(Boolean, nullable=False)
     started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)

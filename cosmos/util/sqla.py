@@ -1,17 +1,18 @@
+import six
 import sqlalchemy.types as types
 from sqlalchemy.ext.mutable import Mutable
-import six
 
-class Enum34_ColumnType(types.TypeDecorator):
+
+class Enum_ColumnType(types.TypeDecorator):
     """
-    Enum compatible with enum34 package
+    Enum column type
     """
 
     impl = types.String
 
     def __init__(self, enum_class, *args, **kwargs):
         self.enum_class = enum_class
-        return types.TypeDecorator.__init__(self, *args, **kwargs)
+        types.TypeDecorator.__init__(self, *args, **kwargs)
 
     def _set_table(self, table, column):
         """
@@ -27,17 +28,14 @@ class Enum34_ColumnType(types.TypeDecorator):
         return None if value is None else getattr(self.enum_class, value)
 
     def copy(self):
-        return Enum34_ColumnType(self.enum_class)
+        return Enum_ColumnType(self.enum_class)
 
 
 class ListOfStrings(types.TypeDecorator):
-    """
-    Enum compatible with enum34 package
-    """
     impl = types.Text
 
     def __init__(self):
-        return types.TypeDecorator.__init__(self)
+        types.TypeDecorator.__init__(self)
 
     def process_bind_param(self, value, dialect):
         assert isinstance(value, list), '%s must be a list' % value
@@ -57,7 +55,7 @@ def get_or_create(session, model, **kwargs):
         return instance, True
 
 
-from sqlalchemy.types import TypeDecorator, VARCHAR
+from sqlalchemy.types import TypeDecorator
 import json
 
 
