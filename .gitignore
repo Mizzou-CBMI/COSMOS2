@@ -1,4 +1,4 @@
-venv/
+venv*
 .eggs/
 analysis_output/
 ve3/
