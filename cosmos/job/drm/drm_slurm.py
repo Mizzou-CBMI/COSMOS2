@@ -124,7 +124,11 @@ class DRM_SLURM(DRM):
         # d2 = get_resource_usage(task.drm_jobID)
 
         d['exit_status'] = exit_code
-        d['wall_time'] = (parse_slurm_time2(d['EndTime']) - parse_slurm_time2(d['StartTime'])).total_seconds()
+        try:
+            d['wall_time'] = (parse_slurm_time2(d['EndTime']) - parse_slurm_time2(d['StartTime'])).total_seconds()
+        except KeyError:
+            raise KeyError('Invalid return dict from scontrol for %s drm_jobID = %s:\n %s' % (task, task.drm_jobID, d))
+
         # d['cpu_time'] = parse_slurm_time(d2['AveCPU'])
         # d['percent_cpu'] = div(float(d['cpu_time']), float(d['wall_time']))
         # d['avg_rss_mem'] = convert_size_to_kb(d2['AveRSS'])
