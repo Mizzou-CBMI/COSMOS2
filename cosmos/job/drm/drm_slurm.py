@@ -123,7 +123,6 @@ def do_sacct(job_ids, log=None, timeout=60 * 10):
                                     ).decode().strip().split("\n")
             break
         except (sp.CalledProcessError, OSError) as e:  # sometimes slurm goes quiet
-            print('Error running sacct `%s`: %s' % (cmd, e))
             if log:
                 log.info('Error running sacct %s' % e)
 
