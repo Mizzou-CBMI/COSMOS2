@@ -1,10 +1,11 @@
+import argparse
 import os
-import sys
 import subprocess as sp
+import sys
+from functools import partial
+
 from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
     pygraphviz_available, default_get_submit_args
-from functools import partial
-import argparse
 
 
 def echo(word, out_txt):
@@ -32,7 +33,8 @@ def recipe(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (source nodes of the dag).
     echo_tasks = [workflow.add_task(func=echo,
                                     params=dict(word=word, out_txt='%s.txt' % word),
-                                    uid=word)
+                                    uid=word,
+                                    mem_req=10)
                   for word in ['hello', 'world']]
 
     # Split each echo into two dependent Tasks (a one2many relationship).
@@ -45,6 +47,7 @@ def recipe(workflow):
                 params=dict(in_txts=[echo_task.params['out_txt']],
                             out_txt='%s/%s/cat.txt' % (word, n)),
                 parents=[echo_task],
+                mem_req=10,
                 uid='%s_%s' % (word, n))
 
             # Count the words in the previous stage.  An example of a simple one2one relationship.
@@ -55,6 +58,7 @@ def recipe(workflow):
                 params=dict(in_txts=[Dependency(cat_task, 'out_txt')],
                             out_txt='%s/%s/wc.txt' % (word, n),
                             chars=True),
+                mem_req=10,
                 # parents=[cat_task], <-- not necessary!
                 uid='%s_%s' % (word, n), )
             word_count_tasks.append(word_count_task)
@@ -67,6 +71,7 @@ def recipe(workflow):
                     out_txt='summary.txt'),
         parents=word_count_tasks,
         stage_name='Summary_Analysis',
+        mem_req=10,
         uid='')  # It's the only Task in this Stage, so doesn't need a specific uid
 
 

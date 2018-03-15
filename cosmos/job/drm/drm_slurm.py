@@ -1,18 +1,19 @@
 import datetime
-import json
 import os
 import re
 import subprocess as sp
 import time
+from pprint import pformat
 
 from more_itertools import grouper
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import exit_process_group, CosmosCalledProcessError, check_output_and_stderr
-from cosmos.util.signal_handlers import sleep_through_signals
+from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div
 
 FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
+PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'RESIZING', 'SUSPENDED']
+COMPLETED_STATES = ['COMPLETED', ]
 
 
 def parse_slurm_time(s, default=0):
@@ -68,22 +69,18 @@ class DRM_SLURM(DRM):
         Yield a dictionary of Slurm job metadata for each task that has completed.
         """
         if tasks:
-            qjobs = _qstat_all(tasks[0].workflow.log)
+            job_infos = do_sacct([t.drm_jobID for t in tasks], tasks[0].workflow.log)
 
-        for task in tasks:
-            jid = unicode(task.drm_jobID)
+            for task in tasks:
+                if task.drm_jobID in job_infos:
+                    job_info = job_infos[task.drm_jobID]
+                    if job_info['State'] in FAILED_STATES + COMPLETED_STATES:
+                        job_info = parse_sacct(job_infos[task.drm_jobID],
+                                           tasks[0].workflow.log)  # self._get_task_return_data(task)
 
-            if jid not in qjobs or qjobs[jid]['STATE'] == 'COMPLETED' or qjobs[jid]['STATE'] in FAILED_STATES:
-                # job is done
-                data = self._get_task_return_data(task)
-
-                if data['JobState'] in FAILED_STATES:
-                    data['exit_status'] = (1 if (data['exit_status'] is None or data['exit_status'] == 0)
-                                           else data['exit_status'])
-                else:
-                    data['exit_status'] = (0 if data['exit_status'] is None else data['exit_status'])
-
-                yield task, data
+                        yield task, job_info
+                    else:
+                        assert job_info['State'] in PENDING_STATES,job_info['State']
 
     def drm_statuses(self, tasks, log_errors=True):
         """
@@ -91,50 +88,17 @@ class DRM_SLURM(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = _qstat_all(log=tasks[0].workflow.log if log_errors else None)
+            job_infos = do_sacct([t.drm_jobID for t in tasks],
+                                 tasks[0].workflow.log if log_errors else None,
+
+                                 )
 
             def f(task):
-                return qjobs.get(unicode(task.drm_jobID), dict()).get('STATE', 'UNK_JOB_STATE')
+                return job_infos.get(task.drm_jobID, dict()).get('STATE', 'UNK_JOB_STATE')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
             return {}
-
-    def _get_task_return_data(self, task):
-        """
-        Convert raw qacct job data into Cosmos's more portable format.
-        Returns a dictionary of job metadata
-        """
-        d = _scontrol_raw(task)
-        job_state = d.get("JobState", 'COMPLETED')
-        if job_state != 'COMPLETED':
-            task.workflow.log.warn('%s Slurm (scontrol show jobid -d -o %s) reports JobState %s:\n%s' %
-                                   (task, task.drm_jobID, job_state,
-                                    json.dumps(d, indent=4, sort_keys=True)))
-        if 'DerivedExitCode' in d and 'ExitCode' in d:
-            exit_code = (0 if d['DerivedExitCode'] == '0:0' and d['ExitCode'] == '0:0'
-                         else max(max(int(c) for c in d['DerivedExitCode'].split(":")),
-                                  max(int(c) for c in d['ExitCode'].split(":"))))
-        else:
-            # scontrol show jobid -d -o did not find the job id (probably called too late) so we don't have exit code
-            exit_code = None
-
-        # there's a delay before sacct info is available.  To keep things fast should we just update all the jobs
-        # at the end of workflow.run?
-        # d2 = get_resource_usage(task.drm_jobID)
-
-        d['exit_status'] = exit_code
-        try:
-            d['wall_time'] = (parse_slurm_time2(d['EndTime']) - parse_slurm_time2(d['StartTime'])).total_seconds()
-        except KeyError:
-            raise KeyError('Invalid return dict from scontrol for %s drm_jobID = %s:\n %s' % (task, task.drm_jobID, d))
-
-        # d['cpu_time'] = parse_slurm_time(d2['AveCPU'])
-        # d['percent_cpu'] = div(float(d['cpu_time']), float(d['wall_time']))
-        # d['avg_rss_mem'] = convert_size_to_kb(d2['AveRSS'])
-        # d['avg_vms_mem'] = convert_size_to_kb(d2['AveVMSize'])
-        # task.workflow.log.info("%s returned with exit code: '%s'" % (task, str(exit_code)))
-        return d
 
     def kill(self, task):
         """Terminate a task."""
@@ -147,101 +111,58 @@ class DRM_SLURM(DRM):
             sp.call(['scancel', '-Q'] + pids, preexec_fn=exit_process_group)
 
 
-def _scontrol_raw(task, timeout=600, quantum=15):
-    """
-    Parse "scontrol show jobid" output into key/value pairs.
-    """
-    start = time.time()
-    num_retries = int(timeout / quantum)
-
-    for i in xrange(num_retries):
-        qacct_returncode = 0
-        try:
-            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
-                ['scontrol', 'show', 'jobid', '-d', '-o', unicode(task.drm_jobID)],
-                preexec_fn=exit_process_group)
-            if qacct_stdout_str.strip():
-                break
-        except CosmosCalledProcessError as err:
-            qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = err.stderr.strip()
-            qacct_returncode = err.returncode
-
-            if qacct_stderr_str == 'slurm_load_jobs error: Invalid job id specified':
-                # too many jobs were scheduled since it finished and the job id was forgotten
-                return dict(JobId=task.drm_jobID)
-            else:
-                task.workflow.log.error('%s Slurm (scontrol show jobid -d -o %s) returned error code %d',
-                                        task, task.drm_jobID, qacct_returncode)
-                if qacct_stdout_str or qacct_stderr_str:
-                    task.workflow.log.error('%s Slurm (scontrol show jobid -d -o %s) printed the following',
-                                            task, task.drm_jobID)
-                    if qacct_stdout_str:
-                        task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
-                    if qacct_stderr_str:
-                        task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
-
-        if i > 0:
-            task.workflow.log.info(
-                '%s Slurm (scontrol show jobid -d -o %s) attempt %d failed %d sec after first attempt%s',
-                task, task.drm_jobID, i + 1, time.time() - start,
-                '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
-        if i + 1 < num_retries:
-            sleep_through_signals(timeout=quantum)
-    else:
-        # fallthrough: all retries failed
-        raise ValueError('No valid `scontrol show jobid -d -o %s` output after %d tries and %d sec' %
-                         (task.drm_jobID, i, time.time() - start))
-
-    acct_dict = {}
-    k, v = None, None
-    for kv in qacct_stdout_str.strip().split():
-        eq_pos = kv.find('=')
-        if eq_pos == -1:
-            # add the string to previous value - most likely the previous value contained a white space
-            if k is not None:
-                acct_dict[k] += (" " + kv)
-                continue
-            else:
-                raise EnvironmentError('%s with drm_jobID=%s has unparseable "scontrol show jobid -d -o" output:\n%s\n'
-                                       'Could not find "=" in "%s"' %
-                                       (task, task.drm_jobID, qacct_stdout_str, kv))
-        k, v = kv[:eq_pos], kv[(eq_pos + 1):]
-        acct_dict[k] = v
-
-    return acct_dict
-
-
-def _qstat_all(log=None, timeout=60 * 10):
-    """
-    returns a dict keyed by lsf job ids, who's values are a dict of bjob
-    information about the job
-    """
+def do_sacct(job_ids, log=None, timeout=60 * 10):
     start = time.time()
     while time.time() - start < timeout:
         try:
-            lines = sp.check_output(['squeue', '-l'], preexec_fn=exit_process_group).decode().strip().split('\n')
+            # there's a lag between when a job finishes and when sacct is available :(Z
+            cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
+                  'AveVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
+            parts = sp.check_output(cmd,
+                                    shell=True, preexec_fn=exit_process_group, stderr=sp.STDOUT
+                                    ).decode().strip().split("\n")
             break
-        except (sp.CalledProcessError, OSError) as e:
-            # sometimes slurm goes quiet
+        except (sp.CalledProcessError, OSError) as e:  # sometimes slurm goes quiet
+            print('Error running sacct `%s`: %s' % (cmd, e))
             if log:
-                log.info('Error running squeue: %s' % e)
+                log.info('Error running sacct %s' % e)
+
         time.sleep(10)
-    else:
-        return {}
 
-    keys = re.split(r"\s+", lines[1].strip())
-    bjobs = {}
-    for l in lines[2:]:
-        items = re.split(r"\s+", l.strip())
-        bjobs[items[0]] = dict(zip(keys, items))
-    return bjobs
+    # job_id_to_job_info_dict
+    all_jobs = dict()
+    # first line is the header
+    keys = parts[0].split('|')
+    # second line is all dashes, ignore it
+    for line in parts[2:]:
+        values = line.split('|')
+        job_dict = dict(zip(keys, values))
+
+        if 'batch' in job_dict['JobID']:
+            # slurm prints these .batch versions of jobids which have better information, overwrite
+            job_dict['JobID'] = job_dict['JobID'].replace('.batch', '')
+
+        all_jobs[job_dict['JobID']] = job_dict
+
+    return all_jobs
 
 
-def get_resource_usage(job_id):
-    # there's a lag between when a job finishes and when sacct is available :(Z
-    parts = sp.check_output('sacct --format="CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,Elapsed" -j %s' % job_id,
-                            shell=True).decode().strip().split("\n")
-    keys = parts[0].split()
-    values = parts[-1].split()
-    return dict(zip(keys, values))
+def parse_sacct(job_info, log=None):
+    try:
+        job_info2 = job_info.copy()
+        if job_info2['State'] in FAILED_STATES + PENDING_STATES:
+            job_info2['exit_status'] = None
+        else:
+            job_info2['exit_status'] = int(job_info2['ExitCode'].split(":")[0])
+        job_info2['cpu_time'] = int(job_info2['CPUTimeRAW'])
+        job_info2['wall_time'] = (
+            parse_slurm_time2(job_info2['End']) - parse_slurm_time2(job_info2['Start'])).total_seconds()
+        job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
+        job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS'])
+        job_info2['avg_vms_mem'] = convert_size_to_kb(job_info2['AveVMSize'])
+    except Exception as e:
+        if log:
+            log.info('Error Parsing: %s' % pformat(job_info2))
+        raise e
+
+    return job_info2
