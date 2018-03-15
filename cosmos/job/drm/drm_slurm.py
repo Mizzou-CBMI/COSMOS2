@@ -117,7 +117,7 @@ def do_sacct(job_ids, log=None, timeout=60 * 10):
         try:
             # there's a lag between when a job finishes and when sacct is available :(Z
             cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
-                  'AveVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
+                  'AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
             parts = sp.check_output(cmd,
                                     shell=True, preexec_fn=exit_process_group, stderr=sp.STDOUT
                                     ).decode().strip().split("\n")
@@ -159,7 +159,9 @@ def parse_sacct(job_info, log=None):
             parse_slurm_time2(job_info2['End']) - parse_slurm_time2(job_info2['Start'])).total_seconds()
         job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
         job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS'])
+        job_info2['max_rss_mem'] = convert_size_to_kb(job_info2['MaxRSS'])
         job_info2['avg_vms_mem'] = convert_size_to_kb(job_info2['AveVMSize'])
+        job_info2['max_vms_mem'] = convert_size_to_kb(job_info2['MaxVMSize'])
     except Exception as e:
         if log:
             log.info('Error Parsing: %s' % pformat(job_info2))
