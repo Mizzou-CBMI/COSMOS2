@@ -76,11 +76,11 @@ class DRM_SLURM(DRM):
                     job_info = job_infos[task.drm_jobID]
                     if job_info['State'] in FAILED_STATES + COMPLETED_STATES:
                         job_info = parse_sacct(job_infos[task.drm_jobID],
-                                           tasks[0].workflow.log)  # self._get_task_return_data(task)
+                                               tasks[0].workflow.log)  # self._get_task_return_data(task)
 
                         yield task, job_info
                     else:
-                        assert job_info['State'] in PENDING_STATES,job_info['State']
+                        assert job_info['State'] in PENDING_STATES, job_info['State']
 
     def drm_statuses(self, tasks, log_errors=True):
         """
@@ -157,10 +157,11 @@ def parse_sacct(job_info, log=None):
         job_info2['wall_time'] = (
             parse_slurm_time2(job_info2['End']) - parse_slurm_time2(job_info2['Start'])).total_seconds()
         job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
-        job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS'])
-        job_info2['max_rss_mem'] = convert_size_to_kb(job_info2['MaxRSS'])
-        job_info2['avg_vms_mem'] = convert_size_to_kb(job_info2['AveVMSize'])
-        job_info2['max_vms_mem'] = convert_size_to_kb(job_info2['MaxVMSize'])
+
+        job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS']) if job_info2['AveRSS'] != '' else None
+        job_info2['max_rss_mem'] = convert_size_to_kb(job_info2['MaxRSS']) if job_info2['MaxRSS'] != ''  else None
+        job_info2['avg_vms_mem'] = convert_size_to_kb(job_info2['AveVMSize']) if job_info2['AveVMSize'] != '' else None
+        job_info2['max_vms_mem'] = convert_size_to_kb(job_info2['MaxVMSize']) if job_info2['MaxVMSize'] != '' else None
     except Exception as e:
         if log:
             log.info('Error Parsing: %s' % pformat(job_info2))
