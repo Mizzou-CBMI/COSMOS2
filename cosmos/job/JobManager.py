@@ -1,16 +1,16 @@
+import itertools as it
 import os
 import stat
+from operator import attrgetter
 
-from cosmos.util.helpers import mkdir
+from cosmos import TaskStatus, StageStatus, NOOP
+from cosmos.job.drm.drm_drmaa import DRM_DRMAA
+from cosmos.job.drm.drm_ge import DRM_GE
 from cosmos.job.drm.drm_local import DRM_Local
 from cosmos.job.drm.drm_lsf import DRM_LSF
-from cosmos.job.drm.drm_ge import DRM_GE
-from cosmos.job.drm.drm_drmaa import DRM_DRMAA
 from cosmos.job.drm.drm_slurm import DRM_SLURM
-from cosmos import TaskStatus, StageStatus, NOOP
-import itertools as it
-from operator import attrgetter
 from cosmos.models.Workflow import default_task_log_output_dir
+from cosmos.util.helpers import mkdir
 
 
 class JobManager(object):
@@ -38,7 +38,7 @@ class JobManager(object):
         :param task:
         :return:
         """
-        #session = self.cosmos_app.session  # we expect this to be its own thread
+        # session = self.cosmos_app.session  # we expect this to be its own thread
         # thread_local_task = session.merge(task)
         thread_local_task = task
 
@@ -100,7 +100,8 @@ class JobManager(object):
         """
         # NOOP tasks are already done
         for task in list(self.running_tasks):
-            if task.NOOP:
+            # task may have failed if submission failed
+            if task.NOOP or task.status == TaskStatus.failed:
                 self.running_tasks.remove(task)
                 yield task
 

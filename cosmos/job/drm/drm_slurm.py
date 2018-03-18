@@ -44,16 +44,14 @@ class DRM_SLURM(DRM):
             if os.path.exists(p):
                 os.unlink(p)
 
-        ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
-        sub = "sbatch -o {stdout} -e {stderr} {ns} {cmd_str}".format(
-            stdout=task.output_stdout_path,
-            stderr=task.output_stderr_path,
-            ns=ns,
-            cmd_str=task.output_command_script_path)
+        ns = task.drm_native_specification if task.drm_native_specification else ''
 
+        cmd = (['sbatch', '-o', task.output_stdout_path, '-e', task.output_stdout_path]
+               + ns.split()
+               + [task.output_command_script_path])
         try:
-            out = sp.check_output(sub, env=os.environ, preexec_fn=exit_process_group, shell=True).decode()
-            task.drm_jobID = unicode(re.search(r'job (\d+)', out).group(1))
+            out = sp.check_output(cmd, env=os.environ, preexec_fn=exit_process_group).decode()
+            task.drm_jobID = str(re.search(r'job (\d+)', out).group(1))
         except sp.CalledProcessError as cpe:
             task.log.error('%s submission to %s failed with error %s: %s' %
                            (task, task.drm, cpe.returncode, cpe.output.decode().strip()))
@@ -68,8 +66,10 @@ class DRM_SLURM(DRM):
         """
         Yield a dictionary of Slurm job metadata for each task that has completed.
         """
-        if tasks:
-            job_infos = do_sacct([t.drm_jobID for t in tasks], tasks[0].workflow.log)
+        # jobid can be none if submission fialed
+        job_ids = [t.drm_jobID for t in tasks if t.drm_jobID is not None]
+        if job_ids:
+            job_infos = do_sacct(job_ids, tasks[0].workflow.log)
 
             for task in tasks:
                 if task.drm_jobID in job_infos:
