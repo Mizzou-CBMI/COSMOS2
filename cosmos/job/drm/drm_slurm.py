@@ -38,7 +38,7 @@ def parse_slurm_time2(s):
 def sbatch(task):
     ns = task.drm_native_specification if task.drm_native_specification else ''
 
-    cmd = (['sbatch', '-o', os.path.abspath(task.output_stdout_path), '-e', os.path.abspath(task.output_stdout_path)]
+    cmd = (['sbatch', '-o', os.path.abspath(task.output_stdout_path), '-e', os.path.abspath(task.output_stderr_path)]
            + ns.split()
            + [task.output_command_script_path])
 

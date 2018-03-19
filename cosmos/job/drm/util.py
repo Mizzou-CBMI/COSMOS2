@@ -12,10 +12,18 @@ class DetailedCalledProcessError(subprocess.CalledProcessError):
         self.stderr = stderr
 
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %d.\nCMD_STDOUT: %s\nCMD_STDERR: %s" % (self.cmd,
-                                                                                                   self.returncode,
-                                                                                                   self.output,
-                                                                                                   self.stderr)
+        err_str = '\nCMD_ERR: %s' % (self.stderr if self.stderr is not None else '')
+        return "Command '%s' returned non-zero exit status %d.\nCMD_OUT: %s%s" % (self.cmd,
+                                                                                     self.returncode,
+                                                                                     self.output,
+                                                                                     err_str)
+
+
+def check_output_detailed_error(*args, **kwargs):
+    try:
+        return subprocess.check_output(*args, **kwargs)
+    except subprocess.CalledProcessError as e:
+        raise DetailedCalledProcessError(e.returncode, e.cmd, e.output)
 
 
 def check_output_and_stderr(*popenargs, **kwargs):
