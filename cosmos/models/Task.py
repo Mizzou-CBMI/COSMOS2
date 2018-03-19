@@ -86,7 +86,7 @@ def task_status_changed(task):
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
-                wait_for_file(task.workflow, task.output_stderr_path, 60)
+                wait_for_file(task.workflow, task.output_stderr_path, 30, error=False)
 
                 task.log.warn(task_printout.format(task))
                 task.log.error('%s has failed too many times' % task)
@@ -115,7 +115,7 @@ def logplus(filename):
 
 def readfile(path):
     if not os.path.exists(path):
-        return 'file does not exist'
+        return '%s file does not exist!' % path
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
