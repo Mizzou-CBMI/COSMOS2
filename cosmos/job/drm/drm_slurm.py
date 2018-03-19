@@ -80,7 +80,7 @@ class DRM_SLURM(DRM):
 
                         yield task, job_info
                     else:
-                        assert job_info['State'] in PENDING_STATES, job_info['State']
+                        assert job_info['State'] in PENDING_STATES, 'Invalid job state: %s' % job_info['State']
 
     def drm_statuses(self, tasks, log_errors=True):
         """
