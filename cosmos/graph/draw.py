@@ -42,8 +42,8 @@ def taskgraph_to_agraph(task_graph, url=True):
                             TaskStatus.waiting: 'gold1',
                             TaskStatus.submitted: 'navy',
                             TaskStatus.successful: 'darkgreen',
-                            TaskStatus.failed: 'darkred',
-                            TaskStatus.killed: 'darkred'}
+                            TaskStatus.failed: 'red',
+                            TaskStatus.killed: 'red'}
 
             sg.add_node(task, label=label, URL=task.url if url else '#', target="_blank",
                         color=status2color.get(task.status, 'black'))
@@ -85,7 +85,7 @@ def stagegraph_to_agraph(stage_graph, url=True):
     status2color = {StageStatus.no_attempt: 'black',
                     StageStatus.running: 'navy',
                     StageStatus.successful: 'darkgreen',
-                    StageStatus.failed: 'darkred'}
+                    StageStatus.failed: 'red'}
     rel2abbrev = {RelationshipType.one2one: 'o2o',
                   RelationshipType.one2many: 'o2m',
                   RelationshipType.many2one: 'm2o',
