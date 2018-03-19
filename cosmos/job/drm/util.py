@@ -2,13 +2,20 @@ import os
 import subprocess
 
 
-class CosmosCalledProcessError(subprocess.CalledProcessError):
+class DetailedCalledProcessError(subprocess.CalledProcessError):
     """
     Just like CalledProcessError, but includes stderr.
     """
+
     def __init__(self, returncode, cmd, output=None, stderr=None):
-        super(CosmosCalledProcessError, self).__init__(returncode, cmd, output)
+        super(DetailedCalledProcessError, self).__init__(returncode, cmd, output)
         self.stderr = stderr
+
+    def __str__(self):
+        return "Command '%s' returned non-zero exit status %d.\nCMD_STDOUT: %s\nCMD_STDERR: %s" % (self.cmd,
+                                                                                                   self.returncode,
+                                                                                                   self.output,
+                                                                                                   self.stderr)
 
 
 def check_output_and_stderr(*popenargs, **kwargs):
@@ -33,7 +40,7 @@ def check_output_and_stderr(*popenargs, **kwargs):
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
-        raise CosmosCalledProcessError(retcode, cmd, output=output.decode(), stderr=stderr.decode())
+        raise DetailedCalledProcessError(retcode, cmd, output=output.decode(), stderr=stderr.decode())
     return output.decode(), stderr.decode()
 
 

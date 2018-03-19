@@ -11,7 +11,7 @@ from more_itertools import grouper
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import (check_output_and_stderr, convert_size_to_kb, div,
-                                 exit_process_group, CosmosCalledProcessError)
+                                 exit_process_group, DetailedCalledProcessError)
 from cosmos.util.signal_handlers import sleep_through_signals
 
 
@@ -216,7 +216,7 @@ def _qacct_raw(task, timeout=600, quantum=15):
                 preexec_fn=exit_process_group)
             if qacct_stdout_str.strip():
                 break
-        except CosmosCalledProcessError as err:
+        except DetailedCalledProcessError as err:
             qacct_stdout_str = err.output.strip()
             qacct_stderr_str = err.stderr.strip()
             qacct_returncode = err.returncode

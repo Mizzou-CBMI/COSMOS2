@@ -9,7 +9,7 @@ from retry.api import retry_call
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div
+from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div, check_output_and_stderr
 
 FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
 PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'RESIZING', 'SUSPENDED']
@@ -42,7 +42,7 @@ def sbatch(task):
            + ns.split()
            + [task.output_command_script_path])
 
-    out = sp.check_output(cmd, env=os.environ, preexec_fn=exit_process_group).decode()
+    out, err = check_output_and_stderr(cmd, env=os.environ, preexec_fn=exit_process_group)
     return str(re.search(r'job (\d+)', out).group(1))
 
 
@@ -115,10 +115,13 @@ def do_sacct(job_ids):
     # there's a lag between when a job finishes and when sacct is available :(Z
     cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
           'AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
-    parts = sp.check_output(cmd,
-                            shell=True, preexec_fn=exit_process_group, stderr=sp.STDOUT
-                            ).decode().strip().split("\n")
 
+    out, err = check_output_and_stderr(cmd,
+                                       preexec_fn=exit_process_group,
+                                       shell=True
+                                       )
+
+    parts = out.strip().split("\n")
     # job_id_to_job_info_dict
     all_jobs = dict()
     # first line is the header
