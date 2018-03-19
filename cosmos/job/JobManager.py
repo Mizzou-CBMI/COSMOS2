@@ -101,9 +101,11 @@ class JobManager(object):
         # NOOP tasks are already done
         for task in list(self.running_tasks):
             # task may have failed if submission failed
-            if task.NOOP or task.status == TaskStatus.failed:
+            if task.NOOP:
                 self.running_tasks.remove(task)
                 yield task
+
+            assert task.status not in [TaskStatus.failed], 'invalid: %s' % task.status
 
         # For the rest, ask its DRM if it is done
         f = attrgetter('drm')

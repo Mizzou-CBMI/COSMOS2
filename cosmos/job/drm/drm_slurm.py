@@ -2,10 +2,10 @@ import datetime
 import os
 import re
 import subprocess as sp
-import time
 from pprint import pformat
 
 from more_itertools import grouper
+from retry.api import retry_call
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
@@ -35,6 +35,17 @@ def parse_slurm_time2(s):
     return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
 
 
+def sbatch(task):
+    ns = task.drm_native_specification if task.drm_native_specification else ''
+
+    cmd = (['sbatch', '-o', task.output_stdout_path, '-e', task.output_stdout_path]
+           + ns.split()
+           + [task.output_command_script_path])
+
+    out = sp.check_output(cmd, env=os.environ, preexec_fn=exit_process_group).decode()
+    return str(re.search(r'job (\d+)', out).group(1))
+
+
 class DRM_SLURM(DRM):
     name = 'slurm'
     poll_interval = 5
@@ -44,23 +55,10 @@ class DRM_SLURM(DRM):
             if os.path.exists(p):
                 os.unlink(p)
 
-        ns = task.drm_native_specification if task.drm_native_specification else ''
-
-        cmd = (['sbatch', '-o', task.output_stdout_path, '-e', task.output_stdout_path]
-               + ns.split()
-               + [task.output_command_script_path])
-        try:
-            out = sp.check_output(cmd, env=os.environ, preexec_fn=exit_process_group).decode()
-            task.drm_jobID = str(re.search(r'job (\d+)', out).group(1))
-        except sp.CalledProcessError as cpe:
-            task.log.error('%s submission to %s failed with error %s: %s' %
-                           (task, task.drm, cpe.returncode, cpe.output.decode().strip()))
-            task.status = TaskStatus.failed
-        except ValueError:
-            task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
-            task.status = TaskStatus.failed
-        else:
-            task.status = TaskStatus.submitted
+        task.drm_jobID = retry_call(sbatch, fargs=[task],
+                                    delay=10, tries=10, backoff=2, max_delay=60,
+                                    logger=task.log)
+        task.status = TaskStatus.submitted
 
     def filter_is_done(self, tasks):
         """
@@ -69,14 +67,16 @@ class DRM_SLURM(DRM):
         # jobid can be none if submission fialed
         job_ids = [t.drm_jobID for t in tasks if t.drm_jobID is not None]
         if job_ids:
-            job_infos = do_sacct(job_ids, tasks[0].workflow.log)
+            job_infos = retry_call(do_sacct, fargs=[job_ids],
+                                   delay=10, tries=10, backoff=2, max_delay=60,
+                                   logger=tasks[0].workflow.log)
 
             for task in tasks:
                 if task.drm_jobID in job_infos:
                     job_info = job_infos[task.drm_jobID]
                     if job_info['State'] in FAILED_STATES + COMPLETED_STATES:
                         job_info = parse_sacct(job_infos[task.drm_jobID],
-                                               tasks[0].workflow.log)  # self._get_task_return_data(task)
+                                               tasks[0].workflow.log)
 
                         yield task, job_info
                     else:
@@ -87,11 +87,11 @@ class DRM_SLURM(DRM):
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status
         """
-        if tasks:
-            job_infos = do_sacct([t.drm_jobID for t in tasks],
-                                 tasks[0].workflow.log if log_errors else None,
-
-                                 )
+        job_ids = [t.drm_jobID for t in tasks if t.drm_jobID is not None]
+        if job_ids:
+            job_infos = retry_call(do_sacct, fargs=[job_ids],
+                                   delay=10, tries=10, backoff=2, max_delay=60,
+                                   logger=tasks[0].workflow.log)
 
             def f(task):
                 return job_infos.get(task.drm_jobID, dict()).get('STATE', 'UNK_JOB_STATE')
@@ -111,22 +111,13 @@ class DRM_SLURM(DRM):
             sp.call(['scancel', '-Q'] + pids, preexec_fn=exit_process_group)
 
 
-def do_sacct(job_ids, log=None, timeout=60 * 10):
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            # there's a lag between when a job finishes and when sacct is available :(Z
-            cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
-                  'AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
-            parts = sp.check_output(cmd,
-                                    shell=True, preexec_fn=exit_process_group, stderr=sp.STDOUT
-                                    ).decode().strip().split("\n")
-            break
-        except (sp.CalledProcessError, OSError) as e:  # sometimes slurm goes quiet
-            if log:
-                log.info('Error running sacct %s' % e)
-
-        time.sleep(10)
+def do_sacct(job_ids):
+    # there's a lag between when a job finishes and when sacct is available :(Z
+    cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
+          'AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
+    parts = sp.check_output(cmd,
+                            shell=True, preexec_fn=exit_process_group, stderr=sp.STDOUT
+                            ).decode().strip().split("\n")
 
     # job_id_to_job_info_dict
     all_jobs = dict()

@@ -31,7 +31,8 @@ install_requires = [
     "six",
     "drmaa",
     'more_itertools',
-    "decorator"
+    "decorator",
+    "retry"
 ]
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
