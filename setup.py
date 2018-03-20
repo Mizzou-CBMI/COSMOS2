@@ -27,7 +27,7 @@ install_requires = [
     'funcsigs',
     'blinker',
     "sqlalchemy",
-    'networkx',
+    'networkx>=2.0',
     "six",
     "drmaa",
     'more_itertools',
