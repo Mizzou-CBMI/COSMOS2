@@ -11,12 +11,19 @@ from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div, check_output_and_stderr
 
-FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'NODE_FAIL', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
-PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'RESIZING', 'SUSPENDED']
+FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
+PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'NODE_FAIL', 'RESIZING', 'SUSPENDED']
 COMPLETED_STATES = ['COMPLETED', ]
 
 
 def parse_slurm_time(s, default=0):
+    """
+    possible_formats = ['03:53:03',
+    '24-02:40:+',
+    '06:20:01',
+    '2-03:19:54']
+    """
+
     if s.strip() == '':
         return default
 
@@ -28,10 +35,12 @@ def parse_slurm_time(s, default=0):
         days = 0
         time = p[0]
     hours, mins, secs = time.split(':')
+    if secs == '+':
+        secs = 0
     return int(days) * 24 * 60 * 60 + int(hours) * 60 * 60 + int(mins) * 60 + int(secs)
 
 
-def parse_slurm_time2(s):
+def parse_slurm_date(s):
     return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")
 
 
@@ -94,7 +103,7 @@ class DRM_SLURM(DRM):
                                    logger=tasks[0].workflow.log)
 
             def f(task):
-                return job_infos.get(task.drm_jobID, dict()).get('STATE', 'UNK_JOB_STATE')
+                return job_infos.get(task.drm_jobID, dict()).get('State', 'UNK_JOB_STATE')
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -147,9 +156,10 @@ def parse_sacct(job_info, log=None):
             job_info2['exit_status'] = None
         else:
             job_info2['exit_status'] = int(job_info2['ExitCode'].split(":")[0])
-        job_info2['cpu_time'] = int(job_info2['CPUTimeRAW'])
-        job_info2['wall_time'] = (
-            parse_slurm_time2(job_info2['End']) - parse_slurm_time2(job_info2['Start'])).total_seconds()
+        job_info2['cpu_time'] = parse_slurm_time(job_info2['AveCPU'])
+        job_info2['wall_time'] = int(job_info2['CPUTimeRAW'])
+        # (
+        # parse_slurm_date(job_info2['End']) - parse_slurm_date(job_info2['Start'])).total_seconds()
         job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
 
         job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS']) if job_info2['AveRSS'] != '' else None
