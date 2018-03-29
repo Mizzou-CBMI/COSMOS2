@@ -157,7 +157,7 @@ def parse_sacct(job_info, log=None):
         else:
             job_info2['exit_status'] = int(job_info2['ExitCode'].split(":")[0])
         job_info2['cpu_time'] = parse_slurm_time(job_info2['AveCPU'])
-        job_info2['wall_time'] = int(job_info2['CPUTimeRAW'])
+        job_info2['wall_time'] = parse_slurm_time(job_info2['Elapsed'])
         # (
         # parse_slurm_date(job_info2['End']) - parse_slurm_date(job_info2['Start'])).total_seconds()
         job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
