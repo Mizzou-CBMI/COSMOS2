@@ -302,97 +302,101 @@ class Workflow(Base):
         Returns True if all tasks in the workflow ran successfully, False otherwise.
         If dry is specified, returns None.
         """
-        assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
+        try:
+            assert os.path.exists(os.getcwd()), 'current working dir does not exist! %s' % os.getcwd()
 
-        assert hasattr(self, 'cosmos_app'), 'Workflow was not initialized using the Workflow.start method'
-        assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
-        assert self.session, 'Workflow must be part of a sqlalchemy session'
+            assert hasattr(self, 'cosmos_app'), 'Workflow was not initialized using the Workflow.start method'
+            assert hasattr(log_out_dir_func, '__call__'), 'log_out_dir_func must be a function'
+            assert self.session, 'Workflow must be part of a sqlalchemy session'
 
-        session = self.session
-        self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
-            self, self.cosmos_app.default_drm, os.getcwd()))
-        self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
+            session = self.session
+            self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
+                self, self.cosmos_app.default_drm, os.getcwd()))
+            self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
 
-        self.max_cores = max_cores
+            self.max_cores = max_cores
 
-        from ..job.JobManager import JobManager
+            from ..job.JobManager import JobManager
 
-        if self.jobmanager is None:
-            self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
-                                         cmd_wrapper=cmd_wrapper,
-                                         log_out_dir_func=log_out_dir_func)
+            if self.jobmanager is None:
+                self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
+                                             cmd_wrapper=cmd_wrapper,
+                                             log_out_dir_func=log_out_dir_func)
 
-        self.status = WorkflowStatus.running
-        self.successful = False
+            self.status = WorkflowStatus.running
+            self.successful = False
 
-        if self.started_on is None:
-            self.started_on = datetime.datetime.now()
+            if self.started_on is None:
+                self.started_on = datetime.datetime.now()
 
-        task_graph = self.task_graph()
-        stage_graph = self.stage_graph()
+            task_graph = self.task_graph()
+            stage_graph = self.stage_graph()
 
-        assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
-            next(duplicates(self.stages)))
+            assert len(set(self.stages)) == len(self.stages), 'duplicate stage name detected: %s' % (
+                next(duplicates(self.stages)))
 
-        # renumber stages
-        stage_graph_no_cycles = nx.DiGraph()
-        stage_graph_no_cycles.add_nodes_from(stage_graph.nodes())
-        stage_graph_no_cycles.add_edges_from(stage_graph.edges())
-        for cycle in nx.simple_cycles(stage_graph):
-            stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
-        for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
-            s.number = i + 1
-            if s.status != StageStatus.successful:
-                s.status = StageStatus.no_attempt
+            # renumber stages
+            stage_graph_no_cycles = nx.DiGraph()
+            stage_graph_no_cycles.add_nodes_from(stage_graph.nodes())
+            stage_graph_no_cycles.add_edges_from(stage_graph.edges())
+            for cycle in nx.simple_cycles(stage_graph):
+                stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
+            for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
+                s.number = i + 1
+                if s.status != StageStatus.successful:
+                    s.status = StageStatus.no_attempt
 
-        # Make sure everything is in the sqlalchemy session
-        session.add(self)
-        successful = filter(lambda t: t.successful, task_graph.nodes())
+            # Make sure everything is in the sqlalchemy session
+            session.add(self)
+            successful = filter(lambda t: t.successful, task_graph.nodes())
 
-        # print stages
-        for s in sorted(self.stages, key=lambda s: s.number):
-            self.log.info('%s %s' % (s, s.status))
+            # print stages
+            for s in sorted(self.stages, key=lambda s: s.number):
+                self.log.info('%s %s' % (s, s.status))
 
-        # Create Task Queue
-        task_queue = _copy_graph(task_graph)
-        self.log.info('Skipping %s successful tasks...' % len(successful))
-        task_queue.remove_nodes_from(successful)
+            # Create Task Queue
+            task_queue = _copy_graph(task_graph)
+            self.log.info('Skipping %s successful tasks...' % len(successful))
+            task_queue.remove_nodes_from(successful)
 
-        handle_exits(self)
+            handle_exits(self)
 
-        if self.max_cores is not None:
-            self.log.info('Ensuring there are enough cores...')
-            # make sure we've got enough cores
-            for t in task_queue:
-                assert int(t.core_req) <= self.max_cores, '%s requires more cpus (%s) than `max_cores` (%s)' % (t, t.core_req, self.max_cores)
+            if self.max_cores is not None:
+                self.log.info('Ensuring there are enough cores...')
+                # make sure we've got enough cores
+                for t in task_queue:
+                    assert int(t.core_req) <= self.max_cores, '%s requires more cpus (%s) than `max_cores` (%s)' % (t, t.core_req, self.max_cores)
 
-        # Run this thing!
-        self.log.info('Committing to SQL db...')
-        session.commit()
-        if not dry:
-            _run(self, session, task_queue)
+            # Run this thing!
+            self.log.info('Committing to SQL db...')
+            session.commit()
+            if not dry:
+                _run(self, session, task_queue)
 
-            # set status
-            if self.status == WorkflowStatus.failed_but_running:
-                self.status = WorkflowStatus.failed
-                # set stage status to failed
-                for s in self.stages:
-                    if s.status == StageStatus.running_but_failed:
-                        s.status = StageStatus.failed
-                session.commit()
-                return False
-            elif self.status == WorkflowStatus.running:
-                if set_successful:
-                    self.status = WorkflowStatus.successful
-                session.commit()
-                return True
+                # set status
+                if self.status == WorkflowStatus.failed_but_running:
+                    self.status = WorkflowStatus.failed
+                    # set stage status to failed
+                    for s in self.stages:
+                        if s.status == StageStatus.running_but_failed:
+                            s.status = StageStatus.failed
+                    session.commit()
+                    return False
+                elif self.status == WorkflowStatus.running:
+                    if set_successful:
+                        self.status = WorkflowStatus.successful
+                    session.commit()
+                    return True
+                else:
+                    self.log.warning('%s exited with status "%s"', self, self.status)
+                    session.commit()
+                    return False
             else:
-                self.log.warning('%s exited with status "%s"', self, self.status)
-                session.commit()
-                return False
-        else:
-            self.log.info('Workflow dry run is complete')
-            return None
+                self.log.info('Workflow dry run is complete')
+                return None
+        except Exception as ex:
+            self.log.fatal(ex, exc_info=True)
+            raise
 
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
