@@ -18,10 +18,14 @@ COMPLETED_STATES = ['COMPLETED', ]
 
 def parse_slurm_time(s, default=0):
     """
-    possible_formats = ['03:53:03',
-    '24-02:40:+',
-    '06:20:01',
-    '2-03:19:54']
+    >>> parse_slurm_time('03:53:03') / 60 / 60
+    3.8841666666666668
+    >>> parse_slurm_time('24-02:40:+') / 60 / 60
+    578.6666666666666
+    >>> parse_slurm_time('06:20:01') / 60 / 60
+    6.333611111111111
+    >>> parse_slurm_time('2-03:19:54') / 60 / 60
+    51.33166666666667
     """
 
     if s.strip() == '':
@@ -31,9 +35,12 @@ def parse_slurm_time(s, default=0):
     if len(p) == 2:
         days = p[0]
         time = p[1]
-    else:
+    elif len(p) == 1:
         days = 0
         time = p[0]
+    else:
+        raise AssertionError('impossible')
+
     hours, mins, secs = time.split(':')
     if secs == '+':
         secs = 0
@@ -122,8 +129,9 @@ class DRM_SLURM(DRM):
 
 def do_sacct(job_ids):
     # there's a lag between when a job finishes and when sacct is available :(Z
-    cmd = 'sacct --format="State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,' \
-          'AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" -j %s -P' % ','.join(job_ids)
+    cmd = 'sacct --format=' \
+          '"State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" ' \
+          '-j %s -P' % ','.join(job_ids)
 
     out, err = check_output_and_stderr(cmd,
                                        preexec_fn=exit_process_group,
@@ -156,10 +164,8 @@ def parse_sacct(job_info, log=None):
             job_info2['exit_status'] = None
         else:
             job_info2['exit_status'] = int(job_info2['ExitCode'].split(":")[0])
-        job_info2['cpu_time'] = parse_slurm_time(job_info2['AveCPU'])
+        job_info2['cpu_time'] = int(job_info2['CPUTimeRAW'])
         job_info2['wall_time'] = parse_slurm_time(job_info2['Elapsed'])
-        # (
-        # parse_slurm_date(job_info2['End']) - parse_slurm_date(job_info2['Start'])).total_seconds()
         job_info2['percent_cpu'] = div(float(job_info2['wall_time']), float(job_info2['cpu_time']))
 
         job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS']) if job_info2['AveRSS'] != '' else None
