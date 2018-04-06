@@ -160,7 +160,7 @@ def parse_sacct(job_info, log=None):
         job_info2['wall_time'] = parse_slurm_time(job_info2['Elapsed'])
         # (
         # parse_slurm_date(job_info2['End']) - parse_slurm_date(job_info2['Start'])).total_seconds()
-        job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time']))
+        job_info2['percent_cpu'] = div(float(job_info2['wall_time']), float(job_info2['cpu_time']))
 
         job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS']) if job_info2['AveRSS'] != '' else None
         job_info2['max_rss_mem'] = convert_size_to_kb(job_info2['MaxRSS']) if job_info2['MaxRSS'] != ''  else None
