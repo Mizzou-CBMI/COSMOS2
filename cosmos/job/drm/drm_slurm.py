@@ -166,7 +166,7 @@ def parse_sacct(job_info, log=None):
             job_info2['exit_status'] = int(job_info2['ExitCode'].split(":")[0])
         job_info2['cpu_time'] = int(job_info2['CPUTimeRAW'])
         job_info2['wall_time'] = parse_slurm_time(job_info2['Elapsed'])
-        job_info2['percent_cpu'] = div(float(job_info2['wall_time']), float(job_info2['cpu_time']))
+        job_info2['percent_cpu'] = div(float(job_info2['cpu_time']), float(job_info2['wall_time'])) * 100
 
         job_info2['avg_rss_mem'] = convert_size_to_kb(job_info2['AveRSS']) if job_info2['AveRSS'] != '' else None
         job_info2['max_rss_mem'] = convert_size_to_kb(job_info2['MaxRSS']) if job_info2['MaxRSS'] != ''  else None
