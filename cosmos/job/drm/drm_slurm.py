@@ -11,7 +11,7 @@ from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div, check_output_and_stderr
 
-FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'PREEMPTED', 'REVOKED', 'TIMEOUT']
+FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'PREEMPTED', 'REVOKED', 'TIMEOUT', 'CANCELLED by 0']
 PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'NODE_FAIL', 'RESIZING', 'SUSPENDED']
 COMPLETED_STATES = ['COMPLETED', ]
 
@@ -96,7 +96,7 @@ class DRM_SLURM(DRM):
 
                         yield task, job_info
                     else:
-                        assert job_info['State'] in PENDING_STATES, 'Invalid job state: %s' % job_info['State']
+                        assert job_info['State'] in PENDING_STATES, 'Invalid job state: `%s` for %s drm_job_id=%s' % (job_info['State'], task, task.drm_jobID)
 
     def drm_statuses(self, tasks, log_errors=True):
         """
