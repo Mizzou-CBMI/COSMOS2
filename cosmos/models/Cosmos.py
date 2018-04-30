@@ -57,6 +57,7 @@ class Cosmos(object):
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
                  default_queue=None,
+                 default_time_req=None,
                  default_max_attempts=1,
                  flask_app=None):
         """
@@ -109,6 +110,7 @@ class Cosmos(object):
         self.default_drm = default_drm
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
+        self.default_time_req = default_time_req
 
         # def configure_flask(self):
         # setup flask views
