@@ -68,10 +68,3 @@ is too large for a visualization to be useful:
 .. figure:: /_static/imgs/ex1_task_graph.png
     :align: center
 
-Tools
-++++++
-tools.py used by Example2
-
-:file:`examples/tools.py`
-
-.. literalinclude:: ../../examples/tools.py

@@ -86,6 +86,18 @@ python setup.py test
 
     py.test
 
+Building Docs
+______________
+
+In a python2.7 environment
+
+.. code-block:: bash
+
+    pip install ghp-import sphinx sphinx_rtd_theme
+    cd docs
+    make html
+
+
 
 Cosmos Users
 _________________
