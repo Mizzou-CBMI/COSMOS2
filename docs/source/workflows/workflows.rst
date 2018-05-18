@@ -12,7 +12,7 @@ and comprehensions are a great way to do this in a very readable way.
 
 .. code-block:: python
 
-    from cosmos import Cosmos
+    from cosmos.api import Cosmos
 
     def word_count(in_txt, out_txt, use_lines=False):
         l = ' -l' if use_lines else ''

@@ -9,7 +9,7 @@ be used to start a Workflow.  If a Workflow already exists with the same name, i
 
 .. code-block:: python
 
-    from cosmos import Cosmos
+    from cosmos.api import Cosmos
     cosmos = Cosmos(database_url='sqlite:///my_cosmos_db.sqlite')
     cosmos.initdb() # creates the tables, if they already exist this does nothing
     workflow = cosmos.start(name='My_Workflow')
