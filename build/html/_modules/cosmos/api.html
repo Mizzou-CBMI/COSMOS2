@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cosmos.api &mdash; Cosmos 2.6.20 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Cosmos
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.6.20
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../1_introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../2_install.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../3_getting_started.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflows/initializing.html">4. Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflows/workflows.html">6. Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">7. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shell.html">8. Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">9. FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../advanced.html">10. Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">11. Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Cosmos</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cosmos.api</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cosmos.api</h1><div class="highlight"><pre>
+<span></span><span class="c1"># from .core.cmd_fxn.io import find, out_dir, forward</span>
+<span class="kn">from</span> <span class="nn">cosmos.core.cmd_fxn.signature</span> <span class="k">import</span> <span class="n">default_cmd_fxn_wrapper</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Cosmos</span> <span class="k">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">default_get_submit_args</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Task</span> <span class="k">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Stage</span> <span class="k">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Workflow</span> <span class="k">import</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">default_task_log_output_dir</span>
+<span class="kn">from</span> <span class="nn">cosmos</span> <span class="k">import</span> <span class="n">WorkflowStatus</span><span class="p">,</span> <span class="n">StageStatus</span><span class="p">,</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">NOOP</span><span class="p">,</span> <span class="n">signal_workflow_status_change</span><span class="p">,</span> <span class="n">signal_stage_status_change</span><span class="p">,</span> <span class="n">signal_task_status_change</span><span class="p">,</span> \
+    <span class="n">Dependency</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.util.args</span> <span class="k">import</span> <span class="n">add_workflow_args</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.helpers</span> <span class="k">import</span> <span class="n">make_dict</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.iterstuff</span> <span class="k">import</span> <span class="n">only_one</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.signal_handlers</span> <span class="k">import</span> <span class="n">SGESignalHandler</span><span class="p">,</span> <span class="n">handle_sge_signals</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.graph.draw</span> <span class="k">import</span> <span class="n">draw_task_graph</span><span class="p">,</span> <span class="n">draw_stage_graph</span><span class="p">,</span> <span class="n">pygraphviz_available</span>
+<span class="kn">import</span> <span class="nn">funcsigs</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">decorator</span> <span class="k">import</span> <span class="n">decorator</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="k">def</span> <span class="nf">load_input</span><span class="p">(</span><span class="n">out_file</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<span class="k">def</span> <span class="nf">arg_to_str</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">name</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="args_to_str"><a class="viewcode-back" href="../../advanced.html#cosmos.api.args_to_str">[docs]</a><span class="k">def</span> <span class="nf">args_to_str</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Turn a set of arguments into a string to be passed to a command line tool</span>
+
+<span class="sd">    If value is None or False it will be ignored.</span>
+<span class="sd">    If value is True, emit --{arg_flag} without specifing a value.</span>
+<span class="sd">    Otherwise emit --{arg_flag} {value}.</span>
+
+<span class="sd">    :param args: An iterable of (str arg_flag, value) tuples.</span>
+
+<span class="sd">    &gt;&gt;&gt; x = &#39;bar&#39;</span>
+<span class="sd">    &gt;&gt;&gt; y = None</span>
+<span class="sd">    &gt;&gt;&gt; z = 123</span>
+<span class="sd">    &gt;&gt;&gt; f = True</span>
+<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--foo&#39;, x))</span>
+<span class="sd">    &#39;--foo bar&#39;</span>
+<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--flag&#39;, f))</span>
+<span class="sd">    &#39;--flag&#39;</span>
+<span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--skip-me&#39;, y), (&#39;--use-me&#39;, z))</span>
+<span class="sd">    &#39;--use-me 123&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+
+<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="k">def</span> <span class="nf">cd</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A context manager which changes the working directory to the given</span>
+<span class="sd">    path, and then changes it back to its previous value on exit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prev_cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">yield</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">prev_cwd</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="bash_call"><a class="viewcode-back" href="../../advanced.html#cosmos.api.bash_call">[docs]</a><span class="nd">@decorator</span>
+<span class="k">def</span> <span class="nf">bash_call</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task.</span>
+<span class="sd">    It converts the decorated function to produce a bash script that uses python to import the function and</span>
+<span class="sd">    call it with the same arguments.</span>
+
+<span class="sd">    Current Limitations:</span>
+<span class="sd">       * Function must be importable</span>
+<span class="sd">       * No partials</span>
+
+
+<span class="sd">    &gt;&gt;&gt; def echo(arg1, out_file=&#39;out.txt&#39;):</span>
+<span class="sd">    ...     with open(out_file) as fp:</span>
+<span class="sd">    ...         print(arg1, file=fp)</span>
+<span class="sd">    &gt;&gt;&gt; print(bash_call(echo)(arg1=&#39;hello world&#39;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    python - &lt;&lt;EOF</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    try:</span>
+<span class="sd">        from cosmos.api import echo</span>
+<span class="sd">    except ImportError:</span>
+<span class="sd">        import imp</span>
+<span class="sd">        echo = imp.load_source(&#39;echo&#39;, &#39;None&#39;).echo</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    echo(**</span>
+<span class="sd">    {&#39;arg1&#39;: &#39;hello world&#39;,</span>
+<span class="sd">     &#39;out_file&#39;: &#39;out.txt&#39;}</span>
+<span class="sd">    )</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    EOF</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">pprint</span>
+    <span class="kn">import</span> <span class="nn">inspect</span>
+
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">funcsigs</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">args</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">python - &lt;&lt;EOF</span>
+
+<span class="s2">try:</span>
+<span class="s2">    from </span><span class="si">{func.__module__}</span><span class="s2"> import </span><span class="si">{func.__name__}</span><span class="s2"></span>
+<span class="s2">except ImportError:</span>
+<span class="s2">    import imp</span>
+<span class="s2">    </span><span class="si">{func.__name__}</span><span class="s2"> = imp.load_source(&#39;</span><span class="si">{module_name}</span><span class="s2">&#39;, &#39;</span><span class="si">{source_file}</span><span class="s2">&#39;).</span><span class="si">{func.__name__}</span><span class="s2"></span>
+
+<span class="si">{func.__name__}</span><span class="s2">(**</span>
+<span class="si">{param_str}</span><span class="s2"></span>
+<span class="s2">)</span>
+
+<span class="s2">EOF&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+              <span class="n">module_name</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+              <span class="n">source_file</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsourcefile</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
+              <span class="n">param_str</span><span class="o">=</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Erik Gafni.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'2.6.20',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
