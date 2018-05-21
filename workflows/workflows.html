@@ -186,13 +186,16 @@ and comprehensions are a great way to do this in a very readable way.</p>
 <span class="s2">        wc{l} {in_txt} &gt; {out_txt}</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
-<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///cosmos.sqlite&#39;</span><span class="p">)</span>
+<span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///:memory:&#39;</span><span class="p">)</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="s1">&#39;out_dir&#39;</span><span class="p">)</span>
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="n">f</span><span class="p">),</span>
+<span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="n">inp</span><span class="p">,</span> <span class="n">out_txt</span><span class="o">=</span><span class="n">out</span><span class="p">),</span>
                                                        <span class="n">uid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-             <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s1">&#39;a.txt&#39;</span><span class="p">,</span><span class="s1">&#39;b.txt&#39;</span><span class="p">))</span> <span class="p">]</span>
+             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(((</span><span class="s1">&#39;a.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;a_out.txt&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;b.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;b_out.txt&#39;</span><span class="p">)))</span> <span class="p">]</span>
+
+<span class="c1"># note this will create a_out.txt and b_out.txt in your current directory</span>
+<span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Each call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code> does the following:</p>
