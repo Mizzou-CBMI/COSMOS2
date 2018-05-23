@@ -41,15 +41,15 @@ def default_task_log_output_dir(task, subdir=''):
 
 
 @signal_workflow_status_change.connect
-def _workflow_status_changed(ex):
-    if ex.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
-        logfunc = ex.log.warning if ex.status in [WorkflowStatus.failed, WorkflowStatus.killed] else ex.log.info
-        logfunc('%s %s' % (ex, ex.status))
-        ex.finished_on = datetime.datetime.now()
+def _workflow_status_changed(workflow):
+    if workflow.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
+        logfunc = workflow.log.warning if workflow.status in [WorkflowStatus.failed, WorkflowStatus.killed] else workflow.log.info
+        logfunc('%s %s (%s/%s Tasks completed)' % (workflow, workflow.status, sum(t.successful for t in workflow.tasks), len(workflow.tasks)))
+        workflow.finished_on = datetime.datetime.now()
 
-    if ex.status == WorkflowStatus.successful:
-        ex.successful = True
-        ex.finished_on = datetime.datetime.now()
+    if workflow.status == WorkflowStatus.successful:
+        workflow.successful = True
+        workflow.finished_on = datetime.datetime.now()
 
 
 class Workflow(Base):
