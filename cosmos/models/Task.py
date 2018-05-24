@@ -57,8 +57,10 @@ def task_status_changed(task):
     elif task.status == TaskStatus.submitted:
         task.stage.status = StageStatus.running
         if not task.NOOP:
-            task.log.info('%s %s. drm=%s; drm_jobid=%s; queue=%s' % (task, task.status, repr(task.drm),
-                                                               repr(task.drm_jobID), repr(task.queue)))
+            task.log.info(
+                '%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s' %
+                (task, task.status, repr(task.drm), repr(task.drm_jobID),
+                 repr(task.job_class), repr(task.queue)))
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
@@ -172,6 +174,7 @@ class Task(Base):
     attempt = Column(Integer, nullable=False)
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
+    job_class = Column(String(255))
     queue = Column(String(255))
     max_attempts = Column(Integer)
     parents = relationship("Task",

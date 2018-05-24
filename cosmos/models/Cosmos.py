@@ -31,8 +31,9 @@ def default_get_submit_args(task, parallel_env='orte'):
         time = ' -W 0:{0}'.format(task.time_req) if task.time_req else ''
         return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
     elif task.drm in ['ge', 'drmaa:ge']:
-        return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{queue}'.format(
+        return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{job_class}{queue}'.format(
             priority=' -p %s' % default_job_priority if default_job_priority else '',
+            job_class=' -jc %s' % task.job_class or '',
             queue=' -q %s' % task.queue or '',
             jobname=jobname,
             core_req=task.core_req,
@@ -56,6 +57,7 @@ class Cosmos(object):
                  database_url='sqlite:///:memory:',
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
+                 default_job_class=None,
                  default_queue=None,
                  default_time_req=None,
                  default_max_attempts=1,
@@ -108,6 +110,7 @@ class Cosmos(object):
             self.session.remove()
 
         self.default_drm = default_drm
+        self.default_job_class = default_job_class
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
         self.default_time_req = default_time_req

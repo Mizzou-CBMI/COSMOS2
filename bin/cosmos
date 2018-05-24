@@ -38,7 +38,8 @@ def shell(db_url_or_path_to_sqlite):
     cosmos_app.shell()
 
 
-def run(in_jobs, default_drm, default_queue, restart, max_cores):
+def run(in_jobs, default_drm, default_job_class, default_queue,
+        restart, max_cores):
     """
     Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
     keyed by uid => command.
@@ -48,6 +49,7 @@ def run(in_jobs, default_drm, default_queue, restart, max_cores):
 
     cosmos_app = Cosmos(database_url='sqlite:///cosmos.sqlite',
                         default_drm=default_drm,
+                        default_job_class=default_job_class,
                         default_queue=default_queue,
                         get_submit_args=partial(default_get_submit_args, parallel_env='smp'))
     cosmos_app.initdb()
@@ -77,6 +79,7 @@ if __name__ == '__main__':
     sp = sps.add_parser('run')
     sp.add_argument('in_jobs')
     sp.add_argument('--default-drm', '-drm', default='ge')
+    sp.add_argument('--job-class', '-j')
     sp.add_argument('--queue', '-q')
 
     sp.add_argument('--max_cores', '--max-cores', '-c', type=int,
