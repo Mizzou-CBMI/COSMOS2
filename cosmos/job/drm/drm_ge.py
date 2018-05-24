@@ -137,15 +137,15 @@ class DRM_GE(DRM):
             system_time=float(d['ru_stime']),
 
             avg_rss_mem=d['ru_ixrss'],
-            max_rss_mem_kb=convert_size_to_kb(d['ru_maxrss']),
+            max_rss_mem_kb=convert_size_to_kb(d['maxrss']),
             avg_vms_mem_kb=None,
             max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
 
             io_read_count=int(d['ru_inblock']),
             io_write_count=int(d['ru_oublock']),
             io_wait=float(d['iow']),
-            io_read_kb=float(d['io']),
-            io_write_kb=float(d['io']),
+            io_read_kb="%fG" % float(d['io']),
+            io_write_kb="%fG" % float(d['io']),
 
             ctx_switch_voluntary=int(d['ru_nvcsw']),
             ctx_switch_involuntary=int(d['ru_nivcsw']),
