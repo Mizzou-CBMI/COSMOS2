@@ -1,17 +1,19 @@
 import json
+import logging
 import os
 import re
 import subprocess
+import sys
 import time
-
 from collections import OrderedDict
 
 from more_itertools import grouper
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import (check_output_and_stderr, convert_size_to_kb, div,
-                                 exit_process_group, DetailedCalledProcessError)
+from cosmos.job.drm.util import (DetailedCalledProcessError,
+                                 check_output_and_stderr, convert_size_to_kb,
+                                 div, exit_process_group)
 from cosmos.util.signal_handlers import sleep_through_signals
 
 
@@ -57,7 +59,7 @@ class DRM_GE(DRM):
         has been affected by this SGE bug.
         """
         if tasks:
-            qjobs = _qstat_all()
+            qjobs = qstat()
             corrupt_data = {}
 
         for task in tasks:
@@ -97,7 +99,7 @@ class DRM_GE(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = _qstat_all()
+            qjobs = qstat()
 
             def f(task):
                 return qjobs.get(unicode(task.drm_jobID), dict()).get('state', 'UNK_JOB_STATE')
@@ -115,10 +117,10 @@ class DRM_GE(DRM):
         [1] a boolean indicating whether the metadata in [0] are affected by an
             SGE bug that causes qacct to occasionally return corrupt results.
         """
-        d = _qacct_raw(task)
+        d = self.task_qacct(task)
 
         job_failed = d['failed'][0] != '0'
-        data_are_corrupt = _is_corrupt(d)
+        data_are_corrupt = is_corrupt(d)
 
         if job_failed or data_are_corrupt:
             task.workflow.log.warn('%s SGE (qacct -j %s) reports %s:\n%s' %
@@ -161,6 +163,14 @@ class DRM_GE(DRM):
 
         return processed_data, data_are_corrupt
 
+    @staticmethod
+    def task_qacct(task, timeout=1200, quantum=15):
+        """
+        Return qacct data for the specified task.
+        """
+        return qacct(task.job_id, timeout, quantum,
+                     task.workflow.log, str(task))
+
     def kill(self, task):
         """Terminate a task."""
         raise NotImplementedError
@@ -172,7 +182,7 @@ class DRM_GE(DRM):
             subprocess.call(['qdel', pids], preexec_fn=exit_process_group)
 
 
-def _is_corrupt(qacct_dict):
+def is_corrupt(qacct_dict):
     """
     Return true if qacct returns bogus job data for a job id.
 
@@ -197,15 +207,24 @@ def _is_corrupt(qacct_dict):
            ("before writing exit_status" not in qacct_dict.get('failed', ''))
 
 
-def _qacct_raw(task, timeout=1200, quantum=15):
+def qacct(job_id, timeout=1200, quantum=15, logger=None, log_prefix=""):
     """
     Parse qacct output into key/value pairs.
 
     If qacct reports results in multiple blocks (separated by a row of ===='s),
     the most recently-generated block with valid data is returned. If no block
     with valid data exists, then return the most recently-generated block of
-    corrupt data.
+    corrupt data. Call ``is_corrupt()`` on the output of this method to see if
+    the data are suitable for use.
     """
+    # create a dummy logger with a distinct name if one is not supplied
+    if not logger:
+        logger = logging.getLogger(
+            ".".join([sys.modules[__name__].__name__, "qacct"]))
+        # only initialize the dummy logger the first time we load it
+        if not logger.handlers:
+            logger.addHandler(logging.NullHandler())
+
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
@@ -215,7 +234,7 @@ def _qacct_raw(task, timeout=1200, quantum=15):
         qacct_returncode = 0
         try:
             qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
-                ['qacct', '-j', unicode(task.drm_jobID)],
+                ['qacct', '-j', unicode(job_id)],
                 preexec_fn=exit_process_group)
             if qacct_stdout_str.strip():
                 break
@@ -226,34 +245,34 @@ def _qacct_raw(task, timeout=1200, quantum=15):
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
             if i > 0:
-                task.workflow.log.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
-                                       'qacct is merely slow, or %s died in the \'qw\' state',
-                                       task, task.drm_jobID, task.drm_jobID)
+                logger.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
+                            'qacct is merely slow, or %s died in the \'qw\' state',
+                            log_prefix, job_id, job_id)
         else:
-            task.workflow.log.error('%s SGE (qacct -j %s) returned error code %d',
-                                    task, task.drm_jobID, qacct_returncode)
+            logger.error('%s SGE (qacct -j %s) returned error code %d',
+                         log_prefix, job_id, qacct_returncode)
             if qacct_stdout_str or qacct_stderr_str:
-                task.workflow.log.error('%s SGE (qacct -j %s) printed the following', task, task.drm_jobID)
+                logger.error('%s SGE (qacct -j %s) printed the following', log_prefix, job_id)
                 if qacct_stdout_str:
-                    task.workflow.log.error('stdout: "%s"', qacct_stdout_str)
+                    logger.error('stdout: "%s"', qacct_stdout_str)
                 if qacct_stderr_str:
-                    task.workflow.log.error('stderr: "%s"', qacct_stderr_str)
+                    logger.error('stderr: "%s"', qacct_stderr_str)
 
         if i > 0:
-            task.workflow.log.info(
+            logger.info(
                 '%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
-                task, task.drm_jobID, i + 1, time.time() - start,
+                log_prefix, job_id, i + 1, time.time() - start,
                 '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
         if i + 1 < num_retries:
             sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
-        raise ValueError('No valid `qacct -j %s` output after %d tries and %d sec' %
-                         (task.drm_jobID, i, time.time() - start))
+        raise ValueError('%s No valid SGE (qacct -j %s) output after %d tries and %d sec' %
+                         (log_prefix, job_id, i, time.time() - start))
 
     for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
-            if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
+            if curr_qacct_dict and not is_corrupt(curr_qacct_dict):
                 #
                 # Cache this non-corrupt block of qacct data just
                 # in case all the more recent blocks are corrupt.
@@ -266,22 +285,24 @@ def _qacct_raw(task, timeout=1200, quantum=15):
         try:
             k, v = re.split(r'\s+', line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s with drm_jobID=%s has unparseable qacct output:\n%s' %
-                                   (task, task.drm_jobID, qacct_stdout_str))
+            raise EnvironmentError('%s SGE (qacct -j %s) output is unparseable:\n%s' %
+                                   (log_prefix, job_id, qacct_stdout_str))
 
         curr_qacct_dict[k] = v.strip()
 
     # if the last block of qacct data looks good, promote it
-    if curr_qacct_dict and not _is_corrupt(curr_qacct_dict):
+    if curr_qacct_dict and not is_corrupt(curr_qacct_dict):
         good_qacct_dict = curr_qacct_dict
 
     return good_qacct_dict if good_qacct_dict else curr_qacct_dict
 
 
-def _qstat_all():
+def qstat():
     """
-    returns a dict keyed by lsf job ids, who's values are a dict of bjob
-    information about the job
+    Return a mapping of job ids to a dict of GE information about each job.
+
+    The exact contents of the sub-dictionaries in the returned dictionary's
+    values() depend on the installed GE version.
     """
     try:
         lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).decode().strip().split('\n')
