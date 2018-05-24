@@ -174,6 +174,8 @@ class DRM_GE(DRM):
 
 def _is_corrupt(qacct_dict):
     """
+    Return true if qacct returns bogus job data for a job id.
+
     qacct may return multiple records for a job. They may all be corrupt. Yuk.
 
     This was allegedly fixed in 6.0u10 but we've seen it in UGE 8.3.1.
@@ -195,13 +197,14 @@ def _is_corrupt(qacct_dict):
            ("before writing exit_status" not in qacct_dict.get('failed', ''))
 
 
-def _qacct_raw(task, timeout=600, quantum=15):
+def _qacct_raw(task, timeout=1200, quantum=15):
     """
     Parse qacct output into key/value pairs.
 
     If qacct reports results in multiple blocks (separated by a row of ===='s),
-    the most recently-generated block with valid data is returned. If no such
-    block exists, then return the most recently-generated block of corrupt data.
+    the most recently-generated block with valid data is returned. If no block
+    with valid data exists, then return the most recently-generated block of
+    corrupt data.
     """
     start = time.time()
     curr_qacct_dict = None
