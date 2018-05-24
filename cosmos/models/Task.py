@@ -1,23 +1,20 @@
-import os
 import codecs
-import networkx as nx
-import subprocess as sp
-from sqlalchemy.orm import relationship, synonym, backref
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
-from flask import url_for
-
-from cosmos.db import Base
-from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
-from cosmos import TaskStatus, StageStatus, signal_task_status_change
-from cosmos.util.helpers import wait_for_file
-
-
 import datetime
+import os
 import pprint
+import subprocess as sp
 
-opj = os.path.join
+import networkx as nx
+from flask import url_for
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, DateTime, Integer, String
+
+from cosmos import StageStatus, TaskStatus, signal_task_status_change
+from cosmos.db import Base
+from cosmos.util.helpers import wait_for_file
+from cosmos.util.sqla import Enum_ColumnType, JSONEncodedDict, MutableDict
 
 
 class ExpectedError(Exception): pass
@@ -112,7 +109,8 @@ def task_status_changed(task):
 
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
-    return property(lambda self: opj(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
+    return property(lambda self: os.path.join(
+        self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
 
 
 def readfile(path):
