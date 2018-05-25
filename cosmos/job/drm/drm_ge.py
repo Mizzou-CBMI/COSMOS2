@@ -37,8 +37,8 @@ class DRM_GE(DRM):
 
             task.drm_jobID = unicode(int(out))
         except subprocess.CalledProcessError as cpe:
-            task.log.error('%s submission to %s failed with error %s: %s' %
-                           (task, task.drm, cpe.returncode, cpe.output.decode().strip()))
+            task.log.error('%s submission to %s (%s) failed with error %s: %s' %
+                           (task, task.drm, qsub, cpe.returncode, cpe.output.decode().strip()))
             task.status = TaskStatus.failed
         except ValueError:
             task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
