@@ -168,7 +168,7 @@ class DRM_GE(DRM):
         """
         Return qacct data for the specified task.
         """
-        return qacct(task.job_id, timeout, quantum,
+        return qacct(task.drm_jobID, timeout, quantum,
                      task.workflow.log, str(task))
 
     def kill(self, task):
