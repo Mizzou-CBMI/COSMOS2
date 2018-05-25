@@ -33,8 +33,8 @@ def default_get_submit_args(task, parallel_env='orte'):
     elif task.drm in ['ge', 'drmaa:ge']:
         return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{job_class}{queue}'.format(
             priority=' -p %s' % default_job_priority if default_job_priority else '',
-            job_class=' -jc %s' % task.job_class or '',
-            queue=' -q %s' % task.queue or '',
+            job_class=' -jc %s' % task.job_class if task.job_class else '',
+            queue=' -q %s' % task.queue if task.queue else '',
             jobname=jobname,
             core_req=task.core_req,
             parallel_env=parallel_env)
