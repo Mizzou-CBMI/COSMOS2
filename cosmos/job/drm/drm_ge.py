@@ -146,8 +146,8 @@ class DRM_GE(DRM):
             io_read_count=int(d['ru_inblock']),
             io_write_count=int(d['ru_oublock']),
             io_wait=float(d['iow']),
-            io_read_kb="%fG" % float(d['io']),
-            io_write_kb="%fG" % float(d['io']),
+            io_read_kb=convert_size_to_kb("%fG" % float(d['io'])),
+            io_write_kb=convert_size_to_kb("%fG" % float(d['io'])),
 
             ctx_switch_voluntary=int(d['ru_nvcsw']),
             ctx_switch_involuntary=int(d['ru_nivcsw']),
