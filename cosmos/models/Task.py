@@ -7,7 +7,8 @@ import subprocess as sp
 import networkx as nx
 from flask import url_for
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.ext.declarative.base import _declarative_constructor
+from sqlalchemy.orm import reconstructor, relationship, synonym
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, DateTime, Integer, String
 
@@ -172,7 +173,7 @@ class Task(Base):
     attempt = Column(Integer, nullable=False)
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
-    # FIXME consider making this a full-fledged DB entry next time the schema changes
+    # FIXME consider making job_class a proper field next time the schema changes
     # job_class = Column(String(255))
     queue = Column(String(255))
     max_attempts = Column(Integer)
@@ -347,3 +348,12 @@ class Task(Base):
 
     def __str__(self):
         return self.__repr__()
+
+    # FIXME consider making job_class a proper field next time the schema changes
+    def __init__(self, **kwargs):
+        self.job_class = kwargs.pop('job_class', None)
+        _declarative_constructor(self, **kwargs)
+
+    @reconstructor
+    def init_on_load(self):
+        self.job_class = None
