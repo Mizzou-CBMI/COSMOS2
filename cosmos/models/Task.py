@@ -172,7 +172,8 @@ class Task(Base):
     attempt = Column(Integer, nullable=False)
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
-    job_class = Column(String(255))
+    # FIXME consider making this a full-fledged DB entry next time the schema changes
+    # job_class = Column(String(255))
     queue = Column(String(255))
     max_attempts = Column(Integer)
     parents = relationship("Task",
