@@ -57,11 +57,11 @@ class Cosmos(object):
                  database_url='sqlite:///:memory:',
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
-                 default_job_class=None,
                  default_queue=None,
                  default_time_req=None,
                  default_max_attempts=1,
-                 flask_app=None):
+                 flask_app=None,
+                 default_job_class=None):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
