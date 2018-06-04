@@ -22,29 +22,15 @@ class DRM_GE(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
-        for p in [task.output_stdout_path, task.output_stderr_path]:
-            if os.path.exists(p):
-                os.unlink(p)
+        task.drm_jobID, task.status = qsub(
+            cmd_fn=task.output_command_script_path,
+            stdout_fn=task.output_stdout_path,
+            stderr_fn=task.output_stderr_path,
+            addl_args=task.drm_native_specification,
+            drm_name=task.drm,
+            logger=task.log,
+            log_prefix=str(task))
 
-        ns = ' ' + task.drm_native_specification if task.drm_native_specification else ''
-        qsub = 'qsub -terse -o {stdout} -e {stderr} -b y -w e -cwd -S /bin/bash -V{ns} '.format(
-            stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns)
-
-        try:
-            out = subprocess.check_output(
-                '{qsub} "{cmd_str}"'.format(cmd_str=task.output_command_script_path, qsub=qsub),
-                env=os.environ, preexec_fn=exit_process_group, shell=True, stderr=subprocess.STDOUT).decode()
-
-            task.drm_jobID = unicode(int(out))
-        except subprocess.CalledProcessError as cpe:
-            task.log.error('%s submission to %s (%s) failed with error %s: %s' %
-                           (task, task.drm, qsub, cpe.returncode, cpe.output.decode().strip()))
-            task.status = TaskStatus.failed
-        except ValueError:
-            task.log.error('%s submission to %s returned unexpected text: %s' % (task, task.drm, out))
-            task.status = TaskStatus.failed
-        else:
-            task.status = TaskStatus.submitted
 
     def filter_is_done(self, tasks):
         """
@@ -182,6 +168,17 @@ class DRM_GE(DRM):
             subprocess.call(['qdel', pids], preexec_fn=exit_process_group)
 
 
+def _get_null_logger():
+    """
+    Return a logger that drops all messages passed to it.
+    """
+    logger = logging.getLogger(
+        ".".join([sys.modules[__name__].__name__, "null_logger"]))
+    # only initialize the null logger the first time we load it
+    if not logger.handlers:
+        logger.addHandler(logging.NullHandler())
+
+
 def is_corrupt(qacct_dict):
     """
     Return true if qacct returns bogus job data for a job id.
@@ -217,13 +214,8 @@ def qacct(job_id, timeout=1200, quantum=15, logger=None, log_prefix=""):
     corrupt data. Call ``is_corrupt()`` on the output of this method to see if
     the data are suitable for use.
     """
-    # create a dummy logger with a distinct name if one is not supplied
     if not logger:
-        logger = logging.getLogger(
-            ".".join([sys.modules[__name__].__name__, "qacct"]))
-        # only initialize the dummy logger the first time we load it
-        if not logger.handlers:
-            logger.addHandler(logging.NullHandler())
+        logger = _get_null_logger()
 
     start = time.time()
     curr_qacct_dict = None
@@ -314,3 +306,46 @@ def qstat():
         items = re.split(r"\s+", l.strip())
         bjobs[items[0]] = dict(zip(keys, items))
     return bjobs
+
+
+def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=None, log_prefix=""):
+    """
+    Submit the requested (bash-parseable) script stored in cmd_fn to GE.
+
+    The command is submitted relatove to the current CWD. Callers should change
+    this before calling if they need to run in a particular directory.
+
+    Output will be written to two filenames, specified in stdout_fn and stderr_fn.
+    Additional arguments to SGE may be specified as a single string in addl_args.
+    Callers can optionally supply a logger object and a prefix to prepend to log messages.
+    """
+    for p in [stdout_fn, stderr_fn]:
+        if os.path.exists(p):
+            os.unlink(p)
+
+    qsub_cli = 'qsub -terse -o {stdout_fn} -e {stderr_fn} -b y -w e -cwd -S /bin/bash -V'.format(
+        stdout_fn=stdout_fn, stderr_fn=stderr_fn)
+
+    if addl_args:
+        qsub_cli += ' %s' % addl_args
+
+    job_id = None
+    try:
+        out = subprocess.check_output(
+            '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
+            env=os.environ, preexec_fn=exit_process_group, shell=True,
+            stderr=subprocess.STDOUT).decode()
+
+        job_id = unicode(int(out))
+    except subprocess.CalledProcessError as cpe:
+        logger.error('%s submission to %s (%s) failed with error %s: %s' %
+                     (log_prefix, drm_name, qsub, cpe.returncode, cpe.output.decode().strip()))
+        status = TaskStatus.failed
+    except ValueError:
+        logger.error('%s submission to %s returned unexpected text: %s' %
+                     (log_prefix, drm_name, out))
+        status = TaskStatus.failed
+    else:
+        status = TaskStatus.submitted
+
+    return (job_id, status)
