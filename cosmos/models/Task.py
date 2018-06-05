@@ -7,16 +7,15 @@ import subprocess as sp
 import networkx as nx
 from flask import url_for
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.ext.declarative.base import _declarative_constructor
+from sqlalchemy.orm import reconstructor, relationship, synonym
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.types import Boolean, Integer, String, DateTime
+from sqlalchemy.types import Boolean, DateTime, Integer, String
 
-from cosmos import TaskStatus, StageStatus, signal_task_status_change
+from cosmos import StageStatus, TaskStatus, signal_task_status_change
 from cosmos.db import Base
 from cosmos.util.helpers import wait_for_file
-from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
-
-opj = os.path.join
+from cosmos.util.sqla import Enum_ColumnType, JSONEncodedDict, MutableDict
 
 
 class ExpectedError(Exception): pass
@@ -56,8 +55,10 @@ def task_status_changed(task):
     elif task.status == TaskStatus.submitted:
         task.stage.status = StageStatus.running
         if not task.NOOP:
-            task.log.info('%s %s. drm=%s; drm_jobid=%s; queue=%s' % (task, task.status, repr(task.drm),
-                                                                     repr(task.drm_jobID), repr(task.queue)))
+            task.log.info(
+                '%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s' %
+                (task, task.status, repr(task.drm), repr(task.drm_jobID),
+                 repr(task.job_class), repr(task.queue)))
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
@@ -112,7 +113,8 @@ def task_status_changed(task):
 
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
-    return property(lambda self: opj(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
+    return property(lambda self: os.path.join(
+        self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
 
 
 def readfile(path):
@@ -174,6 +176,8 @@ class Task(Base):
     attempt = Column(Integer, nullable=False)
     must_succeed = Column(Boolean, nullable=False)
     drm = Column(String(255))
+    # FIXME consider making job_class a proper field next time the schema changes
+    # job_class = Column(String(255))
     queue = Column(String(255))
     max_attempts = Column(Integer)
     parents = relationship("Task",
@@ -348,3 +352,12 @@ class Task(Base):
 
     def __str__(self):
         return self.__repr__()
+
+    # FIXME consider making job_class a proper field next time the schema changes
+    def __init__(self, **kwargs):
+        self.job_class = kwargs.pop('job_class', None)
+        _declarative_constructor(self, **kwargs)
+
+    @reconstructor
+    def init_on_load(self):
+        self.job_class = None

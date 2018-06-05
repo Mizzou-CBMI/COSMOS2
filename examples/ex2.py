@@ -78,7 +78,8 @@ def recipe(workflow):
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge', 'slurm'))
-    p.add_argument('-q', '--queue', help='Submit to this queue of the DRM supports it')
+    p.add_argument('-j', '--job-class', help='Submit to this job class if the DRM supports it')
+    p.add_argument('-q', '--queue', help='Submit to this queue if the DRM supports it')
 
     args = p.parse_args()
 
@@ -87,6 +88,7 @@ if __name__ == '__main__':
                     get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
                     default_drm=args.drm,
                     default_max_attempts=2,
+                    default_job_class=args.job_class,
                     default_queue=args.queue)
     cosmos.initdb()
 

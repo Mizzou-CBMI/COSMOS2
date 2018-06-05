@@ -143,7 +143,7 @@ class Workflow(Base):
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
                  queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
-                 max_attempts=None, noop=False):
+                 max_attempts=None, noop=False, job_class=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -157,6 +157,7 @@ class Workflow(Base):
             database version will be returned and a new one will not be created.
         :param str stage_name: The name of the Stage to add this Task to.  Defaults to `func.__name__`.
         :param str drm: The drm to use for this Task (example 'local', 'ge' or 'drmaa:lsf').  Defaults to the `default_drm` parameter of :meth:`Cosmos.start`
+        :param job_class: The name of a job_class to submit to; defaults to the `default_job_class` parameter of :meth:`Cosmos.start`
         :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
@@ -259,6 +260,7 @@ class Workflow(Base):
                         output_map=output_map,
                         uid=uid,
                         drm=drm if drm is not None else self.cosmos_app.default_drm,
+                        job_class=job_class if job_class is not None else self.cosmos_app.default_job_class,
                         queue=queue if queue is not None else self.cosmos_app.default_queue,
                         must_succeed=must_succeed,
                         core_req=core_req if core_req is not None else params_or_signature_default_or('core_req', 1),
