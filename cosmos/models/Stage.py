@@ -81,7 +81,7 @@ class Stage(Base):
     def __init__(self, *args, **kwargs):
         super(Stage, self).__init__(*args, **kwargs)
 
-        if not re.match('^[a-zA-Z0-9_\.-]+$', self.name):
+        if not re.match('^[a-zA-Z0-9_\.-/]+$', self.name):
             raise Exception('invalid stage name %s' % self.name)
 
     def __iter__(self):

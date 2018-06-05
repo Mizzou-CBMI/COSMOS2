@@ -96,7 +96,10 @@ def task_status_changed(task):
     elif task.status == TaskStatus.successful:
         task.successful = True
         if not task.NOOP:
-            task.log.info('%s %s, wall_time: %s' % (task, task.status, datetime.timedelta(seconds=task.wall_time)))
+            task.log.info('{} {}, wall_time: {}.  {}/{} Tasks finished.'.format(task, task.status,
+                                                                            datetime.timedelta(seconds=task.wall_time),
+                                                                            sum(1 for t in task.workflow.tasks if
+                                                                                t.finished), len(task.workflow.tasks)))
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
@@ -334,7 +337,8 @@ class Task(Base):
 
     @property
     def params_pretty(self):
-        return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
+        return '%s' % ', '.join(
+            '%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
 
     @property
     def params_pformat(self):
