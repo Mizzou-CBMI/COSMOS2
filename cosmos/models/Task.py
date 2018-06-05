@@ -1,21 +1,20 @@
-import os
 import codecs
-import networkx as nx
-import subprocess as sp
-from sqlalchemy.orm import relationship, synonym, backref
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.types import Boolean, Integer, String, DateTime, BigInteger
-from flask import url_for
-
-from cosmos.db import Base
-from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict, ListOfStrings, MutableList
-from cosmos import TaskStatus, StageStatus, signal_task_status_change
-from cosmos.util.helpers import wait_for_file
-
-
 import datetime
+import os
 import pprint
+import subprocess as sp
+
+import networkx as nx
+from flask import url_for
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship, synonym
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, Integer, String, DateTime
+
+from cosmos import TaskStatus, StageStatus, signal_task_status_change
+from cosmos.db import Base
+from cosmos.util.helpers import wait_for_file
+from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 
 opj = os.path.join
 
@@ -58,7 +57,7 @@ def task_status_changed(task):
         task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info('%s %s. drm=%s; drm_jobid=%s; queue=%s' % (task, task.status, repr(task.drm),
-                                                               repr(task.drm_jobID), repr(task.queue)))
+                                                                     repr(task.drm_jobID), repr(task.queue)))
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
@@ -96,7 +95,10 @@ def task_status_changed(task):
     elif task.status == TaskStatus.successful:
         task.successful = True
         if not task.NOOP:
-            task.log.info('%s %s, wall_time: %s' % (task, task.status, datetime.timedelta(seconds=task.wall_time)))
+            task.log.info('{} {}, wall_time: {}.  {}/{} Tasks finished.'.format(task, task.status,
+                                                                            datetime.timedelta(seconds=task.wall_time),
+                                                                            sum(1 for t in task.workflow.tasks if
+                                                                                t.finished), len(task.workflow.tasks)))
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
@@ -331,7 +333,8 @@ class Task(Base):
 
     @property
     def params_pretty(self):
-        return '%s' % ', '.join('%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
+        return '%s' % ', '.join(
+            '%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
 
     @property
     def params_pformat(self):

@@ -8,6 +8,7 @@ from flask import Flask
 from cosmos import WorkflowStatus
 from cosmos import __version__
 from cosmos.db import Base
+from cosmos.models import Task
 from cosmos.util.args import get_last_cmd_executed
 from cosmos.util.helpers import confirm
 
@@ -222,10 +223,11 @@ class Cosmos(object):
         wf.info['fail_fast'] = fail_fast
         wf.primary_log_path = primary_log_path
 
-        wf.log.info('Execution Command: %s' % get_last_cmd_executed())
+        wf.log.info('Committing SQL session...')
         session.commit()
         session.expunge_all()
         session.add(wf)
+        wf.log.info('Execution Command: %s' % get_last_cmd_executed())
 
         wf.cosmos_app = self
 
