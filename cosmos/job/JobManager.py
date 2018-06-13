@@ -23,6 +23,8 @@ class JobManager(object):
         if containerizer_name:
             containerizer_args = containerizer_args if containerizer_args else {}
             self.containerizer = Containerizer.get_containerizer(containerizer_name)(**containerizer_args)
+        else:
+            self.containerizer = None
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
@@ -122,7 +124,9 @@ class JobManager(object):
 
     def _create_command_sh(self, task, command):
         """Create a sh script that will execute a command"""
-        command = self.containerizer.get_containerizer_command(command)
+        import pdb; pdb.set_trace()
+        if self.containerizer:
+            command = self.containerizer.get_containerizer_command(command)
 
         with open(task.output_command_script_path, 'w') as f:
             f.write(command)
