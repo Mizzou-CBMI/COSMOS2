@@ -8,6 +8,13 @@ class Containerizer(object):
 
     __metaclass__ = ABCMeta
 
+    def __init__(self, **arguments):
+        assert 'cmd' not in arguments, '"cmd" cannot be a containerizer argument since it is specified at command'
+        assert self.required_arguments == set(arguments.keys()), 'You must specify values for {args_list}'.format(
+            args_list=', '.join(self.required_arguments),
+        )
+        self.arguments = arguments
+
     @classmethod
     def get_containerizer(cls, name):
         """Get a specific containizer implementation class by name.
@@ -23,13 +30,6 @@ class Containerizer(object):
             supported_containerizers=', '.join(containerizer.name for containerizer in cls.__subclasses__()),
         )
         return selected_containerizer
-
-    def __init__(self, **arguments):
-        assert 'cmd' not in arguments, '"cmd" cannot be a containerizer argument since it is specified at command'
-        assert self.required_arguments == set(arguments.keys()), 'You must specify values for {args_list}'.format(
-            args_list=', '.join(self.required_arguments),
-        )
-        self.arguments = arguments
 
     @abstractproperty
     def name(self):
