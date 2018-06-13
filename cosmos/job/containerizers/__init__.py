@@ -1,4 +1,4 @@
-__author__ = 'egafni'
+__author__ = 'arithehun'
 
 import importlib
 import os

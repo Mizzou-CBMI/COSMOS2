@@ -4,29 +4,25 @@ import stat
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
-from cosmos.job.drm.drm_drmaa import DRM_DRMAA
-from cosmos.job.drm.drm_ge import DRM_GE
-from cosmos.job.drm.drm_local import DRM_Local
-from cosmos.job.drm.drm_lsf import DRM_LSF
-from cosmos.job.drm.drm_slurm import DRM_SLURM
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.job.containerizers.base import Containerizer
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import mkdir
 
 
 class JobManager(object):
-    def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = dict()
-        self.drms['local'] = DRM_Local(self)  # always support local workflow
-        self.drms['lsf'] = DRM_LSF(self)
-        self.drms['ge'] = DRM_GE(self)
-        self.drms['drmaa'] = DRM_DRMAA(self)
-        self.drms['slurm'] = DRM_SLURM(self)
+    def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None,
+                 containerizer_name=None, containerizer_args=None):
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls(self) for DRM_sub_cls in DRM.__subclasses__()}
 
-        # self.local_drm = DRM_Local(self)
         self.running_tasks = []
         self.get_submit_args = get_submit_args
         self.cmd_wrapper = cmd_wrapper
         self.log_out_dir_func = log_out_dir_func
+
+        if containerizer_name:
+            containerizer_args = containerizer_args if containerizer_args else {}
+            self.containerizer = Containerizer.get_containerizer(containerizer_name)(**containerizer_args)
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
@@ -66,7 +62,7 @@ class JobManager(object):
         else:
             mkdir(task.log_dir)
 
-            _create_command_sh(task, command)
+            self._create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task)
             assert task.drm is not None, 'task has no drm set'
 
@@ -76,7 +72,8 @@ class JobManager(object):
         self.running_tasks += tasks
 
         # Run the cmd_fxns in parallel, but do not submit any jobs they return
-        # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads (or their sqlalchemy sessions)
+        # Note we use the cosmos_app thread_pool here so we don't have
+        # to setup/teardown threads (or their sqlalchemy sessions)
         # commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
         commands = map(self.call_cmd_fxn, tasks)
         # commands = self.cosmos_app.futures_executor.map(self.call_cmd_fxn, tasks)
@@ -123,11 +120,12 @@ class JobManager(object):
         return max(self.get_drm(d).poll_interval for d in
                    set(t.drm for t in self.running_tasks))
 
+    def _create_command_sh(self, task, command):
+        """Create a sh script that will execute a command"""
+        command = self.containerizer.get_containerizer_command(command)
 
-def _create_command_sh(task, command):
-    """Create a sh script that will execute a command"""
-    with open(task.output_command_script_path, 'w') as f:
-        f.write(command)
+        with open(task.output_command_script_path, 'w') as f:
+            f.write(command)
 
-    st = os.stat(task.output_command_script_path)
-    os.chmod(task.output_command_script_path, st.st_mode | stat.S_IEXEC)
+        st = os.stat(task.output_command_script_path)
+        os.chmod(task.output_command_script_path, st.st_mode | stat.S_IEXEC)
