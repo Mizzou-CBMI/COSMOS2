@@ -62,7 +62,9 @@ class Cosmos(object):
                  default_time_req=None,
                  default_max_attempts=1,
                  flask_app=None,
-                 default_job_class=None):
+                 default_job_class=None,
+                 containerizer_name=None,
+                 containerizer_args=None):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
@@ -115,6 +117,8 @@ class Cosmos(object):
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
         self.default_time_req = default_time_req
+        self.containerizer_name = containerizer_name
+        self.containerizer_args = containerizer_args
 
         # def configure_flask(self):
         # setup flask views
@@ -217,7 +221,8 @@ class Cosmos(object):
             # if check_output_dir:
             #     assert not os.path.exists(output_dir), 'Workflow.output_dir `%s` already exists.' % (output_dir)
 
-            wf = Workflow(id=old_id, name=name, manual_instantiation=False, successful=False)
+            wf = Workflow(id=old_id, name=name, manual_instantiation=False, successful=False,
+                          containerizer_name=self.containerizer_name, containerizer_args=self.containerizer_args)
             # mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(wf)
 
