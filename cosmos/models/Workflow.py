@@ -99,7 +99,7 @@ class Workflow(Base):
     def constructor(self):
         self.__init__(manual_instantiation=False)
 
-    def __init__(self, manual_instantiation=True, *args, **kwargs):
+    def __init__(self, manual_instantiation=True, containerization_name=None, containerizer_args=None, *args, **kwargs):
         # FIXME provide the cosmos_app instance?
 
         if manual_instantiation:
@@ -113,6 +113,8 @@ class Workflow(Base):
         if not self.created_on:
             self.created_on = datetime.datetime.now()
         self.dont_garbage_collect = []
+        self.containerizer_name = containerizer_name
+        self.containerizer_args = containerizer_args
 
     @property
     def log(self):
@@ -323,7 +325,9 @@ class Workflow(Base):
             if self.jobmanager is None:
                 self.jobmanager = JobManager(get_submit_args=self.cosmos_app.get_submit_args,
                                              cmd_wrapper=cmd_wrapper,
-                                             log_out_dir_func=log_out_dir_func)
+                                             log_out_dir_func=log_out_dir_func,
+                                             containerizer_name=containerizer_name,
+                                             containerizer_args=containerizer_args)
 
             self.status = WorkflowStatus.running
             self.successful = False
