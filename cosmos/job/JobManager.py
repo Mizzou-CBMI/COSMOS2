@@ -124,7 +124,6 @@ class JobManager(object):
 
     def _create_command_sh(self, task, command):
         """Create a sh script that will execute a command"""
-        import pdb; pdb.set_trace()
         if self.containerizer:
             command = self.containerizer.get_containerizer_command(command)
 
