@@ -1,26 +1,18 @@
+from contextlib import contextmanager
 import itertools as it
 import os
 import stat
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
-from cosmos.job.drm.drm_drmaa import DRM_DRMAA
-from cosmos.job.drm.drm_ge import DRM_GE
-from cosmos.job.drm.drm_local import DRM_Local
-from cosmos.job.drm.drm_lsf import DRM_LSF
-from cosmos.job.drm.drm_slurm import DRM_SLURM
+from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import mkdir
 
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = dict()
-        self.drms['local'] = DRM_Local(self)  # always support local workflow
-        self.drms['lsf'] = DRM_LSF(self)
-        self.drms['ge'] = DRM_GE(self)
-        self.drms['drmaa'] = DRM_DRMAA(self)
-        self.drms['slurm'] = DRM_SLURM(self)
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls(self) for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
         self.running_tasks = []
@@ -76,7 +68,8 @@ class JobManager(object):
         self.running_tasks += tasks
 
         # Run the cmd_fxns in parallel, but do not submit any jobs they return
-        # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads (or their sqlalchemy sessions)
+        # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads
+        # (or their sqlalchemy sessions)
         # commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
         commands = map(self.call_cmd_fxn, tasks)
         # commands = self.cosmos_app.futures_executor.map(self.call_cmd_fxn, tasks)

@@ -143,7 +143,7 @@ class Workflow(Base):
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
                  queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
-                 max_attempts=None, noop=False, job_class=None):
+                 max_attempts=None, noop=False, job_class=None, drm_options=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -168,6 +168,8 @@ class Workflow(Base):
         :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
         :rtype: cosmos.api.Task
         """
+        # Avoid cyclical import dependencies
+        from cosmos.job.drm.DRM_Base import DRM
         from cosmos.models.Stage import Stage
         from cosmos import recursive_resolve_dependency
 
@@ -273,6 +275,9 @@ class Workflow(Base):
                         )
 
             task.cmd_fxn = func
+
+            task.drm_options = drm_options if drm_options is not None else self.cosmos_app.default_drm_options
+            DRM.validate_drm_options(task.drm, task.drm_options)
 
         # Add Stage Dependencies
         for p in parents:
