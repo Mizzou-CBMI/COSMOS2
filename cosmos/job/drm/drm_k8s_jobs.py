@@ -44,21 +44,6 @@ class DRM_K8S_Jobs(DRM):  # noqa
         task.drm_jobID = job_id
         task.status = TaskStatus.submitted
 
-    def _get_task_infos(self, tasks):
-        job_ids = [task.drm_jobID for task in tasks]
-
-        kstatus_cmd = 'kstatus {job_ids} -o json'.format(job_ids=' '.join(job_ids))
-        kstatus_proc = sp.Popen(kstatus_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
-
-        task_infos, err = kstatus_proc.communicate()
-        if err:
-            raise RuntimeError(err)
-
-        task_infos = json.loads(task_infos)
-
-        task_infos = {task_info['metadata']['labels']['job-name'] for task_info in task_infos['items']}
-        return task_infos
-
     def _get_task_completed_info(self, task, task_infos):
         task_info = task_infos[task.drm_jobID]
 
@@ -84,13 +69,26 @@ class DRM_K8S_Jobs(DRM):  # noqa
         return dict(exit_status=exit_code, wall_time=wall_time)
 
     def filter_is_done(self, tasks):
+        task_infos = self.drm_statuses(tasks)
         for task in tasks:
-            task_completed_info = self._get_task_completed_info(task)
+            task_completed_info = self._get_task_completed_info(task, task_infos)
             if task_completed_info:
                 yield task, task_completed_info
 
     def drm_statuses(self, tasks):
-        return self._get_task_infos(tasks)
+        job_ids = [task.drm_jobID for task in tasks]
+
+        kstatus_cmd = 'kstatus {job_ids} -o json'.format(job_ids=' '.join(job_ids))
+        kstatus_proc = sp.Popen(kstatus_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+
+        task_infos, err = kstatus_proc.communicate()
+        if err:
+            raise RuntimeError(err)
+
+        task_infos = json.loads(task_infos)
+
+        task_infos = {task_info['metadata']['labels']['job-name'] for task_info in task_infos['items']}
+        return task_infos
 
     def kill(self, task):
         kill_cmd = 'kcancel {job_id}'.format(job_id=task.drm_jobID)
