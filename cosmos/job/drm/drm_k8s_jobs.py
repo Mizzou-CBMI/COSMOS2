@@ -11,6 +11,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
     """Uses Kubernetes jobs as a method of dispatching tasks. The job manager must be
         configured to use a specific Docker image to use this DRM.
     """
+
     name = 'k8s-jobs'
     required_drm_options = {'image_tag'}
 

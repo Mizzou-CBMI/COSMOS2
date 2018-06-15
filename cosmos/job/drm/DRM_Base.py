@@ -2,6 +2,7 @@ from abc import abstractmethod, ABCMeta
 
 
 class DRM(object):
+
     "DRM base class"
 
     __metaclass__ = ABCMeta
