@@ -22,3 +22,4 @@ alembic/
 *.*~
 lsync/
 *.pytest_cache/*
+.DS_Store
