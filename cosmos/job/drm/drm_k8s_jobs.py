@@ -17,20 +17,24 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
     def submit_job(self, task):
         image_tag = task.drm_options['image_tag']
-        custom_container_config = task.drm_options.get('custom_container_config')
+        custom_job_config = task.drm_options.get('custom_job_config')
+        job_name_prefix = task.drm_options.get('job_name_prefix')
 
         # Time in seconds
         time_arg = ' --time {time}'.format(task.time_req) if task.time_req else ''
-        custom_container_config_arg = ' --file {custom_container_config}'.format(
-            custom_container_config=custom_job_config,
+        custom_job_config_arg = ' --file {custom_job_config}'.format(
+            custom_job_config=custom_job_config,
         ) if custom_job_config else ''
-        custom_job_config
+        job_name_prefix_arg = ' --name {job_name_prefix}'.format(
+            job_name_prefix=job_name_prefix,
+        ) if job_name_prefix else ''
 
-        kbatch_cmd = 'kbatch --image {image_tag} "{cmd}"{time_arg}{custom_container_config_arg}'.format(
+        kbatch_cmd = 'kbatch --image {image_tag} "{cmd}"{time_arg}{custom_job_config_arg}{job_name_prefix_arg}'.format(
             image_tag=image_tag,
             cmd=task.output_command_script_path,
             time_arg=time_arg,
-            custom_container_config_arg=custom_container_config_arg,
+            custom_job_config_arg=custom_job_config_arg,
+            job_name_prefix_arg=job_name_prefix_arg,
         )
 
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
