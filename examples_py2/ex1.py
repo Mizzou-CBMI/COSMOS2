@@ -1,6 +1,3 @@
-"""
-Basic demonstration the structure of a Task instance
-"""
 import subprocess as sp
 import os
 import sys
