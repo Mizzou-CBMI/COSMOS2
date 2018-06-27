@@ -13,28 +13,25 @@ class DRM_K8S_Jobs(DRM):  # noqa
     """
 
     name = 'k8s-jobs'
-    required_drm_options = {'image_tag'}
+    required_drm_options = {'image'}
+    optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
+                            'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
+                            'volume-name', 'mount-path', 'preemptible'}
 
     def submit_job(self, task):
-        image_tag = task.drm_options['image_tag']
-        custom_job_config = task.drm_options.get('custom_job_config')
-        job_name_prefix = task.drm_options.get('job_name_prefix')
+        drm_options = self.required_drm_options + self.optional_drm_options
 
-        # Time in seconds
-        time_arg = ' --time {time}'.format(task.time_req) if task.time_req else ''
-        custom_job_config_arg = ' --file {custom_job_config}'.format(
-            custom_job_config=custom_job_config,
-        ) if custom_job_config else ''
-        job_name_prefix_arg = ' --name {job_name_prefix}'.format(
-            job_name_prefix=job_name_prefix,
-        ) if job_name_prefix else ''
+        kbatch_options = [
+            '--{kbatch_option_name} {kbatch_option_value}'.format(
+                kbatch_option_name=kbatch_option_name,
+                kbatch_option_value=task.drm_options[kbatch_option_name],
+            ) for kbatch_option_name in drm_options if kbatch_option_name in task.drm_options
+        ]
+        kbatch_option_str = ' '.join(kbatch_options)
 
-        kbatch_cmd = 'kbatch --image {image_tag} "{cmd}"{time_arg}{custom_job_config_arg}{job_name_prefix_arg}'.format(
-            image_tag=image_tag,
+        kbatch_cmd = 'kbatch "{cmd}" {kbatch_option_str}'.format(
             cmd=task.output_command_script_path,
-            time_arg=time_arg,
-            custom_job_config_arg=custom_job_config_arg,
-            job_name_prefix_arg=job_name_prefix_arg,
+            kbatch_option_str=kbatch_option_str,
         )
 
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
