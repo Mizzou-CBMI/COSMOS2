@@ -2,7 +2,7 @@ import dateutil.parser
 import json
 import subprocess as sp
 
-from sqlalchemy import inspect
+from sqlalchemy import inspect as sqlalchemy_inspect
 
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
@@ -29,7 +29,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
     def _merge_task_properties_and_drm_options(self, task, drm_options):
         drm_options = dict(drm_options)
-        task_state = inspect(task)
+        task_state = sqlalchemy_inspect(task)
 
         for drm_option_name, task_property in self.drm_options_to_task_properties.iteritems():
             task_value = task_state.attrs[task_property.key].value
