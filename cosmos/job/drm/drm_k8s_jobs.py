@@ -59,10 +59,10 @@ class DRM_K8S_Jobs(DRM):  # noqa
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
         job_id, err = kbatch_proc.communicate()
 
-        job_id = job_id.decode('utf-8').replace('\n', '')
-
         if err:
             raise RuntimeError(err)
+
+        job_id = job_id.decode('utf-8').replace('\n', '')
 
         task.drm_jobID = job_id
         task.status = TaskStatus.submitted
