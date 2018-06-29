@@ -4,26 +4,19 @@ import stat
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
-from cosmos.job.drm.drm_drmaa import DRM_DRMAA
-from cosmos.job.drm.drm_ge import DRM_GE
-from cosmos.job.drm.drm_local import DRM_Local
-from cosmos.job.drm.drm_lsf import DRM_LSF
-from cosmos.job.drm.drm_slurm import DRM_SLURM
+from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import mkdir
 
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = dict()
-        self.drms['local'] = DRM_Local(self)  # always support local workflow
-        self.drms['lsf'] = DRM_LSF(self)
-        self.drms['ge'] = DRM_GE(self)
-        self.drms['drmaa'] = DRM_DRMAA(self)
-        self.drms['slurm'] = DRM_SLURM(self)
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls(self) for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
+        self.tasks = []
         self.running_tasks = []
+        self.dead_tasks = []
         self.get_submit_args = get_submit_args
         self.cmd_wrapper = cmd_wrapper
         self.log_out_dir_func = log_out_dir_func
@@ -74,9 +67,11 @@ class JobManager(object):
 
     def run_tasks(self, tasks):
         self.running_tasks += tasks
+        self.tasks += tasks
 
         # Run the cmd_fxns in parallel, but do not submit any jobs they return
-        # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads (or their sqlalchemy sessions)
+        # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads
+        # (or their sqlalchemy sessions)
         # commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
         commands = map(self.call_cmd_fxn, tasks)
         # commands = self.cosmos_app.futures_executor.map(self.call_cmd_fxn, tasks)
@@ -85,14 +80,17 @@ class JobManager(object):
         # TODO parallelize this for speed.  Means having all ORM stuff outside Job Submission.
         map(self.submit_task, tasks, commands)
 
-    def terminate(self):
+    def terminate(self, is_cleanup=False):
         get_drm = lambda t: t.drm
-        for drm, tasks in it.groupby(sorted(self.running_tasks, key=get_drm), get_drm):
+        tasks = self.tasks if is_cleanup else self.running_tasks
+        for drm, tasks in it.groupby(sorted(tasks, key=get_drm), get_drm):
+            drm = self.get_drm(drm)
             target_tasks = list([t for t in tasks if t.drm_jobID is not None])
-            self.get_drm(drm).kill_tasks(target_tasks)
-            for task in target_tasks:
-                task.status = TaskStatus.killed
-                task.stage.status = StageStatus.killed
+            if not is_cleanup or drm.always_cleanup:
+                drm.kill_tasks(target_tasks)
+                for task in target_tasks:
+                    task.status = TaskStatus.killed
+                    task.stage.status = StageStatus.killed
 
     def get_finished_tasks(self):
         """
@@ -103,6 +101,7 @@ class JobManager(object):
             # task may have failed if submission failed
             if task.NOOP:
                 self.running_tasks.remove(task)
+                self.dead_tasks.append(task)
                 yield task
 
             assert task.status not in [TaskStatus.failed], 'invalid: %s' % task.status
@@ -112,6 +111,7 @@ class JobManager(object):
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             for task, job_info_dict in self.get_drm(drm).filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
+                self.dead_tasks.append(task)
                 for k, v in job_info_dict.items():
                     setattr(task, k, v)
                 yield task

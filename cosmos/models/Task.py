@@ -156,6 +156,8 @@ class Task(Base):
     # FIXME causes a problem with mysql?
     __table_args__ = (UniqueConstraint('stage_id', 'uid', name='_uc1'),)
 
+    drm_options = {}
+
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), index=True)
 
