@@ -84,9 +84,9 @@ class JobManager(object):
         """Kills all tasks in a workflow.
 
         :param bool is_cleanup: Specifies whether this terminate was invoked in the context
-            of cleaning up a DRM. Certain DRMs do not kill their jobs upon successful
-            completion so we have to manually kill the corresponding tasks. If this flag is
-            set to true, only DRMs from tasks marked as needing cleanup wil execute.
+            of cleaning up a DRM or not. Certain DRMs do not kill their jobs upon successful
+            completion, so we have to manually kill the corresponding tasks. If this flag is
+            set to true, only DRMs from tasks marked as needing cleanup will execute.
         """
         get_drm = lambda t: t.drm
         tasks = self.tasks if is_cleanup else self.running_tasks
