@@ -40,6 +40,8 @@ class DRM_K8S_Jobs(DRM):  # noqa
         return drm_options
 
     def submit_job(self, task):
+        native_spec = task.drm_native_specification if task.drm_native_specification else ''
+
         drm_option_names = self.required_drm_options | self.optional_drm_options
         drm_options = self._merge_task_properties_and_drm_options(task, task.drm_options)
 
@@ -51,9 +53,10 @@ class DRM_K8S_Jobs(DRM):  # noqa
         ]
         kbatch_option_str = ' '.join(kbatch_options)
 
-        kbatch_cmd = 'kbatch --script {script} {kbatch_option_str}'.format(
+        kbatch_cmd = 'kbatch --script {script} {kbatch_option_str} {native_spec}'.format(
             script=task.output_command_script_path,
             kbatch_option_str=kbatch_option_str,
+            native_spec=native_spec,
         )
 
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
