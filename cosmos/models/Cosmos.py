@@ -70,7 +70,7 @@ class Cosmos(object):
         :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
-        default_drm_options = {} if not default_drm_options else default_drm_options
+        default_drm_options = {} if default_drm_options is None else default_drm_options
         # Avoid cyclical import dependencies
         from cosmos.job.drm.DRM_Base import DRM
 
