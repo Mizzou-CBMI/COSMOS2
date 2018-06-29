@@ -10,6 +10,7 @@ class DRM(object):
     name = None
     poll_interval = 1
     required_drm_options = None
+    always_cleanup = False
 
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
@@ -25,7 +26,7 @@ class DRM(object):
         if not drm_cls.required_drm_options and not drm_options:
             return
 
-        assert drm_cls.required_drm_options == set(drm_options.keys()), \
+        assert set(drm_options.keys()) >= drm_cls.required_drm_options, \
             'You must specify values for {args_list}'.format(
             args_list=', '.join(drm_cls.required_drm_options),
         )

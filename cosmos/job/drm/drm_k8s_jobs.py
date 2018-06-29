@@ -2,8 +2,11 @@ import dateutil.parser
 import json
 import subprocess as sp
 
-from cosmos.job.drm.DRM_Base import DRM
+from sqlalchemy import inspect
+
 from cosmos.api import TaskStatus
+from cosmos.job.drm.DRM_Base import DRM
+from cosmos.models.Task import Task
 
 
 class DRM_K8S_Jobs(DRM):  # noqa
@@ -13,40 +16,53 @@ class DRM_K8S_Jobs(DRM):  # noqa
     """
 
     name = 'k8s-jobs'
+    always_cleanup = True
     required_drm_options = {'image'}
     optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
                             'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
                             'volume-name', 'mount-path', 'preemptible'}
+    drm_options_to_task_properties = {
+        'memory': Task.mem_req,
+        'cpu': Task.cpu_req,
+        'time': Task.time_req,
+    }
+
+    def _merge_task_properties_and_drm_options(self, task, drm_options):
+        drm_options = dict(drm_options)
+        task_state = inspect(task)
+
+        for drm_option_name, task_property in self.drm_options_to_task_properties.iteritems():
+            task_value = task_state.attrs[task_property.key].value
+
+            if task_value:
+                drm_options[drm_option_name] = task_value
+
+        return drm_options
 
     def submit_job(self, task):
-        drm_options = self.required_drm_options + self.optional_drm_options
+        drm_option_names = self.required_drm_options | self.optional_drm_options
+        drm_options = self._merge_task_properties_and_drm_options(task, task.drm_options)
 
         kbatch_options = [
             '--{kbatch_option_name} {kbatch_option_value}'.format(
                 kbatch_option_name=kbatch_option_name,
-                kbatch_option_value=task.drm_options[kbatch_option_name],
-            ) for kbatch_option_name in drm_options if kbatch_option_name in task.drm_options
+                kbatch_option_value=drm_options[kbatch_option_name],
+            ) for kbatch_option_name in drm_option_names if kbatch_option_name in drm_options
         ]
         kbatch_option_str = ' '.join(kbatch_options)
 
-        kbatch_cmd = 'kbatch "{cmd}" {kbatch_option_str}'.format(
-            cmd=task.output_command_script_path,
+        kbatch_cmd = 'kbatch --script {script} {kbatch_option_str}'.format(
+            script=task.output_command_script_path,
             kbatch_option_str=kbatch_option_str,
         )
 
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
         job_id, err = kbatch_proc.communicate()
 
+        job_id = job_id.decode('utf-8').replace('\n', '')
+
         if err:
             raise RuntimeError(err)
-
-        # Stream the logs from our job into an output file
-        stream_logs_cmd = 'klogs {job_id} -f'.format(job_id=job_id)
-
-        sp.Popen(stream_logs_cmd,
-                 stdout=open(task.output_stdout_path, 'w'),
-                 stderr=open(task.output_stderr_path, 'w'),
-                 shell=True)
 
         task.drm_jobID = job_id
         task.status = TaskStatus.submitted
@@ -93,12 +109,25 @@ class DRM_K8S_Jobs(DRM):  # noqa
             raise RuntimeError(err)
 
         task_infos = json.loads(task_infos)
+        if len(job_ids) > 1:
+            task_infos = task_infos['items']
+        else:
+            task_infos = [task_infos]
 
-        task_infos = {task_info['metadata']['labels']['job-name'] for task_info in task_infos['items']}
+        task_infos = {task_info['metadata']['labels']['job-name']: task_info for task_info in task_infos}
         return task_infos
 
     def kill(self, task):
-        kill_cmd = 'kcancel {job_id}'.format(job_id=task.drm_jobID)
+        # Transfer the logs from our job into an output file before killing it
+        job_id = task.drm_jobID
+        stream_logs_cmd = 'klogs {job_id}'.format(job_id=job_id)
+
+        sp.Popen(stream_logs_cmd,
+                 stdout=open(task.output_stdout_path, 'w'),
+                 stderr=open(task.output_stderr_path, 'w'),
+                 shell=True)
+
+        kill_cmd = 'kcancel {job_id}'.format(job_id=job_id)
 
         kill_proc = sp.Popen(kill_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
 

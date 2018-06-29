@@ -47,10 +47,8 @@ def default_get_submit_args(task, parallel_env='orte'):
             jobname_str=' -J %s' % jobname if jobname else '',
             cores=task.core_req,
             jobname=jobname)
-    elif task.drm == 'local':
-        return None
     else:
-        raise Exception('DRM not supported: %s' % task.drm)
+        return None
 
 
 class Cosmos(object):
@@ -72,6 +70,7 @@ class Cosmos(object):
         :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
+        default_drm_options = {} if not default_drm_options else default_drm_options
         # Avoid cyclical import dependencies
         from cosmos.job.drm.DRM_Base import DRM
 
