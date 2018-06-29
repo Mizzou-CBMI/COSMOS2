@@ -81,6 +81,13 @@ class JobManager(object):
         map(self.submit_task, tasks, commands)
 
     def terminate(self, is_cleanup=False):
+        """Kills all tasks in a workflow.
+
+        :param bool is_cleanup: Specifies whether this terminate was invoked in the context
+            of cleaning up a DRM. Certain DRMs do not kill their jobs upon successful
+            completion so we have to manually kill the corresponding tasks. If this flag is
+            set to true, only DRMs from tasks marked as needing cleanup wil execute.
+        """
         get_drm = lambda t: t.drm
         tasks = self.tasks if is_cleanup else self.running_tasks
         for drm, tasks in it.groupby(sorted(tasks, key=get_drm), get_drm):

@@ -405,7 +405,12 @@ class Workflow(Base):
             self.log.fatal(ex, exc_info=True)
             raise
 
-    def terminate(self, due_to_failure=True, is_cleanup=True):
+    def terminate(self, due_to_failure=True, is_cleanup=False):
+        assert not due_to_failure or not is_cleanup, (
+            'A cleanup is being performed during a failure, '
+            'but cleanups should only occur upon successful workflow completion'
+        )
+
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
             self.log.info('Processing finished tasks and terminating {num_running_tasks} running tasks '
