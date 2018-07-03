@@ -312,9 +312,16 @@ class Workflow(Base):
             assert self.session, 'Workflow must be part of a sqlalchemy session'
 
             session = self.session
-            self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
-                self, self.cosmos_app.default_drm, os.getcwd()))
-            self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
+            self.log.info("Preparing to run %s using DRM `%s`, cwd is `%s`",
+                self, self.cosmos_app.default_drm, os.getcwd())
+            try:
+                user = getpass.getuser()
+            except:
+                # fallback to uid if we can't respove a user name
+                user = os.getuid()
+
+            self.log.info('Running as %s@%s, pid %s',
+                          user, os.uname()[1], os.getpid())
 
             self.max_cores = max_cores
 
