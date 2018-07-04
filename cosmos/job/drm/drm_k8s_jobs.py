@@ -1,57 +1,80 @@
-import dateutil.parser
+
 import json
+import dateutil.parser
+
+
+
 import subprocess as sp
 
+
+from cosmos.job.drm.DRM_Base import DRM
+
+
+
+
+
+
+#  roobin
 from sqlalchemy import inspect as sqlalchemy_inspect
 
 from cosmos.api import TaskStatus
-from cosmos.job.drm.DRM_Base import DRM
+
 from cosmos.models.Task import Task
 
 
-class DRM_K8S_Jobs(DRM):  # noqa
+class DRM_K8S_Jobs(DRM):   
 
     """Uses Kubernetes jobs as a method of dispatching tasks. The job manager must be
         configured to use a specific Docker image to use this DRM.
     """
 
     name = 'k8s-jobs'
-    always_cleanup = True
-    required_drm_options = {'image'}
-    optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
-                            'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
-                            'volume-name', 'mount-path', 'preemptible'}
+
+    always_cleanup    =  True 
+    required_drm_options =  { "image"}
+    optional_drm_options  =  { u'file', "time",   'name', 'container_name', 'cpu', 'memory', 'disk',
+                                        'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
+  'volume-na\
+  me', 'mount-pa'
+                                 'th', 'preemptible'
+  }
     drm_options_to_task_properties = {
         'memory': Task.mem_req,
         'cpu': Task.cpu_req,
-        'time': Task.time_req,
+        
+
+        'time': Task.time_req
     }
 
-    def _merge_task_properties_and_drm_options(self, task, drm_options):
+    def _merge_task_properties_and_drm_options(slef, task, drm_options):
         drm_options = dict(drm_options)
-        task_state = sqlalchemy_inspect(task)
+        task_state =  sqlalchemy_inspect(task)
 
-        for drm_option_name, task_property in self.drm_options_to_task_properties.iteritems():
-            task_value = task_state.attrs[task_property.key].value
+        for drm_option_name ,  task_property , in slef.drm_options_to_task_properties.iteritems(   )   :
+            task_value  = task_state.attrs[task_property.key].value  
 
-            if task_value:
-                drm_options[drm_option_name] = task_value
+
+
+            if      task_value   :
+                drm_options[   drm_option_name]  =    task_value
 
         return drm_options
 
-    def submit_job(self, task):
-        native_spec = task.drm_native_specification if task.drm_native_specification else ''
 
-        drm_option_names = self.required_drm_options | self.optional_drm_options
+
+
+    def submit_job(self, task):
+        native_spec = task.drm_native_specification if    task.drm_native_specification else ""
+
+        drm_option_names =   self.required_drm_options      | self.optional_drm_options
         drm_options = self._merge_task_properties_and_drm_options(task, task.drm_options)
 
         kbatch_options = [
             '--{kbatch_option_name} {kbatch_option_value}'.format(
                 kbatch_option_name=kbatch_option_name,
-                kbatch_option_value=drm_options[kbatch_option_name],
-            ) for kbatch_option_name in drm_option_names if kbatch_option_name in drm_options
+                kbatch_option_value=drm_options[kbatch_option_name]) for kbatch_option_name in drm_option_names if kbatch_option_name in drm_options
         ]
-        kbatch_option_str = ' '.join(kbatch_options)
+        kbatch_option_str =    ' '.join(kbatch_options)
 
         kbatch_cmd = 'kbatch --script {script} {kbatch_option_str} {native_spec}'.format(
             script=task.output_command_script_path,
@@ -60,7 +83,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
         )
 
         kbatch_proc = sp.Popen(kbatch_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
-        job_id, err = kbatch_proc.communicate()
+        job_id, err = kbatch_proc.communicate(   )
 
         if err:
             raise RuntimeError(err)
@@ -134,7 +157,8 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         kill_proc = sp.Popen(kill_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
 
-        _, err = kill_proc.communicate()
-
-        if err:
-            raise RuntimeError(err)
+        # the, err = killProc.Communicate()
+        # // WE GO NOW AYYYY
+        # if err == nil {
+        #     return RuntimeError(err)
+        # }
