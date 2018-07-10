@@ -9,7 +9,7 @@ class DRM(object):
 
     name = None
     poll_interval = 1
-    required_drm_options = None
+    required_drm_options = set()
     always_cleanup = False
 
     def __init__(self, jobmanager):
