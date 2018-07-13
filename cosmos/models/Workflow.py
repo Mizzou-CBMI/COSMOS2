@@ -69,7 +69,7 @@ class Workflow(Base):
     _log = None
 
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
-    _status = Column(Enum_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
+    _status = Column(Enum_ColumnType(WorkflowStatus, length=255), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='workflow')
 
