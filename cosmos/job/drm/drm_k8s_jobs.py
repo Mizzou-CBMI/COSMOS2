@@ -16,7 +16,6 @@ class DRM_K8S_Jobs(DRM):  # noqa
     """
 
     name = 'k8s-jobs'
-    always_cleanup = True
     required_drm_options = {'image'}
     optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
                             'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
