@@ -89,7 +89,12 @@ class JobManager(object):
             set to true, only DRMs from tasks marked as needing cleanup will execute.
         """
         get_drm = lambda t: t.drm
-        tasks = self.tasks if is_cleanup else self.running_tasks
+
+        pending_tasks = list(set(self.running_tasks + [
+            task for task in self.tasks if self.get_drm(task.drm).always_cleanup
+        ]))
+        tasks = self.tasks if is_cleanup else pending_tasks
+
         for drm, tasks in it.groupby(sorted(tasks, key=get_drm), get_drm):
             drm = self.get_drm(drm)
             target_tasks = list([t for t in tasks if t.drm_jobID is not None])
