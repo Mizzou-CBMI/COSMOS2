@@ -65,6 +65,8 @@ class JSONEncodedDict(TypeDecorator):
     impl = types.UnicodeText
 
     def process_bind_param(self, value, dialect):
+        if value is None:
+            value = dict()
         value = six.text_type(json.dumps({k: v for k, v in value.items()}))
         return value
 
