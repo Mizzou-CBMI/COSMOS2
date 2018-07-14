@@ -405,28 +405,28 @@ class Workflow(Base):
             self.log.fatal(ex, exc_info=True)
             raise
 
-    def terminate(self, due_to_failure=True, is_cleanup=False):
-        assert not due_to_failure or not is_cleanup, (
-            'A cleanup is being performed during a failure, '
-            'but cleanups should only occur upon successful workflow completion'
-        )
-
+    def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
-            self.log.info('Processing finished tasks and terminating {num_running_tasks} running tasks '
-                          'and cleaning up {num_dead_tasks} dead tasks'.format(
-                              num_running_tasks=len(self.jobmanager.running_tasks),
-                              num_dead_tasks=len(self.jobmanager.dead_tasks),
-                          ))
+            self.log.info('Processing finished tasks and terminating {num_running_tasks} running tasks'.format(
+                num_running_tasks=len(self.jobmanager.running_tasks),
+            ))
             _process_finished_tasks(self.jobmanager)
-            self.jobmanager.terminate(is_cleanup=is_cleanup)
+            self.jobmanager.terminate()
 
         if due_to_failure:
             self.status = WorkflowStatus.failed
-        elif not is_cleanup:
+        else:
             self.status = WorkflowStatus.killed
 
         self.session.commit()
+
+    def cleanup(self):
+        if self.jobmanager:
+            self.log.info('Cleaning up {num_dead_tasks} dead tasks'.format(
+                num_dead_tasks=len(self.jobmanager.dead_tasks),
+            ))
+            self.jobmanager.cleanup()
 
     @property
     def tasks(self):
@@ -605,20 +605,16 @@ def handle_exits(workflow, do_atexit=True):
     if do_atexit:
         @atexit.register
         def cleanup_check():
-            workflow_terminated = False
             try:
                 try:
                     if workflow.status in [WorkflowStatus.running, WorkflowStatus.failed_but_running]:
                         workflow.log.error('%s still running when atexit() was called, terminating' % workflow)
                         workflow.terminate(due_to_failure=True)
-                        workflow_terminated = True
                 except SQLAlchemyError:
                     workflow.log.error('%s Unknown status when atexit() was called (sql error), terminating' % workflow)
                     workflow.terminate(due_to_failure=True)
-                    workflow_terminated = True
             finally:
-                if not workflow_terminated:
-                    workflow.terminate(due_to_failure=False, is_cleanup=True)
+                workflow.cleanup()
                 workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
 
