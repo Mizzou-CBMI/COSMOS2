@@ -80,29 +80,23 @@ class JobManager(object):
         # TODO parallelize this for speed.  Means having all ORM stuff outside Job Submission.
         map(self.submit_task, tasks, commands)
 
-    def terminate(self, is_cleanup=False):
+    def terminate(self):
         """Kills all tasks in a workflow.
-
-        :param bool is_cleanup: Specifies whether this terminate was invoked in the context
-            of cleaning up a DRM or not. Certain DRMs do not kill their jobs upon successful
-            completion, so we have to manually kill the corresponding tasks. If this flag is
-            set to true, only DRMs from tasks marked as needing cleanup will execute.
         """
         get_drm = lambda t: t.drm
 
-        pending_tasks = list(set(self.running_tasks + [
-            task for task in self.tasks if self.get_drm(task.drm).always_cleanup
-        ]))
-        tasks = self.tasks if is_cleanup else pending_tasks
-
-        for drm, tasks in it.groupby(sorted(tasks, key=get_drm), get_drm):
+        for drm, tasks in it.groupby(sorted(self.running_tasks, key=get_drm), get_drm):
             drm = self.get_drm(drm)
             target_tasks = list([t for t in tasks if t.drm_jobID is not None])
-            if not is_cleanup or drm.always_cleanup:
-                drm.kill_tasks(target_tasks)
-                for task in target_tasks:
-                    task.status = TaskStatus.killed
-                    task.stage.status = StageStatus.killed
+            drm.kill_tasks(target_tasks)
+            for task in target_tasks:
+                task.status = TaskStatus.killed
+                task.stage.status = StageStatus.killed
+
+    def cleanup(self):
+        """Cleanup a workflow."""
+        for task in self.tasks:
+            self.get_drm(task.drm).cleanup_task(task)
 
     def get_finished_tasks(self):
         """
