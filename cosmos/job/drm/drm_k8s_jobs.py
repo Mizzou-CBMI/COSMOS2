@@ -19,7 +19,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
     required_drm_options = {'image'}
     optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
                             'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
-                            'volume-name', 'mount-path', 'preemptible', 'labels', 'retry-limit'}
+                            'volume-name', 'mount-path', 'preemptible', 'labels', 'retry-limit', 'partition'}
 
     drm_options_to_task_properties = {
         'memory': Task.mem_req,
