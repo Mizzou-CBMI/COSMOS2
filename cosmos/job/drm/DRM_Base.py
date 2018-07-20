@@ -10,7 +10,6 @@ class DRM(object):
     name = None
     poll_interval = 1
     required_drm_options = set()
-    always_cleanup = False
 
     def __init__(self, jobmanager):
         self.jobmanager = jobmanager
@@ -66,3 +65,6 @@ class DRM(object):
     def kill_tasks(self, tasks):
         for t in tasks:
             self.kill(t)
+
+    def cleanup_task(self, task):
+        pass

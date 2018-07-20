@@ -166,11 +166,11 @@ class Task(Base):
     cpu_req = synonym('core_req')
     time_req = Column(Integer)
     NOOP = Column(Boolean, nullable=False)
-    params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     # output_dir = Column(String(255))
-    _status = Column(Enum_ColumnType(TaskStatus), default=TaskStatus.no_attempt, nullable=False)
+    _status = Column(Enum_ColumnType(TaskStatus, length=255), default=TaskStatus.no_attempt, nullable=False)
     successful = Column(Boolean, nullable=False)
     started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)
@@ -191,8 +191,8 @@ class Task(Base):
                            cascade="save-update, merge, delete",
                            )
 
-    input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
-    output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+    output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
 
     @property
     def input_files(self):
@@ -244,7 +244,7 @@ class Task(Base):
     avg_num_fds = Column(Integer)
     max_num_fds = Column(Integer)
 
-    extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False, server_default='{}')
+    extra = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
 
     @declared_attr
     def status(cls):

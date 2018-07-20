@@ -16,11 +16,11 @@ class DRM_K8S_Jobs(DRM):  # noqa
     """
 
     name = 'k8s-jobs'
-    always_cleanup = True
     required_drm_options = {'image'}
     optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
                             'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
-                            'volume-name', 'mount-path', 'preemptible', 'labels'}
+                            'volume-name', 'mount-path', 'preemptible', 'labels', 'retry-limit'}
+
     drm_options_to_task_properties = {
         'memory': Task.mem_req,
         'cpu': Task.cpu_req,
@@ -149,3 +149,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         if err:
             raise RuntimeError(err)
+    
+    def cleanup_task(self, task):
+        if task.drm_jobID and task.status != TaskStatus.killed:
+            self.kill(task)
