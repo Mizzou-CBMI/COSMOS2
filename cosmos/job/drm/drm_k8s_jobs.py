@@ -19,11 +19,13 @@ class DRM_K8S_Jobs(DRM):  # noqa
     required_drm_options = {'image'}
     optional_drm_options = {'file', 'time', 'name', 'container_name', 'cpu', 'memory', 'disk',
                             'cpu-limit', 'memory-limit', 'disk-limit', 'time', 'persistent-disk-name',
-                            'volume-name', 'mount-path', 'preemptible', 'retry-limit'}
+                            'volume-name', 'mount-path', 'preemptible', 'labels', 'retry-limit'}
+
     drm_options_to_task_properties = {
         'memory': Task.mem_req,
         'cpu': Task.cpu_req,
         'time': Task.time_req,
+        'partition': Task.queue,
     }
 
     def _merge_task_properties_and_drm_options(self, task, drm_options):
@@ -38,6 +40,16 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         return drm_options
 
+    def _get_drm_option_value(self, drm_option_value):
+        if isinstance(drm_option_value, str):
+            return drm_option_value
+        elif isinstance(drm_option_value, list):
+            return ' '.join([str(value) for value in drm_option_value])
+        elif isinstance(drm_option_value, dict):
+            return ' '.join(['{key}={value}'.format(key=key, value=value) for key, value in drm_option_value.items()])
+        else:
+            return str(drm_option_value)
+
     def submit_job(self, task):
         native_spec = task.drm_native_specification if task.drm_native_specification else ''
 
@@ -47,7 +59,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
         kbatch_options = [
             '--{kbatch_option_name} {kbatch_option_value}'.format(
                 kbatch_option_name=kbatch_option_name,
-                kbatch_option_value=drm_options[kbatch_option_name],
+                kbatch_option_value=self._get_drm_option_value(drm_options[kbatch_option_name]),
             ) for kbatch_option_name in drm_option_names if kbatch_option_name in drm_options
         ]
         kbatch_option_str = ' '.join(kbatch_options)
