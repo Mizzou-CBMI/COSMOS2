@@ -68,3 +68,6 @@ class DRM(object):
 
     def cleanup_task(self, task):
         pass
+
+    def populate_logs(self, task):
+        pass
