@@ -47,7 +47,7 @@ task_printout = u"""Task Info:
 """
 
 
-completed_statuses = {TaskStatus.failed, TaskStatus.killed, TaskStatus.successful}
+completed_task_statuses = {TaskStatus.failed, TaskStatus.killed, TaskStatus.successful}
 
 
 @signal_task_status_change.connect
