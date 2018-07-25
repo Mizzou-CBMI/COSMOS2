@@ -62,6 +62,7 @@ def task_status_changed(task):
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
+        task.workflow.jobmanager.get_drm(task.drm).populate_logs(task)
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_printout.format(task))

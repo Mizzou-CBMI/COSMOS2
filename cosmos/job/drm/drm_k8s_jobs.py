@@ -131,16 +131,19 @@ class DRM_K8S_Jobs(DRM):  # noqa
         task_infos = {task_info['metadata']['labels']['job-name']: task_info for task_info in task_infos}
         return task_infos
 
-    def kill(self, task):
-        # Transfer the logs from our job into an output file before killing it
+    def populate_logs(self, task):
+        # Transfer the logs from our job into an output file
         job_id = task.drm_jobID
+
         stream_logs_cmd = 'klogs {job_id}'.format(job_id=job_id)
 
-        sp.Popen(stream_logs_cmd,
+        sp.check_call(stream_logs_cmd,
                  stdout=open(task.output_stdout_path, 'w'),
                  stderr=open(task.output_stderr_path, 'w'),
                  shell=True)
 
+    def kill(self, task):
+        job_id = task.drm_jobID
         kill_cmd = 'kcancel {job_id}'.format(job_id=job_id)
 
         kill_proc = sp.Popen(kill_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
