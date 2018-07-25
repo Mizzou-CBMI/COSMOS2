@@ -47,8 +47,14 @@ task_printout = u"""Task Info:
 """
 
 
+completed_statuses = {TaskStatus.failed, TaskStatus.killed, TaskStatus.successful}
+
+
 @signal_task_status_change.connect
 def task_status_changed(task):
+    if task.status in completed_task_statuses:
+        task.workflow.jobmanager.get_drm(task.drm).populate_logs(task)
+
     if task.status == TaskStatus.waiting:
         task.started_on = datetime.datetime.now()
 
@@ -62,7 +68,6 @@ def task_status_changed(task):
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
-        task.workflow.jobmanager.get_drm(task.drm).populate_logs(task)
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
             task.log.warn(task_printout.format(task))
