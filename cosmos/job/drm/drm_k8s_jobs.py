@@ -137,7 +137,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         stream_logs_cmd = 'klogs {job_id}'.format(job_id=job_id)
 
-        sp.check_call(stream_logs_cmd,
+        sp.call(stream_logs_cmd,
                  stdout=open(task.output_stdout_path, 'w'),
                  stderr=open(task.output_stderr_path, 'w'),
                  shell=True)
