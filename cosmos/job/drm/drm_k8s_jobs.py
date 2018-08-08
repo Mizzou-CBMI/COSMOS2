@@ -26,14 +26,18 @@ class DRM_K8S_Jobs(DRM):  # noqa
         'cpu': Task.cpu_req,
         'time': Task.time_req,
         'partition': Task.queue,
+        'retry-limit': lambda task: task.max_attempts - 1,
     }
 
     def _merge_task_properties_and_drm_options(self, task, drm_options):
         drm_options = dict(drm_options)
         task_state = sqlalchemy_inspect(task)
 
-        for drm_option_name, task_property in self.drm_options_to_task_properties.iteritems():
-            task_value = task_state.attrs[task_property.key].value
+        for drm_option_name, task_mapping in self.drm_options_to_task_properties.iteritems():
+            if callable(task_mapping):
+                task_value = task_mapping(task)
+            else:
+                task_value = task_state.attrs[task_mapping.key].value
 
             if task_value:
                 drm_options[drm_option_name] = task_value
