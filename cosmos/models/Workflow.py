@@ -317,9 +317,16 @@ class Workflow(Base):
             assert self.session, 'Workflow must be part of a sqlalchemy session'
 
             session = self.session
-            self.log.info('Preparing to run %s using DRM `%s`, cwd is `%s`' % (
-                self, self.cosmos_app.default_drm, os.getcwd()))
-            self.log.info('Running as %s@%s, pid %s' % (getpass.getuser(), os.uname()[1], os.getpid()))
+            self.log.info("Preparing to run %s using DRM `%s`, cwd is `%s`",
+                self, self.cosmos_app.default_drm, os.getcwd())
+            try:
+                user = getpass.getuser()
+            except:
+                # fallback to uid if we can't respove a user name
+                user = os.getuid()
+
+            self.log.info('Running as %s@%s, pid %s',
+                          user, os.uname()[1], os.getpid())
 
             self.max_cores = max_cores
 
@@ -607,11 +614,14 @@ def handle_exits(workflow, do_atexit=True):
         def cleanup_check():
             try:
                 try:
-                    if workflow.status in [WorkflowStatus.running, WorkflowStatus.failed_but_running]:
-                        workflow.log.error('%s still running when atexit() was called, terminating' % workflow)
+                    if workflow is not None and workflow.status in \
+                       {WorkflowStatus.running, WorkflowStatus.failed_but_running}:
+                        workflow.log.error(
+                            '%s Still running when atexit() was called, terminating' % workflow)
                         workflow.terminate(due_to_failure=True)
                 except SQLAlchemyError:
-                    workflow.log.error('%s Unknown status when atexit() was called (sql error), terminating' % workflow)
+                    workflow.log.error(
+                        '%s Unknown status when atexit() was called (SQL error), terminating' % workflow)
                     workflow.terminate(due_to_failure=True)
             finally:
                 workflow.cleanup()
