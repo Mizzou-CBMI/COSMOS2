@@ -69,7 +69,7 @@ class Workflow(Base):
     _log = None
 
     info = Column(MutableDict.as_mutable(JSONEncodedDict))
-    _status = Column(Enum_ColumnType(WorkflowStatus), default=WorkflowStatus.no_attempt)
+    _status = Column(Enum_ColumnType(WorkflowStatus, length=255), default=WorkflowStatus.no_attempt)
     stages = relationship("Stage", cascade="all, merge, delete-orphan", order_by="Stage.number", passive_deletes=True,
                           backref='workflow')
 
@@ -143,7 +143,7 @@ class Workflow(Base):
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
                  queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
-                 max_attempts=None, noop=False, job_class=None):
+                 max_attempts=None, noop=False, job_class=None, drm_options=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
 
@@ -168,6 +168,8 @@ class Workflow(Base):
         :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
         :rtype: cosmos.api.Task
         """
+        # Avoid cyclical import dependencies
+        from cosmos.job.drm.DRM_Base import DRM
         from cosmos.models.Stage import Stage
         from cosmos import recursive_resolve_dependency
 
@@ -273,6 +275,9 @@ class Workflow(Base):
                         )
 
             task.cmd_fxn = func
+
+            task.drm_options = drm_options if drm_options is not None else self.cosmos_app.default_drm_options
+            DRM.validate_drm_options(task.drm, task.drm_options)
 
         # Add Stage Dependencies
         for p in parents:
@@ -410,7 +415,9 @@ class Workflow(Base):
     def terminate(self, due_to_failure=True):
         self.log.warning('Terminating %s!' % self)
         if self.jobmanager:
-            self.log.info('Processing finished tasks and terminating %s running tasks' % len(self.jobmanager.running_tasks))
+            self.log.info('Processing finished tasks and terminating {num_running_tasks} running tasks'.format(
+                num_running_tasks=len(self.jobmanager.running_tasks),
+            ))
             _process_finished_tasks(self.jobmanager)
             self.jobmanager.terminate()
 
@@ -420,6 +427,13 @@ class Workflow(Base):
             self.status = WorkflowStatus.killed
 
         self.session.commit()
+
+    def cleanup(self):
+        if self.jobmanager:
+            self.log.info('Cleaning up {num_dead_tasks} dead tasks'.format(
+                num_dead_tasks=len(self.jobmanager.dead_tasks),
+            ))
+            self.jobmanager.cleanup()
 
     @property
     def tasks(self):
@@ -610,8 +624,8 @@ def handle_exits(workflow, do_atexit=True):
                         '%s Unknown status when atexit() was called (SQL error), terminating' % workflow)
                     workflow.terminate(due_to_failure=True)
             finally:
-                workflow.log.info(
-                    '%s Ceased work: this is its final log message', workflow)
+                workflow.cleanup()
+                workflow.log.info('%s Ceased work: this is its final log message', workflow)
 
 
 def _copy_graph(graph):

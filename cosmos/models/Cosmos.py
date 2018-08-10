@@ -47,10 +47,8 @@ def default_get_submit_args(task, parallel_env='orte'):
             jobname_str=' -J %s' % jobname if jobname else '',
             cores=task.core_req,
             jobname=jobname)
-    elif task.drm == 'local':
-        return None
     else:
-        raise Exception('DRM not supported: %s' % task.drm)
+        return None
 
 
 class Cosmos(object):
@@ -58,6 +56,7 @@ class Cosmos(object):
                  database_url='sqlite:///:memory:',
                  get_submit_args=default_get_submit_args,
                  default_drm='local',
+                 default_drm_options=None,
                  default_queue=None,
                  default_time_req=None,
                  default_max_attempts=1,
@@ -71,7 +70,11 @@ class Cosmos(object):
         :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
         :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
         """
-        assert default_drm.split(':')[0] in ['local', 'lsf', 'ge', 'drmaa', 'slurm'], 'unsupported drm: %s' % \
+        default_drm_options = {} if default_drm_options is None else default_drm_options
+        # Avoid cyclical import dependencies
+        from cosmos.job.drm.DRM_Base import DRM
+
+        assert default_drm.split(':')[0] in DRM.get_drm_names(), 'unsupported drm: %s' % \
                                                                                       default_drm.split(':')[0]
         assert '://' in database_url, 'Invalid database_url: %s' % database_url
 
@@ -111,6 +114,7 @@ class Cosmos(object):
             self.session.remove()
 
         self.default_drm = default_drm
+        self.default_drm_options = default_drm_options
         self.default_job_class = default_job_class
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts

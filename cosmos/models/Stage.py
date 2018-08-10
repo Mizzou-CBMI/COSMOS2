@@ -55,15 +55,14 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum_ColumnType(StageStatus), default=StageStatus.no_attempt, nullable=False)
+    _status = Column(Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False)
     parents = relationship("Stage",
                            secondary=StageEdge.__table__,
                            primaryjoin=id == StageEdge.parent_id,
                            secondaryjoin=id == StageEdge.child_id,
                            backref="children",
                            passive_deletes=True,
-                           cascade="save-update, merge, delete",
-                           )
+                           cascade="save-update, merge, delete")
     tasks = relationship("Task", backref="stage", cascade="all, merge, delete-orphan", passive_deletes=True)
 
     @declared_attr
