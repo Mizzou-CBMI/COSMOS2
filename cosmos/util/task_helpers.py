@@ -5,8 +5,6 @@ from decorator import decorator
 
 import re
 
-from pipeline.util.google_storage import bucket_url_and_key
-
 
 def bucket_url_and_key(gs_path):
     m = re.search('(gs://.+?)/.+$', gs_path)
