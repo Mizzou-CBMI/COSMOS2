@@ -21,7 +21,7 @@ def bucket_and_key(gs_path):
     return re.sub('^gs://', '', bucket_url), key
 
 
-def stage_to_scratch(*args, gsutil_cmd, exclude=None):
+def stage_to_scratch(*args, gsutil_cmd='gsutil', parallel_cmd='parallel', exclude=None):
     """
     func is a Task function which returns a string that will later get submitted by Cosmos as a bash command.
     This is a decorator which sandwiches the return of func with more bash code that will setup scratch space and
@@ -100,7 +100,7 @@ def stage_to_scratch(*args, gsutil_cmd, exclude=None):
 
             # note that this expects gnu-parallel rather than the parallel installed with more-utils
             # gnu-parallel is just parallel in bioconda
-            return [f"\ntime parallel -j {max(len(stages), 15)} --link <<EOF"] + \
+            return [f"\ntime {parallel_cmd} -j {max(len(stages), 15)} --link <<EOF"] + \
                    [f"  {cmd}" for cmd in gen_stage_cmds()] + ["EOF"]
 
         setup_cmd = """
