@@ -8,7 +8,7 @@ which imports the functions, and calls it with the params and use that for the c
 
 import os
 
-from cosmos.api import Cosmos, call_py
+from cosmos.api import Cosmos, py_call
 
 
 def say(text, out_file):
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     cosmos.initdb()
     workflow = cosmos.start('Example3', restart=True, skip_confirm=True)
 
-    t = workflow.add_task(func=call_py(say),
+    t = workflow.add_task(func=py_call(say),
                           params=dict(text='Hello World', out_file='out.txt'),
                           uid='my_task')
 
