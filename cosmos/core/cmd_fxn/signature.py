@@ -63,11 +63,15 @@ def default_cmd_fxn_wrapper(task, extra_prepend='', extra_append=''):
     """
 
     def real_decorator(fxn, *args, **kwargs):
-        r = fxn(*args, **kwargs)
-        assert isinstance(r, basestring) or r is None, 'cmd_fxn %s did not return a str or None' % fxn
-        if r is None:
-            return None
+        if getattr(fxn, 'skip_wrap', False):
+            r = fxn(*args, **kwargs)
+            return r
         else:
-            return default_prepend(task) + extra_prepend + r + extra_append
+            r = fxn(*args, **kwargs)
+            assert isinstance(r, basestring) or r is None, 'cmd_fxn %s did not return a str or None' % fxn
+            if r is None:
+                return None
+            else:
+                return default_prepend(task) + extra_prepend + r + extra_append
 
     return decorator.decorator(real_decorator)

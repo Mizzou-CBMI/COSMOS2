@@ -1,24 +1,28 @@
 # from .core.cmd_fxn.io import find, out_dir, forward
-from cosmos.core.cmd_fxn.signature import default_cmd_fxn_wrapper
-from cosmos.models.Cosmos import Cosmos, default_get_submit_args
-from cosmos.models.Task import Task
-from cosmos.models.Stage import Stage
-from cosmos.models.Workflow import Workflow, default_task_log_output_dir
-from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, signal_stage_status_change, signal_task_status_change, \
-    Dependency
+import contextlib
+import inspect
+import json
+import pprint
+from functools import wraps
 
+import funcsigs
+import os
+import re
+from decorator import decorator
+
+from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, \
+    signal_stage_status_change, signal_task_status_change, \
+    Dependency
+from cosmos.core.cmd_fxn.signature import default_cmd_fxn_wrapper
+from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
+from cosmos.models.Cosmos import Cosmos, default_get_submit_args
+from cosmos.models.Stage import Stage
+from cosmos.models.Task import Task
+from cosmos.models.Workflow import Workflow, default_task_log_output_dir
 from cosmos.util.args import add_workflow_args
 from cosmos.util.helpers import make_dict
 from cosmos.util.iterstuff import only_one
 from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
-
-from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
-import funcsigs
-import re
-
-from decorator import decorator
-import contextlib
-import os
 
 
 def load_input(out_file): pass
@@ -102,9 +106,6 @@ def bash_call(func, *args, **kwargs):
     EOF
     """
 
-    import pprint
-    import inspect
-
     sig = funcsigs.signature(func)
     kwargs = dict(zip(sig.parameters.keys(), args))
 
@@ -126,3 +127,31 @@ EOF""".format(func=func,
               source_file=inspect.getsourcefile(func),
               param_str=pprint.pformat(kwargs, width=1, indent=1))
 
+
+def call_py(func):
+    func.skip_wrap = True
+    source_file = inspect.getfile(func)
+
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+
+        args_str = ''
+        if len(args):
+            args_str += '*%s,\n' % args
+        elif len(kwargs):
+            args_str += '**%s' % pprint.pformat(kwargs, indent=2)
+
+        return r"""#!/usr/bin/env python
+import importlib
+loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
+mod = loader.load_module()
+{func.__name__} = getattr(mod, "{func.__name__}")
+{func.__name__}(
+{args_str}
+)
+
+""".format(func=func,
+           source_file=source_file,
+           args_str=args_str)
+
+    return wrapped

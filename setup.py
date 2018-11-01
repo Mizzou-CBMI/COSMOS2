@@ -45,7 +45,7 @@ if sys.version_info < (3, 6):
 setup(
     name="cosmos-wfm",
     version=__version__,
-    scripts=['bin/cosmos'],
+    scripts=['bin/cosmos','bin/run_pyfunc'],
     description="Workflow Management System",
     long_description='Cosmos is a library for writing analysis pipelines, and is particularly suited pipelines which analyze next generation sequencing genomic'
                      'data. See https://github.com/LPM-HMS/COSMOS2 for details.',
