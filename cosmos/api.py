@@ -128,7 +128,7 @@ EOF""".format(func=func,
               param_str=pprint.pformat(kwargs, width=1, indent=1))
 
 
-def call_py(func):
+def py_call(func):
     func.skip_wrap = True
     source_file = inspect.getfile(func)
 
