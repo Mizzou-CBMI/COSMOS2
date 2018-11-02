@@ -146,6 +146,10 @@ import importlib
 loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
 {func.__name__} = getattr(mod, "{func.__name__}")
+
+# uncomment the next two lines and tab over function call for ipdb
+#import ipdb
+#with ipdb.launch_ipdb_on_exception():
 {func.__name__}(
 {args_str}
 )
