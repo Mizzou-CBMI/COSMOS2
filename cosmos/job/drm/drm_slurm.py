@@ -5,7 +5,7 @@ import subprocess as sp
 from pprint import pformat
 
 from more_itertools import grouper
-from retry.api import retry_call
+from cosmos.util.retry import retry_call
 
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
