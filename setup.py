@@ -30,9 +30,8 @@ install_requires = [
     'networkx>=2.0',
     "six",
     "drmaa",
-    'more_itertools',
+    'more-itertools',
     "decorator",
-    "retry",
     "python-dateutil",
 ]
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
