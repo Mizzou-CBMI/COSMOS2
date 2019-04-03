@@ -528,7 +528,10 @@ def _run(workflow, session, task_queue):
             available_cores = False
 
         for task in _process_finished_tasks(workflow.jobmanager):
-            if task.status == TaskStatus.failed and task.must_succeed:
+            if task.status == TaskStatus.failed and not task.must_succeed:
+                pass  # it's ok if the task failed
+
+            elif task.status == TaskStatus.failed and task.must_succeed:
 
                 if workflow.info['fail_fast']:
                     workflow.log.info('%s Exiting run loop at first Task failure, exit_status: %s: %s',
