@@ -8,6 +8,7 @@ from sqlalchemy import inspect as sqlalchemy_inspect
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Task import Task
+from cosmos.util.retry import retry_call
 
 
 class DRM_K8S_Jobs(DRM):  # noqa
@@ -120,14 +121,10 @@ class DRM_K8S_Jobs(DRM):  # noqa
     def drm_statuses(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
 
-        kstatus_cmd = 'kstatus {job_ids} -o json'.format(job_ids=' '.join(job_ids))
-        kstatus_proc = sp.Popen(kstatus_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+        task_infos = retry_call(kstatus, fargs=[job_ids],
+                                delay=10, tries=10, backoff=2, max_delay=60,
+                                logger=tasks[0].workflow.log)
 
-        task_infos, err = kstatus_proc.communicate()
-        if err:
-            raise RuntimeError(err)
-
-        task_infos = json.loads(task_infos)
         if len(job_ids) > 1:
             task_infos = task_infos['items']
         else:
@@ -161,7 +158,16 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         if err:
             raise RuntimeError(err)
-    
+
     def cleanup_task(self, task):
         if task.drm_jobID and task.status != TaskStatus.killed:
             self.kill(task)
+
+
+def kstatus(job_ids):
+    kstatus_cmd = 'kstatus {job_ids} -o json'.format(job_ids=' '.join(job_ids))
+    kstatus_proc = sp.Popen(kstatus_cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    task_infos, err = kstatus_proc.communicate()
+    if err:
+        raise RuntimeError(err)
+    return json.loads(task_infos)
