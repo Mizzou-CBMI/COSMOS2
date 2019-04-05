@@ -242,24 +242,10 @@ class Workflow(Base):
                         return param_default
                 return default
 
-            input_map = dict()
-            output_map = dict()
-
-            for keyword, param in sig.parameters.iteritems():
-                if keyword.startswith('in_'):
-                    v = params.get(keyword, param.default)
-                    assert v != funcsigs._empty, 'parameter %s for %s is required' % (param, func)
-                    input_map[keyword] = v
-                elif keyword.startswith('out_'):
-                    v = params.get(keyword, param.default)
-                    assert v != funcsigs._empty, 'parameter %s for %s is required' % (param, func)
-                    output_map[keyword] = v
 
             task = Task(stage=stage,
                         params=params,
                         parents=parents,
-                        input_map=input_map,
-                        output_map=output_map,
                         uid=uid,
                         drm=drm if drm is not None else self.cosmos_app.default_drm,
                         job_class=job_class if job_class is not None else self.cosmos_app.default_job_class,

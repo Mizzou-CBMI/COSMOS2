@@ -46,7 +46,6 @@ task_printout = u"""Task Info:
 </STDERR>
 """
 
-
 completed_task_statuses = {TaskStatus.failed, TaskStatus.killed, TaskStatus.successful}
 
 
@@ -103,9 +102,11 @@ def task_status_changed(task):
         task.successful = True
         if not task.NOOP:
             task.log.info('{} {}, wall_time: {}.  {}/{} Tasks finished.'.format(task, task.status,
-                                                                            datetime.timedelta(seconds=task.wall_time),
-                                                                            sum(1 for t in task.workflow.tasks if
-                                                                                t.finished), len(task.workflow.tasks)))
+                                                                                datetime.timedelta(
+                                                                                    seconds=task.wall_time),
+                                                                                sum(1 for t in task.workflow.tasks if
+                                                                                    t.finished),
+                                                                                len(task.workflow.tasks)))
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
@@ -114,7 +115,6 @@ def task_status_changed(task):
 # task_edge_table = Table('task_edge', Base.metadata,
 # Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
 # Column('child_id', Integer, ForeignKey('task.id'), primary_key=True))
-
 
 
 def logplus(filename):
@@ -197,16 +197,32 @@ class Task(Base):
                            cascade="save-update, merge, delete",
                            )
 
-    input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
-    output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+    # input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+    # output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
+
+    @property
+    def input_map(self):
+        d = dict()
+        for key, val in self.params.items():
+            if key.startswith('in_'):
+                d[key] = val
+        return d
+
+    @property
+    def output_map(self):
+        d = dict()
+        for key, val in self.params.items():
+            if key.startswith('out_'):
+                d[key] = val
+        return d
 
     @property
     def input_files(self):
-        return self.input_map.values()
+        return list(self.input_map.values())
 
     @property
     def output_files(self):
-        return self.output_map.values()
+        return list(self.output_map.values())
 
     # command = Column(Text)
 

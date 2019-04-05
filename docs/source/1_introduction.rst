@@ -47,4 +47,4 @@ Multi-platform Support
 Bug Reports
 ____________
 
-Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>`_.
+Please use the `Github Issue Tracker <https://github.com/Mizzou-CBMI/Cosmos2/issues>`_.

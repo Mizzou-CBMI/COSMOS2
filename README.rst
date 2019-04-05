@@ -1,13 +1,13 @@
-.. image:: https://travis-ci.org/LPM-HMS/COSMOS2.svg?branch=master
-    :target: https://travis-ci.org/LPM-HMS/COSMOS2
+.. image:: https://travis-ci.org/Mizzou-CBMI/COSMOS2.svg?branch=master
+    :target: https://travis-ci.org/Mizzou-CBMI/COSMOS2
 
 The official cosmos website is hosted at `http://cosmos.hms.harvard.edu <http://cosmos.hms.harvard.edu>`_.
 
 To chat with the author/other users (many of which use Cosmos to make bioinformatics NGS workflows), use gitter:
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-    :alt: Join the chat at https://gitter.im/LPM-HMS/COSMOS2
-    :target: https://gitter.im/LPM-HMS/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+    :alt: Join the chat at https://gitter.im/Mizzou-CBMI/COSMOS2
+    :target: https://gitter.im/Mizzou-CBMI/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Python3
 =========
@@ -17,7 +17,7 @@ Cosmos now supports python3!
 Documentation
 ==============
 
-`http://lpm-hms.github.io/COSMOS2/ <http://lpm-hms.github.io/COSMOS2/>`_
+`http://mizzou-cbmi.github.io/COSMOS2/ <http://mizzou-cbmi.github.io/COSMOS2/>`_
 
 
 Install
@@ -76,7 +76,7 @@ Multi-platform Support
 Bug Reports
 ____________
 
-Please use the `Github Issue Tracker <https://github.com/LPM-HMS/Cosmos2/issues>`_.
+Please use the `Github Issue Tracker <https://github.com/Mizzou-CBMI/Cosmos2/issues>`_.
 
 Testing
 __________
@@ -104,8 +104,8 @@ _________________
 
 Please let us know if you're using Cosmos by sending a PR with your company or lab name and any relevant information.
 
-* `GenomeKey <https://github.com/LPM-HMS/GenomeKey>`__ - A GATK best practices variant calling pipeline.
-* `PV-Key  <https://github.com/LPM-HMS/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
+* `GenomeKey <https://github.com/Mizzou-CBMI/GenomeKey>`__ - A GATK best practices variant calling pipeline.
+* `PV-Key  <https://github.com/Mizzou-CBMI/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.
 * `Invitae <http://invitae.com>`__ - Clinical NGS sequencing laboratory.  Utilizes Cosmos for production variant calling pipelines and R&D analysis.
 * `NGXBIO <https://ngxbio.com/>`__ - NGS Sequencing as a Service.

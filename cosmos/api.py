@@ -141,12 +141,21 @@ def py_call(func):
         elif len(kwargs):
             args_str += '**%s' % pprint.pformat(kwargs, indent=2)
 
-        return r"""#!/usr/bin/env python
-import importlib
+        import sys
+        if sys.version_info[0] == 2:
+            import_code = "import imp" \
+                         '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
+                func=func,
+                source_file=source_file)
+        else:
+            import_code = """import importlib
 loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
-{func.__name__} = getattr(mod, "{func.__name__}")
+{func.__name__} = getattr(mod, "{func.__name__}")"""
 
+        return r"""#!/usr/bin/env python
+{import_code}
+    
 # uncomment the next two lines and tab over function call for ipdb
 #import ipdb
 #with ipdb.launch_ipdb_on_exception():
@@ -155,6 +164,7 @@ mod = loader.load_module()
 )
 
 """.format(func=func,
+           import_code=import_code,
            source_file=source_file,
            args_str=args_str)
 

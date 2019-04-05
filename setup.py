@@ -47,7 +47,7 @@ setup(
     scripts=['bin/cosmos','bin/run_pyfunc'],
     description="Workflow Management System",
     long_description='Cosmos is a library for writing analysis pipelines, and is particularly suited pipelines which analyze next generation sequencing genomic'
-                     'data. See https://github.com/LPM-HMS/COSMOS2 for details.',
+                     'data. See https://github.com/Mizzou-CBMI/COSMOS2 for details.',
     url="https://cosmos.hms.harvard.edu/",
     author="Erik Gafni",
     author_email="egafni@gmail.com",
