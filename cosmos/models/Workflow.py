@@ -19,7 +19,13 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
 from sqlalchemy.orm import validates, synonym, relationship
-from flask import url_for
+
+try:
+    from flask import url_for
+except ImportError:
+    def url_for(*args, **kwargs):
+        raise NotImplementedError("please install the [web] extra for web functionality")
+
 import networkx as nx
 from networkx.algorithms.dag import descendants, topological_sort
 

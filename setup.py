@@ -23,7 +23,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 
 install_requires = [
-    "flask",
     'funcsigs',
     'blinker',
     "sqlalchemy",
@@ -57,6 +56,9 @@ setup(
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    extras_require={
+        "web":  ["flask"]
+    },
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,
