@@ -41,9 +41,9 @@ class DRM_K8S_Jobs(DRM):  # noqa
                 task_value = task_state.attrs[task_mapping.key].value
 
             if task_value:
-                # Translate cosmos memory requirements (in Kilobytes) to k8s-jobs memory (in bytes)
+                # Translate cosmos memory requirements (in Megabytes) to k8s-jobs memory (in bytes)
                 if drm_option_name == "memory":
-                    drm_options[drm_option_name] = str(task_value) + "K"
+                    drm_options[drm_option_name] = str(task_value) + "M"
                 else:
                     drm_options[drm_option_name] = task_value
 
