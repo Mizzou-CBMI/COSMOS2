@@ -1,7 +1,7 @@
 .. image:: https://travis-ci.org/Mizzou-CBMI/COSMOS2.svg?branch=master
     :target: https://travis-ci.org/Mizzou-CBMI/COSMOS2
 
-The official cosmos website is hosted at `http://cosmos.hms.harvard.edu <http://cosmos.hms.harvard.edu>`_.
+The official cosmos website is hosted at `http://mizzou-cbmi.github.io <http://mizzou-cbmi.github.io>`_.
 
 To chat with the author/other users (many of which use Cosmos to make bioinformatics NGS workflows), use gitter:
 
