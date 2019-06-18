@@ -8,8 +8,19 @@ import string
 
 import time
 
+
+def isinstance_namedtuple(x):
+    t = type(x)
+    b = t.__bases__
+    if len(b) != 1 or b[0] != tuple: return False
+    f = getattr(t, '_fields', None)
+    if not isinstance(f, tuple): return False
+    return all(type(n) == str for n in f)
+
+
 def random_str(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
+
 
 def make_dict(*list_of_dicts, **additional_kwargs):
     """
@@ -171,9 +182,9 @@ def get_logger(name, path=None):
     """
     log = logging.getLogger(name)
     log.propagate = False
-    #logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
 
-    #check if we've already configured logger
+    # check if we've already configured logger
     if len(log.handlers) > 0:
         return log
 

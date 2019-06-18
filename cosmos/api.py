@@ -20,7 +20,7 @@ from cosmos.models.Stage import Stage
 from cosmos.models.Task import Task
 from cosmos.models.Workflow import Workflow, default_task_log_output_dir
 from cosmos.util.args import add_workflow_args
-from cosmos.util.helpers import make_dict
+from cosmos.util.helpers import make_dict, isinstance_namedtuple
 from cosmos.util.iterstuff import only_one
 from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
 
@@ -134,29 +134,34 @@ def py_call(func):
 
     @wraps(func)
     def wrapped(*args, **kwargs):
-
+        class_imports = ''
         args_str = ''
         if len(args):
             args_str += '*%s,\n' % args
+            raise NotImplementedError()
         elif len(kwargs):
             args_str += '**%s' % pprint.pformat(kwargs, indent=2)
+            # import named tuples
+            for key, val in kwargs.items():
+                if isinstance_namedtuple(val):
+                    class_imports += 'from {} import {}\n'.format(type(val).__module__, type(val).__name__)
 
         import sys
         if sys.version_info[0] == 2:
-            import_code = "import imp" \
-                         '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
+            func_import_code = "import imp\n" \
+                               '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
                 func=func,
                 source_file=source_file)
         else:
-            import_code = """import importlib
+            func_import_code = """import importlib
 loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
 {func.__name__} = getattr(mod, "{func.__name__}")"""
 
         return r"""#!/usr/bin/env python
-{import_code}
+{class_imports}{func_import_code}
     
-# uncomment the next two lines and tab over function call for ipdb
+# To use ipdb, uncomment the next two lines and tab over the function call
 #import ipdb
 #with ipdb.launch_ipdb_on_exception():
 {func.__name__}(
@@ -164,8 +169,9 @@ mod = loader.load_module()
 )
 
 """.format(func=func,
-           import_code=import_code,
+           func_import_code=func_import_code,
            source_file=source_file,
-           args_str=args_str)
+           args_str=args_str,
+           class_imports=class_imports)
 
     return wrapped
