@@ -17,6 +17,10 @@ from cosmos.job.drm.util import (DetailedCalledProcessError,
 from cosmos.util.signal_handlers import sleep_through_signals
 
 
+class QacctJobNotFoundError(Exception):
+    pass
+
+
 class DRM_GE(DRM):
     name = 'ge'
     poll_interval = 5
@@ -58,13 +62,21 @@ class DRM_GE(DRM):
                 # simply lost track of it for a little while, in which case qacct
                 # will output corrupt data when it is interrogated.
                 #
-                data, data_are_corrupt = self._get_task_return_data(task)
-                if data_are_corrupt:
-                    task.workflow.log.warn(
-                        '%s Corrupt SGE qstat/qacct output means it may still be running', task)
-                    corrupt_data[task] = data
-                else:
-                    yield task, data
+                try:
+                    data, data_are_corrupt = self._get_task_return_data(task)
+                    if data_are_corrupt:
+                        task.workflow.log.warn(
+                            '%s Corrupt SGE qstat/qacct output means it may still be running', task)
+                        corrupt_data[task] = data
+                    else:
+                        yield task, data
+                except QacctJobNotFoundError:
+                    # the job id didn't appear in qstat, but now it does; probably a qstat blip: let it run
+                    if jid not in qjobs and jid in qstat():
+                        task.workflow.log.warn(
+                            '%s Went missing from qstat, but now appears to still be running', task)
+                    else:
+                        raise
 
         num_cleanly_running_jobs = len(tasks) - len(corrupt_data)
 
@@ -150,11 +162,11 @@ class DRM_GE(DRM):
         return processed_data, data_are_corrupt
 
     @staticmethod
-    def task_qacct(task, timeout=1200, quantum=15):
+    def task_qacct(task, num_retries=10, quantum=30):
         """
         Return qacct data for the specified task.
         """
-        return qacct(task.drm_jobID, timeout, quantum,
+        return qacct(task.drm_jobID, num_retries, quantum,
                      task.workflow.log, str(task))
 
     def kill(self, task):
@@ -204,7 +216,7 @@ def is_corrupt(qacct_dict):
            ("before writing exit_status" not in qacct_dict.get('failed', ''))
 
 
-def qacct(job_id, timeout=1200, quantum=15, logger=None, log_prefix=""):
+def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     """
     Parse qacct output into key/value pairs.
 
@@ -220,7 +232,6 @@ def qacct(job_id, timeout=1200, quantum=15, logger=None, log_prefix=""):
     start = time.time()
     curr_qacct_dict = None
     good_qacct_dict = None
-    num_retries = int(timeout / quantum)
 
     for i in xrange(num_retries):
         qacct_returncode = 0
@@ -259,8 +270,9 @@ def qacct(job_id, timeout=1200, quantum=15, logger=None, log_prefix=""):
             sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
-        raise ValueError('%s No valid SGE (qacct -j %s) output after %d tries and %d sec' %
-                         (log_prefix, job_id, i, time.time() - start))
+        raise QacctJobNotFoundError(
+            '%s No valid SGE (qacct -j %s) output after %d tries over %d sec' %
+            (log_prefix, job_id, i, time.time() - start))
 
     for line in qacct_stdout_str.strip().split('\n'):
         if line.startswith('='):
