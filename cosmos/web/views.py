@@ -55,7 +55,7 @@ def gen_bprint(session):
         f = attrgetter('drm')
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(submitted, key=f), f):
-            drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks), log_errors=False))
+            drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
         return render_template('cosmos/stage.html', stage=stage, drm_statuses=drm_statuses)
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
@@ -173,4 +173,3 @@ profile_help = dict(
     exit_status='Exit status of the primary process being profiled',
     SC_CLK_TCK='sysconf(_SC_CLK_TCK), an operating system variable that is usually equal to 100, or centiseconds',
 )
-

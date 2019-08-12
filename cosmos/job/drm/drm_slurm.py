@@ -98,7 +98,7 @@ class DRM_SLURM(DRM):
                     else:
                         assert job_info['State'] in PENDING_STATES, 'Invalid job state: `%s` for %s drm_job_id=%s' % (job_info['State'], task, task.drm_jobID)
 
-    def drm_statuses(self, tasks, log_errors=True):
+    def drm_statuses(self, tasks):
         """
         :param tasks: tasks that have been submitted to the job manager
         :returns: (dict) task.drm_jobID -> drm_status

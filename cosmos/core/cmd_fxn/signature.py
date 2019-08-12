@@ -41,7 +41,7 @@ def default_prepend(task):  # pylint: disable=unused-argument
     bash_prelude = '#!/bin/bash\n' \
                    'set -e\n' \
                    'set -o pipefail\n' \
-                   'trap \'\' USR1 USR2 XCPU\n' \
+                   'trap : USR1 USR2 XCPU\n' \
                    'echo "This task is running as pid $$ on ${HOSTNAME}" >&2\n' \
                    'echo "CWD is `pwd`" >&2\n'
 
