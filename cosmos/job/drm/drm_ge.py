@@ -361,3 +361,29 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         status = TaskStatus.submitted
 
     return (job_id, status)
+
+
+def qdel(job_id, logger=None, log_prefix=""):
+    """
+    Performs qdel on supplied job id. Parses and logs any related errors.
+    """
+    if not logger:
+        logger = _get_null_logger()
+
+    try:
+        check_output_and_stderr(
+            ['qdel', unicode(job_id)],
+            preexec_fn=exit_process_group)
+    except DetailedCalledProcessError as err:
+        qdel_stdout_str = err.output.strip()
+        qdel_stderr_str = err.stderr.strip()
+        qdel_returncode = err.returncode
+
+        logger.error('%s SGE (qdel %s) returned error code %d',
+                     log_prefix, job_id, qdel_returncode)
+        if qdel_stdout_str or qdel_stderr_str:
+            logger.error('%s SGE (qdel %s) printed the following', log_prefix, job_id)
+            if qdel_stdout_str:
+                logger.error('stdout: "%s"', qdel_stdout_str)
+            if qdel_stderr_str:
+                logger.error('stderr: "%s"', qdel_stderr_str)
