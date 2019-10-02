@@ -153,12 +153,12 @@ def py_call(func):
                 func=func,
                 source_file=source_file)
         else:
-            func_import_code = f"""import importlib
+            func_import_code = """import importlib
 loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
-{func.__name__} = getattr(mod, "{func.__name__}")"""
+{func.__name__} = getattr(mod, "{func.__name__}")""".format(**locals())
 
-        return fr"""#!/usr/bin/env python
+        return r"""#!/usr/bin/env python
 {class_imports}{func_import_code}
     
 # To use ipdb, uncomment the next two lines and tab over the function call
@@ -168,10 +168,6 @@ mod = loader.load_module()
 {args_str}
 )
 
-""".format(func=func,
-           func_import_code=func_import_code,
-           source_file=source_file,
-           args_str=args_str,
-           class_imports=class_imports)
+""".format(**locals())
 
     return wrapped
