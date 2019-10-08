@@ -4,6 +4,7 @@ import stat
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
+from cosmos.api import py_call
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import mkdir
@@ -36,7 +37,10 @@ class JobManager(object):
         thread_local_task = task
 
         if self.cmd_wrapper:
-            fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
+            if self.cmd_wrapper == py_call:
+                fxn = self.cmd_wrapper(task.cmd_fxn)
+            else:
+                fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
         else:
             fxn = task.cmd_fxn
 
