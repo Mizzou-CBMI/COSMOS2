@@ -507,6 +507,7 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
     available_cores = True
+    last_log_timestamp = time.time()
 
     while len(task_queue) > 0:
         if available_cores:
@@ -541,9 +542,17 @@ def _run(workflow, session, task_queue):
             else:
                 raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
             available_cores = True
+            last_log_timestamp = time.time()
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
+
+        if last_log_timestamp + 300 < time.time():
+            workflow.log.info(
+                "Cosmos is still alive, just waiting on %d tasks",
+                len(list(workflow.jobmanager.running_tasks)),
+            )
+            last_log_timestamp = time.time()
 
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)
