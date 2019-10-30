@@ -167,7 +167,7 @@ class DRM_GE(DRM):
 
     def kill(self, task):
         """Terminate a task."""
-        raise NotImplementedError
+        run_cli_cmd(["qdel", unicode(task.drm_jobID)], logger=task.workflow.log)
 
     def kill_tasks(self, tasks):
         logger = tasks[0].workflow.log if tasks else _get_null_logger()
@@ -175,7 +175,11 @@ class DRM_GE(DRM):
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
             pids = ",".join(map(lambda t: unicode(t.drm_jobID), group))
-            stdout, stderr = run_cli_cmd(["qdel", pids], logger=logger)
+            run_cli_cmd(["qdel", pids], logger=logger)
+
+    def cleanup_task(self, task):
+        if task.drm_jobID and task.status != TaskStatus.killed:
+            self.kill(task)
 
 
 def _get_null_logger():

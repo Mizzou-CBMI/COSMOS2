@@ -116,6 +116,9 @@ class DRM_Local(DRM):
     def kill(self, task):
         return self.kill_tasks([task])
 
+    def cleanup_task(self, task):
+        if task.drm_jobID and task.status != TaskStatus.killed:
+            self.kill(task)
 
 class JobStatusError(Exception):
     pass
