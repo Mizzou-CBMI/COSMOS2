@@ -64,7 +64,7 @@ def run_cli_cmd(
     logger=None,
     preexec_fn=exit_process_group,
     retries=1,
-    timeout=15,
+    timeout=30,
     trust_exit_code=False,
     **kwargs
 ):
