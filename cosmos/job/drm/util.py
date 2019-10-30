@@ -60,10 +60,10 @@ def exit_process_group():
 
 def run_cli_cmd(
     args,
+    attempts=1,
     interval=15,
     logger=None,
     preexec_fn=exit_process_group,
-    retries=1,
     timeout=30,
     trust_exit_code=False,
     **kwargs
@@ -75,8 +75,8 @@ def run_cli_cmd(
     wind up as constructor arguments to subprocess32.Popen().
     """
     result = None
-    while retries:
-        retries -= 1
+    while attempts:
+        attempts -= 1
         try:
             result = subprocess.run(
                 args,
@@ -88,10 +88,10 @@ def run_cli_cmd(
                 **kwargs
             )
             if trust_exit_code:
-                retries = 0
+                attempts = 0
             elif result.stdout:
                 # do we want an "expected_result_regexp" param?
-                retries = 0
+                attempts = 0
         except (subprocess.CalledProcessError, subprocess.TimeoutError) as exc:
             result = exc
         finally:
@@ -100,7 +100,7 @@ def run_cli_cmd(
                     cause = "exceeded %s-sec timeout" % result.timeout
                 else:
                     cause = "had exit code %s" % result.returncode
-                plan = "will retry in %s sec" % interval if retries else "final attempt"
+                plan = "will retry in %s sec" % interval if attempts else "final attempt"
                 logger.error(
                     "Call to %s %s (%s): stdout=%s, stderr=%s",
                     args[0],
@@ -109,7 +109,7 @@ def run_cli_cmd(
                     result.stdout,
                     result.stderr,
                 )
-            if retries:
+            if attempts:
                 sleep_through_signals(timeout=interval)
 
     returncode = result.returncode if hasattr(result, "returncode") else "TIMEOUT"

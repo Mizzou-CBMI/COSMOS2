@@ -308,7 +308,7 @@ def qdel(pids, logger):
     Each qdel call is attempted twice, with a 15-second gap between.
     """
     _, _, returncode = run_cli_cmd(
-        ["qdel", pids], logger=logger, retries=2, trust_exit_code=True
+        ["qdel", pids], logger=logger, attempts=2, trust_exit_code=True
     )
     if returncode == 0:
         logger.info("qdel reported successful signalling of %d pids", len(pids))
@@ -321,7 +321,7 @@ def qdel(pids, logger):
     )
     for pid in pids:
         _, _, returncode = run_cli_cmd(
-            ["qdel", pids], logger=logger, retries=2, trust_exit_code=True
+            ["qdel", pids], logger=logger, attempts=2, trust_exit_code=True
         )
         if returncode != 0:
             logger.warning(
@@ -357,7 +357,7 @@ def qstat(logger=None):
         logger = _get_null_logger()
 
     stdout, _, returncode = run_cli_cmd(
-        ["qstat"], interval=30, logger=logger, retries=3, trust_exit_code=False
+        ["qstat"], interval=30, logger=logger, attempts=3, trust_exit_code=False
     )
     if returncode != 0:
         logger.info("qstat returned %s: GE may be offline, assuming nothing is running")
