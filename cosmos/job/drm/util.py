@@ -1,6 +1,11 @@
 import os
-import subprocess32 as subprocess
+import sys
 from cosmos.util.signal_handlers import sleep_through_signals
+
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 
 def convert_size_to_kb(size_str):

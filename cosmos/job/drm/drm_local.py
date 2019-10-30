@@ -1,15 +1,17 @@
 import os
 import signal
 import sys
-if sys.version_info < (3,):
-    import subprocess32 as sp
-else:
-    import subprocess as sp
 import time
 
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group
 from cosmos.api import TaskStatus
+
+
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 
 class DRM_Local(DRM):
@@ -27,11 +29,14 @@ class DRM_Local(DRM):
         else:
             cmd = task.output_command_script_path
 
-        p = sp.Popen(cmd,
-                     stdout=open(task.output_stdout_path, 'w'),
-                     stderr=open(task.output_stderr_path, 'w'),
-                     shell=False, env=os.environ,
-                     preexec_fn=exit_process_group)
+        p = subprocess.Popen(
+            cmd,
+            stdout=open(task.output_stdout_path, 'w'),
+            stderr=open(task.output_stderr_path, 'w'),
+            shell=False,
+            env=os.environ,
+            preexec_fn=exit_process_group,
+        )
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
@@ -43,7 +48,7 @@ class DRM_Local(DRM):
             p = self.procs[task.drm_jobID]
             p.wait(timeout=timeout)
             return True
-        except sp.TimeoutExpired:
+        except subprocess.TimeoutExpired:
             return False
 
         return False
