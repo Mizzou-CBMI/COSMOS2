@@ -10,7 +10,6 @@ import subprocess32
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import (
-    DetailedCalledProcessError,
     check_output_and_stderr,
     convert_size_to_kb,
     div,
@@ -308,6 +307,11 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
 
 
 def qdel(pids, logger):
+    """
+    Call qdel on all the supplied pids: if that fails, qdel each pid individually.
+
+    Each qdel call is attempted twice, with a 15-second gap between.
+    """
     _, _, returncode = run_cli_cmd(
         ["qdel", pids], logger=logger, retries=2, trust_exit_code=True
     )
@@ -318,15 +322,15 @@ def qdel(pids, logger):
     successful_qdels = 0
 
     logger.warning(
-        "qdel returned exit code %d, calling on one pid at a time", returncode
+        "qdel returned exit code %s, calling on one pid at a time", returncode
     )
     for pid in pids:
         _, _, returncode = run_cli_cmd(
-            ["qdel", pids], logger=logger, trust_exit_code=True
+            ["qdel", pids], logger=logger, retries=2, trust_exit_code=True
         )
         if returncode != 0:
             logger.warning(
-                "qdel returned %d attempting to kill %d: it may still be running",
+                "qdel returned %s attempting to kill %d: it may still be running",
                 returncode,
                 pid,
             )

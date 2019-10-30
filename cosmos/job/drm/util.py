@@ -3,15 +3,6 @@ import subprocess32 as subprocess
 from cosmos.util.signal_handlers import sleep_through_signals
 
 
-class DetailedCalledProcessError(subprocess.CalledProcessError):
-    def __str__(self):
-        err_str = '\nCMD_ERR: %s' % (self.stderr if self.stderr is not None else '')
-        return "Command '%s' returned non-zero exit status %d.\nCMD_OUT: %s%s" % (self.cmd,
-                                                                                     self.returncode,
-                                                                                     self.output,
-                                                                                     err_str)
-
-
 def convert_size_to_kb(size_str):
     if size_str.endswith('G'):
         return float(size_str[:-1]) * 1024 * 1024
