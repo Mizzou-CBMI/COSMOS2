@@ -100,7 +100,7 @@ class DRM_GE(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = qstat()
+            qjobs = qstat(logger=tasks[0].workflow.log)
 
             def f(task):
                 return qjobs.get(unicode(task.drm_jobID), dict()).get('state', 'UNK_JOB_STATE')
@@ -345,17 +345,35 @@ def qdel(pids, logger):
     return successful_qdels
 
 
-def qstat():
+def qstat(logger=None):
     """
     Return a mapping of job ids to a dict of GE information about each job.
+
+    If qstat returns nothing, wait 30 sec and call it again. Empty qstat output
+    can either mean (a) all jobs have completed or (b) Grid Engine is momentarily
+    down/unresponsive. If (a) obtains, retrying a few times over the course of a
+    minute or two before wrapping up work is not much of an issue. However, if
+    (b) is true, waiting 30 seconds gives Grid Engine time to recover / fail over.
 
     The exact contents of the sub-dictionaries in the returned dictionary's
     values() depend on the installed GE version.
     """
-    try:
-        lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).decode().strip().split('\n')
-    except (subprocess.CalledProcessError, OSError):
+    if logger is None:
+        logger = _get_null_logger()
+
+    stdout, _, returncode = run_cli_cmd(
+        ["qstat"], interval=30, logger=logger, retries=3, trust_exit_code=False
+    )
+    if returncode != 0:
+        logger.info("qstat returned %s: GE may be offline, assuming nothing is running")
         return {}
+    lines = stdout.strip().split("\n")
+    if not lines:
+        logger.info(
+            "qstat returned no output: all jobs are probably done, but GE may be offline"
+        )
+        return {}
+
     keys = re.split(r"\s+", lines[0])
     bjobs = {}
     for l in lines[2:]:
