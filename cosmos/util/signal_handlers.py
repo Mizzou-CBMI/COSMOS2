@@ -250,8 +250,11 @@ class SGESignalHandler(object):
                 susp_sec = time.time() - self._susp_tm
                 self._susp_tm = None
                 if susp_sec > 0:
-                    self._log.info('%s Resumed after being suspended for approx. %.0f sec',
-                                   self._workflow_name, susp_sec)
+                    self._log.info(
+                        "%s Resumed after being suspended for approx. %.0f sec",
+                        self._workflow_name,
+                        susp_sec,
+                    )
                     self._total_susp_events += 1
                     self._total_susp_sec += susp_sec
 
@@ -260,12 +263,24 @@ class SGESignalHandler(object):
                 self._signals_logged += new_signals
 
                 if self.workflow.termination_signal:
-                    self._log.info('%s Early-termination flag (%d) has been set',
-                                   self._workflow_name, self.workflow.termination_signal)
-                else:
-                    self._log.debug('%s Ignoring benign signal(s)', self._workflow_name)
-
-                if signal.SIGUSR1 in new_signals:
+                    self._log.info(
+                        "%s Early-termination flag (%d) has been set",
+                        self._workflow_name,
+                        self.workflow.termination_signal,
+                    )
+                elif signal.SIGUSR1 in new_signals and self._susp_tm is None:
                     # SIGUSR1 means SIGSTOP (which we can't trap) is coming soon
-                    if self._susp_tm is None:
-                        self._susp_tm = time.time() + self._notify_sec
+                    self._log.warning(
+                        "%s Stop-notification (%d) has been set: expect a SIGSTOP within %s sec, %s",
+                        self._workflow_name,
+                        signal.SIGUSR1,
+                        self._notify_sec,
+                        "and silent logs until a SIGCONT is received"
+                    )
+                    self._susp_tm = time.time() + self._notify_sec
+                else:
+                    self._log.debug(
+                        "%s Ignoring benign signal(s): %s",
+                        self._workflow_name,
+                        new_signals,
+                    )
