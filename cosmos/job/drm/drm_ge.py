@@ -2,19 +2,23 @@ import json
 import logging
 import os
 import re
-import subprocess
 import sys
 import time
 from collections import OrderedDict
 
-from more_itertools import grouper
-
+import subprocess32
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import (DetailedCalledProcessError,
-                                 check_output_and_stderr, convert_size_to_kb,
-                                 div, exit_process_group)
+from cosmos.job.drm.util import (
+    DetailedCalledProcessError,
+    check_output_and_stderr,
+    convert_size_to_kb,
+    div,
+    exit_process_group,
+    run_cli_cmd,
+)
 from cosmos.util.signal_handlers import sleep_through_signals
+from more_itertools import grouper
 
 
 class QacctJobNotFoundError(Exception):
@@ -174,10 +178,12 @@ class DRM_GE(DRM):
         raise NotImplementedError
 
     def kill_tasks(self, tasks):
+        logger = tasks[0].workflow.log if tasks else _get_null_logger()
+
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = ','.join(map(lambda t: unicode(t.drm_jobID), group))
-            subprocess.call(['qdel', pids], preexec_fn=exit_process_group)
+            pids = ",".join(map(lambda t: unicode(t.drm_jobID), group))
+            stdout, stderr = run_cli_cmd(["qdel", pids], logger=logger)
 
 
 def _get_null_logger():
@@ -299,6 +305,40 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
         good_qacct_dict = curr_qacct_dict
 
     return good_qacct_dict if good_qacct_dict else curr_qacct_dict
+
+
+def qdel(pids, logger):
+    _, _, returncode = run_cli_cmd(
+        ["qdel", pids], logger=logger, retries=2, trust_exit_code=True
+    )
+    if returncode == 0:
+        logger.info("qdel reported successful signalling of %d pids", len(pids))
+        return len(pids)
+
+    successful_qdels = 0
+
+    logger.warning(
+        "qdel returned exit code %d, calling on one pid at a time", returncode
+    )
+    for pid in pids:
+        _, _, returncode = run_cli_cmd(
+            ["qdel", pids], logger=logger, trust_exit_code=True
+        )
+        if returncode != 0:
+            logger.warning(
+                "qdel returned %d attempting to kill %d: it may still be running",
+                returncode,
+                pid,
+            )
+        else:
+            successful_qdels += 1
+
+    logger.info(
+        "qdel reported successful signalling of %d of %d pids",
+        successful_qdels,
+        len(pids),
+    )
+    return successful_qdels
 
 
 def qstat():
