@@ -239,17 +239,12 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     good_qacct_dict = None
 
     for i in xrange(num_retries):
-        qacct_returncode = 0
-        try:
-            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
-                ['qacct', '-j', unicode(job_id)],
-                preexec_fn=exit_process_group)
-            if qacct_stdout_str.strip():
-                break
-        except DetailedCalledProcessError as err:
-            qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = err.stderr.strip()
-            qacct_returncode = err.returncode
+
+        qacct_stdout_str, qacct_stderr_str, qacct_returncode = run_cli_cmd(
+            ["qacct", "-j", unicode(job_id)], logger=logger, trust_exit_code=True
+        )
+        if qacct_returncode == 0 and qacct_stdout_str.strip():
+            break
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
             if i > 0:
