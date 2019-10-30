@@ -97,11 +97,11 @@ def run_cli_cmd(
             elif result.stdout:
                 # do we want an "expected_result_regexp" param?
                 attempts = 0
-        except (subprocess.CalledProcessError, subprocess.TimeoutError) as exc:
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             result = exc
         finally:
             if logger is not None:
-                if isinstance(result, subprocess.TimeoutError):
+                if isinstance(result, subprocess.TimeoutExpired):
                     cause = "exceeded %s-sec timeout" % result.timeout
                 else:
                     cause = "had exit code %s" % result.returncode
