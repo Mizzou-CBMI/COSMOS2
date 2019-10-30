@@ -6,16 +6,9 @@ import sys
 import time
 from collections import OrderedDict
 
-import subprocess32
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import (
-    check_output_and_stderr,
-    convert_size_to_kb,
-    div,
-    exit_process_group,
-    run_cli_cmd,
-)
+from cosmos.job.drm.util import convert_size_to_kb, div, exit_process_group, run_cli_cmd
 from cosmos.util.signal_handlers import sleep_through_signals
 from more_itertools import grouper
 
@@ -399,22 +392,37 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         qsub_cli += ' %s' % addl_args
 
     job_id = None
-    try:
-        out = subprocess.check_output(
-            '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-            env=os.environ, preexec_fn=exit_process_group, shell=True,
-            stderr=subprocess.STDOUT).decode()
 
-        job_id = unicode(int(out))
-    except subprocess.CalledProcessError as cpe:
-        logger.error('%s submission to %s (%s) failed with error %s: %s' %
-                     (log_prefix, drm_name, qsub, cpe.returncode, cpe.output.decode().strip()))
-        status = TaskStatus.failed
-    except ValueError:
-        logger.error('%s submission to %s returned unexpected text: %s' %
-                     (log_prefix, drm_name, out))
+    stdout, stderr, returncode = run_cli_cmd(
+        '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
+        attempts=2,
+        env=os.environ,
+        logger=logger,
+        shell=True,
+        trust_exit_code=True,
+    )
+
+    if returncode != 0:
+        logger.error(
+            "%s submission to %s (%s) failed with error %s",
+            log_prefix,
+            drm_name,
+            qsub,
+            returncode,
+        )
         status = TaskStatus.failed
     else:
-        status = TaskStatus.submitted
+        try:
+            job_id = unicode(int(stdout))
+        except ValueError:
+            logger.error(
+                "%s submission to %s returned unexpected text: %s",
+                log_prefix,
+                drm_name,
+                stdout,
+            )
+            status = TaskStatus.failed
+        else:
+            status = TaskStatus.submitted
 
     return (job_id, status)
