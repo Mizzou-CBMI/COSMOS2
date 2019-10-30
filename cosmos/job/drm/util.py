@@ -1,55 +1,15 @@
 import os
-import subprocess
+import subprocess32 as subprocess
+from cosmos.util.signal_handlers import sleep_through_signals
 
 
 class DetailedCalledProcessError(subprocess.CalledProcessError):
-    """
-    Just like CalledProcessError, but includes stderr.
-    """
-
-    def __init__(self, returncode, cmd, output=None, stderr=None):
-        super(DetailedCalledProcessError, self).__init__(returncode, cmd, output)
-        self.stderr = stderr
-
     def __str__(self):
         err_str = '\nCMD_ERR: %s' % (self.stderr if self.stderr is not None else '')
         return "Command '%s' returned non-zero exit status %d.\nCMD_OUT: %s%s" % (self.cmd,
                                                                                      self.returncode,
                                                                                      self.output,
                                                                                      err_str)
-
-
-def check_output_detailed_error(*args, **kwargs):
-    try:
-        return subprocess.check_output(*args, **kwargs)
-    except subprocess.CalledProcessError as e:
-        raise DetailedCalledProcessError(e.returncode, e.cmd, e.output)
-
-
-def check_output_and_stderr(*popenargs, **kwargs):
-    """
-    Run command with arguments and return its stdout and stderr as byte strings.
-
-    Lifted from the subprocess.check_output() implementation, to which it is
-    identical, save that it returns a (stdout, stderr) tuple as opposed to
-    simply stdout.
-
-    Note that the CalledProcessError object raised by this method does not
-    contain any stderr -- same (confusing) behavior as subprocess.check_output().
-    """
-    if 'stdout' in kwargs:
-        raise ValueError('stdout argument not allowed, it will be overridden.')
-    if 'stderr' in kwargs:
-        raise ValueError('stderr argument not allowed, it will be overridden.')
-    process = subprocess.Popen(stdout=subprocess.PIPE, stderr=subprocess.PIPE, *popenargs, **kwargs)
-    output, stderr = process.communicate()
-    retcode = process.poll()
-    if retcode:
-        cmd = kwargs.get("args")
-        if cmd is None:
-            cmd = popenargs[0]
-        raise DetailedCalledProcessError(retcode, cmd, output=output.decode(), stderr=stderr.decode())
-    return output.decode(), stderr.decode()
 
 
 def convert_size_to_kb(size_str):
@@ -105,3 +65,61 @@ def exit_process_group():
      usually it exists, but performs the operation of setsid()."
     """
     return os.setsid()
+
+
+def run_cli_cmd(
+    args,
+    interval=15,
+    logger=None,
+    preexec_fn=exit_process_group,
+    retries=1,
+    timeout=15,
+    trust_exit_code=False,
+    **kwargs
+):
+    """
+    Run the supplied cmd, optionally retrying some number of times if it fails or times out.
+
+    You can pass through arbitrary arguments to this command. They eventually
+    wind up as constructor arguments to subprocess32.Popen().
+    """
+    result = None
+    while retries:
+        retries -= 1
+        try:
+            result = subprocess.run(
+                args,
+                check=True,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                timeout=timeout,
+                universal_newlines=True,
+                **kwargs
+            )
+            if trust_exit_code:
+                retries = 0
+            elif result.stdout:
+                # do we want an "expected_result_regexp" param?
+                retries = 0
+        except (subprocess.CalledProcessError, subprocess.TimeoutError) as exc:
+            result = exc
+        finally:
+            if logger is not None:
+                if isinstance(result, subprocess.TimeoutError):
+                    cause = "exceeded %s-sec timeout" % result.timeout
+                else:
+                    cause = "had exit code %s" % result.returncode
+                plan = "will retry in %s sec" % interval if retries else "final attempt"
+                logger.error(
+                    "Call to %s %s (%s): stdout=%s, stderr=%s",
+                    args[0],
+                    cause,
+                    plan,
+                    result.stdout,
+                    result.stderr,
+                )
+            if retries:
+                sleep_through_signals(timeout=interval)
+
+    returncode = result.returncode if hasattr(result, "returncode") else "TIMEOUT"
+    return result.stdout, result.stderr, returncode
