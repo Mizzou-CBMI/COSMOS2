@@ -101,7 +101,7 @@ def run_cli_cmd(
 
         if logger is not None:
             log_func = logger.error
-            details = ": stdout = %s, stderr = %s" % (result.stdout, result.stderr)
+            details = ": stdout='%s', stderr='%s'" % (result.stdout, result.stderr)
             if isinstance(result, subprocess.TimeoutExpired):
                 effect = "exceeded %s-sec timeout" % result.timeout
             else:
@@ -111,7 +111,13 @@ def run_cli_cmd(
                     details = ""
 
             plan = "will retry in %s sec" % interval if attempts else "final attempt"
-            log_func("Call to %s %s (%s)%s", args[0], effect, plan, details)
+            log_func(
+                "Call to %s %s (%s)%s",
+                args.split()[0] if isinstance(args, basestring) else args[0],
+                effect,
+                plan,
+                details,
+            )
 
         if attempts:
             sleep_through_signals(timeout=interval)

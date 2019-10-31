@@ -548,9 +548,11 @@ def _run(workflow, session, task_queue):
         session.commit()
 
         if last_log_timestamp + 300 < time.time():
+            num_running = len(list(workflow.jobmanager.running_tasks))
             workflow.log.info(
-                "Cosmos is still alive, just waiting on %d tasks",
-                len(list(workflow.jobmanager.running_tasks)),
+                "Cosmos is still alive, just waiting on %d task%s",
+                num_running,
+                "s" if num_running > 1 else "",
             )
             last_log_timestamp = time.time()
 

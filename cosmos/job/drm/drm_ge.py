@@ -260,6 +260,12 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
                 log_prefix, job_id, i + 1, time.time() - start,
                 '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
         if i + 1 < num_retries:
+            logger.info(
+                "%s Will wait %d sec before calling qacct on %s again",
+                log_prefix,
+                quantum,
+                job_id,
+            )
             sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
