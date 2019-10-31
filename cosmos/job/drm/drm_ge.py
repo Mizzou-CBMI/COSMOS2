@@ -177,10 +177,6 @@ class DRM_GE(DRM):
             pids = map(lambda t: unicode(t.drm_jobID), group)
             qdel(pids, logger=logger)
 
-    def cleanup_task(self, task):
-        if task.drm_jobID and task.status != TaskStatus.killed:
-            self.kill(task)
-
 
 def _get_null_logger():
     """
