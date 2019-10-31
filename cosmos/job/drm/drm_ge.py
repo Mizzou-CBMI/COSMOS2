@@ -167,15 +167,15 @@ class DRM_GE(DRM):
 
     def kill(self, task):
         """Terminate a task."""
-        run_cli_cmd(["qdel", unicode(task.drm_jobID)], logger=task.workflow.log)
+        self.kill_tasks([task])
 
     def kill_tasks(self, tasks):
         logger = tasks[0].workflow.log if tasks else _get_null_logger()
 
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = ",".join(map(lambda t: unicode(t.drm_jobID), group))
-            run_cli_cmd(["qdel", pids], logger=logger)
+            pids = map(lambda t: unicode(t.drm_jobID), group)
+            qdel(pids, logger=logger)
 
     def cleanup_task(self, task):
         if task.drm_jobID and task.status != TaskStatus.killed:
@@ -305,7 +305,7 @@ def qdel(pids, logger):
     Each qdel call is attempted twice, with a 15-second gap between.
     """
     _, _, returncode = run_cli_cmd(
-        ["qdel", pids], logger=logger, attempts=2, trust_exit_code=True
+        ["qdel", ",".join(pids)], logger=logger, attempts=1, timeout=10, trust_exit_code=True
     )
     if returncode == 0:
         logger.info("qdel reported successful signalling of %d pids", len(pids))
@@ -318,7 +318,7 @@ def qdel(pids, logger):
     )
     for pid in pids:
         _, _, returncode = run_cli_cmd(
-            ["qdel", pids], logger=logger, attempts=2, trust_exit_code=True
+            ["qdel", pids], logger=logger, attempts=1, timeout=1, trust_exit_code=True
         )
         if returncode != 0:
             logger.warning(

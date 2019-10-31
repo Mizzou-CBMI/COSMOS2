@@ -79,7 +79,7 @@ def run_cli_cmd(
     You can pass through arbitrary arguments to this command. They eventually
     wind up as constructor arguments to subprocess32.Popen().
     """
-    while attempts:
+    while attempts > 0:
         attempts -= 1
         try:
             result = subprocess.run(
@@ -91,32 +91,28 @@ def run_cli_cmd(
                 universal_newlines=True,
                 **kwargs
             )
-            if trust_exit_code:
-                attempts = 0
-            elif result.stdout:
-                # do we want an "expected_result_regexp" param?
-                attempts = 0
+            if result.returncode == 0:
+                if trust_exit_code:
+                    attempts = 0
+                elif result.stdout:
+                    attempts = 0
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             result = exc
 
         if logger is not None:
             log_func = logger.error
+            details = ": stdout = %s, stderr = %s" % (result.stdout, result.stderr)
             if isinstance(result, subprocess.TimeoutExpired):
-                cause = "exceeded %s-sec timeout" % result.timeout
+                effect = "exceeded %s-sec timeout" % result.timeout
             else:
-                cause = "had exit code %s" % result.returncode
+                effect = "had exit code %s" % result.returncode
                 if result.returncode == 0 and attempts == 0:
                     log_func = logger.info
+                    details = ""
 
             plan = "will retry in %s sec" % interval if attempts else "final attempt"
-            log_func(
-                "Call to %s %s (%s): stdout=%s, stderr=%s",
-                args[0],
-                cause,
-                plan,
-                result.stdout,
-                result.stderr,
-            )
+            log_func("Call to %s %s (%s)%s", args[0], effect, plan, details)
+
         if attempts:
             sleep_through_signals(timeout=interval)
 
