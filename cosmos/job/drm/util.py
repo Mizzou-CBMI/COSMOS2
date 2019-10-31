@@ -79,7 +79,6 @@ def run_cli_cmd(
     You can pass through arbitrary arguments to this command. They eventually
     wind up as constructor arguments to subprocess32.Popen().
     """
-    result = None
     while attempts:
         attempts -= 1
         try:
@@ -99,23 +98,27 @@ def run_cli_cmd(
                 attempts = 0
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             result = exc
-        finally:
-            if logger is not None:
-                if isinstance(result, subprocess.TimeoutExpired):
-                    cause = "exceeded %s-sec timeout" % result.timeout
-                else:
-                    cause = "had exit code %s" % result.returncode
-                plan = "will retry in %s sec" % interval if attempts else "final attempt"
-                logger.error(
-                    "Call to %s %s (%s): stdout=%s, stderr=%s",
-                    args[0],
-                    cause,
-                    plan,
-                    result.stdout,
-                    result.stderr,
-                )
-            if attempts:
-                sleep_through_signals(timeout=interval)
+
+        if logger is not None:
+            log_func = logger.error
+            if isinstance(result, subprocess.TimeoutExpired):
+                cause = "exceeded %s-sec timeout" % result.timeout
+            else:
+                cause = "had exit code %s" % result.returncode
+                if result.returncode == 0 and attempts == 0:
+                    log_func = logger.info
+
+            plan = "will retry in %s sec" % interval if attempts else "final attempt"
+            log_func(
+                "Call to %s %s (%s): stdout=%s, stderr=%s",
+                args[0],
+                cause,
+                plan,
+                result.stdout,
+                result.stderr,
+            )
+        if attempts:
+            sleep_through_signals(timeout=interval)
 
     returncode = result.returncode if hasattr(result, "returncode") else "TIMEOUT"
     return result.stdout, result.stderr, returncode
