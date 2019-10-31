@@ -165,9 +165,12 @@ class SGESignalHandler(object):
         for sig in self.lethal_signals | self.benign_signals:
             self._cache_existing_handler(sig)
             signal.signal(sig, self.signal_handler)
+
+        self._log.debug("%s entered SGESignalHandler", self._workflow_name)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self._log.debug("%s exiting SGESignalHandler", self._workflow_name)
         for sig, handler in self._prev_handlers.items():
             signal.signal(sig, handler)
 
@@ -186,6 +189,7 @@ class SGESignalHandler(object):
                            self._workflow_name,
                            self._total_susp_events,
                            self._total_susp_sec)
+        self._log.debug("%s exited SGESignalHandler", self._workflow_name)
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
@@ -262,23 +266,35 @@ class SGESignalHandler(object):
                 self._log_signal_receipt(new_signals)
                 self._signals_logged += new_signals
 
-                if self.workflow.termination_signal:
-                    self._log.info(
-                        "%s Early-termination flag (%d) has been set",
-                        self._workflow_name,
-                        self.workflow.termination_signal,
-                    )
-                elif signal.SIGUSR1 in new_signals and self._susp_tm is None:
+                message_logged = False
+
+                if signal.SIGUSR1 in new_signals and self._susp_tm is None:
                     # SIGUSR1 means SIGSTOP (which we can't trap) is coming soon
                     self._log.warning(
                         "%s Stop-notification (%d) has been set: expect a SIGSTOP within %s sec, %s",
                         self._workflow_name,
                         signal.SIGUSR1,
                         self._notify_sec,
-                        "and silent logs until a SIGCONT is received"
+                        "and silent logs from then until a SIGCONT is received"
                     )
                     self._susp_tm = time.time() + self._notify_sec
-                else:
+                    message_logged = True
+
+                if self.workflow.termination_signal:
+                    self._log.info(
+                        "%s Early-termination flag has been set due to signal %d",
+                        self._workflow_name,
+                        self.workflow.termination_signal,
+                    )
+                    message_logged = True
+                elif new_signals & self.lethal_signals:
+                    self._log.info(
+                        "%s Lethal signal(s) caught, but early-termination flag is not set (yet)",
+                        self._workflow_name,
+                    )
+                    message_logged = True
+
+                if not message_logged:
                     self._log.debug(
                         "%s Ignoring benign signal(s): %s",
                         self._workflow_name,
