@@ -300,21 +300,32 @@ def qdel(pids, logger):
 
     Each qdel call is attempted twice, with a 15-second gap between.
     """
-    _, _, returncode = run_cli_cmd(
-        ["qdel", ",".join(pids)], logger=logger, attempts=1, timeout=10, trust_exit_code=True
+    stdout, stderr, returncode = run_cli_cmd(
+        ["qdel", ",".join(pids)], logger=logger, attempts=1, timeout=1, trust_exit_code=True
     )
     if returncode == 0:
         logger.info("qdel reported successful signalling of %d pids", len(pids))
         return len(pids)
 
     successful_qdels = 0
+    undead_pids = []
 
-    logger.warning(
-        "qdel returned exit code %s, calling on one pid at a time", returncode
-    )
     for pid in pids:
+        if "has deleted job %s" % pid in stdout:
+            successful_qdels += 1
+        elif "has registered the job %s for deletion" % pid in stdout:
+            successful_qdels += 1
+        else:
+            undead_pids.append(pid)
+
+    if undead_pids:
+        logger.warning(
+            "qdel returned exit code %s, calling on one pid at a time", returncode
+        )
+
+    for pid in undead_pids:
         _, _, returncode = run_cli_cmd(
-            ["qdel", pids], logger=logger, attempts=1, timeout=1, trust_exit_code=True
+            ["qdel", pid], logger=logger, attempts=1, timeout=1, trust_exit_code=True
         )
         if returncode != 0:
             logger.warning(
