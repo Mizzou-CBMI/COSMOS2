@@ -416,10 +416,13 @@ class Workflow(Base):
 
     def cleanup(self):
         if self.jobmanager:
-            self.log.info('Cleaning up {num_dead_tasks} dead tasks'.format(
-                num_dead_tasks=len(self.jobmanager.dead_tasks),
-            ))
+            self.log.info(
+                "%s Cleaning up %d dead tasks",
+                self,
+                len(self.jobmanager.dead_tasks),
+            )
             self.jobmanager.cleanup()
+            self.log.info("%s Done cleaning up", self)
 
     @property
     def tasks(self):
