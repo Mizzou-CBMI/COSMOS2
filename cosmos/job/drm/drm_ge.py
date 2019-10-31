@@ -335,7 +335,7 @@ def qdel(pids, logger):
         )
         if returncode != 0:
             logger.warning(
-                "qdel returned %s attempting to kill %d: it may still be running",
+                "qdel returned %s attempting to kill %s: it may still be running",
                 returncode,
                 pid,
             )
