@@ -174,8 +174,8 @@ class DRM_GE(DRM):
 
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = map(lambda t: unicode(t.drm_jobID), group)
-            qdel(pids, logger=logger)
+            job_ids = map(lambda t: unicode(t.drm_jobID), group)
+            qdel(job_ids, logger=logger)
 
 
 def _get_null_logger():
@@ -300,52 +300,52 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     return good_qacct_dict if good_qacct_dict else curr_qacct_dict
 
 
-def qdel(pids, logger):
+def qdel(job_ids, logger):
     """
-    Call qdel on all the supplied pids: if that fails, qdel each pid individually.
+    Call qdel on all the supplied job_ids: if that fails, qdel each job_id individually.
 
     Each qdel call is attempted twice, with a 15-second gap between.
     """
     stdout, stderr, returncode = run_cli_cmd(
-        ["qdel", ",".join(pids)], logger=logger, attempts=1, timeout=1, trust_exit_code=True
+        ["qdel", ",".join(job_ids)], logger=logger, attempts=1, timeout=1, trust_exit_code=True
     )
     if returncode == 0:
-        logger.info("qdel reported successful signalling of %d pids", len(pids))
-        return len(pids)
+        logger.info("qdel reported successful signalling of %d job_ids", len(job_ids))
+        return len(job_ids)
 
     successful_qdels = 0
-    undead_pids = []
+    undead_job_ids = []
 
-    for pid in pids:
-        if "has deleted job %s" % pid in stdout:
+    for job_id in job_ids:
+        if "has deleted job %s" % job_id in stdout:
             successful_qdels += 1
-        elif "has registered the job %s for deletion" % pid in stdout:
+        elif "has registered the job %s for deletion" % job_id in stdout:
             successful_qdels += 1
         else:
-            undead_pids.append(pid)
+            undead_job_ids.append(job_id)
 
-    if undead_pids:
+    if undead_job_ids:
         logger.warning(
-            "qdel returned exit code %s, calling on one pid at a time", returncode
+            "qdel returned exit code %s, calling on one job_id at a time", returncode
         )
 
-    for pid in undead_pids:
+    for job_id in undead_job_ids:
         _, _, returncode = run_cli_cmd(
-            ["qdel", pid], logger=logger, attempts=1, timeout=1, trust_exit_code=True
+            ["qdel", job_id], logger=logger, attempts=1, timeout=1, trust_exit_code=True
         )
         if returncode != 0:
             logger.warning(
                 "qdel returned %s attempting to kill %s: it may still be running",
                 returncode,
-                pid,
+                job_id,
             )
         else:
             successful_qdels += 1
 
     logger.info(
-        "qdel reported successful signalling of %d of %d pids",
+        "qdel reported successful signalling of %d of %d job_ids",
         successful_qdels,
-        len(pids),
+        len(job_ids),
     )
     return successful_qdels
 
