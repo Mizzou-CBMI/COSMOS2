@@ -287,7 +287,7 @@ class SGESignalHandler(object):
                         self.workflow.termination_signal,
                     )
                     message_logged = True
-                elif new_signals & self.lethal_signals:
+                elif new_signals.keys() & self.lethal_signals:
                     self._log.info(
                         "%s Lethal signal(s) caught, but early-termination flag is not set (yet)",
                         self._workflow_name,
