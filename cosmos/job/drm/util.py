@@ -101,7 +101,10 @@ def run_cli_cmd(
 
         if logger is not None:
             log_func = logger.error
-            details = ": stdout='%s', stderr='%s'" % (result.stdout.strip(), result.stderr.strip())
+            details = ": stdout='%s', stderr='%s'" % (
+                result.stdout.strip(),
+                result.stderr.strip(),
+            )
             if isinstance(result, subprocess.TimeoutExpired):
                 effect = "exceeded %s-sec timeout" % result.timeout
             else:

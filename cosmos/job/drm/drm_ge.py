@@ -309,7 +309,11 @@ def qdel(job_ids, logger):
     an exit handler that does not have arbitrary amounts of time in which to run.
     """
     stdout, stderr, returncode = run_cli_cmd(
-        ["qdel", ",".join(job_ids)], logger=logger, attempts=1, timeout=1, trust_exit_code=True
+        ["qdel", ",".join(job_ids)],
+        logger=logger,
+        attempts=1,
+        timeout=1,
+        trust_exit_code=True,
     )
     if returncode == 0:
         logger.info("qdel reported successful signalling of %d job_ids", len(job_ids))

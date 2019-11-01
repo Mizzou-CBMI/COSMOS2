@@ -123,16 +123,20 @@ class SGESignalHandler(object):
                  benign_signals=None, explanations=None):
 
         if lethal_signals is None:
-            lethal_signals = {signal.SIGINT, signal.SIGTERM, signal.SIGXCPU, KILL_PENDING_SIGNAL}
+            lethal_signals = {
+                KILL_PENDING_SIGNAL,
+                signal.SIGINT,
+                signal.SIGTERM,
+                signal.SIGXCPU,
+            }
         if benign_signals is None:
             benign_signals = {signal.SIGCONT, STOP_PENDING_SIGNAL}
         if explanations is None:
             explanations = {
-                KILL_PENDING_SIGNAL: 'SGE is about to send a SIGKILL',
-                STOP_PENDING_SIGNAL: 'SGE is about to send a SIGSTOP, or, '
-                                     'if a time limit has been exceeded, a SIGKILL',
-                signal.SIGXCPU: 'SGE is about to send a SIGKILL, '
-                                'because a cpu resource limit has been exceeded'}
+                KILL_PENDING_SIGNAL: "SGE is about to send a SIGKILL",
+                STOP_PENDING_SIGNAL: "SGE is about to send a SIGSTOP, or, if a time limit has been exceeded, a SIGKILL",
+                signal.SIGXCPU: "SGE is about to send a SIGKILL, because a cpu resource limit has been exceeded",
+            }
 
         self.workflow = workflow
         self.lethal_signals = frozenset(lethal_signals)
@@ -281,7 +285,7 @@ class SGESignalHandler(object):
                         self._workflow_name,
                         STOP_PENDING_SIGNAL,
                         self._notify_sec,
-                        "and silent logs from then until qmod -usj (SIGCONT) is received"
+                        "and silent logs from then until qmod -usj (SIGCONT) is received",
                     )
                     self._susp_tm = time.time() + self._notify_sec
                     message_logged = True
