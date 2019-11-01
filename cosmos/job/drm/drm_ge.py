@@ -304,7 +304,9 @@ def qdel(job_ids, logger):
     """
     Call qdel on all the supplied job_ids: if that fails, qdel each job_id individually.
 
-    Each qdel call is attempted twice, with a 15-second gap between.
+    Unlike other SGE cli commands, each qdel call is attempted only once, with a
+    fairly harsh one-second timeout, because function method is often called in
+    an exit handler that does not have arbitrary amounts of time in which to run.
     """
     stdout, stderr, returncode = run_cli_cmd(
         ["qdel", ",".join(job_ids)], logger=logger, attempts=1, timeout=1, trust_exit_code=True
@@ -370,12 +372,12 @@ def qstat(logger=None):
         ["qstat"], interval=30, logger=logger, attempts=3, trust_exit_code=False
     )
     if returncode != 0:
-        logger.info("qstat returned %s: GE may be offline, assuming nothing is running")
+        logger.info("qstat returned %s: If GE is offline, all jobs are dead or done")
         return {}
     lines = stdout.strip().split("\n")
     if not lines:
         logger.info(
-            "qstat returned no output: all jobs are probably done, but GE may be offline"
+            "qstat returned 0, but no output: all jobs are probably done, although GE may be offline"
         )
         return {}
 

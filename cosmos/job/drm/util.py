@@ -77,7 +77,7 @@ def run_cli_cmd(
     Run the supplied cmd, optionally retrying some number of times if it fails or times out.
 
     You can pass through arbitrary arguments to this command. They eventually
-    wind up as constructor arguments to subprocess32.Popen().
+    wind up as constructor arguments to subprocess.Popen().
     """
     while attempts > 0:
         attempts -= 1
