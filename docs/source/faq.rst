@@ -6,15 +6,15 @@ FAQ
 How do I cite Cosmos?
     Cosmos was officially published as a
     `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_,
-    but has evolved a lot since it's original inception.  If you use Cosmos
-    for research, please cite it's `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
+    but has evolved a lot since its original inception.  If you use Cosmos
+    for research, please cite its `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_.  This means a lot to the author.
 
 
 Is there an easy way to get the command that was executed to run a pipeline?
     Yes, check the primary log output, it will be the first thing that Cosmos writes to it.
 
 How can I compose Workflows together?
-    We do this by making "Recipes", which is not a Cosmos primitive, but rather simply a function that takes a Workflow and modifies it's DAG.  Recipes
+    We do this by making "Recipes", which is not a Cosmos primitive, but rather simply a function that takes a Workflow and modifies its DAG.  Recipes
     can easily call other Recipes since they are just functions.  Because Recipes can often require complex input datastructures, we like to create Recipe Input Schemas using
     `Voluptuous <https://github.com/alecthomas/voluptuous>`_
 
