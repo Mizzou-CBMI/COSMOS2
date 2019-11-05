@@ -176,11 +176,9 @@ class SGESignalHandler(object):
             self._cache_existing_handler(sig)
             signal.signal(sig, self.signal_handler)
 
-        self._log.debug("%s entered SGESignalHandler", self._workflow_name)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._log.debug("%s exiting SGESignalHandler", self._workflow_name)
         for sig, handler in self._prev_handlers.items():
             signal.signal(sig, handler)
 
@@ -199,7 +197,6 @@ class SGESignalHandler(object):
                            self._workflow_name,
                            self._total_susp_events,
                            self._total_susp_sec)
-        self._log.debug("%s exited SGESignalHandler", self._workflow_name)
 
     def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
@@ -280,7 +277,7 @@ class SGESignalHandler(object):
 
                 if STOP_PENDING_SIGNAL in new_signals and self._susp_tm is None:
                     # a SIGSTOP (which we can't trap) is coming soon
-                    self._log.warning(
+                    self._log.info(
                         "%s Stop-notification (%d) has been set: expect a SIGSTOP within %s sec, %s",
                         self._workflow_name,
                         STOP_PENDING_SIGNAL,

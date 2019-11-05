@@ -234,9 +234,10 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     for i in xrange(num_retries):
 
         qacct_stdout_str, qacct_stderr_str, qacct_returncode = run_cli_cmd(
-            ["qacct", "-j", unicode(job_id)], logger=logger, trust_exit_code=True
+            ["qacct", "-j", unicode(job_id)], logger=logger
         )
         if qacct_returncode == 0 and qacct_stdout_str.strip():
+            # qacct returned actual output w/no error code. we're good
             break
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
@@ -313,7 +314,6 @@ def qdel(job_ids, logger):
         logger=logger,
         attempts=1,
         timeout=1,
-        trust_exit_code=True,
     )
     if returncode == 0:
         logger.info("qdel reported successful signalling of %d job_ids", len(job_ids))
@@ -335,18 +335,18 @@ def qdel(job_ids, logger):
             "qdel returned exit code %s, calling on one job_id at a time", returncode
         )
 
-    for job_id in undead_job_ids:
-        _, _, returncode = run_cli_cmd(
-            ["qdel", job_id], logger=logger, attempts=1, timeout=1, trust_exit_code=True
-        )
-        if returncode != 0:
-            logger.warning(
-                "qdel returned %s attempting to kill %s: it may still be running",
-                returncode,
-                job_id,
+        for job_id in undead_job_ids:
+            _, _, returncode = run_cli_cmd(
+                ["qdel", job_id], logger=logger, attempts=1, timeout=1,
             )
-        else:
-            successful_qdels += 1
+            if returncode != 0:
+                logger.warning(
+                    "qdel returned %s attempting to kill %s: it may still be running",
+                    returncode,
+                    job_id,
+                )
+            else:
+                successful_qdels += 1
 
     logger.info(
         "qdel reported successful signalling of %d of %d job_ids",
@@ -372,9 +372,7 @@ def qstat(logger=None):
     if logger is None:
         logger = _get_null_logger()
 
-    stdout, _, returncode = run_cli_cmd(
-        ["qstat"], interval=30, logger=logger, attempts=3, trust_exit_code=False
-    )
+    stdout, _, returncode = run_cli_cmd(["qstat"], interval=30, logger=logger, attempts=3)
     if returncode != 0:
         logger.info("qstat returned %s: If GE is offline, all jobs are dead or done")
         return {}
@@ -422,7 +420,6 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         env=os.environ,
         logger=logger,
         shell=True,
-        trust_exit_code=True,
     )
 
     if returncode != 0:

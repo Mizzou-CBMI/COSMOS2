@@ -70,7 +70,7 @@ def run_cli_cmd(
     logger=None,
     preexec_fn=exit_process_group,
     timeout=30,
-    trust_exit_code=False,
+    trust_exit_code=True,
     **kwargs
 ):
     """
