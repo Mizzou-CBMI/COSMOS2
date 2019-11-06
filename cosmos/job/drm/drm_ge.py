@@ -360,11 +360,11 @@ def qstat(logger=None):
     """
     Return a mapping of job ids to a dict of GE information about each job.
 
-    If qstat returns nothing, wait 30 sec and call it again. Empty qstat output
-    can either mean (a) all jobs have completed or (b) Grid Engine is momentarily
-    down/unresponsive. If (a) obtains, retrying a few times over the course of a
-    minute or two before wrapping up work is not much of an issue. However, if
-    (b) is true, waiting 30 seconds gives Grid Engine time to recover / fail over.
+    If qstat hangs or returns an error, wait 30 sec and call it again. Do this
+    three times. If the final attempt returns an error, log it, and return an
+    empty dictionary, which is the same behavior you'd get if all known jobs
+    had exited. (If qstat is down for 90 sec any running job is likely to be
+    functionally dead.)
 
     The exact contents of the sub-dictionaries in the returned dictionary's
     values() depend on the installed GE version.
