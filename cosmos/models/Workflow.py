@@ -44,7 +44,12 @@ def default_task_log_output_dir(task, subdir=''):
 def _workflow_status_changed(workflow):
     if workflow.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
         logfunc = workflow.log.warning if workflow.status in [WorkflowStatus.failed, WorkflowStatus.killed] else workflow.log.info
-        logfunc('%s %s (%s/%s Tasks completed)' % (workflow, workflow.status, sum(t.successful for t in workflow.tasks), len(workflow.tasks)))
+        logfunc('%s %s (%s/%s Tasks completed) in %s' % (workflow, workflow.status,
+                                                         sum(t.successful for t in workflow.tasks),
+                                                         len(workflow.tasks),
+                                                         workflow.wall_time
+                                                         ))
+
         workflow.finished_on = datetime.datetime.now()
 
     if workflow.status == WorkflowStatus.successful:
@@ -76,6 +81,10 @@ class Workflow(Base):
     exclude_from_dict = ['info']
     dont_garbage_collect = None
     termination_signal = None
+
+    @property
+    def wall_time(self):
+        return self.finished_on - self.started_on
 
     @declared_attr
     def status(cls):
