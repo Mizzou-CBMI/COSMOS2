@@ -44,13 +44,13 @@ def default_task_log_output_dir(task, subdir=''):
 def _workflow_status_changed(workflow):
     if workflow.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
         logfunc = workflow.log.warning if workflow.status in [WorkflowStatus.failed, WorkflowStatus.killed] else workflow.log.info
+        workflow.finished_on = datetime.datetime.now()
         logfunc('%s %s (%s/%s Tasks completed) in %s' % (workflow, workflow.status,
                                                          sum(t.successful for t in workflow.tasks),
                                                          len(workflow.tasks),
                                                          workflow.wall_time
                                                          ))
 
-        workflow.finished_on = datetime.datetime.now()
 
     if workflow.status == WorkflowStatus.successful:
         workflow.successful = True
