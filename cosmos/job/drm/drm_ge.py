@@ -316,7 +316,7 @@ def qdel(job_ids, logger):
         timeout=1,
     )
     if returncode == 0:
-        logger.info("qdel reported successful signalling of %d job_ids", len(job_ids))
+        logger.info("qdel reported success against %d job_ids", len(job_ids))
         return len(job_ids)
 
     successful_qdels = 0
@@ -331,6 +331,11 @@ def qdel(job_ids, logger):
             undead_job_ids.append(job_id)
 
     if undead_job_ids:
+        #
+        # One option here would be to use a ThreadPoolExecutor to kill more than
+        # one job at a time -- but, if we get here, something is a little funky
+        # with our interactions with grid engine. So I'm keeping it simple for now.
+        #
         logger.warning(
             "qdel returned exit code %s, calling on one job_id at a time", returncode
         )
@@ -349,7 +354,7 @@ def qdel(job_ids, logger):
                 successful_qdels += 1
 
     logger.info(
-        "qdel reported successful signalling of %d of %d job_ids",
+        "qdel reported success against %d of %d job_ids",
         successful_qdels,
         len(job_ids),
     )
@@ -363,7 +368,7 @@ def qstat(logger=None):
     If qstat hangs or returns an error, wait 30 sec and call it again. Do this
     three times. If the final attempt returns an error, log it, and return an
     empty dictionary, which is the same behavior you'd get if all known jobs
-    had exited. (If qstat is down for 90 sec any running job is likely to be
+    had exited. (If qstat is down for 90+ sec, any running job is likely to be
     functionally dead.)
 
     The exact contents of the sub-dictionaries in the returned dictionary's
@@ -372,14 +377,16 @@ def qstat(logger=None):
     if logger is None:
         logger = _get_null_logger()
 
-    stdout, _, returncode = run_cli_cmd(["qstat"], interval=30, logger=logger, attempts=3)
+    stdout, _, returncode = run_cli_cmd(
+        ["qstat"], attempts=3, interval=30, logger=logger, timeout=30)
     if returncode != 0:
-        logger.info("qstat returned %s: If GE is offline, all jobs are dead or done")
+        logger.warning("qstat returned %s: If GE is offline, all jobs are dead or done")
         return {}
     lines = stdout.strip().split("\n")
     if not lines:
         logger.info(
-            "qstat returned 0, but no output: all jobs are probably done, although GE may be offline"
+            "qstat returned 0 and no output: all jobs are probably done, "
+            "but in rare cases this may be a sign that GE is not working properly"
         )
         return {}
 
@@ -416,7 +423,7 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
 
     stdout, stderr, returncode = run_cli_cmd(
         '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-        attempts=2,
+        attempts=1,     # make just one attempt: running a task 2x could be disastrous
         env=os.environ,
         logger=logger,
         shell=True,

@@ -35,6 +35,9 @@ from cosmos.models.Task import Task
 opj = os.path.join
 
 
+WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
+
+
 def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
     return os.path.abspath(opj('log', subdir, task.stage.name, str(task.uid)))
@@ -417,7 +420,7 @@ class Workflow(Base):
     def cleanup(self):
         if self.jobmanager:
             self.log.info(
-                "%s Cleaning up %d dead tasks",
+                "%s Cleaning up %d tasks",
                 self,
                 len(self.jobmanager.dead_tasks),
             )
@@ -550,7 +553,7 @@ def _run(workflow, session, task_queue):
         # only commit Task changes after processing a batch of finished ones
         session.commit()
 
-        if last_log_timestamp + 300 < time.time():
+        if last_log_timestamp + WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL < time.time():
             num_running = len(list(workflow.jobmanager.running_tasks))
             workflow.log.info(
                 "Cosmos is still alive, just waiting on %d task%s",
