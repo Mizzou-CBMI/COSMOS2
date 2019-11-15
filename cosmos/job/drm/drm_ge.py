@@ -13,6 +13,12 @@ from cosmos.util.signal_handlers import sleep_through_signals
 from more_itertools import grouper
 
 
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
+
+
 class QacctJobNotFoundError(Exception):
     pass
 
@@ -306,14 +312,14 @@ def qdel(job_ids, logger):
     Call qdel on all the supplied job_ids: if that fails, qdel each job_id individually.
 
     Unlike other SGE cli commands, each qdel call is attempted only once, with a
-    fairly harsh one-second timeout, because function method is often called in
-    an exit handler that does not have arbitrary amounts of time in which to run.
+    fairly harsh 20-second timeout, because this function is often called in an
+    exit handler that does not have arbitrary amounts of time in which to run.
     """
     stdout, stderr, returncode = run_cli_cmd(
         ["qdel", ",".join(job_ids)],
         logger=logger,
         attempts=1,
-        timeout=1,
+        timeout=20,
     )
     if returncode == 0:
         logger.info("qdel reported success against %d job_ids", len(job_ids))
@@ -332,29 +338,19 @@ def qdel(job_ids, logger):
 
     if undead_job_ids:
         #
-        # One option here would be to use a ThreadPoolExecutor to kill more than
-        # one job at a time -- but, if we get here, something is a little funky
-        # with our interactions with grid engine. So I'm keeping it simple for now.
+        # If the original qdel didn't catch everything, kick off a qdel for each
+        # remaining job id. Don't set a timeout and don't check the return code.
         #
         logger.warning(
             "qdel returned exit code %s, calling on one job_id at a time", returncode
         )
 
-        for job_id in undead_job_ids:
-            _, _, returncode = run_cli_cmd(
-                ["qdel", job_id], logger=logger, attempts=1, timeout=1,
-            )
-            if returncode != 0:
-                logger.warning(
-                    "qdel returned %s attempting to kill %s: it may still be running",
-                    returncode,
-                    job_id,
-                )
-            else:
-                successful_qdels += 1
+        for i, job_id in enumerate(undead_job_ids):
+            logger.warning("will qdel %s in %d sec and ignore exit code", job_id, i)
+            subprocess.Popen("sleep %d; qdel %s" % (i, job_id), shell=True)
 
     logger.info(
-        "qdel reported success against %d of %d job_ids",
+        "qdel reported success against %d of %d job_ids, see above for details",
         successful_qdels,
         len(job_ids),
     )
