@@ -316,7 +316,7 @@ def qdel(job_ids, logger):
     exit handler that does not have arbitrary amounts of time in which to run.
     """
     stdout, stderr, returncode = run_cli_cmd(
-        ["qdel", ",".join(job_ids)],
+        ["qdel", "-f", ",".join(job_ids)],
         logger=logger,
         attempts=1,
         timeout=20,
@@ -347,7 +347,7 @@ def qdel(job_ids, logger):
 
         for i, job_id in enumerate(undead_job_ids):
             logger.warning("will qdel %s in %d sec and ignore exit code", job_id, i)
-            subprocess.Popen("sleep %d; qdel %s" % (i, job_id), shell=True)
+            subprocess.Popen("sleep %d; qdel -f %s" % (i, job_id), shell=True)
 
     logger.info(
         "qdel reported success against %d of %d job_ids, see above for details",
