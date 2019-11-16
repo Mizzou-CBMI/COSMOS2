@@ -134,7 +134,7 @@ class Workflow(Base):
         dirs = set()
 
         for task in self.tasks:
-            for out_name, v in task.output_map.iteritems():
+            for out_name, v in task.output_map.items():
                 dirname = lambda p: p if out_name.endswith('dir') or p is None else os.path.dirname(p)
 
                 if isinstance(v, (tuple, list)):
@@ -191,7 +191,7 @@ class Workflow(Base):
         # params
         if params is None:
             params = dict()
-        for k, v in params.iteritems():
+        for k, v in params.items():
             # decompose `Dependency` objects to values and parents
             new_val, parent_tasks = recursive_resolve_dependency(v)
 
@@ -204,7 +204,7 @@ class Workflow(Base):
             # Fix me assert params are all JSONable
             # uid = str(params)
         else:
-            assert isinstance(uid, basestring), 'uid must be a string'
+            assert isinstance(uid, str), 'uid must be a string'
 
         if stage_name is None:
             stage_name = str(func.__name__)
@@ -368,7 +368,7 @@ class Workflow(Base):
 
             # Make sure everything is in the sqlalchemy session
             session.add(self)
-            successful = filter(lambda t: t.successful, task_graph.nodes())
+            successful = list(filter(lambda t: t.successful, task_graph.nodes()))
 
             # print stages
             for s in sorted(self.stages, key=lambda s: s.number):

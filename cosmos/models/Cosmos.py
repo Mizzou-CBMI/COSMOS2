@@ -244,7 +244,7 @@ class Cosmos(object):
         """
         Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.
         """
-        print >> sys.stderr, 'Initializing sql database for Cosmos v%s...' % __version__
+        # print >> sys.stderr, 'Initializing sql database for Cosmos v{}..'.format(__version__)
         Base.metadata.create_all(bind=self.session.bind)
         from ..db import MetaData
 
@@ -257,7 +257,7 @@ class Cosmos(object):
         """
         Resets (deletes then initializes) the database.  This is not reversible!
         """
-        print >> sys.stderr, 'Dropping tables in db...'
+        # print >> sys.stderr, 'Dropping tables in db...'
         Base.metadata.drop_all(bind=self.session.bind)
         self.initdb()
         return self
