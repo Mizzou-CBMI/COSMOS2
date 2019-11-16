@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. Getting Started &mdash; Cosmos 2.9.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4. Initializing" href="workflows/initializing.html" />
+    <link rel="prev" title="2. Installation" href="2_install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cosmos
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.9.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1_introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#execute-an-example-workflow">3.1. Execute an Example Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#launch-the-web-interface">3.2. Launch the Web Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terminating-a-workflow">3.3. Terminating a Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resuming-a-workflow">3.4. Resuming a workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">4. Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">5. Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">6. Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">7. Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">8. Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">9. FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">10. Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">11. Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cosmos</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>3. Getting Started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/3_getting_started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<span id="id1"></span><h1>3. Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>We’ll start by running a simple test workflow, exploring it via the web interface, and terminating it.  Then
+you’ll be ready to start learning how to write your own.</p>
+<div class="section" id="execute-an-example-workflow">
+<h2>3.1. Execute an Example Workflow<a class="headerlink" href="#execute-an-example-workflow" title="Permalink to this headline">¶</a></h2>
+<p>The console will generate a lot of output as the workflow runs.  This workflow tests out various
+features of Cosmos.  The number beside each object inside brackets, <cite>[#]</cite>, is the SQL ID of that object.  Clone the
+git repository so that you have access to the examples code:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/Mizzou-CBMI/COSMOS2 Cosmos
+$ <span class="nb">cd</span> Cosmos/examples
+$ python ex2.py
+
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: Rendering taskgraph <span class="k">for</span> &lt;Workflow<span class="o">[</span><span class="m">1</span><span class="o">]</span> test&gt; using DRM <span class="sb">`</span><span class="nb">local</span><span class="sb">`</span>, output_dir: <span class="sb">`</span>/locus/home/egafni/projects/Cosmos/examples/out/test<span class="sb">`</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: Committing <span class="m">10</span> Tasks to the SQL database...
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Stage<span class="o">[</span><span class="m">1</span><span class="o">]</span> Echo&gt; Has not been attempted
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Stage<span class="o">[</span><span class="m">2</span><span class="o">]</span> Cat&gt; Has not been attempted
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Stage<span class="o">[</span><span class="m">3</span><span class="o">]</span> WordCount&gt; Has not been attempted
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: Skipping <span class="m">0</span> successful tasks
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: Executing TaskGraph
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Stage<span class="o">[</span><span class="m">1</span><span class="o">]</span> Echo&gt; Running
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Task<span class="o">[</span><span class="m">1</span><span class="o">]</span> Echo <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15911</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:48: &lt;Task<span class="o">[</span><span class="m">10</span><span class="o">]</span> Echo <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15921</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:49: &lt;Task<span class="o">[</span><span class="m">1</span><span class="o">]</span> Echo <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Stage<span class="o">[</span><span class="m">2</span><span class="o">]</span> Cat&gt; Running
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Task<span class="o">[</span><span class="m">2</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15931</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Task<span class="o">[</span><span class="m">3</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15942</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Task<span class="o">[</span><span class="m">10</span><span class="o">]</span> Echo <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Stage<span class="o">[</span><span class="m">1</span><span class="o">]</span> Echo&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Task<span class="o">[</span><span class="m">8</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15953</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:50: &lt;Task<span class="o">[</span><span class="m">9</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15961</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">2</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Stage<span class="o">[</span><span class="m">3</span><span class="o">]</span> WordCount&gt; Running
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">5</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15975</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">3</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">4</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15986</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">8</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">9</span><span class="o">]</span> Cat <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Stage<span class="o">[</span><span class="m">2</span><span class="o">]</span> Cat&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">7</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">15997</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:51: &lt;Task<span class="o">[</span><span class="m">6</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Submitted to the job manager. <span class="nv">drm</span><span class="o">=</span>local<span class="p">;</span> <span class="nv">drm_jobid</span><span class="o">=</span><span class="m">16005</span>
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Task<span class="o">[</span><span class="m">5</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Task<span class="o">[</span><span class="m">4</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;hello&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Task<span class="o">[</span><span class="m">7</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">2</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Task<span class="o">[</span><span class="m">6</span><span class="o">]</span> WordCount <span class="o">{</span><span class="s1">&#39;word&#39;</span>: <span class="s1">&#39;world&#39;</span>, <span class="s1">&#39;n&#39;</span>: <span class="m">1</span><span class="o">}</span>&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Stage<span class="o">[</span><span class="m">3</span><span class="o">]</span> WordCount&gt; Finished successfully
+INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Workflow<span class="o">[</span><span class="m">1</span><span class="o">]</span> test&gt; Finished successfully, output_dir: /locus/home/egafni/projects/Cosmos/examples/out/test
+</pre></div>
+</div>
+</div>
+<div class="section" id="launch-the-web-interface">
+<h2>3.2. Launch the Web Interface<a class="headerlink" href="#launch-the-web-interface" title="Permalink to this headline">¶</a></h2>
+<p>You can use the web interface to explore the history and debug all workflows.  Features include:</p>
+<ul class="simple">
+<li><p>Visualizing all jobs as a dependency graph (not useful if there are too many jobs)</p></li>
+<li><p>Visualizing the stages as a dependency graph (high level overview)</p></li>
+<li><p>Search for particular tasks based on their params or other attributes</p></li>
+<li><p>See resource usage statistics</p></li>
+<li><p>For any task, view the exact command that was executed, stdout, stderr, resource usage, inputs/outputs, dependencies, etc.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cosmos runweb sqlite.db
+</pre></div>
+</div>
+<p>Visit <a class="reference external" href="http://servername:8080">http://servername:8080</a> to access it (or <a class="reference external" href="http://localhost:8080">http://localhost:8080</a> if you’re running cosmos locally.</p>
+<div class="figure align-center">
+<img alt="_images/web_interface.png" src="_images/web_interface.png" />
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If the cosmos webserver is running, but you can’t connect, it is likely because there is a firewall
+in front of the server.  You can get around it by using <strong>ssh port forwarding</strong>, for example:
+<code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">ssh</span> <span class="pre">-L</span> <span class="pre">8080:servername:8080</span> <span class="pre">user&#64;server</span></code>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><cite>cosmos runweb</cite> uses the Flask development webserver which is <strong>NOT</strong> secure.  If you need it secured, you’ll have to set it up in a production
+Flask web server environment, see <a class="reference external" href="http://flask.pocoo.org/docs/0.10/deploying/">Deploying Flask</a>.  For example, you can use
+<cite>gunicorn ‘cosmos.web.gunicorn:make_app(“sqlite:///examples/sqlite.db”)’ -w 6 -b 0.0.0.0:3232</cite></p>
+</div>
+</div>
+<div class="section" id="terminating-a-workflow">
+<h2>3.3. Terminating a Workflow<a class="headerlink" href="#terminating-a-workflow" title="Permalink to this headline">¶</a></h2>
+<p>To terminate a workflow, simply press ctrl+c (or send the process a SIGINT signal) in the terminal.
+Cosmos will terminate running jobs and mark them as failed.
+You can resume from the point in the workflow you left off later.</p>
+</div>
+<div class="section" id="resuming-a-workflow">
+<h2>3.4. Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
+<p>A workflow can be resumed by re-running the script that originally started it.  The call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Cosmos.start()</span></code> will delete any failed Tasks.
+Calls to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code> will check the database to see if the Task already has been successfully completed (using the stage_name and uid).  If so,
+it’ll return the database version of that Task, and not re-run it when <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.run()</span></code> is called.  If the Task had failed, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code> will
+return a new Task which <em>will</em> be run when <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.run()</span></code> is called.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="workflows/initializing.html" class="btn btn-neutral float-right" title="4. Initializing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="2_install.html" class="btn btn-neutral float-left" title="2. Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Erik Gafni
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
