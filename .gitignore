@@ -1,3 +1,5 @@
+test/log
+test/workflow.log
 cosmos-wfm/
 venv*
 .eggs/

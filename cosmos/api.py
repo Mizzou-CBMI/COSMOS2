@@ -153,8 +153,8 @@ def py_call(func):
                 func=func,
                 source_file=source_file)
         else:
-            func_import_code = """import importlib
-loader = importlib.machinery.SourceFileLoader("module", "{source_file}")
+            func_import_code = """from importlib import machinery
+loader = machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
 {func.__name__} = getattr(mod, "{func.__name__}")""".format(**locals())
 
