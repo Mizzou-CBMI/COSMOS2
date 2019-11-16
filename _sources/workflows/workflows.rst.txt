@@ -118,7 +118,7 @@ Two or more parents in StageA produce two or more parents in StageB.
                                       for i in [1, 2]
                                       for j in ['a','b'])]
     def B_generator(stageA_tasks):
-        # For the more complicated relationships, it's can be useful to define a generator
+        # For the more complicated relationships, it can be useful to define a generator
         get_i = lambda task: task.params['i']
         for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i):
             parents = list(tasks)
