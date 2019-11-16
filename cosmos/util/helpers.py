@@ -3,10 +3,23 @@ import logging
 import os
 import pprint
 import random
+import shutil
 import signal
 import string
+import tempfile
 import time
 from contextlib import contextmanager
+
+
+@contextmanager
+def temp_cwd():
+    oldpath = os.getcwd()
+    newpath = tempfile.mkdtemp()
+    os.chdir(newpath)
+    yield newpath
+
+    os.chdir(oldpath)
+    shutil.rmtree(newpath)
 
 
 @contextmanager

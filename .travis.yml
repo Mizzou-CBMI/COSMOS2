@@ -4,11 +4,10 @@ python:
   - "3.7"
 sudo: false
 install: pip install .
-# run tests from test_dir so we don't import python2 code from cwd
+# run tests from test dir so we don't import python2 code from cwd
 script:
-  - mkdir test_dir
-  - cd test_dir
-  - py.test ..
+  - cd test
+  - py.test
 
 notifications:
   email:

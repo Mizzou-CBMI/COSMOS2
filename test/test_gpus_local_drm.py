@@ -1,7 +1,7 @@
 import os
 
 from cosmos.api import Cosmos, py_call
-from cosmos.util.helpers import environment_variables
+from cosmos.util.helpers import environment_variables, temp_cwd
 
 
 def use_cuda_device(some_arg, num_gpus):
@@ -25,10 +25,12 @@ def main():
                  cmd_wrapper=py_call, cleanup_at_exit=False)
 
 
-def test_main(cleandir):
-    with environment_variables(COSMOS_LOCAL_GPU_DEVICES='0,1,3'):
-        main()
+def test_main():
+    with temp_cwd():
+        with environment_variables(COSMOS_LOCAL_GPU_DEVICES='0,1,3'):
+            main()
 
 
 if __name__ == '__main__':
-    test_main(None)
+    with environment_variables(COSMOS_LOCAL_GPU_DEVICES='0,1,3'):
+        main()
