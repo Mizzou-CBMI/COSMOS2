@@ -9,28 +9,25 @@ import os
 import re
 import sys
 import time
-import types
 
 import funcsigs
-
+import networkx as nx
+from flask import url_for
+from networkx.algorithms.dag import descendants, topological_sort
 from sqlalchemy import orm
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import validates, synonym, relationship
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, Integer, String, DateTime, VARCHAR
-from sqlalchemy.orm import validates, synonym, relationship
-from flask import url_for
-import networkx as nx
-from networkx.algorithms.dag import descendants, topological_sort
-
-from cosmos.util.iterstuff import only_one
-from cosmos.util.helpers import duplicates, get_logger, mkdir
-from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
-from cosmos.db import Base
-from cosmos.core.cmd_fxn import signature
 
 from cosmos import TaskStatus, StageStatus, WorkflowStatus, signal_workflow_status_change
+from cosmos.core.cmd_fxn import signature
+from cosmos.db import Base
 from cosmos.models.Task import Task
+from cosmos.util.helpers import duplicates, get_logger, mkdir
+from cosmos.util.iterstuff import only_one
+from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 
 opj = os.path.join
 
@@ -43,14 +40,14 @@ def default_task_log_output_dir(task, subdir=''):
 @signal_workflow_status_change.connect
 def _workflow_status_changed(workflow):
     if workflow.status in [WorkflowStatus.successful, WorkflowStatus.failed, WorkflowStatus.killed]:
-        logfunc = workflow.log.warning if workflow.status in [WorkflowStatus.failed, WorkflowStatus.killed] else workflow.log.info
+        logfunc = workflow.log.warning if workflow.status in [WorkflowStatus.failed,
+                                                              WorkflowStatus.killed] else workflow.log.info
         workflow.finished_on = datetime.datetime.now()
         logfunc('%s %s (%s/%s Tasks completed) in %s' % (workflow, workflow.status,
                                                          sum(t.successful for t in workflow.tasks),
                                                          len(workflow.tasks),
                                                          workflow.wall_time
                                                          ))
-
 
     if workflow.status == WorkflowStatus.successful:
         workflow.successful = True
@@ -70,6 +67,7 @@ class Workflow(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     max_cores = Column(Integer)
+    max_gpus = Column(Integer)
     primary_log_path = Column(String(255))
     _log = None
 
@@ -151,7 +149,7 @@ class Workflow(Base):
                 mkdir(d)
 
     def add_task(self, func, params=None, parents=None, stage_name=None, uid=None, drm=None,
-                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None,
+                 queue=None, must_succeed=True, time_req=None, core_req=None, mem_req=None, gpu_req=None,
                  max_attempts=None, noop=False, job_class=None, drm_options=None):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
@@ -234,8 +232,9 @@ class Workflow(Base):
                 return task
             else:
                 # TODO check for duplicate params here?  would be a lot faster at Workflow.run
-                raise ValueError('Duplicate uid, you have added a Task to Stage %s with the uid (unique identifier) `%s` twice.  '
-                                 'Task uids must be unique within the same Stage.' % (stage_name, uid))
+                raise ValueError(
+                    'Duplicate uid, you have added a Task to Stage %s with the uid (unique identifier) `%s` twice.  '
+                    'Task uids must be unique within the same Stage.' % (stage_name, uid))
         else:
             # Create Task
             sig = funcsigs.signature(func)
@@ -251,7 +250,6 @@ class Workflow(Base):
                         return param_default
                 return default
 
-
             task = Task(stage=stage,
                         params=params,
                         parents=parents,
@@ -266,7 +264,8 @@ class Workflow(Base):
                         successful=False,
                         max_attempts=max_attempts if max_attempts is not None else self.cosmos_app.default_max_attempts,
                         attempt=1,
-                        NOOP=noop
+                        NOOP=noop,
+                        gpu_req=gpu_req
                         )
 
             task.cmd_fxn = func
@@ -285,7 +284,8 @@ class Workflow(Base):
 
     def run(self, max_cores=None, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper,
-            log_out_dir_func=default_task_log_output_dir):
+            log_out_dir_func=default_task_log_output_dir,
+            max_gpus=None, cleanup_at_exit=True):
         """
         Runs this Workflow's DAG
 
@@ -300,6 +300,8 @@ class Workflow(Base):
         :param bool dry: If True, do not actually run any jobs.
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
+        :param cleanup_at_exit: if False, do not attempt to handle abnormal exits (like ctrl+c).  Useful for testing
+          since atexit writes to a log file, which might not exist anymore since it was in a temp directory.
 
         Returns True if all tasks in the workflow ran successfully, False otherwise.
         If dry is specified, returns None.
@@ -313,7 +315,7 @@ class Workflow(Base):
 
             session = self.session
             self.log.info("Preparing to run %s using DRM `%s`, cwd is `%s`",
-                self, self.cosmos_app.default_drm, os.getcwd())
+                          self, self.cosmos_app.default_drm, os.getcwd())
             try:
                 user = getpass.getuser()
             except:
@@ -324,6 +326,15 @@ class Workflow(Base):
                           user, os.uname()[1], os.getpid())
 
             self.max_cores = max_cores
+            self.max_gpus = max_gpus
+
+            if self.max_gpus is not None and self.cosmos_app.default_drm == 'local':
+                if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
+                    raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a '
+                                           'comma delimited list of gpu devices of using a local DRM to manage'
+                                           'GPUs')
+                if len(os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(',')) < self.max_gpus:
+                    raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!')
 
             from ..job.JobManager import JobManager
 
@@ -368,13 +379,15 @@ class Workflow(Base):
             self.log.info('Skipping %s successful tasks...' % len(successful))
             task_queue.remove_nodes_from(successful)
 
-            handle_exits(self)
+            if cleanup_at_exit:
+                handle_exits(self)
 
             if self.max_cores is not None:
                 self.log.info('Ensuring there are enough cores...')
                 # make sure we've got enough cores
                 for t in task_queue:
-                    assert int(t.core_req) <= self.max_cores, '%s requires more cpus (%s) than `max_cores` (%s)' % (t, t.core_req, self.max_cores)
+                    assert int(t.core_req) <= self.max_cores, '%s requires more cpus (%s) than `max_cores` (%s)' % (
+                        t, t.core_req, self.max_cores)
 
             # Run this thing!
             self.log.info('Committing to SQL db...')
@@ -564,33 +577,59 @@ def _run(workflow, session, task_queue):
             return
 
 
+def _get_one_submittable_task_given_resource_constraints(tasks, cores_left, gpus_left):
+    tasks = sorted(tasks, key=lambda t: (t.gpu_req, t.core_req, t.id))
+    for task in tasks:
+        if task.gpu_req <= gpus_left and task.cpu_req <= cores_left:
+            return task
+    else:
+        return None
+
+
+def _get_all_submittable_tasks_given_resource_constraints(workflow, ready_tasks):
+    ready_tasks = list(ready_tasks)
+    # get the list of submittable tasks given resource constraints
+    cores_used = sum([t.core_req for t in workflow.jobmanager.running_tasks])
+    gpus_used = sum([t.gpu_req for t in workflow.jobmanager.running_tasks])
+    if workflow.max_cores is None:
+        cores_left = float('inf')
+    else:
+        cores_left = workflow.max_cores - cores_used
+
+    if workflow.max_gpus is None:
+        gpus_left = float('inf')
+    else:
+        gpus_left = workflow.max_gpus - gpus_used
+
+    submittable_tasks = []
+    while len(ready_tasks) > 0:
+        task = _get_one_submittable_task_given_resource_constraints(ready_tasks, cores_left, gpus_left)
+        if task is None:
+            break
+        else:
+            ready_tasks.remove(task)
+            cores_left -= task.core_req
+            gpus_left -= task.gpu_req
+            submittable_tasks.append(task)
+
+    return submittable_tasks
+
+
 def _run_queued_and_ready_tasks(task_queue, workflow):
-    max_cores = workflow.max_cores
     ready_tasks = [task for task, degree in list(task_queue.in_degree()) if
                    degree == 0 and task.status == TaskStatus.no_attempt]
 
-    if max_cores is None:
+    if workflow.max_cores is None and workflow.max_gpus is None:
         submittable_tasks = sorted(ready_tasks, key=lambda t: t.id)
     else:
-        cores_used = sum([t.core_req for t in workflow.jobmanager.running_tasks])
-        cores_left = max_cores - cores_used
-
-        submittable_tasks = []
-        ready_tasks = sorted(ready_tasks, key=lambda t: (t.core_req, t.id))
-        while len(ready_tasks) > 0:
-            task = ready_tasks[0]
-            there_are_cores_left = task.core_req <= cores_left
-            if there_are_cores_left:
-                cores_left -= task.core_req
-                submittable_tasks.append(task)
-                ready_tasks.pop(0)
-            else:
-                break
+        submittable_tasks = _get_all_submittable_tasks_given_resource_constraints(workflow, ready_tasks)
 
     # submit in a batch for speed
     workflow.jobmanager.run_tasks(submittable_tasks)
     if len(submittable_tasks) < len(ready_tasks):
-        workflow.log.info('Reached max_cores limit of %s, waiting for a task to finish...' % max_cores)
+        workflow.log.info('Reached resource limits of max_cores of {workflow.max_cores}, '
+                          'or max_gpu of {workflow.max_gpus}, '
+                          'waiting for a task to finish...'.format(**locals()))
 
     # only commit submitted Tasks after submitting a batch
     workflow.session.commit()
@@ -613,7 +652,7 @@ def handle_exits(workflow, do_atexit=True):
             try:
                 try:
                     if workflow is not None and workflow.status in \
-                       {WorkflowStatus.running, WorkflowStatus.failed_but_running}:
+                            {WorkflowStatus.running, WorkflowStatus.failed_but_running}:
                         workflow.log.error(
                             '%s Still running when atexit() was called, terminating' % workflow)
                         workflow.terminate(due_to_failure=True)

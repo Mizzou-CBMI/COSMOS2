@@ -1,12 +1,20 @@
-import pprint
-import logging
 import itertools as it
-import signal
+import logging
 import os
+import pprint
 import random
+import signal
 import string
-
 import time
+from contextlib import contextmanager
+
+
+@contextmanager
+def environment_variables(**kwargs):
+    old_env_vars = {key: os.environ.get(key) for key in kwargs if key in os.environ}
+    os.environ.update(kwargs)
+    yield
+    os.environ.update(old_env_vars)
 
 
 def isinstance_namedtuple(x):
@@ -105,15 +113,17 @@ def confirm(prompt=None, default=False, timeout=0):
             if not ans:
                 return default
             if ans not in ['y', 'Y', 'yes', 'n', 'no', 'N']:
-                print 'please enter y or n.'
+                print
+                'please enter y or n.'
                 continue
             if ans in ['y', 'yes', 'Yes']:
                 return True
             if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
-                                                                                             'yes' if default else 'no')
+            print
+            "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
+                                                                                       'yes' if default else 'no')
             return default
 
 
@@ -171,7 +181,8 @@ def formatError(txt, dict, error_text=''):
         dash='-' * 76,
         dic=pprint.pformat(dict, indent=4),
         error_text=error_text + "\n")
-    print s
+    print
+    s
 
 
 def get_logger(name, path=None):

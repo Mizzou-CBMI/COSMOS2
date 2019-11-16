@@ -1,6 +1,7 @@
 import os
 import signal
 import sys
+
 if sys.version_info < (3,):
     import subprocess32 as sp
 else:
@@ -18,19 +19,50 @@ class DRM_Local(DRM):
 
     def __init__(self, jobmanager):
         self.procs = dict()
+        self.gpus_on_system = os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(
+            ',') if 'COSMOS_LOCAL_GPU_DEVICES' in os.environ else []
+        self.task_id_to_gpus_used = dict()
+
         super(DRM_Local, self).__init__(jobmanager)
 
-    def submit_job(self, task):
+    @property
+    def gpus_used(self):
+        return [gpu for gpus in self.task_id_to_gpus_used.values() for gpu in gpus]
 
+    @property
+    def gpus_left(self):
+        return list(set(self.gpus_on_system) - set(self.gpus_used))
+
+    def acquire_gpus(self, task):
+        if task.gpu_req > len(self.gpus_left):
+            # if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
+            raise EnvironmentError('Not enough system gpus, need {task.gpu_req} gpus, '
+                                   'gpus on the system are: {self.gpus_on_system}, '
+                                   'and gpus left are: {self.gpus_left}.  '
+                                   'Note that local DRM requires the environment variable '
+                                   'COSMOS_LOCAL_GPU_DEVICES set to a '
+                                   'comma delimited list of GPU devices to use.  It should '
+                                   'be the same format as CUDA_VISIBLE_DEVICES.  '.format(**locals()))
+
+        self.task_id_to_gpus_used[task.id] = self.gpus_left[:task.gpu_req]
+
+    def submit_job(self, task):
         if task.time_req is not None:
             cmd = ['/usr/bin/timeout', '-k', '10', str(task.time_req), task.output_command_script_path]
         else:
             cmd = task.output_command_script_path
 
+        env = os.environ.copy()
+        if task.gpu_req:
+            # Note: workflow won't submit jobs unless there are enough gpus available
+            self.acquire_gpus(task)
+            env['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, self.task_id_to_gpus_used[task.id]))
+
         p = sp.Popen(cmd,
                      stdout=open(task.output_stdout_path, 'w'),
                      stderr=open(task.output_stderr_path, 'w'),
-                     shell=False, env=os.environ,
+                     shell=False,
+                     env=env,
                      preexec_fn=exit_process_group)
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
@@ -57,6 +89,7 @@ class DRM_Local(DRM):
         """
         :returns: (dict) task.drm_jobID -> drm_status
         """
+
         def f(task):
             if task.drm_jobID is None:
                 return '!'
@@ -111,6 +144,8 @@ class DRM_Local(DRM):
     def kill(self, task):
         return self.kill_tasks([task])
 
+    def release_resources_after_completion(self, task):
+        self.task_id_to_gpus_used.pop(task.id)
 
 class JobStatusError(Exception):
     pass
