@@ -200,7 +200,7 @@ class Workflow(Base):
 
         # uid
         if uid is None:
-            raise AssertionError, 'uid parameter must be specified'
+            raise AssertionError('uid parameter must be specified')
             # Fix me assert params are all JSONable
             # uid = str(params)
         else:
