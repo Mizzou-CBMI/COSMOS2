@@ -145,7 +145,8 @@ class DRM_Local(DRM):
         return self.kill_tasks([task])
 
     def release_resources_after_completion(self, task):
-        self.task_id_to_gpus_used.pop(task.id)
+        if task.gpu_req:
+            self.task_id_to_gpus_used.pop(task.id)
 
 class JobStatusError(Exception):
     pass
