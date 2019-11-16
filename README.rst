@@ -96,6 +96,7 @@ In a python2.7 environment
     pip install ghp-import sphinx sphinx_rtd_theme
     cd docs
     make html
+    cd build/html
     ghp-import -n ./ -p
 
 
