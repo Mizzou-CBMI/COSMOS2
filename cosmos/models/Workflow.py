@@ -265,7 +265,7 @@ class Workflow(Base):
                         max_attempts=max_attempts if max_attempts is not None else self.cosmos_app.default_max_attempts,
                         attempt=1,
                         NOOP=noop,
-                        gpu_req=gpu_req
+                        gpu_req=gpu_req if gpu_req is not None else params_or_signature_default_or('gpu_req', 1)
                         )
 
             task.cmd_fxn = func
