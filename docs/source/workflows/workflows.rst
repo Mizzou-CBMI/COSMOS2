@@ -57,7 +57,7 @@ This is the most common type of dependency.  For each task in StageA, you create
     workflow = cosmos.start('One2One')
     for i in [1, 2]:
         stageA_task = workflow.add_task(tool_a, params=dict(i=i), uid=i)
-        stageB_tasks = workflow.add_task(tool_b, params=task.params, parents=[task], uid=i)
+        stageB_tasks = workflow.add_task(tool_b, params=stageA_task.params, parents=[stageA_task], uid=i)
 
     draw_task_graph(workflow.task_graph(), 'one2one.png')
 
