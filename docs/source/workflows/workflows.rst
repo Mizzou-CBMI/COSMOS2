@@ -57,7 +57,7 @@ This is the most common type of dependency.  For each task in StageA, you create
     workflow = cosmos.start('One2One')
     for i in [1, 2]:
         stageA_task = workflow.add_task(tool_a, params=dict(i=i), uid=i)
-        stageB_tasks = workflow.add_task(tool_b, params=task.params, parents=[task], uid=i)
+        stageB_tasks = workflow.add_task(tool_b, params=stageA_task.params, parents=[stageA_task], uid=i)
 
     draw_task_graph(workflow.task_graph(), 'one2one.png')
 
@@ -118,7 +118,7 @@ Two or more parents in StageA produce two or more parents in StageB.
                                       for i in [1, 2]
                                       for j in ['a','b'])]
     def B_generator(stageA_tasks):
-        # For the more complicated relationships, it's can be useful to define a generator
+        # For the more complicated relationships, it can be useful to define a generator
         get_i = lambda task: task.params['i']
         for i, tasks in it.groupby(sorted(stageA_tasks, key=get_i), get_i):
             parents = list(tasks)

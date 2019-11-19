@@ -1,7 +1,4 @@
 """
-Tested with
-Python 3.6 only
-
 py_call() allows you to use python functions as Tasks functions.  It will autogenerate a python script
 which imports the functions, and calls it with the params and use that for the command_script.
 """

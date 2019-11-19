@@ -67,9 +67,12 @@ class DRM(object):
         for t in tasks:
             self.kill(t)
 
-    def cleanup_task(self, task):
+    def cleanup_task_at_exit(self, task):
         if task.drm_jobID and task.status not in completed_task_statuses:
             self.kill(task)
 
     def populate_logs(self, task):
+        pass
+
+    def release_resources_after_completion(self, task):
         pass

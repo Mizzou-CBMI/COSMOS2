@@ -100,7 +100,7 @@ class JobManager(object):
     def cleanup(self):
         """Cleanup a workflow."""
         for task in self.tasks:
-            self.get_drm(task.drm).cleanup_task(task)
+            self.get_drm(task.drm).cleanup_task_at_exit(task)
 
     def get_finished_tasks(self):
         """
@@ -121,6 +121,7 @@ class JobManager(object):
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             for task, job_info_dict in self.get_drm(drm).filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
+                self.get_drm(drm).release_resources_after_completion(task)
                 self.dead_tasks.append(task)
                 for k, v in job_info_dict.items():
                     setattr(task, k, v)

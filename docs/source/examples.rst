@@ -68,3 +68,13 @@ is too large for a visualization to be useful:
 .. figure:: /_static/imgs/ex1_task_graph.png
     :align: center
 
+
+Example 3
+--------------
+
+Here is the source code of the :file:`example_workflows/ex3.py`.  It provides an example of using py_call to
+directly call a python function and avoid the boiler plate of argparse
+
+:file:`examples/ex3.py`
+
+.. literalinclude:: ../../examples/ex3.py

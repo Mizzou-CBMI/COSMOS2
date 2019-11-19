@@ -215,7 +215,7 @@ class SGESignalHandler(object):
 
     def _explain(self, signum):
         names = []
-        for k, v in signal.__dict__.iteritems():
+        for k, v in signal.__dict__.items():
             if k.startswith('SIG') and v == signum:
                 names.append(k)
         names.sort()

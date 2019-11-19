@@ -7,7 +7,7 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
     sig = funcsigs.signature(cmd_fxn)
 
     def gen_params():
-        for keyword, param in sig.parameters.iteritems():
+        for keyword, param in sig.parameters.items():
             if keyword in input_map:
                 yield keyword, input_map[keyword]
             elif keyword in output_map:
@@ -68,7 +68,7 @@ def default_cmd_fxn_wrapper(task, extra_prepend='', extra_append=''):
             return r
         else:
             r = fxn(*args, **kwargs)
-            assert isinstance(r, basestring) or r is None, 'cmd_fxn %s did not return a str or None' % fxn
+            assert isinstance(r, str) or r is None, 'cmd_fxn %s did not return a str or None' % fxn
             if r is None:
                 return None
             else:

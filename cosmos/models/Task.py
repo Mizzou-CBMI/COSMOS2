@@ -172,6 +172,7 @@ class Task(Base):
     core_req = Column(Integer)
     cpu_req = synonym('core_req')
     time_req = Column(Integer)
+    gpu_req = Column(Integer)
     NOOP = Column(Boolean, nullable=False)
     params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
     stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
