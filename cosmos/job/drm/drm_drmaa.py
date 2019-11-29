@@ -23,8 +23,6 @@ class DRM_DRMAA(DRM):
 
     _session = None
 
-    def __init__(self, *args, **kwargs):
-        super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
         with get_drmaa_session().createJobTemplate() as jt:

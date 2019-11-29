@@ -104,7 +104,7 @@ class JobManager(object):
 
     def get_finished_tasks(self):
         """
-        :returns: A completed task, or None if there are no tasks to wait for
+        yields all finished tasks
         """
         # NOOP tasks are already done
         for task in list(self.running_tasks):
