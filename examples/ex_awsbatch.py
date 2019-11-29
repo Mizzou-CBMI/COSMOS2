@@ -12,21 +12,27 @@ def say(text, out_file):
 
 
 if __name__ == '__main__':
-    # Note that the container_image must have bin/run_s3_script in its path (or cosmos is installed)
-    # which downloads a Task's command script from s3 and executes it.  The command scripts are temporarily stored
-    # in s3.
-    container_image = '638253504273.dkr.ecr.us-west-1.amazonaws.com/ravel:bba83ce2c116f097f97a1a6255df6d80bbb5e878'
-    # Bucket to use for storing command scripts as temporary files
-    s3_bucket_for_temp_files = 'ravel-cosmos'
-    # Default aws-batch queue
-    default_queue = 'pipe'
+    import argparse
+
+    p = argparse.ArgumentParser()
+    p.add_argument('-i', '--container-image', help="the docker container image to use for the awsbatch job.  Note that "
+                                                   "the container_image must have bin/run_s3_script in its path (which "
+                                                   "will be true if cosmos is installed).  This script is used to run "
+                                                   "a script that lives in s3.")
+    p.add_argument('-b', '--s3-bucket-for-temp-files',
+                   help="Bucket to use for storing command scripts as temporary files")
+    p.add_argument('-q', '--default-queue', help='aws batch queue')
+    args = p.parse_args()
 
     cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
                     default_drm='awsbatch',
-                    default_drm_options=dict(container_image=container_image,
-                                             s3_bucket_for_temp_files=s3_bucket_for_temp_files),
-                    default_queue=default_queue)
+                    default_drm_options=dict(container_image=args.container_image,
+                                             s3_bucket_for_temp_files=args.s3_bucket_for_temp_files),
+                    default_queue=args.default_queue)
     cosmos.initdb()
+    container_image = '638253504273.dkr.ecr.us-west-1.amazonaws.com/ravel:bba83ce2c116f097f97a1a6255df6d80bbb5e878'
+    s3_bucket_for_temp_files = 'ravel-cosmos'
+    default_queue = 'pipe'
 
     sp.check_call('mkdir -p analysis_output/ex1', shell=True)
     os.chdir('analysis_output/ex1')
