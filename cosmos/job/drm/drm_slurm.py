@@ -4,12 +4,11 @@ import re
 import subprocess as sp
 from pprint import pformat
 
-from more_itertools import grouper
-from cosmos.util.retry import retry_call
-
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import exit_process_group, convert_size_to_kb, div, check_output_and_stderr
+from cosmos.job.drm.util import convert_size_to_kb, div, exit_process_group, run_cli_cmd
+from cosmos.util.retry import retry_call
+from more_itertools import grouper
 
 FAILED_STATES = ['BOOT_FAIL', 'CANCELLED', 'FAILED', 'PREEMPTED', 'REVOKED', 'TIMEOUT', 'CANCELLED by 0']
 PENDING_STATES = ['PENDING', 'CONFIGURING', 'COMPLETING', 'RUNNING', 'NODE_FAIL', 'RESIZING', 'SUSPENDED']
@@ -58,7 +57,7 @@ def sbatch(task):
            + ns.split()
            + [task.output_command_script_path])
 
-    out, err = check_output_and_stderr(cmd, env=os.environ, preexec_fn=exit_process_group)
+    out, err, _ = run_cli_cmd(cmd, env=os.environ)
     return str(re.search(r'job (\d+)', out).group(1))
 
 
@@ -133,10 +132,7 @@ def do_sacct(job_ids):
           '"State,JobID,CPUTime,MaxRSS,AveRSS,AveCPU,CPUTimeRAW,AveVMSize,MaxVMSize,Elapsed,ExitCode,Start,End" ' \
           '-j %s -P' % ','.join(job_ids)
 
-    out, err = check_output_and_stderr(cmd,
-                                       preexec_fn=exit_process_group,
-                                       shell=True
-                                       )
+    out, err, _ = run_cli_cmd(cmd, shell=True)
 
     parts = out.strip().split("\n")
     # job_id_to_job_info_dict

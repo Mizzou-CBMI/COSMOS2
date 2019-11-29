@@ -32,6 +32,9 @@ from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 opj = os.path.join
 
 
+WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
+
+
 def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
     return os.path.abspath(opj('log', subdir, task.stage.name, str(task.uid)))
@@ -441,10 +444,13 @@ class Workflow(Base):
 
     def cleanup(self):
         if self.jobmanager:
-            self.log.info('Cleaning up {num_dead_tasks} dead tasks'.format(
-                num_dead_tasks=len(self.jobmanager.dead_tasks),
-            ))
+            self.log.info(
+                "%s Cleaning up %d tasks",
+                self,
+                len(self.jobmanager.dead_tasks),
+            )
             self.jobmanager.cleanup()
+            self.log.info("%s Done cleaning up", self)
 
     @property
     def tasks(self):
@@ -532,6 +538,7 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
     available_cores = True
+    last_log_timestamp = time.time()
 
     while len(task_queue) > 0:
         if available_cores:
@@ -566,9 +573,19 @@ def _run(workflow, session, task_queue):
             else:
                 raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
             available_cores = True
+            last_log_timestamp = time.time()
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
+
+        if last_log_timestamp + WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL < time.time():
+            num_running = len(list(workflow.jobmanager.running_tasks))
+            workflow.log.info(
+                "Cosmos is still alive, just waiting on %d task%s",
+                num_running,
+                "s" if num_running > 1 else "",
+            )
+            last_log_timestamp = time.time()
 
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)

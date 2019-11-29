@@ -163,10 +163,6 @@ class DRM_K8S_Jobs(DRM):  # noqa
         if err:
             raise RuntimeError(err)
 
-    def cleanup_task_at_exit(self, task):
-        if task.drm_jobID and task.status != TaskStatus.killed:
-            self.kill(task)
-
 
 def kstatus(job_ids):
     kstatus_cmd = 'kstatus {job_ids} -o json'.format(job_ids=' '.join(job_ids))

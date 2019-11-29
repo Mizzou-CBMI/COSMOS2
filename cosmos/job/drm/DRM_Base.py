@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABCMeta
 
+from cosmos.models.Task import completed_task_statuses
 
 class DRM(object):
 
@@ -67,7 +68,8 @@ class DRM(object):
             self.kill(t)
 
     def cleanup_task_at_exit(self, task):
-        pass
+        if task.drm_jobID and task.status not in completed_task_statuses:
+            self.kill(task)
 
     def populate_logs(self, task):
         pass

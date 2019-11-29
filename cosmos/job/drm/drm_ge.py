@@ -2,19 +2,21 @@ import json
 import logging
 import os
 import re
-import subprocess
 import sys
 import time
 from collections import OrderedDict
 
-from more_itertools import grouper
-
 from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
-from cosmos.job.drm.util import (DetailedCalledProcessError,
-                                 check_output_and_stderr, convert_size_to_kb,
-                                 div, exit_process_group)
+from cosmos.job.drm.util import convert_size_to_kb, div, exit_process_group, run_cli_cmd
 from cosmos.util.signal_handlers import sleep_through_signals
+from more_itertools import grouper
+
+
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 
 class QacctJobNotFoundError(Exception):
@@ -97,7 +99,7 @@ class DRM_GE(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         if tasks:
-            qjobs = qstat()
+            qjobs = qstat(logger=tasks[0].workflow.log)
 
             def f(task):
                 return qjobs.get(unicode(task.drm_jobID), dict()).get('state', 'UNK_JOB_STATE')
@@ -171,13 +173,15 @@ class DRM_GE(DRM):
 
     def kill(self, task):
         """Terminate a task."""
-        raise NotImplementedError
+        self.kill_tasks([task])
 
     def kill_tasks(self, tasks):
+        logger = tasks[0].workflow.log if tasks else _get_null_logger()
+
         for group in grouper(50, tasks):
             group = filter(lambda x: x is not None, group)
-            pids = ','.join(map(lambda t: unicode(t.drm_jobID), group))
-            subprocess.call(['qdel', pids], preexec_fn=exit_process_group)
+            job_ids = map(lambda t: unicode(t.drm_jobID), group)
+            qdel(job_ids, logger=logger)
 
 
 def _get_null_logger():
@@ -234,17 +238,13 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     good_qacct_dict = None
 
     for i in xrange(num_retries):
-        qacct_returncode = 0
-        try:
-            qacct_stdout_str, qacct_stderr_str = check_output_and_stderr(
-                ['qacct', '-j', unicode(job_id)],
-                preexec_fn=exit_process_group)
-            if qacct_stdout_str.strip():
-                break
-        except DetailedCalledProcessError as err:
-            qacct_stdout_str = err.output.strip()
-            qacct_stderr_str = err.stderr.strip()
-            qacct_returncode = err.returncode
+
+        qacct_stdout_str, qacct_stderr_str, qacct_returncode = run_cli_cmd(
+            ["qacct", "-j", unicode(job_id)], logger=logger
+        )
+        if qacct_returncode == 0 and qacct_stdout_str.strip():
+            # qacct returned actual output w/no error code. we're good
+            break
 
         if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
             if i > 0:
@@ -267,6 +267,12 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
                 log_prefix, job_id, i + 1, time.time() - start,
                 '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
         if i + 1 < num_retries:
+            logger.info(
+                "%s Will wait %d sec before calling qacct on %s again",
+                log_prefix,
+                quantum,
+                job_id,
+            )
             sleep_through_signals(timeout=quantum)
     else:
         # fallthrough: all retries failed
@@ -301,17 +307,85 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     return good_qacct_dict if good_qacct_dict else curr_qacct_dict
 
 
-def qstat():
+def qdel(job_ids, logger):
+    """
+    Call qdel on all the supplied job_ids: if that fails, qdel each job_id individually.
+
+    Unlike other SGE cli commands, each qdel call is attempted only once, with a
+    fairly harsh 20-second timeout, because this function is often called in an
+    exit handler that does not have arbitrary amounts of time in which to run.
+    """
+    stdout, stderr, returncode = run_cli_cmd(
+        ["qdel", "-f", ",".join(job_ids)],
+        logger=logger,
+        attempts=1,
+        timeout=20,
+    )
+    if returncode == 0:
+        logger.info("qdel reported success against %d job_ids", len(job_ids))
+        return len(job_ids)
+
+    successful_qdels = 0
+    undead_job_ids = []
+
+    for job_id in job_ids:
+        if "has deleted job %s" % job_id in stdout:
+            successful_qdels += 1
+        elif "has registered the job %s for deletion" % job_id in stdout:
+            successful_qdels += 1
+        else:
+            undead_job_ids.append(job_id)
+
+    if undead_job_ids:
+        #
+        # If the original qdel didn't catch everything, kick off a qdel for each
+        # remaining job id. Don't set a timeout and don't check the return code.
+        #
+        logger.warning(
+            "qdel returned exit code %s, calling on one job_id at a time", returncode
+        )
+
+        for i, job_id in enumerate(undead_job_ids):
+            logger.warning("will qdel %s in %d sec and ignore exit code", job_id, i)
+            subprocess.Popen("sleep %d; qdel -f %s" % (i, job_id), shell=True)
+
+    logger.info(
+        "qdel reported success against %d of %d job_ids, see above for details",
+        successful_qdels,
+        len(job_ids),
+    )
+    return successful_qdels
+
+
+def qstat(logger=None):
     """
     Return a mapping of job ids to a dict of GE information about each job.
+
+    If qstat hangs or returns an error, wait 30 sec and call it again. Do this
+    three times. If the final attempt returns an error, log it, and return an
+    empty dictionary, which is the same behavior you'd get if all known jobs
+    had exited. (If qstat is down for 90+ sec, any running job is likely to be
+    functionally dead.)
 
     The exact contents of the sub-dictionaries in the returned dictionary's
     values() depend on the installed GE version.
     """
-    try:
-        lines = subprocess.check_output(['qstat'], preexec_fn=exit_process_group).decode().strip().split('\n')
-    except (subprocess.CalledProcessError, OSError):
+    if logger is None:
+        logger = _get_null_logger()
+
+    stdout, _, returncode = run_cli_cmd(
+        ["qstat"], attempts=3, interval=30, logger=logger, timeout=30)
+    if returncode != 0:
+        logger.warning("qstat returned %s: If GE is offline, all jobs are dead or done")
         return {}
+    lines = stdout.strip().split("\n")
+    if not lines:
+        logger.info(
+            "qstat returned 0 and no output: all jobs are probably done, "
+            "but in rare cases this may be a sign that GE is not working properly"
+        )
+        return {}
+
     keys = re.split(r"\s+", lines[0])
     bjobs = {}
     for l in lines[2:]:
@@ -342,22 +416,36 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         qsub_cli += ' %s' % addl_args
 
     job_id = None
-    try:
-        out = subprocess.check_output(
-            '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-            env=os.environ, preexec_fn=exit_process_group, shell=True,
-            stderr=subprocess.STDOUT).decode()
 
-        job_id = unicode(int(out))
-    except subprocess.CalledProcessError as cpe:
-        logger.error('%s submission to %s (%s) failed with error %s: %s' %
-                     (log_prefix, drm_name, qsub, cpe.returncode, cpe.output.decode().strip()))
-        status = TaskStatus.failed
-    except ValueError:
-        logger.error('%s submission to %s returned unexpected text: %s' %
-                     (log_prefix, drm_name, out))
+    stdout, stderr, returncode = run_cli_cmd(
+        '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
+        attempts=1,     # make just one attempt: running a task 2x could be disastrous
+        env=os.environ,
+        logger=logger,
+        shell=True,
+    )
+
+    if returncode != 0:
+        logger.error(
+            "%s submission to %s (%s) failed with error %s",
+            log_prefix,
+            drm_name,
+            qsub,
+            returncode,
+        )
         status = TaskStatus.failed
     else:
-        status = TaskStatus.submitted
+        try:
+            job_id = unicode(int(stdout))
+        except ValueError:
+            logger.error(
+                "%s submission to %s returned unexpected text: %s",
+                log_prefix,
+                drm_name,
+                stdout,
+            )
+            status = TaskStatus.failed
+        else:
+            status = TaskStatus.submitted
 
     return (job_id, status)
