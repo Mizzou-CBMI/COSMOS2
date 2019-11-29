@@ -1,7 +1,7 @@
 import pprint
 import random
+import re
 import string
-from urllib import parse
 
 import boto3
 
@@ -18,9 +18,7 @@ def split_bucket_key(s3_uri):
     >>> split_bucket_key('s3://bucket/path/to/fname')
     ('bucket', 'path/to/fname')
     """
-    url = parse.urlparse(s3_uri)
-    bucket = url.netloc
-    key = url.path.lstrip('/')
+    bucket, key = re.search('s3://(.+?)/(.+)', s3_uri).groups()
     if key == '':
         raise ValueError('no prefix in %s' % s3_uri)
     return bucket, key
