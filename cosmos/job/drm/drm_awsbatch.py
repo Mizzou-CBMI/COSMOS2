@@ -22,7 +22,7 @@ def split_bucket_key(s3_uri):
     bucket = url.netloc
     key = url.path.lstrip('/')
     if key == '':
-        raise ValueError(f'no prefix in {s3_uri}')
+        raise ValueError('no prefix in %s' % s3_uri)
     return bucket, key
 
 
