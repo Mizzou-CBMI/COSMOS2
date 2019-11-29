@@ -1,16 +1,17 @@
 import os
 import signal
 import sys
-
-if sys.version_info < (3,):
-    import subprocess32 as sp
-else:
-    import subprocess as sp
 import time
 
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group
 from cosmos.api import TaskStatus
+
+
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 
 class DRM_Local(DRM):
@@ -58,12 +59,14 @@ class DRM_Local(DRM):
             self.acquire_gpus(task)
             env['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, self.task_id_to_gpus_used[task.id]))
 
-        p = sp.Popen(cmd,
-                     stdout=open(task.output_stdout_path, 'w'),
-                     stderr=open(task.output_stderr_path, 'w'),
-                     shell=False,
-                     env=env,
-                     preexec_fn=exit_process_group)
+        p = subprocess.Popen(
+            cmd,
+            stdout=open(task.output_stdout_path, 'w'),
+            stderr=open(task.output_stderr_path, 'w'),
+            shell=False,
+            env=env,
+            preexec_fn=exit_process_group,
+        )
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
@@ -75,7 +78,7 @@ class DRM_Local(DRM):
             p = self.procs[task.drm_jobID]
             p.wait(timeout=timeout)
             return True
-        except sp.TimeoutExpired:
+        except subprocess.TimeoutExpired:
             return False
 
         return False
@@ -89,7 +92,6 @@ class DRM_Local(DRM):
         """
         :returns: (dict) task.drm_jobID -> drm_status
         """
-
         def f(task):
             if task.drm_jobID is None:
                 return '!'

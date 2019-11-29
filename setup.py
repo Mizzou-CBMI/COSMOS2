@@ -38,7 +38,7 @@ install_requires = [
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
 if sys.version_info < (3,):
-    install_requires += ['subprocess32']
+    install_requires += ['subprocess32>=3.5']
 if sys.version_info < (3, 6):
     install_requires += ['enum34']
 

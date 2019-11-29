@@ -32,6 +32,9 @@ from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 opj = os.path.join
 
 
+WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
+
+
 def default_task_log_output_dir(task, subdir=''):
     """The default function for computing Task.log_output_dir"""
     return os.path.abspath(opj('log', subdir, task.stage.name, str(task.uid)))
@@ -168,11 +171,14 @@ class Workflow(Base):
         :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
-        :param int cpu_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
+        :param int core_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
             Warning!  In future versions, this will be the only way to set it.
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
+        :param int gpu_req: Number of gpus required for this Task.
         :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
+        :param bool noop: Task is a No-op and will always be marked as successful.
+        :param dict drm_options: Options for Distributed Resource Management (cluster).
         :rtype: cosmos.api.Task
         """
         # Avoid cyclical import dependencies
@@ -531,6 +537,7 @@ def _run(workflow, session, task_queue):
     """
     workflow.log.info('Executing TaskGraph')
     available_cores = True
+    last_log_timestamp = time.time()
 
     while len(task_queue) > 0:
         if available_cores:
@@ -565,9 +572,19 @@ def _run(workflow, session, task_queue):
             else:
                 raise AssertionError('Unexpected finished task status %s for %s' % (task.status, task))
             available_cores = True
+            last_log_timestamp = time.time()
 
         # only commit Task changes after processing a batch of finished ones
         session.commit()
+
+        if last_log_timestamp + WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL < time.time():
+            num_running = len(list(workflow.jobmanager.running_tasks))
+            workflow.log.info(
+                "Cosmos is still alive, just waiting on %d task%s",
+                num_running,
+                "s" if num_running > 1 else "",
+            )
+            last_log_timestamp = time.time()
 
         # conveniently, this returns early if we catch a signal
         time.sleep(workflow.jobmanager.poll_interval)
