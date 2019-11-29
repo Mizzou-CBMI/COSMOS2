@@ -168,11 +168,14 @@ class Workflow(Base):
         :param queue: The name of a queue to submit to; defaults to the `default_queue` parameter of :meth:`Cosmos.start`
         :param bool must_succeed: Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.
         :param bool time_req: The time requirement; will set the Task.time_req attribute which is intended to be used by :func:`get_submit_args` to request resources.
-        :param int cpu_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
+        :param int core_req: Number of cpus required for this Task.  Can also be set in the `params` dict or the default value of the Task function signature, but this value takes precedence.
             Warning!  In future versions, this will be the only way to set it.
         :param int mem_req: Number of MB of RAM required for this Task.   Can also be set in the `params` dict or the default value of the Task function signature, but this value takes predence.
             Warning!  In future versions, this will be the only way to set it.
+        :param int gpu_req: Number of gpus required for this Task.
         :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
+        :param bool noop: Task is a No-op and will always be marked as successful.
+        :param dict drm_options: Options for Distributed Resource Management (cluster).
         :rtype: cosmos.api.Task
         """
         # Avoid cyclical import dependencies

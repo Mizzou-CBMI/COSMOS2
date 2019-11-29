@@ -24,4 +24,4 @@ There are some special things about the function's parameters that Cosmos will r
 * Setting defaults will work as expected.
 * A function parameter that starts with `in_` is an input_file.
 * A function parameter that starts with `out_` is an output_file.
-* The `cpu_req` parameter will be used to set any core requests to a :term:`DRM`.
+* The `core_req` parameter will be used to set any core requests to a :term:`DRM`.
