@@ -146,7 +146,7 @@ class DRM_AWSBatch(DRM):
                 else:
                     exit_status = -1
 
-                self._cleanup_task(task, job_dict[0]['container']['logStreamName'])
+                self._cleanup_task(task, job_dict['container']['logStreamName'])
 
                 yield task, dict(exit_status=exit_status,
                                  wall_time=job_dict['stoppedAt'] - job_dict['stoppedAt'])

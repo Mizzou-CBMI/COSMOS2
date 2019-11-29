@@ -22,7 +22,7 @@ def main():
                                  uid=str(i))
 
     workflow.run(max_gpus=len(os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(',')),
-                 cmd_wrapper=py_call, do_cleanup_at_exit=False)
+                 cmd_wrapper=py_call, do_cleanup_atexit=False)
 
 
 def test_main():
