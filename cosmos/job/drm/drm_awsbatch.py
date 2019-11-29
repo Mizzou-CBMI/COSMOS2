@@ -1,29 +1,48 @@
+import pprint
 import random
 import string
-import sys
+from urllib import parse
 
 import boto3
 
-if sys.version_info < (3,):
-    pass
-else:
-    pass
-import time
-
-from cosmos.job.drm.DRM_Base import DRM
 from cosmos.api import TaskStatus
-import pprint
-
-image = '638253504273.dkr.ecr.us-west-1.amazonaws.com/ravel:132223b90281fa81431053e96214bb21fabc90d9'
-job_queue = 'pipe'
-s3_bucket_for_command_scripts = 'ravel-cosmos'
+from cosmos.job.drm.DRM_Base import DRM
 
 
 def random_string(length):
     return ''.join([random.choice(string.ascii_letters + string.digits) for _ in range(length)])
 
 
-def submit_aws_batch_job(local_script_path, s3_bucket_for_command_scripts, job_name, memory=1024, vcpus=1):
+def split_bucket_key(s3_uri):
+    """
+    >>> split_bucket_key('s3://bucket/path/to/fname')
+    ('bucket', 'path/to/fname')
+    """
+    url = parse.urlparse(s3_uri)
+    bucket = url.netloc
+    key = url.path.lstrip('/')
+    if key == '':
+        raise ValueError(f'no prefix in {s3_uri}')
+    return bucket, key
+
+
+def submit_script_as_aws_batch_job(local_script_path,
+                                   s3_bucket_for_command_scripts,
+                                   job_name,
+                                   container_image,
+                                   job_queue,
+                                   memory=1024,
+                                   vcpus=1):
+    """
+    :param local_script_path: the local path to a script to run in awsbatch.
+    :param s3_bucket_for_command_scripts: the s3 bucket to use for storing the local script to to run.  Caller
+      is responsible for cleaning it up.
+    :param job_name: name of the job_dict.
+    :param container_image: docker image.
+    :param memory: amount of memory to reserve.
+    :param vcpus: amount of vcpus to reserve.
+    :return: obId, job_definition_arn, s3_command_script_uri.
+    """
     batch = boto3.client(service_name="batch")
     s3 = boto3.client(service_name="s3")
 
@@ -34,9 +53,11 @@ def submit_aws_batch_job(local_script_path, s3_bucket_for_command_scripts, job_n
         key=key)
 
     container_properties = {
-        "image": image,
+        "image": container_image,
         "jobRoleArn": "ecs_administrator",
-        "mountPoints": [{"containerPath": "/scratch", "readOnly": False, "sourceVolume": "scratch"}],
+        "mountPoints": [{"containerPath": "/scratch",
+                         "readOnly": False,
+                         "sourceVolume": "scratch"}],
         "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
         "resourceRequirements": [],
         "command": ['run_s3_script', s3_command_script_uri]
@@ -54,7 +75,7 @@ def submit_aws_batch_job(local_script_path, s3_bucket_for_command_scripts, job_n
     job_definition_arn = resp['jobDefinitionArn']
 
     submit_jobs_response = batch.submit_job(
-        jobName='cosmos-job',  # add task.name
+        jobName=job_name,
         jobQueue=job_queue,
         jobDefinition=job_definition_arn
     )
@@ -63,7 +84,20 @@ def submit_aws_batch_job(local_script_path, s3_bucket_for_command_scripts, job_n
     return jobId, job_definition_arn, s3_command_script_uri
 
 
-def get_aws_batch_job_info(job_ids):
+def get_logs(log_stream_name):
+    logs_client = boto3.client(service_name="logs")
+    try:
+        response = logs_client.get_log_events(
+            logGroupName='/aws/batch/job_dict',
+            logStreamName=log_stream_name,
+            startFromHead=True)
+        _check_aws_response_for_error(response)
+        return '\n'.join(d['message'] for d in response['events'])
+    except logs_client.exceptions.ResourceNotFoundException:
+        return 'log stream not found for log_stream_name: %s\n' % log_stream_name
+
+
+def get_aws_batch_job_infos(job_ids):
     batch_client = boto3.client(service_name="batch")
     describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
     _check_aws_response_for_error(describe_jobs_response)
@@ -72,7 +106,6 @@ def get_aws_batch_job_info(job_ids):
 
 class DRM_AWSBatch(DRM):
     name = 'awsbatch'
-    poll_interval = 0.3
 
     def __init__(self):
         self.job_id_to_s3_script_uri = dict()
@@ -81,43 +114,78 @@ class DRM_AWSBatch(DRM):
         super(DRM_AWSBatch, self).__init__()
 
     def submit_job(self, task):
-        jobId, job_definition_arn, s3_command_script_uri = submit_aws_batch_job(task.output_command_script_path,
-                                                                                s3_bucket_for_command_scripts,
-                                                                                job_name='cosmos-{}-'.format(
-                                                                                    task.stage.name),
-                                                                                memory=task.mem_req,
-                                                                                vcpus=task.cpu_req)
+        jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
+            local_script_path=task.output_command_script_path,
+            s3_bucket_for_command_scripts=task.drm_options['s3_bucket_for_temp_files'],
+            container_image=task.drm_options['container_image'],
+            job_name='cosmos-{}-'.format(task.stage.name),
+            job_queue=task.queue,
+            memory=task.mem_req,
+            vcpus=task.cpu_req)
+
+        # save pointer to logstream in stdout/stderr files
+        job_dict = get_aws_batch_job_infos([jobId])[0]
+        with open(task.output_stdout_path, 'w'):
+            pass
+        with open(task.output_stderr_path, 'w') as fp:
+            fp.write(pprint.pformat(job_dict, indent=2))
+
+        # set task attributes
         task.drm_jobID = jobId
         task.status = TaskStatus.submitted
+        task.s3_command_script_uri = s3_command_script_uri
 
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
-        jobs = get_aws_batch_job_info(job_ids)
-        for task, job in zip(tasks, jobs):
-            if job['status'] in ['succeeded', 'failed']:
-                if 'attempts' in job:
-                    exit_status = job['attempts'][-1]['container']['exitCode']
+        jobs = get_aws_batch_job_infos(job_ids)
+        for task, job_dict in zip(tasks, jobs):
+            if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
+                # get exit status
+                if 'attempts' in job_dict:
+                    exit_status = job_dict['attempts'][-1]['container']['exitCode']
                 else:
                     exit_status = -1
+
+                self._cleanup_task(task, job_dict[0]['container']['logStreamName'])
+
                 yield task, dict(exit_status=exit_status,
-                                 wall_time=job['stoppedAt'] - job['startedAt'])
+                                 wall_time=job_dict['stoppedAt'] - job_dict['stoppedAt'])
+
+    def _cleanup_task(self, task, log_stream_name=None):
+        # if log_stream_name wasn't passed in, query to get it
+        if log_stream_name is None:
+            job_dict = get_aws_batch_job_infos([task.drm_jobID])
+            log_stream_name = job_dict[0]['container'].get('logStreamName')
+
+        if log_stream_name is None:
+            logs = 'no log stream was available for job: %s\n' % task.drm_jobID
+        else:
+            # write logs to stdout
+            logs = get_logs(log_stream_name=log_stream_name)
+
+        with open(task.output_stdout_path, 'w') as fp:
+            fp.write(logs)
+
+        # delete temporary s3 script path
+        bucket, key = split_bucket_key(task.s3_command_script_uri)
+        self.s3_client.delete_object(Bucket=bucket, Key=key)
+
+        # delete job definition?
 
     def drm_statuses(self, tasks):
         """
         :returns: (dict) task.drm_jobID -> drm_status
         """
         job_ids = [task.drm_jobID for task in tasks]
-        return dict(zip(job_ids, get_aws_batch_job_info(job_ids)))
-
-    def _get_task_return_data(self, task):
-        return dict(exit_status=self.procs[task.drm_jobID].wait(timeout=0),
-                    wall_time=round(int(time.time() - self.procs[task.drm_jobID].start_time)))
+        return dict(zip(job_ids, get_aws_batch_job_infos(job_ids)))
 
     def kill(self, task):
         batch_client = boto3.client(service_name="batch")
         terminate_job_response = batch_client.terminate_job(jobId=task.drm_jobID,
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
+
+        self._cleanup_task(task)
 
 
 class JobStatusError(Exception):
