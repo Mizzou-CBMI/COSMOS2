@@ -121,7 +121,7 @@ class DRM_AWSBatch(DRM):
             memory=task.mem_req,
             vcpus=task.cpu_req)
 
-        # save pointer to logstream in stdout/stderr files
+        # just save pointer to logstream.  We'll collect them when the job finishes.
         job_dict = get_aws_batch_job_infos([jobId])[0]
         with open(task.output_stdout_path, 'w'):
             pass
@@ -150,7 +150,7 @@ class DRM_AWSBatch(DRM):
                                  wall_time=job_dict['stoppedAt'] - job_dict['stoppedAt'])
 
     def _cleanup_task(self, task, log_stream_name=None):
-        # if log_stream_name wasn't passed in, query to get it
+        # if log_stream_name wasn't passed in, query aws to get it
         if log_stream_name is None:
             job_dict = get_aws_batch_job_infos([task.drm_jobID])
             log_stream_name = job_dict[0]['container'].get('logStreamName')
