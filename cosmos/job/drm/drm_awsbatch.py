@@ -105,11 +105,24 @@ def get_aws_batch_job_infos(job_ids):
 class DRM_AWSBatch(DRM):
     name = 'awsbatch'
 
+    _batch_client = None
+    _s3_client = None
+
     def __init__(self):
         self.job_id_to_s3_script_uri = dict()
-        self.batch_client = boto3.client(service_name="batch")
-        self.s3_client = boto3.client(service_name="s3")
         super(DRM_AWSBatch, self).__init__()
+
+    @property
+    def batch_client(self):
+        if self._batch_client is None:
+            self._batch_client = boto3.client(service_name="batch")
+        return self._batch_client
+
+    @property
+    def s3_client(self):
+        if self._s3_client is None:
+            self._s3_client = boto3.client(service_name="s3")
+        return self._s3_client
 
     def submit_job(self, task):
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
