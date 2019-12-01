@@ -31,7 +31,6 @@ from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 
 opj = os.path.join
 
-
 WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
 
 
@@ -276,7 +275,17 @@ class Workflow(Base):
 
             task.cmd_fxn = func
 
-            task.drm_options = drm_options if drm_options is not None else self.cosmos_app.default_drm_options
+
+            if drm_options is None:
+                task.drm_options = {}
+            else:
+                task.drm_options = drm_options
+            # use default for any keys not set
+            if self.cosmos_app.default_drm_options is not None:
+                for key, val in self.cosmos_app.default_drm_options.items():
+                    if key not in task.drm_options:
+                        task.drm_options[key] = val
+
             DRM.validate_drm_options(task.drm, task.drm_options)
 
         # Add Stage Dependencies

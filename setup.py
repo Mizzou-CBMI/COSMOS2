@@ -1,7 +1,8 @@
-from setuptools import setup, find_packages
 import os
 import re
 import sys
+
+from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'cosmos/VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
@@ -45,7 +46,7 @@ if sys.version_info < (3, 6):
 setup(
     name="cosmos-wfm",
     version=__version__,
-    scripts=['bin/cosmos','bin/run_pyfunc', 'bin/run_s3_script'],
+    scripts=['bin/cosmos', 'bin/run_pyfunc'],
     description="Workflow Management System",
     long_description='Cosmos is a library for writing analysis pipelines, and is particularly suited pipelines which analyze next generation sequencing genomic'
                      'data. See https://github.com/Mizzou-CBMI/COSMOS2 for details.',
