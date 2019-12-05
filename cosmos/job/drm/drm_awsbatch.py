@@ -174,7 +174,9 @@ class DRM_AWSBatch(DRM):
             if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
                 # get exit status
                 if 'attempts' in job_dict:
-                    exit_status = job_dict['attempts'][-1]['container']['exitCode']
+                    # exit code might be missing if for example the instance was terminated because the compute
+                    # environment was deleted.
+                    exit_status = job_dict['attempts'][-1]['container'].get('exitCode', -2)
                 else:
                     exit_status = -1
 
