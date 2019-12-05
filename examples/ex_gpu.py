@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from cosmos.api import Cosmos, py_call_cmd_wrapper
 from cosmos.util.helpers import environment_variables
@@ -26,5 +27,7 @@ def main():
 
 
 if __name__ == '__main__':
+    subprocess.check_call('mkdir -p analysis_output/ex_gpu', shell=True)
+    os.chdir('analysis_output/ex_gpu')
     with environment_variables(COSMOS_LOCAL_GPU_DEVICES='0,1,3'):
         main()
