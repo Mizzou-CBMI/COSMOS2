@@ -1,11 +1,10 @@
 """
-py_call() allows you to use python functions as Tasks functions.  It will autogenerate a python script
-which imports the functions, and calls it with the params and use that for the command_script.
+py_call_cmd_wrapper  
 """
 
 import os
 
-from cosmos.api import Cosmos, py_call
+from cosmos.api import Cosmos, py_call_cmd_wrapper
 
 
 def say(text, out_file):
@@ -19,9 +18,9 @@ if __name__ == '__main__':
     cosmos.initdb()
     workflow = cosmos.start('Example3', restart=True, skip_confirm=True)
 
-    t = workflow.add_task(func=py_call(say),
+    t = workflow.add_task(func=say,
                           params=dict(text='Hello World', out_file='out.txt'),
                           uid='my_task')
 
     workflow.make_output_dirs()
-    workflow.run()
+    workflow.run(cmd_wrapper=py_call_cmd_wrapper)
