@@ -43,8 +43,9 @@ def submit_script_as_aws_batch_job(local_script_path,
     :param vcpus: amount of vcpus to reserve.
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
-    assert not s3_prefix_for_command_script_temp_files.endswith('/'), f's3_prefix_for_command_script_temp_files should not have a ' \
-                                                            f'trailing slash'
+    if s3_prefix_for_command_script_temp_files.endswith('/'):
+        raise ValueError('s3_prefix_for_command_script_temp_files should not have a ' \
+                         f'trailing slash.  It is set to %s' % s3_prefix_for_command_script_temp_files)
     batch = boto3.client(service_name="batch")
     s3 = boto3.client(service_name="s3")
 
