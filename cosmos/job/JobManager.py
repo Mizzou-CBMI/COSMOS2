@@ -12,7 +12,7 @@ from cosmos.util.helpers import mkdir
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = {DRM_sub_cls.name: DRM_sub_cls(self) for DRM_sub_cls in DRM.__subclasses__()}
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls() for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []
@@ -37,10 +37,7 @@ class JobManager(object):
         thread_local_task = task
 
         if self.cmd_wrapper:
-            if self.cmd_wrapper == py_call:
-                fxn = self.cmd_wrapper(task.cmd_fxn)
-            else:
-                fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
+            fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
         else:
             fxn = task.cmd_fxn
 
@@ -97,14 +94,9 @@ class JobManager(object):
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
 
-    def cleanup(self):
-        """Cleanup a workflow."""
-        for task in self.tasks:
-            self.get_drm(task.drm).cleanup_task_at_exit(task)
-
     def get_finished_tasks(self):
         """
-        :returns: A completed task, or None if there are no tasks to wait for
+        yields all finished tasks
         """
         # NOOP tasks are already done
         for task in list(self.running_tasks):

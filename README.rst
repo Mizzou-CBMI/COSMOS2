@@ -33,13 +33,24 @@ Install
 
 Introduction
 ============
-Cosmos is a python library for creating scientific pipelines that run on a distributed computing cluster.  It is primarily designed and used for bioinformatics pipelines, but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.  A Cosmos pipeline can run locally on a single machine or a traditional computing cluster like GridEngine, LSF, Condor, PBS/Torque, SLURM or any other Distributed Resource Manager (DRM) that supports `DRMAA <https://www.drmaa.org/>`__. Adding support for other DRMs is very straightforward, and support for `AWS Batch <https://aws.amazon.com/batch/>`__ is in the works. For those who want to use AWS, it pairs very well with AWS' new  `CfnCluster <https://aws.amazon.com/hpc/cfncluster/>`__.
+Cosmos is a python library for creating scientific pipelines that run on a distributed computing cluster.
+It is primarily designed and used for bioinformatics pipelines, but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.
 
-Cosmos provides a simple api to specify complex job DAGs, a way to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
-It is different from libraries such as `Luigi <https://github.com/spotify/luigi>`__ or `Airflow <http://airbnb.io/projects/airflow/>`__ which are simultaneously trying to solve problems such as scheduling recurring tasks and listening for events.
-Cosmos is very focused only on reproducible scientific pipelines, allowing it to have a very simple state.  There is a single process per Workflow which is a python script, and single process per Task which is a command inside a bash script.  When a Task fails, reproducing the exact
-environment of a Task is as simple as re-running the bash script.  Cosmos is intended and useful for both one-off analyses and production software.  Users have reported analyzing >100 whole genomes (~50TB and tens of thousands of jobs) in
-a single Workflow without issue.
+Cosmos provides a simple api to specify any job DAG using simple python code making it extremely flexible and inuitive
+- you do *not* specify your DAG using json, CWL, groovy, or some other domain specific language.
+
+Cosmos allows you to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
+It is different from libraries such as `Luigi <https://github.com/spotify/luigi>`__
+or `Airflow <http://airbnb.io/projects/airflow/>`__ which also try to solve ETL problems such as scheduling recurring tasks and listening for events.
+
+Cosmos is very focused on reproducible scientific pipelines, allowing it to have a very simple state.
+There is a single process per Workflow which is a python script, and a single process per Task which is python function represented by an executable script.
+When a Task fails, reproducing the exact environment of a Task is as simple as re-running the command script.  The same pipeline can
+also easily be run on a variety of compute infrastructure: locally, in the cloud, or on a grid computing cluster.
+
+Cosmos is intended and useful for both one-off analyses and production software.
+Users have analyzed >100 whole genomes (~50TB and tens of thousands of jobs) in a single Workflow without issue, and some of the largest
+clinical sequencing laboratories use it for the production and R&D workflows.
 
 History
 ___________
@@ -49,14 +60,15 @@ for research, please cite its `manuscript <http://bioinformatics.oxfordjournals.
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 `The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and processes thousands of samples per month.  It is also used by various research groups around the world; if you use it for cool stuff please let us know!
+`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and has processed hundreds of thousands of samples.
+It is also used by various research groups around the world; if you use it for cool stuff please let us know!
 
 Features
 _________
 * Written in python which is easy to learn, powerful, and popular.  A researcher or programmer with limited experience can begin writing Cosmos workflows right away.
 * Powerful syntax for the creation of complex and highly parallelized workflows.
 * Reusable recipes and definitions of tools and sub workflows allows for DRY code.
-* Keeps track of workflows, job information, and resource utilization and provenance in an SQL database and log files.
+* Keeps track of workflows, job information, resource utilization and provenance in an SQL database and log files.
 * The ability to visualize all jobs and job dependencies as a convenient image.
 * Monitor and debug running workflows, and a history of all workflows via a web dashboard.
 * Alter and resume failed workflows.
@@ -68,10 +80,10 @@ _______________
    
 Multi-platform Support
 +++++++++++++++++++++++
-* Support for DRMS such as SGE, LSF, SLURM and others via DRMAA.  Adding support for more DRMs is very straightforward.
+* Support for running pipelines locally
+* Support for running pipelines on AWSBatch (new!)
+* Support for running pipelines on DRMS such as SGE, LSF, SLURM and others via DRMAA.  Adding support for more DRMs is very straightforward.
 * Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.
-* Well suited for cloud computing 
-* Ability to run workflows on your local computer, which is often great for testing.
 
 Bug Reports
 ____________
@@ -105,6 +117,7 @@ _________________
 
 Please let us know if you're using Cosmos by sending a PR with your company or lab name and any relevant information.
 
+* Ravel Biotechnology - A Biotech startup focused on early detection of disease
 * `GenomeKey <https://github.com/Mizzou-CBMI/GenomeKey>`__ - A GATK best practices variant calling pipeline.
 * `PV-Key  <https://github.com/Mizzou-CBMI/PvKey>`__ - Somatic Tumor/normal variant calling pipeline.
 * `MC-Key <https://bitbucket.org/shazly/mcgk>`__ - Multi-cloud implementation of GenomeKey.

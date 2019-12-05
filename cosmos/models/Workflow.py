@@ -31,7 +31,6 @@ from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
 
 opj = os.path.join
 
-
 WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
 
 
@@ -80,7 +79,7 @@ class Workflow(Base):
                           backref='workflow')
 
     exclude_from_dict = ['info']
-    dont_garbage_collect = None
+    _dont_garbage_collect = None
     termination_signal = None
 
     @property
@@ -122,7 +121,7 @@ class Workflow(Base):
         self.jobmanager = None
         if not self.created_on:
             self.created_on = datetime.datetime.now()
-        self.dont_garbage_collect = []
+        self._dont_garbage_collect = []
 
     @property
     def log(self):
@@ -276,7 +275,17 @@ class Workflow(Base):
 
             task.cmd_fxn = func
 
-            task.drm_options = drm_options if drm_options is not None else self.cosmos_app.default_drm_options
+
+            if drm_options is None:
+                task.drm_options = {}
+            else:
+                task.drm_options = drm_options
+            # use default for any keys not set
+            if self.cosmos_app.default_drm_options is not None:
+                for key, val in self.cosmos_app.default_drm_options.items():
+                    if key not in task.drm_options:
+                        task.drm_options[key] = val
+
             DRM.validate_drm_options(task.drm, task.drm_options)
 
         # Add Stage Dependencies
@@ -284,14 +293,14 @@ class Workflow(Base):
             if p.stage not in stage.parents:
                 stage.parents.append(p.stage)
 
-        self.dont_garbage_collect.append(task)
+        self._dont_garbage_collect.append(task)
 
         return task
 
     def run(self, max_cores=None, dry=False, set_successful=True,
             cmd_wrapper=signature.default_cmd_fxn_wrapper,
             log_out_dir_func=default_task_log_output_dir,
-            max_gpus=None, cleanup_at_exit=True):
+            max_gpus=None, do_cleanup_atexit=True):
         """
         Runs this Workflow's DAG
 
@@ -306,8 +315,7 @@ class Workflow(Base):
         :param bool dry: If True, do not actually run any jobs.
         :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
             run more tasks in this workflow later.
-        :param cleanup_at_exit: if False, do not attempt to handle abnormal exits (like ctrl+c).  Useful for testing
-          since atexit writes to a log file, which might not exist anymore since it was in a temp directory.
+        :param do_cleanup_atexit: if False, do not attempt to cleanup unhandled exits.
 
         Returns True if all tasks in the workflow ran successfully, False otherwise.
         If dry is specified, returns None.
@@ -385,7 +393,7 @@ class Workflow(Base):
             self.log.info('Skipping %s successful tasks...' % len(successful))
             task_queue.remove_nodes_from(successful)
 
-            if cleanup_at_exit:
+            if do_cleanup_atexit:
                 handle_exits(self)
 
             if self.max_cores is not None:
@@ -422,12 +430,15 @@ class Workflow(Base):
             else:
                 self.log.info('Workflow dry run is complete')
                 return None
+        except KeyboardInterrupt:
+            self.log.fatal('ctrl+c caught')
+            self.terminate(due_to_failure=False)
         except Exception as ex:
             self.log.fatal(ex, exc_info=True)
             raise
 
     def terminate(self, due_to_failure=True):
-        self.log.warning('Terminating %s!' % self)
+        self.log.info('Terminating %s, due_to_failure=%s' % (self, due_to_failure))
         if self.jobmanager:
             self.log.info('Processing finished tasks and terminating {num_running_tasks} running tasks'.format(
                 num_running_tasks=len(self.jobmanager.running_tasks),
@@ -442,15 +453,12 @@ class Workflow(Base):
 
         self.session.commit()
 
-    def cleanup(self):
-        if self.jobmanager:
-            self.log.info(
-                "%s Cleaning up %d tasks",
-                self,
-                len(self.jobmanager.dead_tasks),
-            )
-            self.jobmanager.cleanup()
-            self.log.info("%s Done cleaning up", self)
+    # def cleanup_at_exit(self):
+    #     if self.jobmanager:
+    #         self.log.info('Cleaning up {num_dead_tasks} dead tasks'.format(
+    #             num_dead_tasks=len(self.jobmanager.dead_tasks),
+    #         ))
+    #         self.jobmanager.cleanup_at_exit()
 
     @property
     def tasks(self):
@@ -665,24 +673,19 @@ def _process_finished_tasks(jobmanager):
             yield task
 
 
-def handle_exits(workflow, do_atexit=True):
-    if do_atexit:
-        @atexit.register
-        def cleanup_check():
-            try:
-                try:
-                    if workflow is not None and workflow.status in \
-                            {WorkflowStatus.running, WorkflowStatus.failed_but_running}:
-                        workflow.log.error(
-                            '%s Still running when atexit() was called, terminating' % workflow)
-                        workflow.terminate(due_to_failure=True)
-                except SQLAlchemyError:
-                    workflow.log.error(
-                        '%s Unknown status when atexit() was called (SQL error), terminating' % workflow)
-                    workflow.terminate(due_to_failure=True)
-            finally:
-                workflow.cleanup()
-                workflow.log.info('%s Ceased work: this is its final log message', workflow)
+def handle_exits(workflow):
+    @atexit.register
+    def cleanup_check():
+        try:
+            if workflow is not None and workflow.status in \
+                    {WorkflowStatus.running, WorkflowStatus.failed_but_running}:
+                workflow.log.error(
+                    '%s Still running when atexit() was called, terminating' % workflow)
+                workflow.terminate(due_to_failure=True)
+        except SQLAlchemyError:
+            workflow.log.error(
+                '%s Unknown status when atexit() was called (SQL error), terminating' % workflow)
+            workflow.terminate(due_to_failure=True)
 
 
 def _copy_graph(graph):

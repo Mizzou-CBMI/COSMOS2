@@ -18,13 +18,13 @@ class DRM_Local(DRM):
     name = 'local'
     poll_interval = 0.3
 
-    def __init__(self, jobmanager):
+    def __init__(self):
         self.procs = dict()
         self.gpus_on_system = os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(
             ',') if 'COSMOS_LOCAL_GPU_DEVICES' in os.environ else []
         self.task_id_to_gpus_used = dict()
 
-        super(DRM_Local, self).__init__(jobmanager)
+        super(DRM_Local, self).__init__()
 
     @property
     def gpus_used(self):
