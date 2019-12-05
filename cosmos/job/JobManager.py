@@ -37,7 +37,12 @@ class JobManager(object):
         thread_local_task = task
 
         if self.cmd_wrapper:
-            fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
+            if self.cmd_wrapper == py_call:
+                # this is for backwards compatibility, the user should have specified
+                # py_call_cmd_wrapper
+                fxn = py_call(task.cmd_fxn)
+            else:
+                fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
         else:
             fxn = task.cmd_fxn
 
