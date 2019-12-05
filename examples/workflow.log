@@ -1,0 +1,62 @@
+INFO: 2019-12-05 13:34:11: Committing SQL session...
+INFO: 2019-12-05 13:34:11: Execution Command: ex3.py
+INFO: 2019-12-05 13:34:11: Preparing to run <Workflow[1] Example3> using DRM `local`, cwd is `/Users/egafni/projects/Cosmos/examples`
+INFO: 2019-12-05 13:34:11: Running as egafni@Eriks-MacBook-Pro-2.local, pid 85547
+INFO: 2019-12-05 13:34:11: <Stage[] say> Has not been attempted
+INFO: 2019-12-05 13:34:11: Skipping 0 successful tasks...
+INFO: 2019-12-05 13:34:11: Committing to SQL db...
+INFO: 2019-12-05 13:34:11: Executing TaskGraph
+INFO: 2019-12-05 13:34:11: <Stage[1] say> Running (0/1 Tasks were successful)
+INFO: 2019-12-05 13:34:11: <Task[1] say(uid='my_task')> Submitted to the job manager. drm=u'local'; drm_jobid=u'85548'; job_class=None; queue=None
+INFO: 2019-12-05 13:34:12: <Task[1] say(uid='my_task')> Finished successfully, wall_time: 0:00:00.  1/1 Tasks finished.
+INFO: 2019-12-05 13:34:12: <Stage[1] say> Finished successfully (1/1 Tasks were successful)
+INFO: 2019-12-05 13:34:12: <Workflow[1] Example3> Successfully Finished (1/1 Tasks completed) in 0:00:00.945504
+INFO: 2019-12-05 14:07:33: Deleting <Workflow[1] Example3>, delete_files=False
+INFO: 2019-12-05 14:10:02: Committing SQL session...
+INFO: 2019-12-05 14:10:02: Execution Command: ex_gpu.py
+INFO: 2019-12-05 14:10:02: Preparing to run <Workflow[1] test> using DRM `local`, cwd is `/Users/egafni/projects/Cosmos/examples`
+INFO: 2019-12-05 14:10:02: Running as egafni@Eriks-MacBook-Pro-2.local, pid 86366
+INFO: 2019-12-05 14:10:02: <Stage[] use_cuda_device> Has not been attempted
+INFO: 2019-12-05 14:10:02: Skipping 0 successful tasks...
+INFO: 2019-12-05 14:10:02: Committing to SQL db...
+INFO: 2019-12-05 14:10:02: Executing TaskGraph
+INFO: 2019-12-05 14:10:02: <Stage[1] use_cuda_device> Running (0/5 Tasks were successful)
+INFO: 2019-12-05 14:10:02: <Task[1] use_cuda_device(uid='0')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86367'; job_class=None; queue=None
+INFO: 2019-12-05 14:10:02: <Task[2] use_cuda_device(uid='1')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86368'; job_class=None; queue=None
+INFO: 2019-12-05 14:10:02: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:10:02: <Task[1] use_cuda_device(uid='0')> Finished successfully, wall_time: 0:00:00.  1/5 Tasks finished.
+INFO: 2019-12-05 14:10:02: <Task[2] use_cuda_device(uid='1')> Finished successfully, wall_time: 0:00:00.  2/5 Tasks finished.
+INFO: 2019-12-05 14:10:02: <Task[3] use_cuda_device(uid='2')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86370'; job_class=None; queue=None
+INFO: 2019-12-05 14:10:02: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:10:03: <Task[3] use_cuda_device(uid='2')> Finished successfully, wall_time: 0:00:00.  3/5 Tasks finished.
+INFO: 2019-12-05 14:10:03: <Task[4] use_cuda_device(uid='3')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86371'; job_class=None; queue=None
+INFO: 2019-12-05 14:10:03: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:10:04: <Task[4] use_cuda_device(uid='3')> Finished successfully, wall_time: 0:00:00.  4/5 Tasks finished.
+INFO: 2019-12-05 14:10:04: <Task[5] use_cuda_device(uid='4')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86372'; job_class=None; queue=None
+INFO: 2019-12-05 14:10:04: <Task[5] use_cuda_device(uid='4')> Finished successfully, wall_time: 0:00:00.  5/5 Tasks finished.
+INFO: 2019-12-05 14:10:04: <Stage[1] use_cuda_device> Finished successfully (5/5 Tasks were successful)
+INFO: 2019-12-05 14:10:04: <Workflow[1] test> Successfully Finished (5/5 Tasks completed) in 0:00:02.567215
+INFO: 2019-12-05 14:11:56: Committing SQL session...
+INFO: 2019-12-05 14:11:56: Execution Command: ex_gpu.py
+INFO: 2019-12-05 14:11:56: Preparing to run <Workflow[1] test> using DRM `local`, cwd is `/Users/egafni/projects/Cosmos/examples`
+INFO: 2019-12-05 14:11:56: Running as egafni@Eriks-MacBook-Pro-2.local, pid 86570
+INFO: 2019-12-05 14:11:56: <Stage[] use_cuda_device> Has not been attempted
+INFO: 2019-12-05 14:11:56: Skipping 0 successful tasks...
+INFO: 2019-12-05 14:11:56: Committing to SQL db...
+INFO: 2019-12-05 14:11:56: Executing TaskGraph
+INFO: 2019-12-05 14:11:56: <Stage[1] use_cuda_device> Running (0/5 Tasks were successful)
+INFO: 2019-12-05 14:11:56: <Task[1] use_cuda_device(uid='0')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86573'; job_class=None; queue=None
+INFO: 2019-12-05 14:11:56: <Task[2] use_cuda_device(uid='1')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86574'; job_class=None; queue=None
+INFO: 2019-12-05 14:11:56: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:11:57: <Task[1] use_cuda_device(uid='0')> Finished successfully, wall_time: 0:00:00.  1/5 Tasks finished.
+INFO: 2019-12-05 14:11:57: <Task[2] use_cuda_device(uid='1')> Finished successfully, wall_time: 0:00:00.  2/5 Tasks finished.
+INFO: 2019-12-05 14:11:57: <Task[3] use_cuda_device(uid='2')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86575'; job_class=None; queue=None
+INFO: 2019-12-05 14:11:57: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:11:57: <Task[3] use_cuda_device(uid='2')> Finished successfully, wall_time: 0:00:00.  3/5 Tasks finished.
+INFO: 2019-12-05 14:11:57: <Task[4] use_cuda_device(uid='3')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86576'; job_class=None; queue=None
+INFO: 2019-12-05 14:11:57: Reached resource limits of max_cores of None, or max_gpu of 3, waiting for a task to finish...
+INFO: 2019-12-05 14:11:58: <Task[4] use_cuda_device(uid='3')> Finished successfully, wall_time: 0:00:00.  4/5 Tasks finished.
+INFO: 2019-12-05 14:11:58: <Task[5] use_cuda_device(uid='4')> Submitted to the job manager. drm=u'local'; drm_jobid=u'86577'; job_class=None; queue=None
+INFO: 2019-12-05 14:11:59: <Task[5] use_cuda_device(uid='4')> Finished successfully, wall_time: 0:00:00.  5/5 Tasks finished.
+INFO: 2019-12-05 14:11:59: <Stage[1] use_cuda_device> Finished successfully (5/5 Tasks were successful)
+INFO: 2019-12-05 14:11:59: <Workflow[1] test> Successfully Finished (5/5 Tasks completed) in 0:00:02.550967

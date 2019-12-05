@@ -1,0 +1,2 @@
+('some_arg', 3)
+('CUDA_VISIBLE_DEVICES', '1,0')
