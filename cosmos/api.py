@@ -9,6 +9,7 @@ import funcsigs
 import os
 import re
 from decorator import decorator
+import sys
 
 from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, \
     signal_stage_status_change, signal_task_status_change, \
@@ -23,7 +24,6 @@ from cosmos.util.args import add_workflow_args
 from cosmos.util.helpers import make_dict, isinstance_namedtuple
 from cosmos.util.iterstuff import only_one
 from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
-
 
 def load_input(out_file): pass
 
@@ -128,9 +128,26 @@ EOF""".format(func=func,
               param_str=pprint.pformat(kwargs, width=1, indent=1))
 
 
+def _get_import_code_for_func(func):
+    source_file = inspect.getfile(func)
+    if func.__module__ == '__main__':
+        if sys.version_info[0] == 2:
+            func_import_code = "import imp\n" \
+                               '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
+                func=func,
+                source_file=source_file)
+            return func_import_code
+        else:
+            return """from importlib import machinery
+loader = machinery.SourceFileLoader("module", "{source_file}")
+mod = loader.load_module()
+{func.__name__} = getattr(mod, "{func.__name__}")""".format(**locals())
+    else:
+        return 'from %s import %s' % (func.__module__, func.__name__)
+
+
 def py_call(func):
     func.skip_wrap = True
-    source_file = inspect.getfile(func)
 
     @wraps(func)
     def wrapped(*args, **kwargs):
@@ -139,24 +156,10 @@ def py_call(func):
         if len(args):
             args_str += '*%s,\n' % args
             raise NotImplementedError()
-        elif len(kwargs):
+        if len(kwargs):
             args_str += '**%s' % pprint.pformat(kwargs, indent=2)
-            # import named tuples
-            for key, val in kwargs.items():
-                if isinstance_namedtuple(val):
-                    class_imports += 'from {} import {}\n'.format(type(val).__module__, type(val).__name__)
 
-        import sys
-        if sys.version_info[0] == 2:
-            func_import_code = "import imp\n" \
-                               '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
-                func=func,
-                source_file=source_file)
-        else:
-            func_import_code = """from importlib import machinery
-loader = machinery.SourceFileLoader("module", "{source_file}")
-mod = loader.load_module()
-{func.__name__} = getattr(mod, "{func.__name__}")""".format(**locals())
+        func_import_code = _get_import_code_for_func(func)
 
         return r"""#!/usr/bin/env python
 {class_imports}{func_import_code}

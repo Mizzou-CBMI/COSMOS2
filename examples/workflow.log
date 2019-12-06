@@ -60,3 +60,5 @@ INFO: 2019-12-05 14:11:58: <Task[5] use_cuda_device(uid='4')> Submitted to the j
 INFO: 2019-12-05 14:11:59: <Task[5] use_cuda_device(uid='4')> Finished successfully, wall_time: 0:00:00.  5/5 Tasks finished.
 INFO: 2019-12-05 14:11:59: <Stage[1] use_cuda_device> Finished successfully (5/5 Tasks were successful)
 INFO: 2019-12-05 14:11:59: <Workflow[1] test> Successfully Finished (5/5 Tasks completed) in 0:00:02.550967
+INFO: 2019-12-05 18:06:57: Deleting <Workflow[1] Example3>, delete_files=False
+INFO: 2019-12-05 18:10:22: Deleting <Workflow[1] Example3>, delete_files=False

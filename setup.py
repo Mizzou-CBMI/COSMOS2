@@ -34,8 +34,7 @@ install_requires = [
     "drmaa",
     'more-itertools',
     "decorator",
-    "python-dateutil",
-    "boto3"
+    "python-dateutil"
 ]
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+import os
 import pprint
 import random
 import re
@@ -49,11 +51,10 @@ def submit_script_as_aws_batch_job(local_script_path,
     batch = boto3.client(service_name="batch")
     s3 = boto3.client(service_name="s3")
 
-    key = random_string(32) + '.txt'
-    s3.upload_file(local_script_path, s3_prefix_for_command_script_temp_files, key)
-    s3_command_script_uri = 's3://{s3_prefix_for_command_script_temp_files}/{key}'.format(
-        s3_prefix_for_command_script_temp_files=s3_prefix_for_command_script_temp_files,
-        key=key)
+    bucket, key = split_bucket_key(s3_prefix_for_command_script_temp_files)
+    key = os.path.join(key, random_string(32) + '.script')
+    s3.upload_file(local_script_path, bucket, key)
+    s3_command_script_uri = 's3://' + os.path.join(bucket, key)
 
     command = 'aws s3 cp --quiet {s3_command_script_uri} command_script && ' \
               'chmod +x command_script && ' \
@@ -69,7 +70,7 @@ def submit_script_as_aws_batch_job(local_script_path,
         "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
         "resourceRequirements": [],
         # run_s3_script
-        "command": ['bash', '-c', '%s' % command]
+        "command": ['bash', '-c', command]
     }
     if memory is not None:
         container_properties["memory"] = memory
@@ -83,6 +84,7 @@ def submit_script_as_aws_batch_job(local_script_path,
         type='container',
         containerProperties=container_properties
     )
+    # print(container_properties)
     _check_aws_response_for_error(resp)
     job_definition_arn = resp['jobDefinitionArn']
 
@@ -145,11 +147,20 @@ class DRM_AWSBatch(DRM):
         return self._s3_client
 
     def submit_job(self, task):
+        if task.queue is None:
+            raise ValueError('task.queue cannot be None for %s' % task)
+        if task.core_req is None:
+            raise ValueError('task.core_req cannot be None for task %s' % task)
+        if task.mem_req is None:
+            raise ValueError('task.mem_req cannot be None for task %s' % task)
+
+        job_name = 'cosmos-' + task.stage.name.replace('/', '__')
+
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
             s3_prefix_for_command_script_temp_files=task.drm_options['s3_prefix_for_command_script_temp_files'],
             container_image=task.drm_options['container_image'],
-            job_name='cosmos-task',
+            job_name=job_name,
             job_queue=task.queue,
             memory=task.mem_req,
             vcpus=task.cpu_req,
@@ -220,6 +231,8 @@ class DRM_AWSBatch(DRM):
         terminate_job_response = batch_client.terminate_job(jobId=task.drm_jobID,
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
+
+        print(dict(jobId=task.drm_jobID, reason='terminated by cosmos'))
 
         self._cleanup_task(task)
 
