@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import os
 import pprint
 import random
@@ -228,6 +229,9 @@ class DRM_AWSBatch(DRM):
 
     def kill(self, task):
         batch_client = boto3.client(service_name="batch")
+        cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID,
+                                                      reason='cancelled by cosmos')
+        _check_aws_response_for_error(cancel_job_response)
         terminate_job_response = batch_client.terminate_job(jobId=task.drm_jobID,
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
