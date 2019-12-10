@@ -147,6 +147,7 @@ class Workflow(Base):
                     dirs.add(dirname(v))
 
         for d in dirs:
+            # don't add urls
             if d is not None and '://' not in d:
                 mkdir(d)
 
