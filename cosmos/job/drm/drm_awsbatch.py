@@ -49,6 +49,10 @@ def submit_script_as_aws_batch_job(local_script_path,
     if s3_prefix_for_command_script_temp_files.endswith('/'):
         raise ValueError('s3_prefix_for_command_script_temp_files should not have a ' \
                          'trailing slash.  It is set to %s' % s3_prefix_for_command_script_temp_files)
+    if not s3_prefix_for_command_script_temp_files.startswith('s3://'):
+        raise ValueError(
+            'invalid s3_prefix_for_command_script_temp_files: %s' % s3_prefix_for_command_script_temp_files)
+
     batch = boto3.client(service_name="batch")
     s3 = boto3.client(service_name="s3")
 
@@ -99,7 +103,7 @@ def submit_script_as_aws_batch_job(local_script_path,
     return jobId, job_definition_arn, s3_command_script_uri
 
 
-def get_logs(log_stream_name, attempts=6, sleep_between_attempts=10):
+def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
     logs_client = boto3.client(service_name="logs")
     try:
         response = logs_client.get_log_events(
@@ -109,11 +113,11 @@ def get_logs(log_stream_name, attempts=6, sleep_between_attempts=10):
         _check_aws_response_for_error(response)
         return '\n'.join(d['message'] for d in response['events'])
     except logs_client.exceptions.ResourceNotFoundException:
-        if attempts == 0:
+        if attempts == 1:
             return 'log stream not found for log_stream_name: %s\n' % log_stream_name
         else:
             time.sleep(sleep_between_attempts)
-            return get_logs(log_stream_name, attempts=attempts - 1)
+            return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
 def get_aws_batch_job_infos(job_ids):
@@ -235,8 +239,6 @@ class DRM_AWSBatch(DRM):
         terminate_job_response = batch_client.terminate_job(jobId=task.drm_jobID,
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
-
-        print(dict(jobId=task.drm_jobID, reason='terminated by cosmos'))
 
         self._cleanup_task(task)
 
