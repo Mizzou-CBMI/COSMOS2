@@ -6,8 +6,9 @@ sudo: false
 install: pip install .
 # run tests from test dir so we don't import python2 code from cwd
 script:
+  - pip install pytest
   - cd test
-  - py.test
+  - pytest
 
 notifications:
   email:
