@@ -108,7 +108,7 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
     logs_client = boto3.client(service_name="logs")
     try:
         response = logs_client.get_log_events(
-            logGroupName='/aws/batch/job_dict',
+            logGroupName='/aws/batch/job',
             logStreamName=log_stream_name,
             startFromHead=True)
         _check_aws_response_for_error(response)
