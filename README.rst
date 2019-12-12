@@ -23,6 +23,8 @@ Documentation
 Install
 ==========
 
+From pip:
+
 .. code-block:: python
 
     pip install cosmos-wfm
@@ -30,6 +32,13 @@ Install
     # Optional, recommended for visualizing Workflows:
     sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
     pip install pygraphviz # requires graphviz
+
+From conda:
+
+.. code-block:: python
+
+    conda install cosmos-wfm -c ravelbio
+
 
 Introduction
 ============
@@ -111,6 +120,15 @@ In a python2.7 environment
     cd build/html
     ghp-import -n ./ -p
 
+Building Conda Package
+________________________
+
+.. code-block:: bash
+
+    rm -rf cosmos-wfm
+    conda skeleton pypi cosmos-wfm
+    conda build cosmos-wfm
+    anaconda upload /home/nboley/miniconda3/conda-bld/linux-64/cosmos-wfm-2.9.7-py37_0.tar.bz2 -u ravelbio
 
 Cosmos Users
 _________________
