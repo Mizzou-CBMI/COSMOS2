@@ -215,7 +215,7 @@ class DRM_AWSBatch(DRM):
                 self._cleanup_task(task, job_dict['container']['logStreamName'])
 
                 yield task, dict(exit_status=exit_status,
-                                 wall_time=job_dict['stoppedAt'] - job_dict['startedAt'])
+                                 wall_time=int(round((job_dict['stoppedAt'] - job_dict['startedAt']) / 1000)))
 
     def _cleanup_task(self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10):
         # if log_stream_name wasn't passed in, query aws to get it
