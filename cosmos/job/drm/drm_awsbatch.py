@@ -46,6 +46,7 @@ def submit_script_as_aws_batch_job(local_script_path,
     :param vcpus: amount of vcpus to reserve.
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
+    assert ' ' not in job_name, 'job_name `%s` is invalid' % job_name
     if s3_prefix_for_command_script_temp_files.endswith('/'):
         raise ValueError('s3_prefix_for_command_script_temp_files should not have a ' \
                          'trailing slash.  It is set to %s' % s3_prefix_for_command_script_temp_files)
@@ -57,7 +58,7 @@ def submit_script_as_aws_batch_job(local_script_path,
     s3 = boto3.client(service_name="s3")
 
     bucket, key = split_bucket_key(s3_prefix_for_command_script_temp_files)
-    key = os.path.join(key, random_string(32) + '.script')
+    key = os.path.join(key, random_string(32) + '.' + job_name + '.script')
     s3.upload_file(local_script_path, bucket, key)
     s3_command_script_uri = 's3://' + os.path.join(bucket, key)
 
@@ -124,7 +125,10 @@ def get_aws_batch_job_infos(job_ids):
     batch_client = boto3.client(service_name="batch")
     describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
     _check_aws_response_for_error(describe_jobs_response)
-    return describe_jobs_response['jobs']
+    returned_jobs = list(sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId'])))
+    returned_ids = [job['jobId'] for job in returned_jobs]
+    assert returned_ids == job_ids
+    return returned_jobs
 
 
 class DRM_AWSBatch(DRM):
@@ -188,21 +192,32 @@ class DRM_AWSBatch(DRM):
         job_ids = [task.drm_jobID for task in tasks]
         jobs = get_aws_batch_job_infos(job_ids)
         for task, job_dict in zip(tasks, jobs):
+            assert task.drm_jobID == job_dict['jobId']
             if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
                 # get exit status
                 if 'attempts' in job_dict:
+                    attempt = job_dict['attempts'][-1]
+                    if re.search('Host EC2 .+ terminated.', attempt['statusReason']):
+                        # this job failed because the instance was shut down (presumably because it was a
+                        # spot instance)
+                        pass
                     # exit code might be missing if for example the instance was terminated because the compute
                     # environment was deleted.
-                    exit_status = job_dict['attempts'][-1]['container'].get('exitCode', -2)
+                    exit_status = attempt['container'].get('exitCode', -2)
+
+
                 else:
                     exit_status = -1
+
+                if job_dict['status'] == 'FAILED':
+                    assert exit_status != 0, '%s failed, but has an exist_status of 0' % task
 
                 self._cleanup_task(task, job_dict['container']['logStreamName'])
 
                 yield task, dict(exit_status=exit_status,
-                                 wall_time=job_dict['stoppedAt'] - job_dict['stoppedAt'])
+                                 wall_time=job_dict['stoppedAt'] - job_dict['startedAt'])
 
-    def _cleanup_task(self, task, log_stream_name=None):
+    def _cleanup_task(self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10):
         # if log_stream_name wasn't passed in, query aws to get it
         if log_stream_name is None:
             job_dict = get_aws_batch_job_infos([task.drm_jobID])
@@ -212,7 +227,9 @@ class DRM_AWSBatch(DRM):
             logs = 'no log stream was available for job: %s\n' % task.drm_jobID
         else:
             # write logs to stdout
-            logs = get_logs(log_stream_name=log_stream_name)
+            logs = get_logs(log_stream_name=log_stream_name,
+                            attempts=get_log_attempts,
+                            sleep_between_attempts=get_log_sleep_between_attempts)
 
         with open(task.output_stdout_path, 'w') as fp:
             fp.write(logs)
@@ -229,7 +246,7 @@ class DRM_AWSBatch(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         job_ids = [task.drm_jobID for task in tasks]
-        return dict(zip(job_ids, get_aws_batch_job_infos(job_ids)))
+        return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids)}
 
     def kill(self, task):
         batch_client = boto3.client(service_name="batch")
@@ -240,7 +257,7 @@ class DRM_AWSBatch(DRM):
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
 
-        self._cleanup_task(task)
+        self._cleanup_task(task, get_log_attempts=1, get_log_sleep_between_attempts=1)
 
 
 class JobStatusError(Exception):
