@@ -76,6 +76,7 @@ def submit_script_as_aws_batch_job(local_script_path,
                          "sourceVolume": "scratch"}],
         "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
         "resourceRequirements": [],
+        "environment": [],
         # run_s3_script
         "command": ['bash', '-c', command]
     }
@@ -87,6 +88,8 @@ def submit_script_as_aws_batch_job(local_script_path,
         container_properties['instanceType'] = instance_type
     if gpus is not None and gpus != 0:
         container_properties["resourceRequirements"].append({"value": str(gpus), "type": "GPU"})
+        visible_devices = ",".join(map(str, range(len(gpus))))
+        container_properties["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
     resp = batch.register_job_definition(
         jobDefinitionName=job_name,
