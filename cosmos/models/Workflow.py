@@ -34,9 +34,9 @@ opj = os.path.join
 WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
 
 
-def default_task_log_output_dir(task, subdir=''):
+def default_task_log_output_dir(task, subdir='', prefix=''):
     """The default function for computing Task.log_output_dir"""
-    return os.path.abspath(opj('log', subdir, task.stage.name, str(task.uid)))
+    return os.path.abspath(opj(prefix, 'log', subdir, task.stage.name, str(task.uid)))
 
 
 @signal_workflow_status_change.connect
@@ -276,7 +276,6 @@ class Workflow(Base):
 
             task.cmd_fxn = func
 
-
             if drm_options is None:
                 task.drm_options = {}
             else:
@@ -346,7 +345,7 @@ class Workflow(Base):
             if self.max_gpus is not None and self.cosmos_app.default_drm == 'local':
                 if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
                     raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a '
-                                           'comma delimited list of gpu devices of using a local DRM to manage'
+                                           'comma delimited list of gpu devices of using a local DRM to manage '
                                            'GPUs')
                 if len(os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(',')) < self.max_gpus:
                     raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!')

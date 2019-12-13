@@ -35,7 +35,8 @@ def submit_script_as_aws_batch_job(local_script_path,
                                    job_queue,
                                    instance_type=None,
                                    memory=1024,
-                                   vcpus=1):
+                                   vcpus=1,
+                                   gpus=None):
     """
     :param local_script_path: the local path to a script to run in awsbatch.
     :param s3_prefix_for_command_script_temp_files: the s3 bucket to use for storing the local script to to run.  Caller
@@ -84,6 +85,8 @@ def submit_script_as_aws_batch_job(local_script_path,
         container_properties['vcpus'] = vcpus
     if instance_type is not None:
         container_properties['instanceType'] = instance_type
+    if gpus is not None and gpus != 0:
+        container_properties["resourceRequirements"].append({"value": str(gpus), "type": "GPU"})
 
     resp = batch.register_job_definition(
         jobDefinitionName=job_name,
@@ -173,6 +176,7 @@ class DRM_AWSBatch(DRM):
             job_queue=task.queue,
             memory=task.mem_req,
             vcpus=task.cpu_req,
+            gpus=task.gpu_req,
             instance_type=task.drm_options.get('instance_type'))
 
         # just save pointer to logstream.  We'll collect them when the job finishes.
@@ -239,6 +243,7 @@ class DRM_AWSBatch(DRM):
         self.s3_client.delete_object(Bucket=bucket, Key=key)
 
         # deregister job definition
+        # FIXME this is slow.. do i care enough to do this?
         self.batch_client.deregister_job_definition(jobDefinition=task.job_definition_arn)
 
     def drm_statuses(self, tasks):
@@ -248,7 +253,7 @@ class DRM_AWSBatch(DRM):
         job_ids = [task.drm_jobID for task in tasks]
         return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids)}
 
-    def kill(self, task):
+    def _terminate_task(self, task):
         batch_client = boto3.client(service_name="batch")
         cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID,
                                                       reason='cancelled by cosmos')
@@ -257,7 +262,17 @@ class DRM_AWSBatch(DRM):
                                                             reason='terminated by cosmos')
         _check_aws_response_for_error(terminate_job_response)
 
+    def kill(self, task):
+        self._terminate_task(task)
         self._cleanup_task(task, get_log_attempts=1, get_log_sleep_between_attempts=1)
+
+    def kill_tasks(self, tasks):
+        for task in tasks:
+            self._terminate_task(task)
+
+        for task in tasks:
+            # this is slower and less important
+            self._cleanup_task(task)
 
 
 class JobStatusError(Exception):

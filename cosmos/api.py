@@ -129,8 +129,10 @@ EOF""".format(func=func,
 
 
 def _get_import_code_for_func(func):
-    source_file = inspect.getfile(func)
+    filename = inspect.getfile(func)
+    source_file = os.path.abspath(filename)
     if func.__module__ == '__main__':
+        assert os.path.exists(source_file)
         if sys.version_info[0] == 2:
             func_import_code = "import imp\n" \
                                '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
@@ -138,6 +140,7 @@ def _get_import_code_for_func(func):
                 source_file=source_file)
             return func_import_code
         else:
+            assert os.path.exists(source_file)
             return """from importlib import machinery
 loader = machinery.SourceFileLoader("module", "{source_file}")
 mod = loader.load_module()
