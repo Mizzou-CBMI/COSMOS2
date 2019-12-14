@@ -6,6 +6,7 @@ import random
 import re
 import string
 import time
+from itertools import islice
 
 import boto3
 
@@ -127,13 +128,20 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
             return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
-def get_aws_batch_job_infos(job_ids):
+def chunk(it, size):
+    it = iter(it)
+    return iter(lambda: tuple(islice(it, size)), ())
+
+
+def get_aws_batch_job_infos(all_job_ids):
     batch_client = boto3.client(service_name="batch")
-    describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
-    _check_aws_response_for_error(describe_jobs_response)
-    returned_jobs = list(sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId'])))
+    returned_jobs = []
+    for job_ids in chunk(all_job_ids, 100):
+        describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
+        _check_aws_response_for_error(describe_jobs_response)
+        returned_jobs.extend(sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId'])))
     returned_ids = [job['jobId'] for job in returned_jobs]
-    assert returned_ids == job_ids
+    assert sorted(returned_ids) == sorted(all_job_ids)
     return returned_jobs
 
 
