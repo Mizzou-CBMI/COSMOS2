@@ -177,7 +177,7 @@ class DRM_AWSBatch(DRM):
         if task.mem_req is None:
             raise ValueError('task.mem_req cannot be None for task %s' % task)
 
-        job_name = 'cosmos-' + task.stage.name.replace('/', '__')
+        job_name = 'cosmos-' + task.stage.name.replace('/', '__') + '__' + task.uid.replace('/', '__')
 
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
