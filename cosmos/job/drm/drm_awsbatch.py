@@ -125,19 +125,36 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
             return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
-def get_aws_batch_job_infos(all_job_ids):
+class JobStatusMismatchError:
+    pass
+
+
+def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
+    # ensure that the list of job ids is unique
+    assert len(job_ids) == len(set(job_ids))
+    describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
+    _check_aws_response_for_error(describe_jobs_response)
+    returned_jobs = sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId']))
+    if sorted([job['jobId'] for job in batch_returned_jobs]) != sorted(job_ids):
+        raise JobStatusMismatchError()
+    return batch_returned_jobs
+
+
+def get_aws_batch_job_infos(all_job_ids, logger):
     # ensure that the list of job ids is unique
     assert len(all_job_ids) == len(set(all_job_ids))
     batch_client = boto3.client(service_name="batch")
     returned_jobs = []
-    for job_ids in more_itertools.chunked(all_job_ids, 100):
-        describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
-        _check_aws_response_for_error(describe_jobs_response)
-        batch_returned_jobs = sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId']))
-        batch_job_ids = [job['jobId'] for job in batch_returned_jobs]
-        assert sorted(batch_job_ids) == sorted(job_ids), \
-            str(set(batch_job_ids) - set(job_ids)) + str(set(job_ids) - set(batch_job_ids))
-        returned_jobs.extend(batch_returned_jobs)
+    for job_ids in more_itertools.chunked(all_job_ids, 50):
+        while True:
+            try:
+                batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
+            except JobStatusMismatchError:
+                logger.warning("aws batch describe-jobs returned a different jobs than were passed. Re-trying.")
+                continue
+            else:
+                returned_jobs.extend(batch_returned_jobs)
+                break
     returned_ids = [job['jobId'] for job in returned_jobs]
     assert sorted(returned_ids) == sorted(all_job_ids), \
         str(set(returned_ids) - set(all_job_ids)) + str(set(all_job_ids) - set(returned_ids))
@@ -190,7 +207,7 @@ class DRM_AWSBatch(DRM):
             instance_type=task.drm_options.get('instance_type'))
 
         # just save pointer to logstream.  We'll collect them when the job finishes.
-        job_dict = get_aws_batch_job_infos([jobId])[0]
+        job_dict = get_aws_batch_job_infos([jobId], task.workflow.log)[0]
         with open(task.output_stdout_path, 'w'):
             pass
         with open(task.output_stderr_path, 'w') as fp:
@@ -205,7 +222,7 @@ class DRM_AWSBatch(DRM):
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
         assert len(set(job_ids)) == len(job_ids)
-        jobs = get_aws_batch_job_infos(job_ids)
+        jobs = get_aws_batch_job_infos(job_ids, task.workflow.log)
         for task, job_dict in zip(tasks, jobs):
             assert task.drm_jobID == job_dict['jobId']
             if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
