@@ -419,10 +419,11 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
 
     stdout, stderr, returncode = run_cli_cmd(
         '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-        attempts=1,     # make just one attempt: running a task 2x could be disastrous
+        attempts=1,  # make just one attempt: running a task 2x could be disastrous
         env=os.environ,
         logger=logger,
         shell=True,
+        timeout=600,
     )
 
     if returncode != 0:
