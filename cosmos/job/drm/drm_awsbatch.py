@@ -1,12 +1,10 @@
-from __future__ import print_function
-
 import os
 import pprint
 import random
 import re
 import string
 import time
-from itertools import islice
+import more_itertools
 
 import boto3
 
@@ -89,7 +87,7 @@ def submit_script_as_aws_batch_job(local_script_path,
         container_properties['instanceType'] = instance_type
     if gpus is not None and gpus != 0:
         container_properties["resourceRequirements"].append({"value": str(gpus), "type": "GPU"})
-        visible_devices = ",".join(map(str, range(len(gpus))))
+        visible_devices = ",".join(map(str, list(range(gpus))))
         container_properties["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
     resp = batch.register_job_definition(
@@ -97,7 +95,6 @@ def submit_script_as_aws_batch_job(local_script_path,
         type='container',
         containerProperties=container_properties
     )
-    # print(container_properties)
     _check_aws_response_for_error(resp)
     job_definition_arn = resp['jobDefinitionArn']
 
@@ -128,20 +125,22 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
             return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
-def chunk(it, size):
-    it = iter(it)
-    return iter(lambda: tuple(islice(it, size)), ())
-
-
 def get_aws_batch_job_infos(all_job_ids):
+    # ensure that the list of job ids is unique
+    assert len(all_job_ids) == len(set(all_job_ids))
     batch_client = boto3.client(service_name="batch")
     returned_jobs = []
-    for job_ids in chunk(all_job_ids, 100):
+    for job_ids in more_itertools.chunked(all_job_ids, 100):
         describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
         _check_aws_response_for_error(describe_jobs_response)
-        returned_jobs.extend(sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId'])))
+        batch_returned_jobs = sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId']))
+        batch_job_ids = [job['jobId'] for job in batch_returned_jobs]
+        assert sorted(batch_job_ids) == sorted(job_ids), \
+            str(set(batch_job_ids) - set(job_ids)) + str(set(job_ids) - set(batch_job_ids))
+        returned_jobs.extend(batch_returned_jobs)
     returned_ids = [job['jobId'] for job in returned_jobs]
-    assert sorted(returned_ids) == sorted(all_job_ids)
+    assert sorted(returned_ids) == sorted(all_job_ids), \
+        str(set(returned_ids) - set(all_job_ids)) + str(set(all_job_ids) - set(returned_ids))
     return returned_jobs
 
 
@@ -205,6 +204,7 @@ class DRM_AWSBatch(DRM):
 
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
+        assert len(set(job_ids)) == len(job_ids)
         jobs = get_aws_batch_job_infos(job_ids)
         for task, job_dict in zip(tasks, jobs):
             assert task.drm_jobID == job_dict['jobId']
