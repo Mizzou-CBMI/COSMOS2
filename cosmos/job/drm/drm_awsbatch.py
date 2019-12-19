@@ -278,12 +278,15 @@ class DRM_AWSBatch(DRM):
         self._cleanup_task(task, get_log_attempts=1, get_log_sleep_between_attempts=1)
 
     def kill_tasks(self, tasks):
-        for task in tasks:
-            self._terminate_task(task)
+        if len(tasks):
+            tasks[0].workflow.log.info('Killing Tasks...')
+            for task in tasks:
+                self._terminate_task(task)
 
-        for task in tasks:
-            # this is slower and less important
-            self._cleanup_task(task)
+            tasks[0].workflow.log.info('Cleaning up Tasks...')
+            for task in tasks:
+                # this is slower and less important
+                self._cleanup_task(task)
 
 
 class JobStatusError(Exception):
