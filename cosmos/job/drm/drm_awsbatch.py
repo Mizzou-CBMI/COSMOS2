@@ -248,7 +248,9 @@ class DRM_AWSBatch(DRM):
                             sleep_between_attempts=get_log_sleep_between_attempts)
 
         with open(task.output_stdout_path, 'w') as fp:
-            fp.write(logs)
+            fp.write(logs + '\n'
+                     + 'WARNING: this might be truncated.\n'
+                     + 'check log stream on aws console for job: %s' % task.drm_jobID)
 
         # delete temporary s3 script path
         bucket, key = split_bucket_key(task.s3_command_script_uri)
