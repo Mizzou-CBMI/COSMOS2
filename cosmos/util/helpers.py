@@ -6,9 +6,42 @@ import random
 import shutil
 import signal
 import string
+import sys
 import tempfile
 import time
 from contextlib import contextmanager
+
+
+def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout):
+    """
+    Makes a progress bar that looks like:
+    [#################...........] 100000/100000
+
+
+    :param iterable: any iterable
+    :param count: total size of iterable.  Only required if iterable does not have len() defined.
+    :param prefix: prefix to add to the bar
+    :param progress_bar_size: Number of characters for the progress bar
+    :param output_file: output file to write to.  Defaults to stdout.
+    :return:
+    """
+    if count is None:
+        count = len(iterable)
+
+    last_num_hashes = None
+    for i, item in enumerate(iterable):
+        yield item
+        num_hashes = int(progress_bar_size * (i + 1) / count)
+        if num_hashes != last_num_hashes:
+            hashes = "#" * num_hashes
+            dots = "." * (progress_bar_size - num_hashes)
+            output_file.write("{prefix}[{hashes}{dots}] {i + 1}/{count}\r".format(**locals()))
+            output_file.flush()
+
+        last_num_hashes = num_hashes
+
+    output_file.write("\n")
+    output_file.flush()
 
 
 @contextmanager
