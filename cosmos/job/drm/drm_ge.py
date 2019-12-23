@@ -428,7 +428,23 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
     )
     elapsed_tm = time.time() - start_tm
 
-    if returncode != 0:
+    # FIXME we should only scrape stdout in one place, not two
+
+    if returncode == "TIMEOUT":
+        logger.error(
+            "%s submission to %s (%s) ran out of time after %.1f sec",
+            log_prefix,
+            drm_name,
+            qsub,
+            elapsed_tm,
+        )
+        try:
+            job_id = unicode(int(stdout))
+            logger.info("... but returned a valid job id (%s) before doing so", job_id)
+            status = TaskStatus.submitted
+        except ValueError:
+            status = TaskStatus.failed
+    elif returncode != 0:
         logger.error(
             "%s submission to %s (%s) failed with error %s after %.1f sec",
             log_prefix,
