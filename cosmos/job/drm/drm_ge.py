@@ -428,23 +428,24 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
     )
     elapsed_tm = time.time() - start_tm
 
-    # FIXME we should only scrape stdout in one place, not two
+    # sometimes qsub can return a job id, even if it times out
+    try:
+        job_id = unicode(int(stdout))
+        if returncode == "TIMEOUT":
+            returncode = 0
+            logger.info(
+                "qsub timed out, but returned valid-looking job id %s -- recovering",
+                stdout,
+            )
+    except ValueError:
+        if returncode == 0:
+            returncode = "INVALID OUTPUT"
+            logger.error(
+                "qsub returned unparseable stdout: '%s'",
+                stdout,
+            )
 
-    if returncode == "TIMEOUT":
-        logger.error(
-            "%s submission to %s (%s) ran out of time after %.1f sec",
-            log_prefix,
-            drm_name,
-            qsub,
-            elapsed_tm,
-        )
-        try:
-            job_id = unicode(int(stdout))
-            logger.info("... but returned a valid job id (%s) before doing so", job_id)
-            status = TaskStatus.submitted
-        except ValueError:
-            status = TaskStatus.failed
-    elif returncode != 0:
+    if returncode != 0:
         logger.error(
             "%s submission to %s (%s) failed with error %s after %.1f sec",
             log_prefix,
@@ -455,25 +456,13 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         )
         status = TaskStatus.failed
     else:
-        try:
-            job_id = unicode(int(stdout))
-        except ValueError:
-            logger.error(
-                "%s submission to %s returned unexpected text after %.1f sec: %s",
-                log_prefix,
-                drm_name,
-                elapsed_tm,
-                stdout,
-            )
-            status = TaskStatus.failed
-        else:
-            logger.debug(
-                "%s submission to %s returned after %.1f sec: %s",
-                log_prefix,
-                drm_name,
-                elapsed_tm,
-                stdout,
-            )
-            status = TaskStatus.submitted
+        logger.debug(
+            "%s submission to %s returned after %.1f sec: %s",
+            log_prefix,
+            drm_name,
+            elapsed_tm,
+            stdout,
+        )
+        status = TaskStatus.submitted
 
     return (job_id, status)
