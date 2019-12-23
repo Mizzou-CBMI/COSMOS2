@@ -1,5 +1,6 @@
 import os
 import pprint
+import six
 import types
 import warnings
 from collections import namedtuple
@@ -47,7 +48,7 @@ def recursive_resolve_dependency(parameter):
     """
     if isinstance(parameter, Dependency):
         return parameter.resolve(), {parameter.task}
-    elif any(isinstance(parameter, t) for t in (bool, float, int, str, type(None))):
+    elif any(isinstance(parameter, t) for t in (bool, six.integer_types, six.string_types, type(None))):
         return parameter, set()
     elif isinstance(parameter, list):
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
