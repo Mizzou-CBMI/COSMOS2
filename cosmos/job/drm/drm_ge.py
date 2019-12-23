@@ -417,6 +417,7 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
 
     job_id = None
 
+    start_tm = time.time()
     stdout, stderr, returncode = run_cli_cmd(
         '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
         attempts=1,  # make just one attempt: running a task 2x could be disastrous
@@ -425,14 +426,16 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         shell=True,
         timeout=600,
     )
+    elapsed_tm = time.time() - start_tm
 
     if returncode != 0:
         logger.error(
-            "%s submission to %s (%s) failed with error %s",
+            "%s submission to %s (%s) failed with error %s after %.1f sec",
             log_prefix,
             drm_name,
             qsub,
             returncode,
+            elapsed_tm,
         )
         status = TaskStatus.failed
     else:
@@ -440,13 +443,21 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
             job_id = unicode(int(stdout))
         except ValueError:
             logger.error(
-                "%s submission to %s returned unexpected text: %s",
+                "%s submission to %s returned unexpected text after %.1f sec: %s",
                 log_prefix,
                 drm_name,
+                elapsed_tm,
                 stdout,
             )
             status = TaskStatus.failed
         else:
+            logger.debug(
+                "%s submission to %s returned after %.1f sec: %s",
+                log_prefix,
+                drm_name,
+                elapsed_tm,
+                stdout,
+            )
             status = TaskStatus.submitted
 
     return (job_id, status)
