@@ -35,7 +35,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
         drm_options = dict(drm_options)
         task_state = sqlalchemy_inspect(task)
 
-        for drm_option_name, task_mapping in self.drm_options_to_task_properties.iteritems():
+        for drm_option_name, task_mapping in self.drm_options_to_task_properties.items():
             if callable(task_mapping):
                 task_value = task_mapping(task)
             else:
@@ -162,10 +162,6 @@ class DRM_K8S_Jobs(DRM):  # noqa
 
         if err:
             raise RuntimeError(err)
-
-    def cleanup_task(self, task):
-        if task.drm_jobID and task.status != TaskStatus.killed:
-            self.kill(task)
 
 
 def kstatus(job_ids):

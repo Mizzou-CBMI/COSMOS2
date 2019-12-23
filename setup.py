@@ -1,7 +1,8 @@
-from setuptools import setup, find_packages
 import os
 import re
 import sys
+
+from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'cosmos/VERSION'), 'r') as fh:
     __version__ = fh.read().strip()
@@ -24,6 +25,7 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 install_requires = [
     'funcsigs',
+    'boto3',
     'blinker',
     "sqlalchemy",
     'networkx>=2.0',
@@ -31,19 +33,19 @@ install_requires = [
     "drmaa",
     'more-itertools',
     "decorator",
-    "python-dateutil",
+    "python-dateutil"
 ]
 package_data = {'cosmos': list(find_all('cosmos/', '.py|.pyc$', inverse=True, remove_prefix=True))}
 
 if sys.version_info < (3,):
-    install_requires += ['subprocess32']
+    install_requires += ['subprocess32>=3.5']
 if sys.version_info < (3, 6):
     install_requires += ['enum34']
 
 setup(
     name="cosmos-wfm",
     version=__version__,
-    scripts=['bin/cosmos','bin/run_pyfunc'],
+    scripts=['bin/cosmos', 'bin/run_pyfunc'],
     description="Workflow Management System",
     long_description='Cosmos is a library for writing analysis pipelines, and is particularly suited pipelines which analyze next generation sequencing genomic'
                      'data. See https://github.com/Mizzou-CBMI/COSMOS2 for details.',
@@ -54,8 +56,6 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="MIT",
     install_requires=install_requires,
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
     extras_require={
         "web":  ["flask"]
     },

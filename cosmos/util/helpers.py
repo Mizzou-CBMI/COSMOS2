@@ -1,12 +1,66 @@
-import pprint
-import logging
 import itertools as it
-import signal
+import logging
 import os
+import pprint
 import random
+import shutil
+import signal
 import string
-
+import sys
+import tempfile
 import time
+from contextlib import contextmanager
+
+
+def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout):
+    """
+    Makes a progress bar that looks like:
+    [#################...........] 100000/100000
+
+
+    :param iterable: any iterable
+    :param count: total size of iterable.  Only required if iterable does not have len() defined.
+    :param prefix: prefix to add to the bar
+    :param progress_bar_size: Number of characters for the progress bar
+    :param output_file: output file to write to.  Defaults to stdout.
+    :return:
+    """
+    if count is None:
+        count = len(iterable)
+
+    last_num_hashes = None
+    for i, item in enumerate(iterable):
+        yield item
+        num_hashes = int(progress_bar_size * (i + 1) / count)
+        if num_hashes != last_num_hashes:
+            hashes = "#" * num_hashes
+            dots = "." * (progress_bar_size - num_hashes)
+            output_file.write("{prefix}[{hashes}{dots}] {i + 1}/{count}\r".format(**locals()))
+            output_file.flush()
+
+        last_num_hashes = num_hashes
+
+    output_file.write("\n")
+    output_file.flush()
+
+
+@contextmanager
+def temp_cwd():
+    oldpath = os.getcwd()
+    newpath = tempfile.mkdtemp()
+    os.chdir(newpath)
+    yield newpath
+
+    os.chdir(oldpath)
+    shutil.rmtree(newpath)
+
+
+@contextmanager
+def environment_variables(**kwargs):
+    old_env_vars = {key: os.environ.get(key) for key in kwargs if key in os.environ}
+    os.environ.update(kwargs)
+    yield
+    os.environ.update(old_env_vars)
 
 
 def isinstance_namedtuple(x):
@@ -105,15 +159,17 @@ def confirm(prompt=None, default=False, timeout=0):
             if not ans:
                 return default
             if ans not in ['y', 'Y', 'yes', 'n', 'no', 'N']:
-                print 'please enter y or n.'
+                print
+                'please enter y or n.'
                 continue
             if ans in ['y', 'yes', 'Yes']:
                 return True
             if ans in ['n', 'no', 'N']:
                 return False
         except TimeOutException:
-            print "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
-                                                                                             'yes' if default else 'no')
+            print
+            "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
+                                                                                       'yes' if default else 'no')
             return default
 
 
@@ -171,7 +227,8 @@ def formatError(txt, dict, error_text=''):
         dash='-' * 76,
         dic=pprint.pformat(dict, indent=4),
         error_text=error_text + "\n")
-    print s
+    print
+    s
 
 
 def get_logger(name, path=None):

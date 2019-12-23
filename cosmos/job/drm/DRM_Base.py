@@ -2,7 +2,6 @@ from abc import abstractmethod, ABCMeta
 
 
 class DRM(object):
-
     "DRM base class"
 
     __metaclass__ = ABCMeta
@@ -10,9 +9,6 @@ class DRM(object):
     name = None
     poll_interval = 1
     required_drm_options = set()
-
-    def __init__(self, jobmanager):
-        self.jobmanager = jobmanager
 
     @classmethod
     def validate_drm_options(cls, drm_name, drm_options):
@@ -27,8 +23,8 @@ class DRM(object):
 
         assert set(drm_options.keys()) >= drm_cls.required_drm_options, \
             'You must specify values for {args_list}'.format(
-            args_list=', '.join(drm_cls.required_drm_options),
-        )
+                args_list=', '.join(drm_cls.required_drm_options),
+            )
 
     @classmethod
     def get_drm(cls, drm_name):
@@ -48,26 +44,26 @@ class DRM(object):
 
     @abstractmethod
     def submit_job(self, task):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def filter_is_done(self, tasks):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def drm_statuses(self, tasks):
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def kill(self, task):
-        raise NotImplementedError
+        pass
 
     def kill_tasks(self, tasks):
         for t in tasks:
             self.kill(t)
 
-    def cleanup_task(self, task):
+    def populate_logs(self, task):
         pass
 
-    def populate_logs(self, task):
+    def release_resources_after_completion(self, task):
         pass

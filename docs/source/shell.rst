@@ -39,8 +39,8 @@ To launch the shell, just run:
 
 
 
-Delete a Stage and all of it's Descendants
--------------------------------------------
+Delete a Stage and all of its Descendants
+-----------------------------------------
 When you're developing workflows, things inevitably will go wrong.  More often than not, it is useful to fix a particular Stage and restart the Workflow
 from there.  This avoids a lot of unnecessary re-computation of Stages that weren't affected by your code fix.
 

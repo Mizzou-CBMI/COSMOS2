@@ -38,3 +38,8 @@ def test_ex3():
     if sys.version_info > (3, 6):
         with cd(path):
             run('python ../../ex3.py')
+
+
+def test_gpu():
+    with cd(os.path.join(os.path.dirname(__file__), '../examples')):
+        run('python ex_gpu.py')

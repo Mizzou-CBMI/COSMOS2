@@ -1,10 +1,6 @@
 import os
 import signal
 import sys
-if sys.version_info < (3,):
-    import subprocess32 as sp
-else:
-    import subprocess as sp
 import time
 
 from cosmos.job.drm.DRM_Base import DRM
@@ -12,26 +8,65 @@ from cosmos.job.drm.util import exit_process_group
 from cosmos.api import TaskStatus
 
 
+if os.name == "posix" and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
+
+
 class DRM_Local(DRM):
     name = 'local'
     poll_interval = 0.3
 
-    def __init__(self, jobmanager):
+    def __init__(self):
         self.procs = dict()
-        super(DRM_Local, self).__init__(jobmanager)
+        self.gpus_on_system = os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(
+            ',') if 'COSMOS_LOCAL_GPU_DEVICES' in os.environ else []
+        self.task_id_to_gpus_used = dict()
+
+        super(DRM_Local, self).__init__()
+
+    @property
+    def gpus_used(self):
+        return [gpu for gpus in self.task_id_to_gpus_used.values() for gpu in gpus]
+
+    @property
+    def gpus_left(self):
+        return list(set(self.gpus_on_system) - set(self.gpus_used))
+
+    def acquire_gpus(self, task):
+        if task.gpu_req > len(self.gpus_left):
+            # if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
+            raise EnvironmentError('Not enough system gpus, need {task.gpu_req} gpus, '
+                                   'gpus on the system are: {self.gpus_on_system}, '
+                                   'and gpus left are: {self.gpus_left}.  '
+                                   'Note that local DRM requires the environment variable '
+                                   'COSMOS_LOCAL_GPU_DEVICES set to a '
+                                   'comma delimited list of GPU devices to use.  It should '
+                                   'be the same format as CUDA_VISIBLE_DEVICES.  '.format(**locals()))
+
+        self.task_id_to_gpus_used[task.id] = self.gpus_left[:task.gpu_req]
 
     def submit_job(self, task):
-
         if task.time_req is not None:
             cmd = ['/usr/bin/timeout', '-k', '10', str(task.time_req), task.output_command_script_path]
         else:
             cmd = task.output_command_script_path
 
-        p = sp.Popen(cmd,
-                     stdout=open(task.output_stdout_path, 'w'),
-                     stderr=open(task.output_stderr_path, 'w'),
-                     shell=False, env=os.environ,
-                     preexec_fn=exit_process_group)
+        env = os.environ.copy()
+        if task.gpu_req:
+            # Note: workflow won't submit jobs unless there are enough gpus available
+            self.acquire_gpus(task)
+            env['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, self.task_id_to_gpus_used[task.id]))
+
+        p = subprocess.Popen(
+            cmd,
+            stdout=open(task.output_stdout_path, 'w'),
+            stderr=open(task.output_stderr_path, 'w'),
+            shell=False,
+            env=env,
+            preexec_fn=exit_process_group,
+        )
         p.start_time = time.time()
         drm_jobID = unicode(p.pid)
         self.procs[drm_jobID] = p
@@ -43,7 +78,7 @@ class DRM_Local(DRM):
             p = self.procs[task.drm_jobID]
             p.wait(timeout=timeout)
             return True
-        except sp.TimeoutExpired:
+        except subprocess.TimeoutExpired:
             return False
 
         return False
@@ -111,6 +146,9 @@ class DRM_Local(DRM):
     def kill(self, task):
         return self.kill_tasks([task])
 
+    def release_resources_after_completion(self, task):
+        if task.gpu_req:
+            self.task_id_to_gpus_used.pop(task.id)
 
 class JobStatusError(Exception):
     pass

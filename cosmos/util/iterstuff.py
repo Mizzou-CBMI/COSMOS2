@@ -1,8 +1,7 @@
-from itertools import izip_longest, tee
-
-from .helpers import groupby2
+from itertools import tee
 
 _nothing = 'NOTHING!!@#!#!@'
+
 
 def only_one(iterable, default=_nothing, sentinel=_nothing):
     '''
@@ -29,22 +28,6 @@ def only_one(iterable, default=_nothing, sentinel=_nothing):
         return item
 
 
-def chunked(iterable, n):
-    """Break an iterable into lists of a given length::
-
-    >>> list(chunked([1, 2, 3, 4, 5, 6, 7], 3))
-    [(1, 2, 3), (4, 5, 6), (7,)]
-
-    If the length of ``iterable`` is not evenly divisible by ``n``, the last
-    returned list will be shorter.
-    """
-    for group in izip_longest(*[iter(iterable)] * n, fillvalue=_nothing):
-        if group[-1] is _nothing:
-            # If this is the last group, shuck off the padding:
-            group = group[:group.index(_nothing)]
-        yield group
-
-
 # def ilen(iterable):
 #     """Return the number of items in ``iterable``."""
 #     return sum(1 for _ in iterable)
@@ -52,8 +35,9 @@ def chunked(iterable, n):
 
 def split_on_condition(condition, seq):
     """return two generators, elements in seq that pass condition and elements in seq that do not pass the condition"""
-    l1,l2 = tee((condition(item),item) for item in seq)
+    l1, l2 = tee((condition(item), item) for item in seq)
     return (i for p, i in l1 if p), (i for p, i in l2 if not p)
+
 
 def partition(predicate, items):
     """
@@ -63,5 +47,4 @@ def partition(predicate, items):
     :return: two generators
     """
     a, b = tee((predicate(item), item) for item in items)
-    return ((item for pred, item in b if pred),(item for pred, item in a if not pred))
-
+    return ((item for pred, item in b if pred), (item for pred, item in a if not pred))

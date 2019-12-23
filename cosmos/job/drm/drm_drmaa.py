@@ -1,11 +1,12 @@
 import os
 import sys
 
+from cosmos import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import div, convert_size_to_kb
-from cosmos import TaskStatus
 
 _drmaa_session = None
+
 
 def get_drmaa_session():
     global _drmaa_session
@@ -15,14 +16,13 @@ def get_drmaa_session():
         _drmaa_session.initialize()
     return _drmaa_session
 
+
 class DRM_DRMAA(DRM):
     name = 'drmaa'
     poll_interval = 5
 
     _session = None
 
-    def __init__(self, *args, **kwargs):
-        super(DRM_DRMAA, self).__init__(*args, **kwargs)
 
     def submit_job(self, task):
         with get_drmaa_session().createJobTemplate() as jt:
@@ -34,7 +34,7 @@ class DRM_DRMAA(DRM):
 
             try:
                 task.drm_jobID = get_drmaa_session().runJob(jt)
-            except:     #pylint: disable=W0702
+            except:  # pylint: disable=W0702
                 # python-drmaa can throw almost any exception! catch everything
                 task.log.error('%s failed submission to %s with nativeSpecification=`%s`' %
                                (task, task.drm, jt.nativeSpecification))
@@ -91,9 +91,9 @@ class DRM_DRMAA(DRM):
                     raise
 
                 # "code 24: no usage information was returned for the completed job"
-                print >>sys.stderr, 'drmaa raised a naked Exception while ' \
-                                    'fetching job status - an existing job may ' \
-                                    'have been killed'
+                print >> sys.stderr, 'drmaa raised a naked Exception while ' \
+                                     'fetching job status - an existing job may ' \
+                                     'have been killed'
                 #
                 # Check the status of each outstanding job and fake
                 # a failure status for any that have gone missing.
@@ -107,7 +107,7 @@ class DRM_DRMAA(DRM):
                         drmaa_jobstatus = drmaa.JobState.UNDETERMINED
 
                     if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
-                        print >>sys.stderr, 'job %s is missing and presumed dead' % jobid
+                        print >> sys.stderr, 'job %s is missing and presumed dead' % jobid
                         yield jobid_to_task.pop(jobid), \
                               create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
 
@@ -116,7 +116,8 @@ class DRM_DRMAA(DRM):
 
         def get_status(task):
             try:
-                return self.decodestatus[get_drmaa_session().jobStatus(unicode(task.drm_jobID))] if task.drm_jobID is not None else '?'
+                return self.decodestatus[
+                    get_drmaa_session().jobStatus(unicode(task.drm_jobID))] if task.drm_jobID is not None else '?'
             except drmaa.errors.InvalidJobException:
                 return '?'
             except:
@@ -199,9 +200,9 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
     # of terminating in error.
     #
     if int(drmaa_jobinfo['exitStatus']) != 0 or \
-       drmaa_jobinfo['hasSignal'] or \
-       drmaa_jobinfo['wasAborted'] or \
-       not drmaa_jobinfo['hasExited']:
+            drmaa_jobinfo['hasSignal'] or \
+            drmaa_jobinfo['wasAborted'] or \
+            not drmaa_jobinfo['hasExited']:
 
         if cosmos_jobinfo['exit_status'] == 0:
             try:
@@ -221,7 +222,6 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
 
 
 def create_empty_drmaa_jobinfo(exit_status):
-
     return dict(
         exit_status=int(exit_status),
         successful=(int(exit_status) == 0),

@@ -4,6 +4,7 @@ import stat
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
+from cosmos.api import py_call
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import mkdir
@@ -11,7 +12,7 @@ from cosmos.util.helpers import mkdir
 
 class JobManager(object):
     def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = {DRM_sub_cls.name: DRM_sub_cls(self) for DRM_sub_cls in DRM.__subclasses__()}
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls() for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []
@@ -36,7 +37,12 @@ class JobManager(object):
         thread_local_task = task
 
         if self.cmd_wrapper:
-            fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
+            if self.cmd_wrapper == py_call:
+                # this is for backwards compatibility, the user should have specified
+                # py_call_cmd_wrapper
+                fxn = py_call(task.cmd_fxn)
+            else:
+                fxn = self.cmd_wrapper(thread_local_task)(task.cmd_fxn)
         else:
             fxn = task.cmd_fxn
 
@@ -93,14 +99,9 @@ class JobManager(object):
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
 
-    def cleanup(self):
-        """Cleanup a workflow."""
-        for task in self.tasks:
-            self.get_drm(task.drm).cleanup_task(task)
-
     def get_finished_tasks(self):
         """
-        :returns: A completed task, or None if there are no tasks to wait for
+        yields all finished tasks
         """
         # NOOP tasks are already done
         for task in list(self.running_tasks):
@@ -117,6 +118,7 @@ class JobManager(object):
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             for task, job_info_dict in self.get_drm(drm).filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
+                self.get_drm(drm).release_resources_after_completion(task)
                 self.dead_tasks.append(task)
                 for k, v in job_info_dict.items():
                     setattr(task, k, v)
