@@ -258,7 +258,7 @@ class DRM_AWSBatch(DRM):
     def _cleanup_task(self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10):
         # if log_stream_name wasn't passed in, query aws to get it
         if log_stream_name is None:
-            job_dict = get_aws_batch_job_infos([task.drm_jobID])
+            job_dict = get_aws_batch_job_infos([task.drm_jobID], task.workflow.log)
             log_stream_name = job_dict[0]['container'].get('logStreamName')
 
         if log_stream_name is None:
@@ -285,7 +285,9 @@ class DRM_AWSBatch(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         job_ids = [task.drm_jobID for task in tasks]
-        return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids)}
+        if len(job_ids) == 0:
+            return {}
+        return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids, tasks[0].workflow.log)}
 
     def _terminate_task(self, task):
         batch_client = boto3.client(service_name="batch")
