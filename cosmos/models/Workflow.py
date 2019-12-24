@@ -592,7 +592,7 @@ def _run(workflow, session, task_queue):
         if last_log_timestamp + WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL < time.time():
             num_running = len(list(workflow.jobmanager.running_tasks))
             workflow.log.info(
-                "Cosmos is still alive, just waiting on %d running_tasks, task_queue is is len %d",
+                "Cosmos is still alive, just waiting on %d running_tasks, task_queue is len %d",
                 num_running,
                 len(task_queue)
             )
