@@ -222,7 +222,10 @@ class DRM_AWSBatch(DRM):
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
         assert len(set(job_ids)) == len(job_ids)
-        jobs = get_aws_batch_job_infos(job_ids, task.workflow.log)
+        if len(job_ids) == 0:
+            jobs = []
+        else:
+            jobs = get_aws_batch_job_infos(job_ids, tasks[0].workflow.log)
         for task, job_dict in zip(tasks, jobs):
             assert task.drm_jobID == job_dict['jobId']
             if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
