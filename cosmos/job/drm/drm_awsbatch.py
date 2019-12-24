@@ -125,7 +125,7 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
             return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
-class JobStatusMismatchError:
+class JobStatusMismatchError(Exception):
     pass
 
 
