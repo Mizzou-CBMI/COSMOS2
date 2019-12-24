@@ -245,9 +245,12 @@ class DRM_AWSBatch(DRM):
                     assert exit_status != 0, '%s failed, but has an exist_status of 0' % task
 
                 self._cleanup_task(task, job_dict['container']['logStreamName'])
-
-                yield task, dict(exit_status=exit_status,
-                                 wall_time=int(round((job_dict['stoppedAt'] - job_dict['startedAt']) / 1000)))
+                try:
+                    wall_time = int(round((job_dict['stoppedAt'] - job_dict['startedAt']) / 1000))
+                except KeyError:
+                    task.workflow.log.warning("Could not find timing info for job:'\n{job_dict}\n'")
+                    wall_time = 0
+                yield task, dict(exit_status=exit_status, wall_time=wall_time)
 
     def _cleanup_task(self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10):
         # if log_stream_name wasn't passed in, query aws to get it
