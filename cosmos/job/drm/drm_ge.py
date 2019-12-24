@@ -424,7 +424,7 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         env=os.environ,
         logger=logger,
         shell=True,
-        timeout=600,
+        timeout=45,
     )
     elapsed_tm = time.time() - start_tm
 
