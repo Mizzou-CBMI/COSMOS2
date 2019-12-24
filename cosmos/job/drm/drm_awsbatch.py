@@ -135,9 +135,9 @@ def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
     describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
     _check_aws_response_for_error(describe_jobs_response)
     returned_jobs = sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId']))
-    if sorted([job['jobId'] for job in batch_returned_jobs]) != sorted(job_ids):
+    if sorted([job['jobId'] for job in returned_jobs]) != sorted(job_ids):
         raise JobStatusMismatchError()
-    return batch_returned_jobs
+    return returned_jobs
 
 
 def get_aws_batch_job_infos(all_job_ids, logger):
@@ -145,7 +145,7 @@ def get_aws_batch_job_infos(all_job_ids, logger):
     assert len(all_job_ids) == len(set(all_job_ids))
     batch_client = boto3.client(service_name="batch")
     returned_jobs = []
-    for job_ids in more_itertools.chunked(all_job_ids, 50):
+    for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
         while True:
             try:
                 batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
