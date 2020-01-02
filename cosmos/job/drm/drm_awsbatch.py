@@ -289,7 +289,7 @@ class DRM_AWSBatch(DRM):
             tasks[0].workflow.log.info('Cleaning up Tasks...')
             for task in progress_bar(tasks):
                 # this is slower and less important
-                self._cleanup_task(task)
+                self._cleanup_task(task, get_log_attempts=3, get_log_sleep_between_attempts=5)
 
 
 class JobStatusError(Exception):
