@@ -10,6 +10,7 @@ import boto3
 
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
+from cosmos.util.helpers import progress_bar
 
 
 def random_string(length):
@@ -87,7 +88,7 @@ def submit_script_as_aws_batch_job(local_script_path,
         container_properties['instanceType'] = instance_type
     if gpus is not None and gpus != 0:
         container_properties["resourceRequirements"].append({"value": str(gpus), "type": "GPU"})
-        visible_devices = ",".join(map(str, list(range(gpus))))
+        visible_devices = ",".join(map(str, range(gpus)))
         container_properties["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
     resp = batch.register_job_definition(
@@ -270,7 +271,9 @@ class DRM_AWSBatch(DRM):
                             sleep_between_attempts=get_log_sleep_between_attempts)
 
         with open(task.output_stdout_path, 'w') as fp:
-            fp.write(logs)
+            fp.write(logs + '\n'
+                     + 'WARNING: this might be truncated.  '
+                     + 'check log stream on the aws console for job: %s' % task.drm_jobID)
 
         # delete temporary s3 script path
         bucket, key = split_bucket_key(task.s3_command_script_uri)
@@ -303,12 +306,15 @@ class DRM_AWSBatch(DRM):
         self._cleanup_task(task, get_log_attempts=1, get_log_sleep_between_attempts=1)
 
     def kill_tasks(self, tasks):
-        for task in tasks:
-            self._terminate_task(task)
+        if len(tasks):
+            tasks[0].workflow.log.info('Killing Tasks...')
+            for task in progress_bar(tasks):
+                self._terminate_task(task)
 
-        for task in tasks:
-            # this is slower and less important
-            self._cleanup_task(task)
+            tasks[0].workflow.log.info('Cleaning up Tasks...')
+            for task in progress_bar(tasks):
+                # this is slower and less important
+                self._cleanup_task(task, get_log_attempts=3, get_log_sleep_between_attempts=5)
 
 
 class JobStatusError(Exception):

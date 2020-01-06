@@ -433,8 +433,11 @@ class Workflow(Base):
         except KeyboardInterrupt:
             self.log.fatal('ctrl+c caught')
             self.terminate(due_to_failure=False)
+            raise
         except Exception as ex:
+            self.log.fatal('Exception was raised')
             self.log.fatal(ex, exc_info=True)
+            self.terminate(due_to_failure=False)
             raise
 
     def terminate(self, due_to_failure=True):
@@ -589,10 +592,11 @@ def _run(workflow, session, task_queue):
         if last_log_timestamp + WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL < time.time():
             num_running = len(list(workflow.jobmanager.running_tasks))
             workflow.log.info(
-                "Cosmos is still alive, just waiting on %d task%s",
+                "Cosmos is still alive, just waiting on %d running_tasks, task_queue is len %d",
                 num_running,
-                "s" if num_running > 1 else "",
+                len(task_queue)
             )
+
             last_log_timestamp = time.time()
 
         # conveniently, this returns early if we catch a signal
