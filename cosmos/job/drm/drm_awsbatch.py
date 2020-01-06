@@ -47,7 +47,8 @@ def submit_script_as_aws_batch_job(local_script_path,
     :param vcpus: amount of vcpus to reserve.
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
-    assert ' ' not in job_name, 'job_name `%s` is invalid' % job_name
+    if ' ' in job_name or ':' in job_name:
+        raise ValueError('job_name `%s` is invalid' % job_name)
     if s3_prefix_for_command_script_temp_files.endswith('/'):
         raise ValueError('s3_prefix_for_command_script_temp_files should not have a ' \
                          'trailing slash.  It is set to %s' % s3_prefix_for_command_script_temp_files)
@@ -194,7 +195,11 @@ class DRM_AWSBatch(DRM):
         if task.mem_req is None:
             raise ValueError('task.mem_req cannot be None for task %s' % task)
 
-        job_name = 'cosmos-' + task.stage.name.replace('/', '__') + '__' + task.uid.replace('/', '__')
+        job_name = "".join([
+            'cosmos-',
+            task.stage.name.replace('/', '__').replace(':', '_COLON_') + '__',
+            task.uid.replace('/', '__').replace(':', '_COLON_')
+        ])
 
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
