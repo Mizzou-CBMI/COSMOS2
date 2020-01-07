@@ -417,35 +417,52 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
 
     job_id = None
 
+    start_tm = time.time()
     stdout, stderr, returncode = run_cli_cmd(
         '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-        attempts=1,     # make just one attempt: running a task 2x could be disastrous
+        attempts=1,  # make just one attempt: running a task 2x could be disastrous
         env=os.environ,
         logger=logger,
         shell=True,
+        timeout=600,
     )
+    elapsed_tm = time.time() - start_tm
+
+    # sometimes qsub can return a job id, even if it times out
+    try:
+        job_id = unicode(int(stdout))
+        if returncode == "TIMEOUT":
+            returncode = 0
+            logger.info(
+                "qsub timed out, but returned valid-looking job id %s -- recovering",
+                stdout,
+            )
+    except ValueError:
+        if returncode == 0:
+            returncode = "INVALID OUTPUT"
+            logger.error(
+                "qsub returned unparseable stdout: '%s'",
+                stdout,
+            )
 
     if returncode != 0:
         logger.error(
-            "%s submission to %s (%s) failed with error %s",
+            "%s submission to %s (%s) failed with error %s after %.1f sec",
             log_prefix,
             drm_name,
             qsub,
             returncode,
+            elapsed_tm,
         )
         status = TaskStatus.failed
     else:
-        try:
-            job_id = unicode(int(stdout))
-        except ValueError:
-            logger.error(
-                "%s submission to %s returned unexpected text: %s",
-                log_prefix,
-                drm_name,
-                stdout,
-            )
-            status = TaskStatus.failed
-        else:
-            status = TaskStatus.submitted
+        logger.debug(
+            "%s submission to %s returned after %.1f sec: %s",
+            log_prefix,
+            drm_name,
+            elapsed_tm,
+            stdout,
+        )
+        status = TaskStatus.submitted
 
     return (job_id, status)
