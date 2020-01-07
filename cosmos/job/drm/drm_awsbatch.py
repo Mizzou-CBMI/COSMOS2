@@ -197,10 +197,11 @@ class DRM_AWSBatch(DRM):
 
         job_name = "".join([
             'cosmos-',
-            task.stage.name.replace('/', '__').replace(':', '_COLON_') + '__',
-            task.uid.replace('/', '__').replace(':', '_COLON_')
-        ])
-
+            task.stage.name.replace('/', '__').replace(':', ''),
+            '__',
+            task.uid.replace('/', '__').replace(':', '')
+        ])[:128]  # job names can be a maximum of 128 characters
+        task.workflow.log.info("Setting job name to: {}".format(job_name))
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
             s3_prefix_for_command_script_temp_files=task.drm_options['s3_prefix_for_command_script_temp_files'],
