@@ -165,11 +165,11 @@ def py_call(func):
         func_import_code = _get_import_code_for_func(func)
 
         return r"""#!/usr/bin/env python
-{class_imports}{func_import_code}
-
 import logging
 DEFAULT_LOG_FORMAT = "[%(name)s : %(asctime)-15s %(filename)s - %(funcName)s() ] %(message)s"
 logging.basicConfig(format=DEFAULT_LOG_FORMAT, datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
+
+{class_imports}{func_import_code}
 
 # To use ipdb, uncomment the next two lines and tab over the function call
 #import ipdb
