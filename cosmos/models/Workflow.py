@@ -341,7 +341,11 @@ class Workflow(Base):
 
             self.max_cores = max_cores
             self.max_gpus = max_gpus
+            #
+            # Run some validation checks
+            #
 
+            # check GPU env variables are set correctly
             if self.max_gpus is not None and self.cosmos_app.default_drm == 'local':
                 if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
                     raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a '
@@ -349,6 +353,17 @@ class Workflow(Base):
                                            'GPUs')
                 if len(os.environ['COSMOS_LOCAL_GPU_DEVICES'].split(',')) < self.max_gpus:
                     raise EnvironmentError('COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!')
+
+            # check for duplicate output files
+            output_fnames_to_task_and_key = dict()
+            for task in self.tasks:
+                for key, fname in task.output_map.items():
+                    current_value = output_fnames_to_task_and_key.setdefault(fname, (task, key))
+                    if current_value != (task, key):
+                        task2, key2 = current_value
+                        raise ValueError(
+                            f'Duplicate output files detected!:  {task}.params["{key}"] == {task2}.params["{key2}"] == {fname}')
+                    output_fnames_to_task_and_key[fname] = (task, key)
 
             from ..job.JobManager import JobManager
 
