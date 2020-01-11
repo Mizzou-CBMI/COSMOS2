@@ -362,7 +362,8 @@ class Workflow(Base):
                     if current_value != (task, key):
                         task2, key2 = current_value
                         raise ValueError(
-                            f'Duplicate output files detected!:  {task}.params["{key}"] == {task2}.params["{key2}"] == {fname}')
+                            'Duplicate output files detected!:  '
+                            '{task}.params["{key}"] == {task2}.params["{key2}"] == {fname}'.format(**locals()))
                     output_fnames_to_task_and_key[fname] = (task, key)
 
             from ..job.JobManager import JobManager
