@@ -1,12 +1,10 @@
-from __future__ import print_function
-
 import os
 import pprint
 import random
 import re
 import string
 import time
-from itertools import islice
+import more_itertools
 
 import boto3
 
@@ -49,7 +47,8 @@ def submit_script_as_aws_batch_job(local_script_path,
     :param vcpus: amount of vcpus to reserve.
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
-    assert ' ' not in job_name, 'job_name `%s` is invalid' % job_name
+    if ' ' in job_name or ':' in job_name:
+        raise ValueError('job_name `%s` is invalid' % job_name)
     if s3_prefix_for_command_script_temp_files.endswith('/'):
         raise ValueError('s3_prefix_for_command_script_temp_files should not have a ' \
                          'trailing slash.  It is set to %s' % s3_prefix_for_command_script_temp_files)
@@ -98,7 +97,6 @@ def submit_script_as_aws_batch_job(local_script_path,
         type='container',
         containerProperties=container_properties
     )
-    # print(container_properties)
     _check_aws_response_for_error(resp)
     job_definition_arn = resp['jobDefinitionArn']
 
@@ -129,20 +127,39 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
             return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts)
 
 
-def chunk(it, size):
-    it = iter(it)
-    return iter(lambda: tuple(islice(it, size)), ())
+class JobStatusMismatchError(Exception):
+    pass
 
 
-def get_aws_batch_job_infos(all_job_ids):
+def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
+    # ensure that the list of job ids is unique
+    assert len(job_ids) == len(set(job_ids))
+    describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
+    _check_aws_response_for_error(describe_jobs_response)
+    returned_jobs = sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId']))
+    if sorted([job['jobId'] for job in returned_jobs]) != sorted(job_ids):
+        raise JobStatusMismatchError()
+    return returned_jobs
+
+
+def get_aws_batch_job_infos(all_job_ids, logger):
+    # ensure that the list of job ids is unique
+    assert len(all_job_ids) == len(set(all_job_ids))
     batch_client = boto3.client(service_name="batch")
     returned_jobs = []
-    for job_ids in chunk(all_job_ids, 100):
-        describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
-        _check_aws_response_for_error(describe_jobs_response)
-        returned_jobs.extend(sorted(describe_jobs_response['jobs'], key=lambda job: job_ids.index(job['jobId'])))
+    for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
+        while True:
+            try:
+                batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
+            except JobStatusMismatchError:
+                logger.warning("aws batch describe-jobs returned a different jobs than were passed. Re-trying.")
+                continue
+            else:
+                returned_jobs.extend(batch_returned_jobs)
+                break
     returned_ids = [job['jobId'] for job in returned_jobs]
-    assert sorted(returned_ids) == sorted(all_job_ids)
+    assert sorted(returned_ids) == sorted(all_job_ids), \
+        str(set(returned_ids) - set(all_job_ids)) + str(set(all_job_ids) - set(returned_ids))
     return returned_jobs
 
 
@@ -178,8 +195,13 @@ class DRM_AWSBatch(DRM):
         if task.mem_req is None:
             raise ValueError('task.mem_req cannot be None for task %s' % task)
 
-        job_name = 'cosmos-' + task.stage.name.replace('/', '__') + '__' + task.uid.replace('/', '__')
-
+        job_name = "".join([
+            'cosmos-',
+            task.stage.name.replace('/', '__').replace(':', ''),
+            '__',
+            task.uid.replace('/', '__').replace(':', '')
+        ])[:128]  # job names can be a maximum of 128 characters
+        task.workflow.log.info("Setting job name to: {}".format(job_name))
         jobId, job_definition_arn, s3_command_script_uri = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
             s3_prefix_for_command_script_temp_files=task.drm_options['s3_prefix_for_command_script_temp_files'],
@@ -192,7 +214,7 @@ class DRM_AWSBatch(DRM):
             instance_type=task.drm_options.get('instance_type'))
 
         # just save pointer to logstream.  We'll collect them when the job finishes.
-        job_dict = get_aws_batch_job_infos([jobId])[0]
+        job_dict = get_aws_batch_job_infos([jobId], task.workflow.log)[0]
         with open(task.output_stdout_path, 'w'):
             pass
         with open(task.output_stderr_path, 'w') as fp:
@@ -206,7 +228,11 @@ class DRM_AWSBatch(DRM):
 
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
-        jobs = get_aws_batch_job_infos(job_ids)
+        assert len(set(job_ids)) == len(job_ids)
+        if len(job_ids) == 0:
+            jobs = []
+        else:
+            jobs = get_aws_batch_job_infos(job_ids, tasks[0].workflow.log)
         for task, job_dict in zip(tasks, jobs):
             assert task.drm_jobID == job_dict['jobId']
             if job_dict['status'] in ['SUCCEEDED', 'FAILED']:
@@ -229,14 +255,17 @@ class DRM_AWSBatch(DRM):
                     assert exit_status != 0, '%s failed, but has an exist_status of 0' % task
 
                 self._cleanup_task(task, job_dict['container']['logStreamName'])
-
-                yield task, dict(exit_status=exit_status,
-                                 wall_time=int(round((job_dict['stoppedAt'] - job_dict['startedAt']) / 1000)))
+                try:
+                    wall_time = int(round((job_dict['stoppedAt'] - job_dict['startedAt']) / 1000))
+                except KeyError:
+                    task.workflow.log.warning("Could not find timing info for job:'\n{job_dict}\n'")
+                    wall_time = 0
+                yield task, dict(exit_status=exit_status, wall_time=wall_time)
 
     def _cleanup_task(self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10):
         # if log_stream_name wasn't passed in, query aws to get it
         if log_stream_name is None:
-            job_dict = get_aws_batch_job_infos([task.drm_jobID])
+            job_dict = get_aws_batch_job_infos([task.drm_jobID], task.workflow.log)
             log_stream_name = job_dict[0]['container'].get('logStreamName')
 
         if log_stream_name is None:
@@ -265,7 +294,9 @@ class DRM_AWSBatch(DRM):
         :returns: (dict) task.drm_jobID -> drm_status
         """
         job_ids = [task.drm_jobID for task in tasks]
-        return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids)}
+        if len(job_ids) == 0:
+            return {}
+        return {d['jobId']: d['status'] for d in get_aws_batch_job_infos(job_ids, tasks[0].workflow.log)}
 
     def _terminate_task(self, task):
         batch_client = boto3.client(service_name="batch")
