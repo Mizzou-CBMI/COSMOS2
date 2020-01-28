@@ -5,7 +5,13 @@ import pprint
 import subprocess as sp
 
 import networkx as nx
-from flask import url_for
+
+try:
+    from flask import url_for
+except ImportError:
+    def url_for(*args, **kwargs):
+        raise NotImplementedError("please install the [web] extra for web functionality")
+
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.declarative.base import _declarative_constructor
 from sqlalchemy.orm import reconstructor, relationship, synonym

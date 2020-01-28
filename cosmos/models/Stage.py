@@ -4,7 +4,12 @@ from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declared_attr
-from flask import url_for
+
+try:
+    from flask import url_for
+except ImportError:
+    def url_for(*args, **kwargs):
+        raise NotImplementedError("please install the [web] extra for web functionality")
 
 from cosmos.db import Base
 from cosmos.util.sqla import Enum_ColumnType

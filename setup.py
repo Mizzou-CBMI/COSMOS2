@@ -24,7 +24,6 @@ def find_all(path, reg_expr, inverse=False, remove_prefix=False):
 
 
 install_requires = [
-    "flask",
     'funcsigs',
     'boto3',
     'blinker',
@@ -57,6 +56,9 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPL v3",
     install_requires=install_requires,
+    extras_require={
+        "web":  ["flask"]
+    },
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,

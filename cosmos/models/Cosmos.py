@@ -3,7 +3,11 @@ import sys
 # from concurrent import futures
 from datetime import datetime
 
-from flask import Flask
+try:
+    from flask import Flask
+except ImportError:
+    def Flask(*args, **kwargs):
+        raise NotImplementedError("please install the [web] extra for web functionality")
 
 from cosmos import WorkflowStatus
 from cosmos import __version__
@@ -82,20 +86,29 @@ class Cosmos(object):
         if flask_app:
             self.flask_app = flask_app
         else:
-            self.flask_app = Flask(__name__)
-            self.flask_app.secret_key = os.urandom(24)
+            try:
+                self.flask_app = Flask(__name__)
+                self.flask_app.secret_key = os.urandom(24)
+
+                @self.flask_app.teardown_appcontext
+                def shutdown_session(exception=None):
+                    self.session.remove()
+
+                # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+                # self.flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+                self.flask_app.jinja_env.globals['time_now'] = datetime.now()
+                # self.flask_app.config['SQLALCHEMY_ECHO'] = True
+
+                # from flask_sqlalchemy import SQLAlchemy
+                #
+                #
+                # self.sqla = SQLAlchemy(self.flask_app)
+                # self.session = self.sqla.session
+
+            except NotImplementedError:
+                self.flask_app = None
 
         self.get_submit_args = get_submit_args
-        # self.flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-        # self.flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        self.flask_app.jinja_env.globals['time_now'] = datetime.now()
-        # self.flask_app.config['SQLALCHEMY_ECHO'] = True
-
-        # from flask_sqlalchemy import SQLAlchemy
-        #
-        #
-        # self.sqla = SQLAlchemy(self.flask_app)
-        # self.session = self.sqla.session
 
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker, scoped_session
@@ -108,10 +121,6 @@ class Cosmos(object):
 
         Base = declarative_base()
         Base.query = self.session.query_property()
-
-        @self.flask_app.teardown_appcontext
-        def shutdown_session(exception=None):
-            self.session.remove()
 
         self.default_drm = default_drm
         self.default_drm_options = default_drm_options

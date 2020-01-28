@@ -12,7 +12,13 @@ import time
 
 import funcsigs
 import networkx as nx
-from flask import url_for
+
+try:
+    from flask import url_for
+except ImportError:
+    def url_for(*args, **kwargs):
+        raise NotImplementedError("please install the [web] extra for web functionality")
+        
 from networkx.algorithms.dag import descendants, topological_sort
 from sqlalchemy import orm
 from sqlalchemy.exc import SQLAlchemyError
