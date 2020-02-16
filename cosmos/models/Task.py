@@ -36,7 +36,15 @@ class ToolValidationError(Exception): pass
 class GetOutputError(Exception): pass
 
 
-task_printout = u"""Task Info:
+task_printout_short = u"""Task Info:
+params: {0.params_pformat}
+command_script_path: {0.output_command_script_path}
+exit_status: {0.exit_status}
+drm_jobID: {0.drm_jobID}
+stdout: {0.output_stdout_path}
+stderr: {0.output_stderr_path}"""
+
+task_printout_long = u"""Task Info:
 <EXIT_STATUS="{0.exit_status}">
 <COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
 <PARAMS>
@@ -45,12 +53,11 @@ task_printout = u"""Task Info:
 {0.command_script_text}
 </COMMAND>
 <STDOUT path="{0.output_stdout_path}">
-{0.stdout_text}
+{0.stdout_text_brief}
 </STDOUT>
 <STDERR path="{0.output_stderr_path}">
-{0.stderr_text}
-</STDERR>
-"""
+{0.stderr_text_brief}
+</STDERR>"""
 
 completed_task_statuses = {TaskStatus.failed, TaskStatus.killed, TaskStatus.successful}
 
@@ -75,7 +82,7 @@ def task_status_changed(task):
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
             task.log.warn('%s failed, but must_succeed is False' % task)
-            task.log.warn(task_printout.format(task))
+            task.log.warn(task_printout_long.format(task))
             task.finished_on = datetime.datetime.now()
         else:
             #
@@ -93,13 +100,13 @@ def task_status_changed(task):
             task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, task.max_attempts))
 
             if task.attempt < task.max_attempts:
-                task.log.warn(task_printout.format(task))
+                task.log.warn(task_printout_long.format(task))
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
                 wait_for_file(task.workflow, task.output_stderr_path, 30, error=False)
 
-                task.log.warn(task_printout.format(task))
+                task.log.warn(task_printout_long.format(task))
                 task.log.error('%s has failed too many times' % task)
                 task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
@@ -314,6 +321,14 @@ class Task(Base):
         return readfile(self.output_stdout_path)
 
     @property
+    def stdout_text_brief(self):
+        lines = self.stdout_text.split('\n')
+        if len(lines) <= 50:
+            return "\n".join(lines)
+        else:
+            return 'TRUNCATED... \n' + "\n".join(lines)
+
+    @property
     def stderr_text(self):
         r = readfile(self.output_stderr_path)
         if r == 'file does not exist':
@@ -324,6 +339,14 @@ class Task(Base):
                 except Exception as e:
                     r += str(e)
         return r
+
+    @property
+    def stderr_text_brief(self):
+        lines = self.stderr_text.split('\n')
+        if len(lines) <= 50:
+            return "\n".join(lines)
+        else:
+            return 'TRUNCATED... \n' + "\n".join(lines)
 
     @property
     def command_script_text(self):
