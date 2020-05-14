@@ -39,7 +39,10 @@ class DRM_Local(DRM):
             # if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
             raise EnvironmentError('Not enough system gpus, need {task.gpu_req} gpus, '
                                    'gpus on the system are: {self.gpus_on_system}, '
-                                   'and gpus left are: {self.gpus_left}.  '
+                                   'and gpus left are: {self.gpus_left}. ' 
+                                   'This can be caused by max_gpus not being set appropriately, you usually '
+                                   'want it to be set to the number of GPUs on the local machine if all of your GPU '
+                                   'jobs are using the local DRM.  ' 
                                    'Note that local DRM requires the environment variable '
                                    'COSMOS_LOCAL_GPU_DEVICES set to a '
                                    'comma delimited list of GPU devices to use.  It should '

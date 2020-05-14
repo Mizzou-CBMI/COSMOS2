@@ -125,7 +125,8 @@ def task_status_changed(task):
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
-        task.session.commit()
+
+    task.session.commit()
 
 
 # task_edge_table = Table('task_edge', Base.metadata,
@@ -145,9 +146,18 @@ def readfile(path):
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
-            s = fh.read(2 ** 20)
-            if len(s) == 2 ** 20:
-                s += '\n*****TRUNCATED, check log file for full output*****'
+            # read some 2 ** 17 bytes
+            s = fh.read(2 ** 17)
+            if len(s) == 2 ** 17:
+                s += '\n***************************************************'
+                s += '\n***************************************************'
+                s += '\n***************************************************'
+                s += '\n****TRUNCATED!! check log file for full output*****'
+                s += '\n***************************************************'
+                s += '\n***************************************************'
+                s += '\n***************************************************'
+            the_rest = fh.read()
+            s += the_rest[-5000:]
             return s
     except:
         return 'error parsing as utf-8: %s' % path
@@ -257,6 +267,7 @@ class Task(Base):
     exit_status = Column(Integer)
 
     percent_cpu = Column(Integer)
+    # time in seconds
     wall_time = Column(Integer)
 
     cpu_time = Column(Integer)
@@ -326,7 +337,7 @@ class Task(Base):
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return 'TRUNCATED... \n' + "\n".join(lines)
+            return '*** TRUNCATED (showing last 50 lines)... \n' + "\n".join(lines[-50:])
 
     @property
     def stderr_text(self):
@@ -346,7 +357,7 @@ class Task(Base):
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return 'TRUNCATED... \n' + "\n".join(lines)
+            return '*** TRUNCATED (showing last 50 lines)... \n' + "\n".join(lines[-50:])
 
     @property
     def command_script_text(self):
@@ -358,6 +369,13 @@ class Task(Base):
         :return: (list) all stages that descend from this stage in the stage_graph
         """
         x = nx.descendants(self.workflow.task_graph(), self)
+        if include_self:
+            return sorted({self}.union(x), key=lambda task: task.stage.number)
+        else:
+            return x
+
+    def ancestors(self, include_self=False):
+        x = nx.ancestors(self.workflow.task_graph(), self)
         if include_self:
             return sorted({self}.union(x), key=lambda task: task.stage.number)
         else:

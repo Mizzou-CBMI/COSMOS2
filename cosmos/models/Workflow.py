@@ -90,7 +90,10 @@ class Workflow(Base):
 
     @property
     def wall_time(self):
-        return self.finished_on - self.started_on
+        if self.started_on is None or self.finished_on is None:
+            return None
+        else:
+            return self.finished_on - self.started_on
 
     @declared_attr
     def status(cls):

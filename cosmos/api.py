@@ -1,5 +1,6 @@
 # from .core.cmd_fxn.io import find, out_dir, forward
 import contextlib
+import importlib
 import inspect
 import json
 import pprint
@@ -11,9 +12,16 @@ import re
 from decorator import decorator
 import sys
 
-from cosmos import WorkflowStatus, StageStatus, TaskStatus, NOOP, signal_workflow_status_change, \
-    signal_stage_status_change, signal_task_status_change, \
-    Dependency
+from cosmos import (
+    WorkflowStatus,
+    StageStatus,
+    TaskStatus,
+    NOOP,
+    signal_workflow_status_change,
+    signal_stage_status_change,
+    signal_task_status_change,
+    Dependency,
+)
 from cosmos.core.cmd_fxn.signature import default_cmd_fxn_wrapper
 from cosmos.graph.draw import draw_task_graph, draw_stage_graph, pygraphviz_available
 from cosmos.models.Cosmos import Cosmos, default_get_submit_args
@@ -25,16 +33,18 @@ from cosmos.util.helpers import make_dict, isinstance_namedtuple
 from cosmos.util.iterstuff import only_one
 from cosmos.util.signal_handlers import SGESignalHandler, handle_sge_signals
 
-def load_input(out_file): pass
+
+def load_input(out_file):
+    pass
 
 
 def arg_to_str(name, value):
     if value is None:
-        return ''
+        return ""
     if isinstance(value, bool):
-        return name if value else ''
+        return name if value else ""
     else:
-        return '%s %s' % (name, value)
+        return "%s %s" % (name, value)
 
 
 def args_to_str(*args):
@@ -58,7 +68,7 @@ def args_to_str(*args):
     >>> args_to_str(('--skip-me', y), ('--use-me', z))
     '--use-me 123'
     """
-    return " \\\n".join(arg_to_str(k, v) for k, v in args if arg_to_str(k, v) != '')
+    return " \\\n".join(arg_to_str(k, v) for k, v in args if arg_to_str(k, v) != "")
 
 
 @contextlib.contextmanager
@@ -122,31 +132,67 @@ except ImportError:
 {param_str}
 )
 
-EOF""".format(func=func,
-              module_name=func.__name__,
-              source_file=inspect.getsourcefile(func),
-              param_str=pprint.pformat(kwargs, width=1, indent=1))
+EOF""".format(
+        func=func,
+        module_name=func.__name__,
+        source_file=inspect.getsourcefile(func),
+        param_str=pprint.pformat(kwargs, width=1, indent=1),
+    )
+
+
+def get_module_path_from_fname(fname):
+    """
+    >>> get_module_from_fname(__name__)
+    'cosmos.api'
+    """
+    fname = os.path.normpath(os.path.abspath(fname))
+    if not os.path.exists(fname):
+        raise FileExistsError("{} does not exist".format(fname))
+
+    for path in sys.path:
+        if os.path.normpath(path) == os.path.normpath(os.getcwd()):
+            # don't use cwd as path
+            continue
+        path = os.path.normpath(path)
+        if fname.startswith(path):
+            module_rel_path = fname.replace(path + "/", "")
+            module_path = module_rel_path.replace(".py", "").replace("/", ".")
+            try:
+                importlib.import_module(module_path)
+                return module_path
+            except ModuleNotFoundError:
+                pass
+    else:
+        raise ModuleNotFoundError("could not find module for {fname}")
 
 
 def _get_import_code_for_func(func):
     filename = inspect.getfile(func)
-    source_file = os.path.abspath(filename)
-    if func.__module__ == '__main__':
+    if func.__module__ == "__main__":
+        source_file = os.path.abspath(filename)
         assert os.path.exists(source_file)
         if sys.version_info[0] == 2:
-            func_import_code = "import imp\n" \
-                               '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
-                func=func,
-                source_file=source_file)
+            func_import_code = (
+                "import imp\n"
+                '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
+                    func=func, source_file=source_file
+                )
+            )
             return func_import_code
         else:
-            assert os.path.exists(source_file)
-            return """from importlib import machinery
-loader = machinery.SourceFileLoader("module", "{source_file}")
-mod = loader.load_module()
-{func.__name__} = getattr(mod, "{func.__name__}")""".format(**locals())
+            try:
+                path = get_module_path_from_fname(filename)
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "cannot import {func} {filename} from current path".format(
+                        **locals()
+                    )
+                )
+
+            parts = path.split("/")
+            return "from %s import %s" % (".".join(parts), func.__name__)
     else:
-        return 'from %s import %s' % (func.__module__, func.__name__)
+        return "from %s import %s" % (func.__module__, func.__name__)
 
 
 def py_call(func):
@@ -154,13 +200,13 @@ def py_call(func):
 
     @wraps(func)
     def wrapped(*args, **kwargs):
-        class_imports = ''
-        args_str = ''
+        class_imports = ""
+        args_str = ""
         if len(args):
-            args_str += '*%s,\n' % args
+            args_str += "*%s,\n" % args
             raise NotImplementedError()
         if len(kwargs):
-            args_str += '**%s' % pprint.pformat(kwargs, indent=2)
+            args_str += "**%s" % pprint.pformat(kwargs, indent=2)
 
         func_import_code = _get_import_code_for_func(func)
 
@@ -178,11 +224,12 @@ logging.basicConfig(format=DEFAULT_LOG_FORMAT, datefmt='%m/%d/%Y %I:%M:%S %p', l
 {args_str}
 )
 
-""".format(**locals())
+""".format(
+            **locals()
+        )
 
     return wrapped
 
 
 def py_call_cmd_wrapper(task):
     return py_call
-

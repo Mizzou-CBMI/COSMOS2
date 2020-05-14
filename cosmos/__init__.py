@@ -63,7 +63,7 @@ def recursive_resolve_dependency(parameter):
                 set.union(*[tasks for _, tasks in tuple_dict.itervalues()]) if len(tuple_dict) else set())
     else:
         raise ValueError('Cannot handle function parameter of type {}.  '
-                         'Parameters must be jsonable.'.format(type(parameter)))
+                         'Parameters must be jsonable.  Parameter value is {}'.format(type(parameter), parameter))
 
 
 #########################################################################################################################
