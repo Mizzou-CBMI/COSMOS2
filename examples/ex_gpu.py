@@ -19,16 +19,11 @@ def main(output_dir):
     cosmos = Cosmos()
     cosmos.initdb()
     workflow = cosmos.start(
-        "test",
-        skip_confirm=True,
-        primary_log_path=os.path.join(output_dir, "workflow.log"),
+        "test", skip_confirm=True, primary_log_path=os.path.join(output_dir, "workflow.log"),
     )
     for i, num_gpus in enumerate([1, 1, 2, 2, 3]):
         task = workflow.add_task(
-            use_cuda_device,
-            dict(some_arg=i, num_gpus=num_gpus),
-            gpu_req=num_gpus,
-            uid=str(i),
+            use_cuda_device, dict(some_arg=i, num_gpus=num_gpus), gpu_req=num_gpus, uid=str(i),
         )
 
     workflow.run(

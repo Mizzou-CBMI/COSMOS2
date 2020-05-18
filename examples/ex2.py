@@ -4,98 +4,110 @@ import subprocess as sp
 import sys
 from functools import partial
 
-from cosmos.api import Cosmos, Dependency, draw_stage_graph, draw_task_graph, \
-    pygraphviz_available, default_get_submit_args
+from cosmos.api import (
+    Cosmos,
+    Dependency,
+    draw_stage_graph,
+    draw_task_graph,
+    pygraphviz_available,
+    default_get_submit_args,
+)
 
 
 def echo(word, out_txt):
     return r"""
         echo {word} > {out_txt}
-    """.format(**locals())
+    """.format(
+        **locals()
+    )
 
 
 def cat(in_txts, out_txt):
     return r"""
         cat {input_str} > {out_txt}
-    """.format(input_str=' '.join(map(str, in_txts)),
-               **locals())
+    """.format(
+        input_str=" ".join(map(str, in_txts)), **locals()
+    )
 
 
 def word_count(in_txts, out_txt, chars=False):
-    c = ' -c' if chars else ''
+    c = " -c" if chars else ""
     return r"""
         wc{c} {input} > {out_txt}
-    """.format(input=' '.join(map(str, in_txts)),
-               **locals())
+    """.format(
+        input=" ".join(map(str, in_txts)), **locals()
+    )
 
 
 def recipe(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (source nodes of the dag).
-    echo_tasks = [workflow.add_task(func=echo,
-                                    params=dict(word=word, out_txt='%s.txt' % word),
-                                    uid=word,
-                                    mem_req=10)
-                  for word in ['hello', 'world']]
+    echo_tasks = [
+        workflow.add_task(func=echo, params=dict(word=word, out_txt="%s.txt" % word), uid=word, mem_req=10,)
+        for word in ["hello", "world"]
+    ]
 
     # Split each echo into two dependent Tasks (a one2many relationship).
     word_count_tasks = []
     for echo_task in echo_tasks:
-        word = echo_task.params['word']
+        word = echo_task.params["word"]
         for n in [1, 2]:
             cat_task = workflow.add_task(
                 func=cat,
-                params=dict(in_txts=[echo_task.params['out_txt']],
-                            out_txt='%s/%s/cat.txt' % (word, n)),
+                params=dict(in_txts=[echo_task.params["out_txt"]], out_txt="%s/%s/cat.txt" % (word, n),),
                 parents=[echo_task],
                 mem_req=10,
-                uid='%s_%s' % (word, n))
+                uid="%s_%s" % (word, n),
+            )
 
             # Count the words in the previous stage.  An example of a simple one2one relationship.
             # For each task in StageA, there is a single dependent task in StageB.
             word_count_task = workflow.add_task(
                 func=word_count,
                 # Dependency instances allow you to specify an input and parent simultaneously.
-                params=dict(in_txts=[Dependency(cat_task, 'out_txt')],
-                            out_txt='%s/%s/wc.txt' % (word, n),
-                            chars=True),
+                params=dict(
+                    in_txts=[Dependency(cat_task, "out_txt")], out_txt="%s/%s/wc.txt" % (word, n), chars=True,
+                ),
                 mem_req=10,
                 # parents=[cat_task], <-- not necessary!
-                uid='%s_%s' % (word, n), )
+                uid="%s_%s" % (word, n),
+            )
             word_count_tasks.append(word_count_task)
 
     # Cat the contents of all word_counts into one file.  Only one node is being created who's
     # parents are all of the WordCounts (a many2one relationship, aka a reduce operation).
     summarize_task = workflow.add_task(
         func=cat,
-        params=dict(in_txts=[Dependency(t, 'out_txt') for t in word_count_tasks],
-                    out_txt='summary.txt'),
+        params=dict(in_txts=[Dependency(t, "out_txt") for t in word_count_tasks], out_txt="summary.txt",),
         parents=word_count_tasks,
-        stage_name='Summary_Analysis',
+        stage_name="Summary_Analysis",
         mem_req=10,
-        uid='')  # It's the only Task in this Stage, so doesn't need a specific uid
+        uid="",
+    )  # It's the only Task in this Stage, so doesn't need a specific uid
 
 
-if __name__ == '__main__':
+def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-drm', default='local', help='', choices=('local', 'drmaa:ge', 'ge', 'slurm'))
-    p.add_argument('-j', '--job-class', help='Submit to this job class if the DRM supports it')
-    p.add_argument('-q', '--queue', help='Submit to this queue if the DRM supports it')
+    p.add_argument("-drm", default="local", help="", choices=("local", "drmaa:ge", "ge", "slurm"))
+    p.add_argument("-j", "--job-class", help="Submit to this job class if the DRM supports it")
+    p.add_argument("-q", "--queue", help="Submit to this queue if the DRM supports it")
 
     args = p.parse_args()
 
-    cosmos = Cosmos('sqlite:///%s/sqlite.db' % os.path.dirname(os.path.abspath(__file__)),
-                    # example of how to change arguments if you're not using default_drm='local'
-                    get_submit_args=partial(default_get_submit_args, parallel_env='smp'),
-                    default_drm=args.drm,
-                    default_max_attempts=2,
-                    default_job_class=args.job_class,
-                    default_queue=args.queue)
+    cosmos = Cosmos(
+        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)),
+        # example of how to change arguments if you're not using default_drm='local'
+        get_submit_args=partial(default_get_submit_args, parallel_env="smp"),
+        default_drm=args.drm,
+        default_max_attempts=2,
+        default_job_class=args.job_class,
+        default_queue=args.queue,
+    )
     cosmos.initdb()
 
-    sp.check_call('mkdir -p analysis_output/ex2', shell=True)
-    os.chdir('analysis_output/ex2')
+    sp.check_call("mkdir -p analysis_output/ex2", shell=True)
+    os.chdir("analysis_output/ex2")
 
-    workflow = cosmos.start('Example2', restart=True, skip_confirm=True)
+    workflow = cosmos.start("Example2", restart=True, skip_confirm=True)
 
     recipe(workflow)
 
@@ -109,9 +121,13 @@ if __name__ == '__main__':
 
     if pygraphviz_available:
         # These images can also be seen on the fly in the web-interface
-        draw_stage_graph(workflow.stage_graph(), '/tmp/ex1_task_graph.png', format='png')
-        draw_task_graph(workflow.task_graph(), '/tmp/ex1_stage_graph.png', format='png')
+        draw_stage_graph(workflow.stage_graph(), "/tmp/ex1_task_graph.png", format="png")
+        draw_task_graph(workflow.task_graph(), "/tmp/ex1_stage_graph.png", format="png")
     else:
-        print('Pygraphviz is not available :(')
+        print("Pygraphviz is not available :(")
 
     sys.exit(0 if workflow.successful else 1)
+
+
+if __name__ == "__main__":
+    main()

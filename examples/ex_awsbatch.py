@@ -52,7 +52,7 @@ def parse_args():
     return p.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
 
     cosmos = Cosmos(
@@ -91,3 +91,5 @@ if __name__ == "__main__":
     workflow.run()
 
     sys.exit(0 if workflow.successful else 1)
+
+if __name__ == "__main__":
