@@ -1,10 +1,8 @@
 from abc import abstractmethod, ABCMeta
 
 
-class DRM(object):
+class DRM(object, metaclass=ABCMeta):
     "DRM base class"
-
-    __metaclass__ = ABCMeta
 
     name = None
     poll_interval = 1
@@ -21,10 +19,11 @@ class DRM(object):
         if not drm_cls.required_drm_options and not drm_options:
             return
 
-        assert set(drm_options.keys()) >= drm_cls.required_drm_options, \
-            'You must specify values for {args_list}'.format(
-                args_list=', '.join(drm_cls.required_drm_options),
-            )
+        assert (
+            set(drm_options.keys()) >= drm_cls.required_drm_options
+        ), "You must specify values for {args_list}".format(
+            args_list=", ".join(drm_cls.required_drm_options),
+        )
 
     @classmethod
     def get_drm(cls, drm_name):
@@ -32,7 +31,9 @@ class DRM(object):
         :params str drm_name: The name of the DRM to retrieve
         :return DRM: The DRM with a matching name
         """
-        return next(drm_cls for drm_cls in cls.__subclasses__() if drm_cls.name == drm_name)
+        return next(
+            drm_cls for drm_cls in cls.__subclasses__() if drm_cls.name == drm_name
+        )
 
     @classmethod
     def get_drm_names(cls):

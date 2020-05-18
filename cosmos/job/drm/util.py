@@ -9,18 +9,18 @@ else:
 
 
 def convert_size_to_kb(size_str):
-    if size_str.endswith('G'):
+    if size_str.endswith("G"):
         return float(size_str[:-1]) * 1024 * 1024
-    elif size_str.endswith('M'):
+    elif size_str.endswith("M"):
         return float(size_str[:-1]) * 1024
-    elif size_str.endswith('K'):
+    elif size_str.endswith("K"):
         return float(size_str[:-1])
     else:
         return float(size_str) / 1024
 
 
 def div(n, d):
-    if d == 0.:
+    if d == 0.0:
         return 1
     else:
         return n / d
@@ -116,7 +116,7 @@ def run_cli_cmd(
             plan = "will retry in %s sec" % interval if attempts else "final attempt"
             log_func(
                 "Call to %s %s (%s)%s",
-                args.split()[0] if isinstance(args, basestring) else args[0],
+                args.split()[0] if isinstance(args, str) else args[0],
                 effect,
                 plan,
                 details,
