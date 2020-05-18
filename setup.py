@@ -55,7 +55,7 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPL v3",
     install_requires=install_requires,
-    extras_require={"web": ["flask"]},
+    extras_require={"web": ["flask"], "test": ["flask", "ipython", "sphinx_rtd_theme"]},
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,

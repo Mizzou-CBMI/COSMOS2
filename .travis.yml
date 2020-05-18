@@ -3,10 +3,9 @@ python:
   - "3.6"
   - "3.7"
 sudo: false
-install: pip install .
+install: pip install .[test]
 # run tests from test dir so we don't import python2 code from cwd
 script:
-  - pip install pytest
   - cd test
   - pytest
 
