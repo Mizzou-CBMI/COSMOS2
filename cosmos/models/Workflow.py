@@ -398,7 +398,8 @@ class Workflow(Base):
              See _default_task_log_output_dir for more info.
         :param callable cmd_wrapper: A decorator which will be applied to every Task's cmd_fxn.
         :param bool dry: If True, do not actually run any jobs.
-        :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+        :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.
+            You might set this to False if you intend to add and
             run more tasks in this workflow later.
         :param do_cleanup_atexit: if False, do not attempt to cleanup unhandled exits.
         :param lethal_signals: signals to catch and shutdown
