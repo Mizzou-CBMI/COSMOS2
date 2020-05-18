@@ -166,7 +166,7 @@ def get_module_path_from_fname(fname):
             except ModuleNotFoundError:
                 pass
     else:
-        raise ModuleNotFoundError("could not find module for {fname}")
+        raise ModuleNotFoundError(f"could not find module for {fname}")
 
 
 def _get_import_code_for_func(func):
