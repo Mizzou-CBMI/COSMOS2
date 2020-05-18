@@ -27,8 +27,7 @@ def add_one(out_file):
 
 if __name__ == "__main__":
     cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)),
-        default_drm="local",
+        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)), default_drm="local",
     )
     cosmos.initdb()
     workflow = cosmos.start("ExampleReattempt", restart=True, skip_confirm=True)
@@ -36,9 +35,7 @@ if __name__ == "__main__":
     if os.path.exists("out.txt"):
         os.unlink("out.txt")
 
-    t = workflow.add_task(
-        func=add_one, params=dict(out_file="out.txt"), uid="my_task", max_attempts=3
-    )
+    t = workflow.add_task(func=add_one, params=dict(out_file="out.txt"), uid="my_task", max_attempts=3)
 
     workflow.make_output_dirs()
     workflow.run(cmd_wrapper=py_call_cmd_wrapper)

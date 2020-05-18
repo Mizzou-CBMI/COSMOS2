@@ -7,11 +7,7 @@ from cosmos.api import Cosmos
 
 
 def get_instance_info(out_s3_uri, sleep=0):
-    return (
-        "df -h > df.txt \n"
-        "aws s3 cp df.txt {out_s3_uri} \n"
-        "sleep {sleep}".format(**locals())
-    )
+    return "df -h > df.txt \n" "aws s3 cp df.txt {out_s3_uri} \n" "sleep {sleep}".format(**locals())
 
 
 def parse_args():
@@ -38,9 +34,7 @@ def parse_args():
         help="s3 uri to store output of task which saves instance information",
         required=True,
     )
-    p.add_argument(
-        "--core-req", help="number of cores to request for the job", default=1
-    )
+    p.add_argument("--core-req", help="number of cores to request for the job", default=1)
     p.add_argument(
         "--sleep",
         type=int,
@@ -52,7 +46,7 @@ def parse_args():
     return p.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
 
     cosmos = Cosmos(
@@ -91,3 +85,7 @@ if __name__ == "__main__":
     workflow.run()
 
     sys.exit(0 if workflow.successful else 1)
+
+
+if __name__ == "__main__":
+    main()

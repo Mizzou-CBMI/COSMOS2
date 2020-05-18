@@ -13,10 +13,9 @@ def say(text, out_file):
     )
 
 
-if __name__ == "__main__":
+def main():
     cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)),
-        default_drm="local",
+        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)), default_drm="local",
     )
     cosmos.initdb()
 
@@ -44,3 +43,7 @@ if __name__ == "__main__":
     workflow.run()
 
     sys.exit(0 if workflow.successful else 1)
+
+
+if __name__ == "__main__":
+    main()

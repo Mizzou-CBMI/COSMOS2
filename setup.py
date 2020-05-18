@@ -35,9 +35,7 @@ install_requires = [
     "decorator",
     "python-dateutil",
 ]
-package_data = {
-    "cosmos": list(find_all("cosmos/", ".py|.pyc$", inverse=True, remove_prefix=True))
-}
+package_data = {"cosmos": list(find_all("cosmos/", ".py|.pyc$", inverse=True, remove_prefix=True))}
 
 
 setup(
@@ -55,7 +53,7 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPL v3",
     install_requires=install_requires,
-    extras_require={"web": ["flask"], "test": ["flask", "ipython", "sphinx_rtd_theme"]},
+    extras_require={"web": ["flask"], "test": ["flask", "ipython", "sphinx_rtd_theme", "black"]},
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,
