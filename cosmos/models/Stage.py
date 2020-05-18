@@ -1,4 +1,3 @@
-
 import re
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
@@ -8,8 +7,12 @@ from sqlalchemy.ext.declarative import declared_attr
 try:
     from flask import url_for
 except ImportError:
+
     def url_for(*args, **kwargs):
-        raise NotImplementedError("please install the [web] extra for web functionality")
+        raise NotImplementedError(
+            "please install the [web] extra for web functionality"
+        )
+
 
 from cosmos.db import Base
 from cosmos.util.sqla import Enum_ColumnType
@@ -21,54 +24,85 @@ import datetime
 @signal_stage_status_change.connect
 def stage_status_changed(stage):
     if stage.status not in [StageStatus.no_attempt]:
-        stage.log.info('%s %s (%s/%s Tasks were successful)' % (stage, stage.status, sum(t.successful for t in stage.tasks), len(stage.tasks)))
+        stage.log.info(
+            "%s %s (%s/%s Tasks were successful)"
+            % (
+                stage,
+                stage.status,
+                sum(t.successful for t in stage.tasks),
+                len(stage.tasks),
+            )
+        )
 
     if stage.status == StageStatus.successful:
         stage.successful = True
 
     if stage.status == StageStatus.running:
         stage.started_on = datetime.datetime.now()
-    elif stage.status in [StageStatus.successful, StageStatus.failed, StageStatus.killed]:
+    elif stage.status in [
+        StageStatus.successful,
+        StageStatus.failed,
+        StageStatus.killed,
+    ]:
         stage.finished_on = datetime.datetime.now()
 
 
 class StageEdge(Base):
-    __tablename__ = 'stage_edge'
-    parent_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
-    child_id = Column(Integer, ForeignKey('stage.id', ondelete="CASCADE"), primary_key=True)
+    __tablename__ = "stage_edge"
+    parent_id = Column(
+        Integer, ForeignKey("stage.id", ondelete="CASCADE"), primary_key=True
+    )
+    child_id = Column(
+        Integer, ForeignKey("stage.id", ondelete="CASCADE"), primary_key=True
+    )
 
     def __init__(self, parent=None, child=None):
         self.parent = parent
         self.child = child
 
     def __str__(self):
-        return '<StageEdge: %s -> %s>' % (self.parent, self.child)
+        return "<StageEdge: %s -> %s>" % (self.parent, self.child)
 
     def __repr__(self):
         return self.__str__()
 
 
 class Stage(Base):
-    __tablename__ = 'stage'
-    __table_args__ = (UniqueConstraint('workflow_id', 'name', name='_uc_workflow_name'),)
+    __tablename__ = "stage"
+    __table_args__ = (
+        UniqueConstraint("workflow_id", "name", name="_uc_workflow_name"),
+    )
 
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
     name = Column(String(255), nullable=False)
     started_on = Column(DateTime)
-    workflow_id = Column(ForeignKey('workflow.id', ondelete="CASCADE"), nullable=False, index=True)
+    workflow_id = Column(
+        ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False)
-    parents = relationship("Stage",
-                           secondary=StageEdge.__table__,
-                           primaryjoin=id == StageEdge.parent_id,
-                           secondaryjoin=id == StageEdge.child_id,
-                           backref="children",
-                           passive_deletes=True,
-                           cascade="save-update, merge, delete")
-    tasks = relationship("Task", backref="stage", cascade="all, merge, delete-orphan", passive_deletes=True)
+    _status = Column(
+        Enum_ColumnType(StageStatus, length=255),
+        default=StageStatus.no_attempt,
+        nullable=False,
+    )
+    parents = relationship(
+        "Stage",
+        secondary=StageEdge.__table__,
+        primaryjoin=id == StageEdge.parent_id,
+        secondaryjoin=id == StageEdge.child_id,
+        backref="children",
+        passive_deletes=True,
+        cascade="save-update, merge, delete",
+    )
+    tasks = relationship(
+        "Task",
+        backref="stage",
+        cascade="all, merge, delete-orphan",
+        passive_deletes=True,
+    )
 
     @declared_attr
     def status(cls):
@@ -80,13 +114,13 @@ class Stage(Base):
                 self._status = value
                 signal_stage_status_change.send(self)
 
-        return synonym('_status', descriptor=property(get_status, set_status))
+        return synonym("_status", descriptor=property(get_status, set_status))
 
     def __init__(self, *args, **kwargs):
         super(Stage, self).__init__(*args, **kwargs)
 
-        if not re.match('^[a-zA-Z0-9_\.-/]+$', self.name):
-            raise Exception('invalid stage name %s' % self.name)
+        if not re.match("^[a-zA-Z0-9_\.-/]+$", self.name):
+            raise Exception("invalid stage name %s" % self.name)
 
     def __iter__(self):
         for t in self.tasks:
@@ -107,15 +141,17 @@ class Stage(Base):
 
     def num_successful_tasks(self):
         # return self.tasksq.filter_by(stage=self, successful=True).count()
-        return len(filter(lambda t: t.successful, self.tasks))
+        return len([t for t in self.tasks if t.successful])
 
     def num_failed_tasks(self):
         # return self.tasksq.filter_by(stage=self, status=TaskStatus.failed).count()
-        return len(filter(lambda t: t.status == TaskStatus.failed, self.tasks))
+        return len([t for t in self.tasks if t.status == TaskStatus.failed])
 
     @property
     def url(self):
-        return url_for('cosmos.stage', workflow_name=self.workflow.name, stage_name=self.name)
+        return url_for(
+            "cosmos.stage", workflow_name=self.workflow.name, stage_name=self.name
+        )
 
     @property
     def log(self):
@@ -131,38 +167,52 @@ class Stage(Base):
 
         if descendants:
             stages_to_delete = self.descendants(include_self=False)
-            self.log.info('Deleting %s and all of its descendants: %s' % (self, stages_to_delete))
+            self.log.info(
+                "Deleting %s and all of its descendants: %s" % (self, stages_to_delete)
+            )
             for stage in stages_to_delete:
                 self.session.delete(stage)
             self.session.delete(self)
         else:
-            self.log.info('Deleting %s' % self)
+            self.log.info("Deleting %s" % self)
             self.session.delete(self)
 
         self.session.commit()
 
     def filter_tasks(self, **filter_by):
-        return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in filter_by.items()))
+        return (
+            t
+            for t in self.tasks
+            if all(t.params.get(k, None) == v for k, v in list(filter_by.items()))
+        )
 
-    def get_task(self, uid, default='ERROR@#$'):
+    def get_task(self, uid, default="ERROR@#$"):
         for task in self.tasks:
             if task.uid == uid:
                 return task
 
-        if default == 'ERROR@#$':
-            raise KeyError('Task with uid %s does not exist' % uid)
+        if default == "ERROR@#$":
+            raise KeyError("Task with uid %s does not exist" % uid)
         else:
             return default
 
     def percent_successful(self):
-        return round(float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
+        return round(
+            float(self.num_successful_tasks()) / (float(len(self.tasks)) or 1) * 100, 2
+        )
 
     def percent_failed(self):
-        return round(float(self.num_failed_tasks()) / (float(len(self.tasks)) or 1) * 100, 2)
+        return round(
+            float(self.num_failed_tasks()) / (float(len(self.tasks)) or 1) * 100, 2
+        )
 
     def percent_running(self):
-        return round(float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (
-            float(len(self.tasks)) or 1) * 100, 2)
+        return round(
+            float(len([t for t in self.tasks if t.status == TaskStatus.submitted]))
+            / (float(len(self.tasks)) or 1)
+            * 100,
+            2,
+        )
 
     def descendants(self, include_self=False):
         """
@@ -176,7 +226,9 @@ class Stage(Base):
 
     @property
     def label(self):
-        return '{0} ({1}/{2})'.format(self.name, self.num_successful_tasks(), len(self.tasks))
+        return "{0} ({1}/{2})".format(
+            self.name, self.num_successful_tasks(), len(self.tasks)
+        )
 
     def __repr__(self):
-        return '<Stage[%s] %s>' % (self.id or '', self.name)
+        return "<Stage[%s] %s>" % (self.id or "", self.name)

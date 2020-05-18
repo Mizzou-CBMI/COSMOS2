@@ -7,21 +7,21 @@ import re
 
 
 def bucket_url_and_key(gs_path):
-    m = re.search('(gs://.+?)/.+$', gs_path)
+    m = re.search("(gs://.+?)/.+$", gs_path)
     if m:
         gs_bucket_path = m.group(1)
-        key = gs_path.replace(gs_bucket_path + '/', '')
+        key = gs_path.replace(gs_bucket_path + "/", "")
         return gs_bucket_path, key
     else:
-        raise ValueError('Cannot split bucket path: %s' % gs_path)
+        raise ValueError("Cannot split bucket path: %s" % gs_path)
 
 
 def bucket_and_key(gs_path):
     bucket_url, key = bucket_url_and_key(gs_path)
-    return re.sub('^gs://', '', bucket_url), key
+    return re.sub("^gs://", "", bucket_url), key
 
 
-def stage_to_scratch(*args, gsutil_cmd='gsutil', parallel_cmd='parallel', exclude=None):
+def stage_to_scratch(*args, gsutil_cmd="gsutil", parallel_cmd="parallel", exclude=None):
     """
     func is a Task function which returns a string that will later get submitted by Cosmos as a bash command.
     This is a decorator which sandwiches the return of func with more bash code that will setup scratch space and
@@ -49,16 +49,16 @@ def stage_to_scratch(*args, gsutil_cmd='gsutil', parallel_cmd='parallel', exclud
     def _stage_to_scratch(func, *args, **kwargs):
 
         sig = funcsigs.signature(func)
-        in_params = dict(zip(sig.parameters.keys(), args))
+        in_params = dict(list(zip(list(sig.parameters.keys()), args)))
         passthru_params = in_params.copy()
 
         stage_downs = []
         stage_ups = []
 
-        for param_name, param_val in in_params.items():
-            is_input = param_name.startswith('in_') and param_name not in exclude
-            is_output = param_name.startswith('out_') and param_name not in exclude
-            is_dir = param_name.endswith('_dir') and param_name not in exclude
+        for param_name, param_val in list(in_params.items()):
+            is_input = param_name.startswith("in_") and param_name not in exclude
+            is_output = param_name.startswith("out_") and param_name not in exclude
+            is_dir = param_name.endswith("_dir") and param_name not in exclude
 
             def stage_file_if_necessary(file_path_or_paths):
                 if file_path_or_paths is None:
@@ -68,19 +68,32 @@ def stage_to_scratch(*args, gsutil_cmd='gsutil', parallel_cmd='parallel', exclud
                 elif isinstance(file_path_or_paths, tuple):
                     return tuple(stage_file_if_necessary(p) for p in file_path_or_paths)
                 elif isinstance(file_path_or_paths, dict):
-                    return {k: stage_file_if_necessary(p) for k, p in file_path_or_paths.items()}
+                    return {
+                        k: stage_file_if_necessary(p)
+                        for k, p in list(file_path_or_paths.items())
+                    }
                 elif isinstance(file_path_or_paths, str):
-                    if file_path_or_paths.startswith('gs://'):
-                        gs_bucket_path, stage_path = bucket_url_and_key(file_path_or_paths)
+                    if file_path_or_paths.startswith("gs://"):
+                        gs_bucket_path, stage_path = bucket_url_and_key(
+                            file_path_or_paths
+                        )
 
                         if is_input:
-                            stage_downs.append((is_dir,
-                                                os.path.join(gs_bucket_path, stage_path),
-                                                stage_path))
+                            stage_downs.append(
+                                (
+                                    is_dir,
+                                    os.path.join(gs_bucket_path, stage_path),
+                                    stage_path,
+                                )
+                            )
                         elif is_output:
-                            stage_ups.append((is_dir,
-                                              stage_path,
-                                              os.path.join(gs_bucket_path, stage_path)))
+                            stage_ups.append(
+                                (
+                                    is_dir,
+                                    stage_path,
+                                    os.path.join(gs_bucket_path, stage_path),
+                                )
+                            )
                         return stage_path
                 return file_path_or_paths
 
@@ -95,13 +108,16 @@ def stage_to_scratch(*args, gsutil_cmd='gsutil', parallel_cmd='parallel', exclud
             def gen_stage_cmds():
                 for is_dir, from_, to_ in stages:
                     to_ = os.path.dirname(to_) if is_dir else to_
-                    args = '-r ' if is_dir else ''
+                    args = "-r " if is_dir else ""
                     yield f'{gsutil_cmd} -mq cp {args}"{from_}" "{to_}"'
 
             # note that this expects gnu-parallel rather than the parallel installed with more-utils
             # gnu-parallel is just parallel in bioconda
-            return [f"\ntime {parallel_cmd} -j {max(len(stages), 15)} --link <<EOF"] + \
-                   [f"  {cmd}" for cmd in gen_stage_cmds()] + ["EOF"]
+            return (
+                [f"\ntime {parallel_cmd} -j {max(len(stages), 15)} --link <<EOF"]
+                + [f"  {cmd}" for cmd in gen_stage_cmds()]
+                + ["EOF"]
+            )
 
         setup_cmd = """
 ###### SETUP ######
@@ -128,19 +144,24 @@ echo cwd: `pwd`
         prepend_cmds = []
         append_cmds = []
         if stage_downs:
-            prepend_cmds += ['###### STAGE DOWN ######']
-            prepend_cmds += mkdir_cmd([p if is_dir else os.path.dirname(p) for is_dir, _, p in stage_downs])
+            prepend_cmds += ["###### STAGE DOWN ######"]
+            prepend_cmds += mkdir_cmd(
+                [p if is_dir else os.path.dirname(p) for is_dir, _, p in stage_downs]
+            )
             prepend_cmds += stage_cmd(stage_downs)
 
         if stage_ups:
             # If we need to upload, create directories for the outputs before the command runs
-            prepend_cmds += ['\n# Create scratch output dirs:']
-            prepend_cmds += mkdir_cmd([p if is_dir else os.path.dirname(p) for is_dir, p, _ in stage_ups])
+            prepend_cmds += ["\n# Create scratch output dirs:"]
+            prepend_cmds += mkdir_cmd(
+                [p if is_dir else os.path.dirname(p) for is_dir, p, _ in stage_ups]
+            )
 
             append_cmds += ["###### STAGE UP ######"]
             append_cmds += stage_cmd(stage_ups)
 
-        append_cmds.append("""
+        append_cmds.append(
+            """
 ## Clenaup the scratch directory
 
 popd
@@ -150,12 +171,13 @@ then
     # otherwise the task epilog script will do it for us
     rm -rf "$SCRATCH"
 fi
-""")
+"""
+        )
 
         func_cmd = f"\n###### COMMAND ######\n{func(**passthru_params)}"
 
         def njoin(*args):
-            return '\n'.join(args)
+            return "\n".join(args)
 
         return njoin(setup_cmd, njoin(*prepend_cmds), func_cmd, njoin(*append_cmds))
 
@@ -165,5 +187,7 @@ fi
         return _stage_to_scratch(*args)
     else:
         # This is just returning the decorator
-        assert len(args) == 0, "You can only specify the `exclude` kwarg when passing parameters to this decorator"
+        assert (
+            len(args) == 0
+        ), "You can only specify the `exclude` kwarg when passing parameters to this decorator"
         return _stage_to_scratch

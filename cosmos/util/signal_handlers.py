@@ -80,7 +80,7 @@ def sleep_through_signals(timeout):
 
 
 def hms_to_sec(time_str):
-    h, m, s = time_str.split(':')
+    h, m, s = time_str.split(":")
     return (int(h) * 3600) + (int(m) * 60) + int(s)
 
 
@@ -89,8 +89,11 @@ def get_notify_sec():
     Get the time, in sec, between when an SGE courtesy signal is sent and the real one.
     """
     try:
-        time_str = subprocess.check_output(
-            'qconf -sq $QUEUE | grep notify', shell=True).strip().split(" ")[-1]
+        time_str = (
+            subprocess.check_output("qconf -sq $QUEUE | grep notify", shell=True)
+            .strip()
+            .split(" ")[-1]
+        )
         return hms_to_sec(time_str)
     except (AttributeError, IndexError, ValueError, subprocess.CalledProcessError):
         return 0
@@ -119,8 +122,9 @@ class SGESignalHandler(object):
                 workflow.run()
     """
 
-    def __init__(self, workflow, lethal_signals=None,
-                 benign_signals=None, explanations=None):
+    def __init__(
+        self, workflow, lethal_signals=None, benign_signals=None, explanations=None
+    ):
 
         if lethal_signals is None:
             lethal_signals = {
@@ -179,7 +183,7 @@ class SGESignalHandler(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        for sig, handler in self._prev_handlers.items():
+        for sig, handler in list(self._prev_handlers.items()):
             signal.signal(sig, handler)
 
         self._prev_handlers.clear()
@@ -188,17 +192,21 @@ class SGESignalHandler(object):
         self._logging_event.set()
         self._logging_daemon.join(timeout=1)
 
-        self._log.info('%s Caught/processed %d/%d signal(s) while running',
-                       self._workflow_name,
-                       sum(self._signals_caught.values()),
-                       sum(self._signals_logged.values()))
+        self._log.info(
+            "%s Caught/processed %d/%d signal(s) while running",
+            self._workflow_name,
+            sum(self._signals_caught.values()),
+            sum(self._signals_logged.values()),
+        )
         if self._total_susp_sec:
-            self._log.info('%s Was suspended by SGE %d time(s) for approx. %.0f sec',
-                           self._workflow_name,
-                           self._total_susp_events,
-                           self._total_susp_sec)
+            self._log.info(
+                "%s Was suspended by SGE %d time(s) for approx. %.0f sec",
+                self._workflow_name,
+                self._total_susp_events,
+                self._total_susp_sec,
+            )
 
-    def signal_handler(self, signum, frame):    # pylint: disable=unused-argument
+    def signal_handler(self, signum, frame):  # pylint: disable=unused-argument
         self._signals_caught[signum] += 1
         self._logging_event.set()
 
@@ -207,30 +215,38 @@ class SGESignalHandler(object):
 
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
-        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler):
+        if prev_handler not in (
+            signal.SIG_DFL,
+            signal.SIG_IGN,
+            signal.default_int_handler,
+        ):
             raise RuntimeError(
-                'a signal handler is already set for signal %d (%s): %s' %
-                (sig, self._explain(sig), prev_handler))
+                "a signal handler is already set for signal %d (%s): %s"
+                % (sig, self._explain(sig), prev_handler)
+            )
         self._prev_handlers[sig] = prev_handler
 
     def _explain(self, signum):
         names = []
-        for k, v in signal.__dict__.items():
-            if k.startswith('SIG') and v == signum:
+        for k, v in list(signal.__dict__.items()):
+            if k.startswith("SIG") and v == signum:
                 names.append(k)
         names.sort()
 
         if signum in self.explanations:
-            return ': '.join((' or '.join(names), self.explanations[signum]))
+            return ": ".join((" or ".join(names), self.explanations[signum]))
         else:
-            return ' or '.join(names)
+            return " or ".join(names)
 
     def _log_signal_receipt(self, signal_counter):
-        for sig, cnt in signal_counter.items():
-            self._log.info('%s Caught signal %d %s(%s)',
-                           self._workflow_name, sig,
-                           '%d times ' % cnt if cnt > 1 else '',
-                           self._explain(sig))
+        for sig, cnt in list(signal_counter.items()):
+            self._log.info(
+                "%s Caught signal %d %s(%s)",
+                self._workflow_name,
+                sig,
+                "%d times " % cnt if cnt > 1 else "",
+                self._explain(sig),
+            )
 
     def logging_daemon(self):
         """
@@ -294,7 +310,7 @@ class SGESignalHandler(object):
                         self.workflow.termination_signal,
                     )
                     message_logged = True
-                elif new_signals.keys() & self.lethal_signals:
+                elif list(new_signals.keys()) & self.lethal_signals:
                     self._log.info(
                         "%s Lethal signal(s) caught, but early-termination flag is not set (yet)",
                         self._workflow_name,

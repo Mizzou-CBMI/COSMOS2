@@ -178,7 +178,7 @@ class Workflow(Base):
         dirs = set()
 
         for task in self.tasks:
-            for out_name, v in task.output_map.items():
+            for out_name, v in list(task.output_map.items()):
                 dirname = (
                     lambda p: p
                     if out_name.endswith("dir") or p is None
@@ -186,7 +186,7 @@ class Workflow(Base):
                 )
 
                 if isinstance(v, (tuple, list)):
-                    dirs.update(map(dirname, v))
+                    dirs.update(list(map(dirname, v)))
                 elif isinstance(v, dict):
                     raise NotImplemented()
                 else:
@@ -259,7 +259,7 @@ class Workflow(Base):
         # params
         if params is None:
             params = dict()
-        for k, v in params.items():
+        for k, v in list(params.items()):
             # decompose `Dependency` objects to values and parents
             new_val, parent_tasks = recursive_resolve_dependency(v)
 
@@ -359,7 +359,7 @@ class Workflow(Base):
                 task.drm_options = drm_options
             # use default for any keys not set
             if self.cosmos_app.default_drm_options is not None:
-                for key, val in self.cosmos_app.default_drm_options.items():
+                for key, val in list(self.cosmos_app.default_drm_options.items()):
                     if key not in task.drm_options:
                         task.drm_options[key] = val
 
@@ -456,7 +456,7 @@ class Workflow(Base):
             # check for duplicate output files
             output_fnames_to_task_and_key = dict()
             for task in self.tasks:
-                for key, fname in task.output_map.items():
+                for key, fname in list(task.output_map.items()):
                     current_value = output_fnames_to_task_and_key.setdefault(
                         fname, (task, key)
                     )
@@ -505,7 +505,7 @@ class Workflow(Base):
 
             # Make sure everything is in the sqlalchemy session
             session.add(self)
-            successful = list(filter(lambda t: t.successful, task_graph.nodes()))
+            successful = list([t for t in task_graph.nodes() if t.successful])
 
             # print stages
             for s in sorted(self.stages, key=lambda s: s.number):
@@ -650,10 +650,10 @@ class Workflow(Base):
         if delete_files:
             raise NotImplementedError("This should delete all Task.output_files")
 
-        print >>sys.stderr, "%s Deleting from SQL..." % self
+        print("%s Deleting from SQL..." % self, file=sys.stderr)
         self.session.delete(self)
         self.session.commit()
-        print >>sys.stderr, "%s Deleted" % self
+        print("%s Deleted" % self, file=sys.stderr)
 
     def get_first_failed_task(self, key=lambda t: t.finished_on):
         """

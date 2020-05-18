@@ -43,7 +43,8 @@ From conda:
 Introduction
 ============
 Cosmos is a python library for creating scientific pipelines that run on a distributed computing cluster.
-It is primarily designed and used for bioinformatics pipelines, but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.
+It is primarily designed and used for machine learning and bioinformatics pipelines,
+but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.
 
 Cosmos provides a simple api to specify any job DAG using simple python code making it extremely flexible and inuitive
 - you do *not* specify your DAG using json, CWL, groovy, or some other domain specific language.
@@ -160,6 +161,12 @@ __________________________
 
 Changelog
 __________
+2.11.0
+++++++++
+
+* Dropped support for python2
+
+
 
 2.5.1
 ++++++

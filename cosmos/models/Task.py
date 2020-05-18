@@ -9,8 +9,12 @@ import networkx as nx
 try:
     from flask import url_for
 except ImportError:
+
     def url_for(*args, **kwargs):
-        raise NotImplementedError("please install the [web] extra for web functionality")
+        raise NotImplementedError(
+            "please install the [web] extra for web functionality"
+        )
+
 
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.declarative.base import _declarative_constructor
@@ -24,19 +28,23 @@ from cosmos.util.helpers import wait_for_file
 from cosmos.util.sqla import Enum_ColumnType, JSONEncodedDict, MutableDict
 
 
-class ExpectedError(Exception): pass
+class ExpectedError(Exception):
+    pass
 
 
-class ToolError(Exception): pass
+class ToolError(Exception):
+    pass
 
 
-class ToolValidationError(Exception): pass
+class ToolValidationError(Exception):
+    pass
 
 
-class GetOutputError(Exception): pass
+class GetOutputError(Exception):
+    pass
 
 
-task_printout_short = u"""Task Info:
+task_printout_short = """Task Info:
 params: {0.params_pformat}
 command_script_path: {0.output_command_script_path}
 exit_status: {0.exit_status}
@@ -44,7 +52,7 @@ drm_jobID: {0.drm_jobID}
 stdout: {0.output_stdout_path}
 stderr: {0.output_stderr_path}"""
 
-task_printout_long = u"""Task Info:
+task_printout_long = """Task Info:
 <EXIT_STATUS="{0.exit_status}">
 <COMMAND path="{0.output_command_script_path}" drm_jobID="{0.drm_jobID}">
 <PARAMS>
@@ -74,14 +82,21 @@ def task_status_changed(task):
         task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info(
-                '%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s' %
-                (task, task.status, repr(task.drm), repr(task.drm_jobID),
-                 repr(task.job_class), repr(task.queue)))
+                "%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s"
+                % (
+                    task,
+                    task.status,
+                    repr(task.drm),
+                    repr(task.drm_jobID),
+                    repr(task.job_class),
+                    repr(task.queue),
+                )
+            )
         task.submitted_on = datetime.datetime.now()
 
     elif task.status == TaskStatus.failed:
         if not task.must_succeed:
-            task.log.warn('%s failed, but must_succeed is False' % task)
+            task.log.warn("%s failed, but must_succeed is False" % task)
             task.log.warn(task_printout_long.format(task))
             task.finished_on = datetime.datetime.now()
         else:
@@ -93,11 +108,14 @@ def task_status_changed(task):
             # FIXME we should have a DRM-agnostic way of determining timed-out tasks.
             #
             if task.exit_status == 124:
-                exit_reason = 'timed out'
+                exit_reason = "timed out"
             else:
-                exit_reason = 'failed'
+                exit_reason = "failed"
 
-            task.log.warn('%s attempt #%s %s (max_attempts=%s)' % (task, task.attempt, exit_reason, task.max_attempts))
+            task.log.warn(
+                "%s attempt #%s %s (max_attempts=%s)"
+                % (task, task.attempt, exit_reason, task.max_attempts)
+            )
 
             if task.attempt < task.max_attempts:
                 task.log.warn(task_printout_long.format(task))
@@ -107,21 +125,23 @@ def task_status_changed(task):
                 wait_for_file(task.workflow, task.output_stderr_path, 30, error=False)
 
                 task.log.warn(task_printout_long.format(task))
-                task.log.error('%s has failed too many times' % task)
+                task.log.error("%s has failed too many times" % task)
                 task.finished_on = datetime.datetime.now()
                 task.stage.status = StageStatus.running_but_failed
 
     elif task.status == TaskStatus.successful:
         task.successful = True
         if not task.NOOP:
-            task.log.info('{} {}, drm_jobid={}, wall_time: {}.  {}/{} Tasks finished.'.format(
-                task, task.status, task.drm_jobID,
-                datetime.timedelta(
-                    seconds=task.wall_time),
-                sum(1 for t in
-                    task.workflow.tasks if
-                    t.finished),
-                len(task.workflow.tasks)))
+            task.log.info(
+                "{} {}, drm_jobid={}, wall_time: {}.  {}/{} Tasks finished.".format(
+                    task,
+                    task.status,
+                    task.drm_jobID,
+                    datetime.timedelta(seconds=task.wall_time),
+                    sum(1 for t in task.workflow.tasks if t.finished),
+                    len(task.workflow.tasks),
+                )
+            )
         task.finished_on = datetime.datetime.now()
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
@@ -136,57 +156,64 @@ def task_status_changed(task):
 
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
-    return property(lambda self: os.path.join(
-        self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
+    return property(
+        lambda self: os.path.join(
+            self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)
+        )
+    )
 
 
 def readfile(path):
     if not os.path.exists(path):
-        return '%s file does not exist!' % path
+        return "%s file does not exist!" % path
 
     try:
         with codecs.open(path, "r", "utf-8") as fh:
             # read some 2 ** 17 bytes
             s = fh.read(2 ** 17)
             if len(s) == 2 ** 17:
-                s += '\n***************************************************'
-                s += '\n***************************************************'
-                s += '\n***************************************************'
-                s += '\n****TRUNCATED!! check log file for full output*****'
-                s += '\n***************************************************'
-                s += '\n***************************************************'
-                s += '\n***************************************************'
+                s += "\n***************************************************"
+                s += "\n***************************************************"
+                s += "\n***************************************************"
+                s += "\n****TRUNCATED!! check log file for full output*****"
+                s += "\n***************************************************"
+                s += "\n***************************************************"
+                s += "\n***************************************************"
             the_rest = fh.read()
             s += the_rest[-5000:]
             return s
     except:
-        return 'error parsing as utf-8: %s' % path
+        return "error parsing as utf-8: %s" % path
 
 
 class TaskEdge(Base):
-    __tablename__ = 'task_edge'
+    __tablename__ = "task_edge"
     # id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
-    child_id = Column(Integer, ForeignKey('task.id', ondelete="CASCADE"), primary_key=True)
+    parent_id = Column(
+        Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True
+    )
+    child_id = Column(
+        Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True
+    )
 
     def __init__(self, parent=None, child=None):
         self.parent = parent
         self.child = child
 
     def __str__(self):
-        return '<TaskEdge: %s -> %s>' % (self.parent, self.child)
+        return "<TaskEdge: %s -> %s>" % (self.parent, self.child)
 
     def __repr__(self):
         return self.__str__()
 
 
 class Task(Base):
-    __tablename__ = 'task'
+    __tablename__ = "task"
     """
     A job that gets executed.  Has a unique set of params within its Stage.
     """
     # FIXME causes a problem with mysql?
-    __table_args__ = (UniqueConstraint('stage_id', 'uid', name='_uc1'),)
+    __table_args__ = (UniqueConstraint("stage_id", "uid", name="_uc1"),)
 
     drm_options = {}
 
@@ -195,17 +222,25 @@ class Task(Base):
 
     mem_req = Column(Integer)
     core_req = Column(Integer)
-    cpu_req = synonym('core_req')
+    cpu_req = synonym("core_req")
     time_req = Column(Integer)
     gpu_req = Column(Integer)
     NOOP = Column(Boolean, nullable=False)
     params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
-    stage_id = Column(ForeignKey('stage.id', ondelete="CASCADE"), nullable=False, index=True)
+    stage_id = Column(
+        ForeignKey("stage.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     log_dir = Column(String(255))
     # output_dir = Column(String(255))
-    _status = Column(Enum_ColumnType(TaskStatus, length=255), default=TaskStatus.no_attempt, nullable=False)
+    _status = Column(
+        Enum_ColumnType(TaskStatus, length=255),
+        default=TaskStatus.no_attempt,
+        nullable=False,
+    )
     successful = Column(Boolean, nullable=False)
-    started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
+    started_on = Column(
+        DateTime
+    )  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)
     finished_on = Column(DateTime)
     attempt = Column(Integer, nullable=False)
@@ -215,14 +250,15 @@ class Task(Base):
     # job_class = Column(String(255))
     queue = Column(String(255))
     max_attempts = Column(Integer)
-    parents = relationship("Task",
-                           secondary=TaskEdge.__table__,
-                           primaryjoin=id == TaskEdge.parent_id,
-                           secondaryjoin=id == TaskEdge.child_id,
-                           backref="children",
-                           passive_deletes=True,
-                           cascade="save-update, merge, delete",
-                           )
+    parents = relationship(
+        "Task",
+        secondary=TaskEdge.__table__,
+        primaryjoin=id == TaskEdge.parent_id,
+        secondaryjoin=id == TaskEdge.child_id,
+        backref="children",
+        passive_deletes=True,
+        cascade="save-update, merge, delete",
+    )
 
     # input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
     # output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
@@ -230,16 +266,16 @@ class Task(Base):
     @property
     def input_map(self):
         d = dict()
-        for key, val in self.params.items():
-            if key.startswith('in_'):
+        for key, val in list(self.params.items()):
+            if key.startswith("in_"):
                 d[key] = val
         return d
 
     @property
     def output_map(self):
         d = dict()
-        for key, val in self.params.items():
-            if key.startswith('out_'):
+        for key, val in list(self.params.items()):
+            if key.startswith("out_"):
                 d[key] = val
         return d
 
@@ -256,13 +292,34 @@ class Task(Base):
     drm_native_specification = Column(String(255))
     drm_jobID = Column(String(255))
 
-    profile_fields = ['wall_time', 'cpu_time', 'percent_cpu', 'user_time', 'system_time', 'io_read_count',
-                      'io_write_count', 'io_read_kb', 'io_write_kb',
-                      'ctx_switch_voluntary', 'ctx_switch_involuntary', 'avg_rss_mem_kb', 'max_rss_mem_kb',
-                      'avg_vms_mem_kb', 'max_vms_mem_kb', 'avg_num_threads',
-                      'max_num_threads',
-                      'avg_num_fds', 'max_num_fds', 'exit_status']
-    exclude_from_dict = profile_fields + ['command', 'info', 'input_files', 'output_files']
+    profile_fields = [
+        "wall_time",
+        "cpu_time",
+        "percent_cpu",
+        "user_time",
+        "system_time",
+        "io_read_count",
+        "io_write_count",
+        "io_read_kb",
+        "io_write_kb",
+        "ctx_switch_voluntary",
+        "ctx_switch_involuntary",
+        "avg_rss_mem_kb",
+        "max_rss_mem_kb",
+        "avg_vms_mem_kb",
+        "max_vms_mem_kb",
+        "avg_num_threads",
+        "max_num_threads",
+        "avg_num_fds",
+        "max_num_fds",
+        "exit_status",
+    ]
+    exclude_from_dict = profile_fields + [
+        "command",
+        "info",
+        "input_files",
+        "output_files",
+    ]
 
     exit_status = Column(Integer)
 
@@ -306,7 +363,7 @@ class Task(Base):
                 self._status = value
                 signal_task_status_change.send(self)
 
-        return synonym('_status', descriptor=property(get_status, set_status))
+        return synonym("_status", descriptor=property(get_status, set_status))
 
     @property
     def workflow(self):
@@ -318,14 +375,18 @@ class Task(Base):
 
     @property
     def finished(self):
-        return self.status in {TaskStatus.successful, TaskStatus.killed, TaskStatus.failed}
+        return self.status in {
+            TaskStatus.successful,
+            TaskStatus.killed,
+            TaskStatus.failed,
+        }
 
     _cache_profile = None
 
-    output_profile_path = logplus('profile.json')
-    output_command_script_path = logplus('command.bash')
-    output_stderr_path = logplus('stderr.txt')
-    output_stdout_path = logplus('stdout.txt')
+    output_profile_path = logplus("profile.json")
+    output_command_script_path = logplus("command.bash")
+    output_stderr_path = logplus("stderr.txt")
+    output_stdout_path = logplus("stdout.txt")
 
     @property
     def stdout_text(self):
@@ -333,31 +394,38 @@ class Task(Base):
 
     @property
     def stdout_text_brief(self):
-        lines = self.stdout_text.split('\n')
+        lines = self.stdout_text.split("\n")
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return '*** TRUNCATED (showing last 50 lines)... \n' + "\n".join(lines[-50:])
+            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(
+                lines[-50:]
+            )
 
     @property
     def stderr_text(self):
         r = readfile(self.output_stderr_path)
-        if r == 'file does not exist':
-            if self.drm == 'lsf' and self.drm_jobID:
-                r += '\n\nbpeek %s output:\n\n' % self.drm_jobID
+        if r == "file does not exist":
+            if self.drm == "lsf" and self.drm_jobID:
+                r += "\n\nbpeek %s output:\n\n" % self.drm_jobID
                 try:
-                    r += codecs.decode(sp.check_output('bpeek %s' % self.drm_jobID, shell=True), 'utf-8')
+                    r += codecs.decode(
+                        sp.check_output("bpeek %s" % self.drm_jobID, shell=True),
+                        "utf-8",
+                    )
                 except Exception as e:
                     r += str(e)
         return r
 
     @property
     def stderr_text_brief(self):
-        lines = self.stderr_text.split('\n')
+        lines = self.stderr_text.split("\n")
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return '*** TRUNCATED (showing last 50 lines)... \n' + "\n".join(lines[-50:])
+            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(
+                lines[-50:]
+            )
 
     @property
     def command_script_text(self):
@@ -384,53 +452,71 @@ class Task(Base):
     @property
     def label(self):
         """Label used for the taskgraph image"""
-        params = '' if len(self.params) == 0 else "\\n {0}".format(
-            "\\n".join(["{0}: {1}".format(k, v) for k, v in self.params.items()]))
+        params = (
+            ""
+            if len(self.params) == 0
+            else "\\n {0}".format(
+                "\\n".join(
+                    ["{0}: {1}".format(k, v) for k, v in list(self.params.items())]
+                )
+            )
+        )
 
         return "[%s] %s%s" % (self.id, self.stage.name, params)
 
     def args_as_query_string(self):
-        import urllib
+        import urllib.request, urllib.parse, urllib.error
 
-        return urllib.urlencode(self.params)
+        return urllib.parse.urlencode(self.params)
 
     def delete(self, descendants=False):
         if descendants:
             tasks_to_delete = self.descendants(include_self=True)
-            self.log.debug('Deleting %s and %s of its descendants' % (self, len(tasks_to_delete) - 1))
+            self.log.debug(
+                "Deleting %s and %s of its descendants"
+                % (self, len(tasks_to_delete) - 1)
+            )
             for t in tasks_to_delete:
                 self.session.delete(t)
         else:
-            self.log.debug('Deleting %s' % self)
+            self.log.debug("Deleting %s" % self)
             self.session.delete(self)
 
         self.session.commit()
 
     @property
     def url(self):
-        return url_for('cosmos.task', ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id)
+        return url_for(
+            "cosmos.task",
+            ex_name=self.workflow.name,
+            stage_name=self.stage.name,
+            task_id=self.id,
+        )
 
     @property
     def params_pretty(self):
-        return '%s' % ', '.join(
-            '%s=%s' % (k, "'%s'" % v if isinstance(v, basestring) else v) for k, v in self.params.items())
+        return "%s" % ", ".join(
+            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v)
+            for k, v in list(self.params.items())
+        )
 
     @property
     def params_pformat(self):
         return pprint.pformat(self.params, indent=2, width=1)
 
     def __repr__(self):
-        return "<Task[%s] %s(uid='%s')>" % (self.id or 'id_%s' % id(self),
-                                            self.stage.name if self.stage else '',
-                                            self.uid
-                                            )
+        return "<Task[%s] %s(uid='%s')>" % (
+            self.id or "id_%s" % id(self),
+            self.stage.name if self.stage else "",
+            self.uid,
+        )
 
     def __str__(self):
         return self.__repr__()
 
     # FIXME consider making job_class a proper field next time the schema changes
     def __init__(self, **kwargs):
-        self.job_class = kwargs.pop('job_class', None)
+        self.job_class = kwargs.pop("job_class", None)
         _declarative_constructor(self, **kwargs)
 
     @reconstructor

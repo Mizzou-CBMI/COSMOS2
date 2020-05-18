@@ -12,7 +12,9 @@ import time
 from contextlib import contextmanager
 
 
-def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout):
+def progress_bar(
+    iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout
+):
     """
     Makes a progress bar that looks like:
     [#################...........] 100000/100000
@@ -36,7 +38,9 @@ def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_f
             hashes = "#" * num_hashes
             dots = "." * (progress_bar_size - num_hashes)
             done = i + 1
-            output_file.write("{prefix}[{hashes}{dots}] {done}/{count}\r".format(**locals()))
+            output_file.write(
+                "{prefix}[{hashes}{dots}] {done}/{count}\r".format(**locals())
+            )
             output_file.flush()
 
         last_num_hashes = num_hashes
@@ -67,14 +71,18 @@ def environment_variables(**kwargs):
 def isinstance_namedtuple(x):
     t = type(x)
     b = t.__bases__
-    if len(b) != 1 or b[0] != tuple: return False
-    f = getattr(t, '_fields', None)
-    if not isinstance(f, tuple): return False
+    if len(b) != 1 or b[0] != tuple:
+        return False
+    f = getattr(t, "_fields", None)
+    if not isinstance(f, tuple):
+        return False
     return all(type(n) == str for n in f)
 
 
 def random_str(n):
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
+    return "".join(
+        random.choice(string.ascii_uppercase + string.digits) for _ in range(n)
+    )
 
 
 def make_dict(*list_of_dicts, **additional_kwargs):
@@ -86,7 +94,7 @@ def make_dict(*list_of_dicts, **additional_kwargs):
     r = dict()
     for elem in list_of_dicts:
         if not isinstance(elem, dict):
-            raise '%s is not a dict' % elem
+            raise "%s is not a dict" % elem
         r.update(elem)
     r.update(additional_kwargs)
     return r
@@ -96,11 +104,11 @@ def wait_for_file(workflow, path, timeout=60, error=True):
     # Sometimes on a shared filesystem it can take a while for a file to propagate (i.e. eventual consistency)
     start = time.time()
     while not os.path.exists(path):
-        time.sleep(.1)
+        time.sleep(0.1)
         if time.time() - start > timeout:
             if error:
                 workflow.terminate(due_to_failure=True)
-                raise IOError('giving up on %s existing' % path)
+                raise IOError("giving up on %s existing" % path)
             else:
                 return False
     return True
@@ -124,6 +132,7 @@ def has_duplicates(alist):
 #             yield n
 #     yield node
 
+
 def confirm(prompt=None, default=False, timeout=0):
     """prompts for yes or no defaultonse from the user. Returns True for yes and
     False for no.
@@ -140,37 +149,38 @@ def confirm(prompt=None, default=False, timeout=0):
 
     def timed_out(signum, frame):
         "called when stdin read times out_dir"
-        raise TimeOutException('Timed out_dir')
+        raise TimeOutException("Timed out_dir")
 
     signal.signal(signal.SIGALRM, timed_out)
 
     if prompt is None:
-        prompt = 'Confirm'
+        prompt = "Confirm"
 
     if default:
-        prompt = '%s [%s]|%s: ' % (prompt, 'y', 'n')
+        prompt = "%s [%s]|%s: " % (prompt, "y", "n")
     else:
-        prompt = '%s [%s]|%s: ' % (prompt, 'n', 'y')
+        prompt = "%s [%s]|%s: " % (prompt, "n", "y")
 
     while True:
         signal.alarm(timeout)
         try:
-            ans = raw_input(prompt)
+            ans = input(prompt)
             signal.alarm(0)
             if not ans:
                 return default
-            if ans not in ['y', 'Y', 'yes', 'n', 'no', 'N']:
-                print
-                'please enter y or n.'
+            if ans not in ["y", "Y", "yes", "n", "no", "N"]:
+                print()
+                "please enter y or n."
                 continue
-            if ans in ['y', 'yes', 'Yes']:
+            if ans in ["y", "yes", "Yes"]:
                 return True
-            if ans in ['n', 'no', 'N']:
+            if ans in ["n", "no", "N"]:
                 return False
         except TimeOutException:
-            print
-            "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(timeout,
-                                                                                       'yes' if default else 'no')
+            print()
+            "Confirmation timed out_dir after {0}s, returning default of '{1}'".format(
+                timeout, "yes" if default else "no"
+            )
             return default
 
 
@@ -180,7 +190,7 @@ def mkdir(path):
 
 
 def isgenerator(iterable):
-    return hasattr(iterable, '__iter__') and not hasattr(iterable, '__len__')
+    return hasattr(iterable, "__iter__") and not hasattr(iterable, "__len__")
 
 
 def groupby2(iterable, fxn):
@@ -195,7 +205,7 @@ def duplicates(iterable):
             yield x
 
 
-def str_format(s, d, error_text=''):
+def str_format(s, d, error_text=""):
     """
     Format()s string s with d.  If there is an error, print helpful message.
     """
@@ -208,27 +218,30 @@ def str_format(s, d, error_text=''):
 
 def strip_lines(txt):
     """strip()s txt as a whole, and each line in txt"""
-    return '\n'.join(map(lambda s: s.strip(), txt.strip().split('\n')))
+    return "\n".join([s.strip() for s in txt.strip().split("\n")])
 
 
-def formatError(txt, dict, error_text=''):
+def formatError(txt, dict, error_text=""):
     """
     Prints a useful debugging message for a bad .format() call, then raises an exception
     """
-    s = "{star}\n" \
-        "format() error:\n" \
-        "{error_text}" \
-        "txt:\n" \
-        "{txt}\n" \
-        "{dash}\n" \
-        "{dic}\n" \
+    s = (
+        "{star}\n"
+        "format() error:\n"
+        "{error_text}"
+        "txt:\n"
+        "{txt}\n"
+        "{dash}\n"
+        "{dic}\n"
         "{star}\n".format(
-        star='*' * 76,
-        txt=txt,
-        dash='-' * 76,
-        dic=pprint.pformat(dict, indent=4),
-        error_text=error_text + "\n")
-    print
+            star="*" * 76,
+            txt=txt,
+            dash="-" * 76,
+            dic=pprint.pformat(dict, indent=4),
+            error_text=error_text + "\n",
+        )
+    )
+    print()
     s
 
 
@@ -250,16 +263,26 @@ def get_logger(name, path=None):
     # create file handler which logs debug messages
     if path:
         d = os.path.dirname(path)
-        assert d == '' or os.path.exists(d), \
-            'Cannot write to %s from %s' % (path, os.getcwd())
+        assert d == "" or os.path.exists(d), "Cannot write to %s from %s" % (
+            path,
+            os.getcwd(),
+        )
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
+        fh.setFormatter(
+            logging.Formatter(
+                "%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"
+            )
+        )
         log.addHandler(fh)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    ch.setFormatter(logging.Formatter('%(levelname)s: %(asctime)s: %(message)s', "%Y-%m-%d %H:%M:%S"))
+    ch.setFormatter(
+        logging.Formatter(
+            "%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"
+        )
+    )
     log.addHandler(ch)
 
     return log
@@ -281,6 +304,7 @@ def derive_exit_code_from_workflow(workflow):
     if ft is not None:
         return ft.exit_status
 
-    workflow.log.warning("%s unable to pinpoint cause of failure, returning %d",
-                         workflow, os.EX_SOFTWARE)
+    workflow.log.warning(
+        "%s unable to pinpoint cause of failure, returning %d", workflow, os.EX_SOFTWARE
+    )
     return os.EX_SOFTWARE

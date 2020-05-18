@@ -93,7 +93,7 @@ def submit_script_as_aws_batch_job(
         "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
         "resourceRequirements": [],
         "environment": [
-            {"name": key, "value": val} for key, val in environment.items()
+            {"name": key, "value": val} for key, val in list(environment.items())
         ],
         # run_s3_script
         "command": ["bash", "-c", command],
@@ -109,7 +109,7 @@ def submit_script_as_aws_batch_job(
         container_properties["resourceRequirements"].append(
             {"value": str(gpu_req), "type": "GPU"}
         )
-        visible_devices = ",".join(map(str, range(gpu_req)))
+        visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_properties["environment"].append(
             {"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices}
         )

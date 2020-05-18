@@ -7,7 +7,7 @@ def send(message, hostname=None, sticky=True):
         import os
 
         if hostname == None:
-            hostname = os.environ.get('SSH_CLIENT', '').split(' ')[0]
+            hostname = os.environ.get("SSH_CLIENT", "").split(" ")[0]
         growl = notifier.GrowlNotifier(
             applicationName="Cosmos",
             notifications=["New Updates", "New Messages"],
@@ -25,4 +25,7 @@ def send(message, hostname=None, sticky=True):
             priority=1,
         )
     except Exception as e:
-        print >> sys.stderr, '*** ERROR sending growl notification to %s: %s' % (hostname, e)
+        print(
+            "*** ERROR sending growl notification to %s: %s" % (hostname, e),
+            file=sys.stderr,
+        )
