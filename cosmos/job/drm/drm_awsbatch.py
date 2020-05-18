@@ -38,8 +38,8 @@ def submit_script_as_aws_batch_job(
     job_queue,
     instance_type=None,
     memory=1024,
-    vcpus=1,
-    gpus=None,
+    vpu_req=1,
+    gpu_req=None,
     environment=None,
 ):
     """
@@ -49,7 +49,7 @@ def submit_script_as_aws_batch_job(
     :param job_name: name of the job_dict.
     :param container_image: docker image.
     :param memory: amount of memory to reserve.
-    :param vcpus: amount of vcpus to reserve.
+    :param vpu_req: amount of vcpus to reserve.
     :param environment: {env_name -> env_val} environment variables to set
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
@@ -101,15 +101,15 @@ def submit_script_as_aws_batch_job(
     }
     if memory is not None:
         container_properties["memory"] = memory
-    if vcpus is not None:
-        container_properties["vcpus"] = vcpus
+    if vpu_req is not None:
+        container_properties["vcpus"] = vpu_req
     if instance_type is not None:
         container_properties["instanceType"] = instance_type
-    if gpus is not None and gpus != 0:
+    if gpu_req is not None and gpu_req != 0:
         container_properties["resourceRequirements"].append(
-            {"value": str(gpus), "type": "GPU"}
+            {"value": str(gpu_req), "type": "GPU"}
         )
-        visible_devices = ",".join(map(str, range(gpus)))
+        visible_devices = ",".join(map(str, range(gpu_req)))
         container_properties["environment"].append(
             {"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices}
         )
@@ -253,8 +253,8 @@ class DRM_AWSBatch(DRM):
             job_name=job_name,
             job_queue=task.queue,
             memory=task.mem_req,
-            vcpus=task.cpu_req,
-            gpus=task.gpu_req,
+            vpu_req=task.cpu_req,
+            gpu_req=task.gpu_req,
             instance_type=task.drm_options.get("instance_type"),
         )
 

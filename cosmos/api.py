@@ -142,6 +142,8 @@ EOF""".format(
 
 def get_module_path_from_fname(fname):
     """
+    gets a module path from a filename
+
     >>> get_module_from_fname(__name__)
     'cosmos.api'
     """
@@ -149,7 +151,8 @@ def get_module_path_from_fname(fname):
     if not os.path.exists(fname):
         raise FileExistsError("{} does not exist".format(fname))
 
-    for path in sys.path:
+    # first element in sys.path is the working directory of the script, put it last in order of paths to try
+    for path in sys.path[1:] + sys.path[-1:]:
         if os.path.normpath(path) == os.path.normpath(os.getcwd()):
             # don't use cwd as path
             continue
