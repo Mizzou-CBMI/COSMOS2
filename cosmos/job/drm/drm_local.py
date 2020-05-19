@@ -18,7 +18,7 @@ class DRM_Local(DRM):
     name = "local"
     poll_interval = 0.3
 
-    def __init__(self):
+    def __init__(self, log):
         self.procs = dict()
         self.gpus_on_system = (
             os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(",")
@@ -27,13 +27,11 @@ class DRM_Local(DRM):
         )
         self.task_id_to_gpus_used = dict()
 
-        super(DRM_Local, self).__init__()
+        super(DRM_Local, self).__init__(log)
 
     @property
     def gpus_used(self):
-        return [
-            gpu for gpus in list(self.task_id_to_gpus_used.values()) for gpu in gpus
-        ]
+        return [gpu for gpus in list(self.task_id_to_gpus_used.values()) for gpu in gpus]
 
     @property
     def gpus_left(self):
@@ -73,9 +71,7 @@ class DRM_Local(DRM):
         if task.gpu_req:
             # Note: workflow won't submit jobs unless there are enough gpus available
             self.acquire_gpus(task)
-            env["CUDA_VISIBLE_DEVICES"] = ",".join(
-                map(str, self.task_id_to_gpus_used[task.id])
-            )
+            env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.task_id_to_gpus_used[task.id]))
 
         p = subprocess.Popen(
             cmd,
@@ -154,9 +150,7 @@ class DRM_Local(DRM):
             while signaled_tasks and time.time() < max_tm:
                 task = signaled_tasks[0]
                 if self._is_done(task, max_tm - time.time()):
-                    task.log.info(
-                        "%s confirmed exit after receiving signal %s" % (task, sig)
-                    )
+                    task.log.info("%s confirmed exit after receiving signal %s" % (task, sig))
                     del signaled_tasks[0]
 
             if not signaled_tasks:
