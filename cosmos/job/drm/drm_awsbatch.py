@@ -104,12 +104,6 @@ def submit_script_as_aws_batch_job(
         visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
-    # resp = batch.register_job_definition(
-    #     jobDefinitionName=job_name, type="container", containerProperties=container_properties,
-    # )
-    # _check_aws_response_for_error(resp)
-    # job_definition_arn = resp["jobDefinitionArn"]
-
     submit_jobs_response = batch.submit_job(
         jobName=job_name,
         jobQueue=job_queue,
@@ -229,7 +223,7 @@ class DRM_AWSBatch(DRM):
 
     def __del__(self):
         for image, job_definition_arn in self.image_to_job_definition.items():
-            self.log.info(f"Deregistering job definition for image: {image}")
+            # self.log.info(f"Deregistering job definition for image: {image}")
             self.batch_client.deregister_job_definition(jobDefinition=job_definition_arn)
 
     @property
@@ -396,9 +390,9 @@ class DRM_AWSBatch(DRM):
     def _terminate_task(self, task):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)
         batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
-        # cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID,
-        #                                               reason='cancelled by cosmos')
+        # cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID, reason="terminated by cosmos")
         # _check_aws_response_for_error(cancel_job_response)
+
         terminate_job_response = batch_client.terminate_job(
             jobId=task.drm_jobID, reason="terminated by cosmos"
         )
