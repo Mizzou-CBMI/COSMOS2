@@ -80,6 +80,10 @@ def submit_script_as_aws_batch_job(
     s3.upload_file(local_script_path, bucket, key)
     s3_command_script_uri = "s3://" + os.path.join(bucket, key)
 
+    # I could optionally add glances --stdout-csv here
+    # which would save the resource data to a s3_command_script_uri.resources.csv
+    # which i could parse on cleanup.
+    # This would require that the image have glances installed though, obviously.
     command = (
         "aws s3 cp --quiet {s3_command_script_uri} command_script && "
         "chmod +x command_script && "
@@ -119,10 +123,7 @@ def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
     logs_client = boto3.client(service_name="logs", config=BOTO_CONFIG)
     try:
         response = logs_client.get_log_events(
-            logGroupName="/aws/batch/job",
-            logStreamName=log_stream_name,
-            startFromHead=True,
-            config=BOTO_CONFIG,
+            logGroupName="/aws/batch/job", logStreamName=log_stream_name, startFromHead=True
         )
         _check_aws_response_for_error(response)
         return "\n".join(d["message"] for d in response["events"])
