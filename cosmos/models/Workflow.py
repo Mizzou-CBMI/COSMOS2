@@ -485,6 +485,7 @@ class Workflow(Base):
                         cmd_wrapper=cmd_wrapper,
                         log_out_dir_func=log_out_dir_func,
                         logger=self.log,
+                        session=self.session
                     )
 
                 self.status = WorkflowStatus.running

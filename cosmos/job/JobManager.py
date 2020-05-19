@@ -12,7 +12,12 @@ from cosmos.util.helpers import mkdir, groupby2
 
 class JobManager(object):
     def __init__(
-        self, get_submit_args, logger, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None,
+        self,
+        get_submit_args,
+        logger,
+        log_out_dir_func=default_task_log_output_dir,
+        cmd_wrapper=None,
+        session=None,
     ):
         self.drms = {DRM_sub_cls.name: DRM_sub_cls(logger) for DRM_sub_cls in DRM.__subclasses__()}
 
@@ -24,6 +29,7 @@ class JobManager(object):
         self.cmd_wrapper = cmd_wrapper
         self.log_out_dir_func = log_out_dir_func
         self.log = logger
+        self.session = session
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
@@ -99,6 +105,8 @@ class JobManager(object):
             drm = self.get_drm(drm_name)
             tasks = list(tasks)
             drm.submit_jobs(tasks)
+
+        self.session.commit()
 
     def terminate(self):
         """Kills all tasks in a workflow.

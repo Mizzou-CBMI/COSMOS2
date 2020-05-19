@@ -9,10 +9,14 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import boto3
 import more_itertools
+from botocore.config import Config
 
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.util.helpers import progress_bar
+
+MAX_THREADS = 25
+BOTO_CONFIG = Config(retries=dict(max_attempts=10, mode="adaptive"), max_pool_connections=25)
 
 
 def random_string(length):
@@ -68,8 +72,8 @@ def submit_script_as_aws_batch_job(
             "invalid s3_prefix_for_command_script_temp_files: %s" % s3_prefix_for_command_script_temp_files
         )
 
-    batch = boto3.client(service_name="batch")
-    s3 = boto3.client(service_name="s3")
+    batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
+    s3 = boto3.client(service_name="s3", config=BOTO_CONFIG)
 
     bucket, key = split_bucket_key(s3_prefix_for_command_script_temp_files)
     key = os.path.join(key, random_string(32) + "." + job_name + ".script")
@@ -118,10 +122,13 @@ def submit_script_as_aws_batch_job(
 
 
 def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
-    logs_client = boto3.client(service_name="logs")
+    logs_client = boto3.client(service_name="logs", config=BOTO_CONFIG)
     try:
         response = logs_client.get_log_events(
-            logGroupName="/aws/batch/job", logStreamName=log_stream_name, startFromHead=True,
+            logGroupName="/aws/batch/job",
+            logStreamName=log_stream_name,
+            startFromHead=True,
+            config=BOTO_CONFIG,
         )
         _check_aws_response_for_error(response)
         return "\n".join(d["message"] for d in response["events"])
@@ -153,7 +160,7 @@ def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
 def get_aws_batch_job_infos(all_job_ids, logger):
     # ensure that the list of job ids is unique
     assert len(all_job_ids) == len(set(all_job_ids))
-    batch_client = boto3.client(service_name="batch")
+    batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
     returned_jobs = []
     for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
         while True:
@@ -191,7 +198,7 @@ def register_base_job_definition(container_image, environment, command):
     if environment:
         container_properties["environment"]: [{"name": key, "value": val} for key, val in environment.items()]
 
-    batch = boto3.client(service_name="batch")
+    batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
     resp = batch.register_job_definition(
         jobDefinitionName="cosmos_base_job_definition",
         type="container",
@@ -228,13 +235,13 @@ class DRM_AWSBatch(DRM):
     @property
     def batch_client(self):
         if self._batch_client is None:
-            self._batch_client = boto3.client(service_name="batch")
+            self._batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
         return self._batch_client
 
     @property
     def s3_client(self):
         if self._s3_client is None:
-            self._s3_client = boto3.client(service_name="s3")
+            self._s3_client = boto3.client(service_name="s3", config=BOTO_CONFIG)
         return self._s3_client
 
     def submit_job(self, task):
@@ -279,11 +286,11 @@ class DRM_AWSBatch(DRM):
         )
 
         # just save pointer to logstream.  We'll collect them when the job finishes.
-        job_dict = get_aws_batch_job_infos([jobId], self.log)[0]  # , task.workflow.log)[0]
+        # job_dict = get_aws_batch_job_infos([jobId], self.log)[0]  # , task.workflow.log)[0]
         with open(task.output_stdout_path, "w"):
             pass
         with open(task.output_stderr_path, "w") as fp:
-            fp.write(pprint.pformat(job_dict, indent=2))
+            fp.write(pprint.pformat(dict(job_id=jobId), indent=2))
 
         return jobId, s3_command_script_uri, job_def_arn
 
@@ -296,7 +303,7 @@ class DRM_AWSBatch(DRM):
                     container_image=container_image, environment=None, command="user-should-override-this",
                 )
 
-        with ThreadPoolExecutor(10) as pool:
+        with ThreadPoolExecutor(min(len(tasks), MAX_THREADS)) as pool:
             rv = list(progress_bar(pool.map(self._submit_job, tasks), len(tasks), "Submitting"))
         # rv = list(progress_bar(map(self._submit_job, tasks), len(tasks), "submitting"))
 
@@ -349,28 +356,29 @@ class DRM_AWSBatch(DRM):
     ):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)
 
-        # if log_stream_name wasn't passed in, query aws to get it
-        if log_stream_name is None:
-            job_dict = get_aws_batch_job_infos([task.drm_jobID], self.log)
-            log_stream_name = job_dict[0]["container"].get("logStreamName")
+        if get_log_attempts > 0:
+            # if log_stream_name wasn't passed in, query aws to get it
+            if log_stream_name is None:
+                job_dict = get_aws_batch_job_infos([task.drm_jobID], self.log)
+                log_stream_name = job_dict[0]["container"].get("logStreamName")
 
-        if log_stream_name is None:
-            logs = "no log stream was available for job: %s\n" % task.drm_jobID
-        else:
-            # write logs to stdout
-            logs = get_logs(
-                log_stream_name=log_stream_name,
-                attempts=get_log_attempts,
-                sleep_between_attempts=get_log_sleep_between_attempts,
-            )
+            if log_stream_name is None:
+                logs = "no log stream was available for job: %s\n" % task.drm_jobID
+            else:
+                # write logs to stdout
+                logs = get_logs(
+                    log_stream_name=log_stream_name,
+                    attempts=get_log_attempts,
+                    sleep_between_attempts=get_log_sleep_between_attempts,
+                )
 
-        with open(task.output_stdout_path, "w") as fp:
-            fp.write(
-                logs
-                + "\n"
-                + "WARNING: this might be truncated.  "
-                + "check log stream on the aws console for job: %s" % task.drm_jobID
-            )
+            with open(task.output_stdout_path, "w") as fp:
+                fp.write(
+                    logs
+                    + "\n"
+                    + "WARNING: this might be truncated.  "
+                    + "check log stream on the aws console for job: %s" % task.drm_jobID
+                )
 
         # delete temporary s3 script path
         bucket, key = split_bucket_key(task.s3_command_script_uri)
@@ -387,7 +395,7 @@ class DRM_AWSBatch(DRM):
 
     def _terminate_task(self, task):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)
-        batch_client = boto3.client(service_name="batch")
+        batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
         # cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID,
         #                                               reason='cancelled by cosmos')
         # _check_aws_response_for_error(cancel_job_response)
@@ -399,11 +407,11 @@ class DRM_AWSBatch(DRM):
     def kill(self, task):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)
         self._terminate_task(task)
-        self._cleanup_task(task, get_log_attempts=1, get_log_sleep_between_attempts=1)
+        self._cleanup_task(task, get_log_attempts=0)
 
     def kill_tasks(self, tasks):
         if len(tasks):
-            with ThreadPoolExecutor(10) as pool:
+            with ThreadPoolExecutor(min(len(tasks), MAX_THREADS)) as pool:
                 self.log.info("Killing Tasks...")
                 list(progress_bar(pool.map(self.kill, tasks), count=len(tasks), prefix="Killing "))
 
