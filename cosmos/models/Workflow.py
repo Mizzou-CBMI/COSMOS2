@@ -484,6 +484,8 @@ class Workflow(Base):
                         get_submit_args=self.cosmos_app.get_submit_args,
                         cmd_wrapper=cmd_wrapper,
                         log_out_dir_func=log_out_dir_func,
+                        logger=self.log,
+                        session=self.session
                     )
 
                 self.status = WorkflowStatus.running
@@ -686,6 +688,7 @@ def _run(workflow, session, task_queue, lethal_signals):
     """
 
     def signal_handler(signum, frame):
+        workflow.log.critical(f"caught signal: {signum}, shutdown procedure will initiate shortly")
         workflow.termination_signal = signum
 
     for sig in lethal_signals:

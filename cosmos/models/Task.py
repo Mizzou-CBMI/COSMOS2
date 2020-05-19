@@ -11,9 +11,7 @@ try:
 except ImportError:
 
     def url_for(*args, **kwargs):
-        raise NotImplementedError(
-            "please install the [web] extra for web functionality"
-        )
+        raise NotImplementedError("please install the [web] extra for web functionality")
 
 
 from sqlalchemy.ext.declarative import declared_attr
@@ -113,8 +111,7 @@ def task_status_changed(task):
                 exit_reason = "failed"
 
             task.log.warn(
-                "%s attempt #%s %s (max_attempts=%s)"
-                % (task, task.attempt, exit_reason, task.max_attempts)
+                "%s attempt #%s %s (max_attempts=%s)" % (task, task.attempt, exit_reason, task.max_attempts)
             )
 
             if task.attempt < task.max_attempts:
@@ -146,8 +143,6 @@ def task_status_changed(task):
         if all(t.successful or not t.must_succeed for t in task.stage.tasks):
             task.stage.status = StageStatus.successful
 
-    task.session.commit()
-
 
 # task_edge_table = Table('task_edge', Base.metadata,
 # Column('parent_id', Integer, ForeignKey('task.id'), primary_key=True),
@@ -157,9 +152,7 @@ def task_status_changed(task):
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
     return property(
-        lambda self: os.path.join(
-            self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)
-        )
+        lambda self: os.path.join(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix))
     )
 
 
@@ -189,12 +182,8 @@ def readfile(path):
 class TaskEdge(Base):
     __tablename__ = "task_edge"
     # id = Column(Integer, primary_key=True)
-    parent_id = Column(
-        Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True
-    )
-    child_id = Column(
-        Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True
-    )
+    parent_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True)
+    child_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), primary_key=True)
 
     def __init__(self, parent=None, child=None):
         self.parent = parent
@@ -227,20 +216,12 @@ class Task(Base):
     gpu_req = Column(Integer)
     NOOP = Column(Boolean, nullable=False)
     params = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
-    stage_id = Column(
-        ForeignKey("stage.id", ondelete="CASCADE"), nullable=False, index=True
-    )
+    stage_id = Column(ForeignKey("stage.id", ondelete="CASCADE"), nullable=False, index=True)
     log_dir = Column(String(255))
     # output_dir = Column(String(255))
-    _status = Column(
-        Enum_ColumnType(TaskStatus, length=255),
-        default=TaskStatus.no_attempt,
-        nullable=False,
-    )
+    _status = Column(Enum_ColumnType(TaskStatus, length=255), default=TaskStatus.no_attempt, nullable=False,)
     successful = Column(Boolean, nullable=False)
-    started_on = Column(
-        DateTime
-    )  # FIXME this should probably be deleted.  Too hard to determine.
+    started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)
     finished_on = Column(DateTime)
     attempt = Column(Integer, nullable=False)
@@ -398,9 +379,7 @@ class Task(Base):
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(
-                lines[-50:]
-            )
+            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(lines[-50:])
 
     @property
     def stderr_text(self):
@@ -409,10 +388,7 @@ class Task(Base):
             if self.drm == "lsf" and self.drm_jobID:
                 r += "\n\nbpeek %s output:\n\n" % self.drm_jobID
                 try:
-                    r += codecs.decode(
-                        sp.check_output("bpeek %s" % self.drm_jobID, shell=True),
-                        "utf-8",
-                    )
+                    r += codecs.decode(sp.check_output("bpeek %s" % self.drm_jobID, shell=True), "utf-8",)
                 except Exception as e:
                     r += str(e)
         return r
@@ -423,9 +399,7 @@ class Task(Base):
         if len(lines) <= 50:
             return "\n".join(lines)
         else:
-            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(
-                lines[-50:]
-            )
+            return "*** TRUNCATED (showing last 50 lines)... \n" + "\n".join(lines[-50:])
 
     @property
     def command_script_text(self):
@@ -455,11 +429,7 @@ class Task(Base):
         params = (
             ""
             if len(self.params) == 0
-            else "\\n {0}".format(
-                "\\n".join(
-                    ["{0}: {1}".format(k, v) for k, v in list(self.params.items())]
-                )
-            )
+            else "\\n {0}".format("\\n".join(["{0}: {1}".format(k, v) for k, v in list(self.params.items())]))
         )
 
         return "[%s] %s%s" % (self.id, self.stage.name, params)
@@ -472,10 +442,7 @@ class Task(Base):
     def delete(self, descendants=False):
         if descendants:
             tasks_to_delete = self.descendants(include_self=True)
-            self.log.debug(
-                "Deleting %s and %s of its descendants"
-                % (self, len(tasks_to_delete) - 1)
-            )
+            self.log.debug("Deleting %s and %s of its descendants" % (self, len(tasks_to_delete) - 1))
             for t in tasks_to_delete:
                 self.session.delete(t)
         else:
@@ -487,17 +454,13 @@ class Task(Base):
     @property
     def url(self):
         return url_for(
-            "cosmos.task",
-            ex_name=self.workflow.name,
-            stage_name=self.stage.name,
-            task_id=self.id,
+            "cosmos.task", ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id,
         )
 
     @property
     def params_pretty(self):
         return "%s" % ", ".join(
-            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v)
-            for k, v in list(self.params.items())
+            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v) for k, v in list(self.params.items())
         )
 
     @property

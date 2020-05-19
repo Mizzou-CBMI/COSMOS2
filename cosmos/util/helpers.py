@@ -12,9 +12,7 @@ import time
 from contextlib import contextmanager
 
 
-def progress_bar(
-    iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout
-):
+def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_file=sys.stdout):
     """
     Makes a progress bar that looks like:
     [#################...........] 100000/100000
@@ -30,6 +28,9 @@ def progress_bar(
     if count is None:
         count = len(iterable)
 
+    if prefix:
+        prefix += " "
+
     last_num_hashes = None
     for i, item in enumerate(iterable):
         yield item
@@ -38,9 +39,7 @@ def progress_bar(
             hashes = "#" * num_hashes
             dots = "." * (progress_bar_size - num_hashes)
             done = i + 1
-            output_file.write(
-                "{prefix}[{hashes}{dots}] {done}/{count}\r".format(**locals())
-            )
+            output_file.write("{prefix}[{hashes}{dots}] {done}/{count}\r".format(**locals()))
             output_file.flush()
 
         last_num_hashes = num_hashes
@@ -80,9 +79,7 @@ def isinstance_namedtuple(x):
 
 
 def random_str(n):
-    return "".join(
-        random.choice(string.ascii_uppercase + string.digits) for _ in range(n)
-    )
+    return "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
 
 def make_dict(*list_of_dicts, **additional_kwargs):
@@ -263,26 +260,15 @@ def get_logger(name, path=None):
     # create file handler which logs debug messages
     if path:
         d = os.path.dirname(path)
-        assert d == "" or os.path.exists(d), "Cannot write to %s from %s" % (
-            path,
-            os.getcwd(),
-        )
+        assert d == "" or os.path.exists(d), "Cannot write to %s from %s" % (path, os.getcwd(),)
         fh = logging.FileHandler(path)
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(
-            logging.Formatter(
-                "%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"
-            )
-        )
+        fh.setFormatter(logging.Formatter("%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"))
         log.addHandler(fh)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    ch.setFormatter(
-        logging.Formatter(
-            "%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"
-        )
-    )
+    ch.setFormatter(logging.Formatter("%(levelname)s: %(asctime)s: %(message)s", "%Y-%m-%d %H:%M:%S"))
     log.addHandler(ch)
 
     return log
@@ -304,7 +290,5 @@ def derive_exit_code_from_workflow(workflow):
     if ft is not None:
         return ft.exit_status
 
-    workflow.log.warning(
-        "%s unable to pinpoint cause of failure, returning %d", workflow, os.EX_SOFTWARE
-    )
+    workflow.log.warning("%s unable to pinpoint cause of failure, returning %d", workflow, os.EX_SOFTWARE)
     return os.EX_SOFTWARE

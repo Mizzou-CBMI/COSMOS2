@@ -7,6 +7,10 @@ class DRM(object, metaclass=ABCMeta):
     name = None
     poll_interval = 1
     required_drm_options = set()
+    log = None
+
+    def __init__(self, log):
+        self.log = log
 
     @classmethod
     def validate_drm_options(cls, drm_name, drm_options):
@@ -31,9 +35,7 @@ class DRM(object, metaclass=ABCMeta):
         :params str drm_name: The name of the DRM to retrieve
         :return DRM: The DRM with a matching name
         """
-        return next(
-            drm_cls for drm_cls in cls.__subclasses__() if drm_cls.name == drm_name
-        )
+        return next(drm_cls for drm_cls in cls.__subclasses__() if drm_cls.name == drm_name)
 
     @classmethod
     def get_drm_names(cls):
@@ -46,6 +48,10 @@ class DRM(object, metaclass=ABCMeta):
     @abstractmethod
     def submit_job(self, task):
         pass
+
+    def submit_jobs(self, tasks):
+        for task in tasks:
+            self.submit_job(task)
 
     @abstractmethod
     def filter_is_done(self, tasks):

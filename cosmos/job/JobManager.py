@@ -7,19 +7,19 @@ from cosmos import TaskStatus, StageStatus, NOOP
 from cosmos.api import py_call
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.models.Workflow import default_task_log_output_dir
-from cosmos.util.helpers import mkdir
+from cosmos.util.helpers import mkdir, groupby2
 
 
 class JobManager(object):
     def __init__(
         self,
         get_submit_args,
+        logger,
         log_out_dir_func=default_task_log_output_dir,
         cmd_wrapper=None,
+        session=None,
     ):
-        self.drms = {
-            DRM_sub_cls.name: DRM_sub_cls() for DRM_sub_cls in DRM.__subclasses__()
-        }
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls(logger) for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []
@@ -28,6 +28,8 @@ class JobManager(object):
         self.get_submit_args = get_submit_args
         self.cmd_wrapper = cmd_wrapper
         self.log_out_dir_func = log_out_dir_func
+        self.log = logger
+        self.session = session
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
@@ -57,7 +59,7 @@ class JobManager(object):
 
         return command
 
-    def submit_task(self, task, command):
+    def prepare_task_for_submission(self, task, command):
         task.log_dir = self.log_out_dir_func(task)
         for p in [
             task.output_stdout_path,
@@ -80,8 +82,6 @@ class JobManager(object):
             task.drm_native_specification = self.get_submit_args(task)
             assert task.drm is not None, "task has no drm set"
 
-            self.get_drm(task.drm).submit_job(task)
-
     def run_tasks(self, tasks):
         self.running_tasks += tasks
         self.tasks += tasks
@@ -95,7 +95,18 @@ class JobManager(object):
 
         # Submit the jobs in serial
         # TODO parallelize this for speed.  Means having all ORM stuff outside Job Submission.
-        list(map(self.submit_task, tasks, commands))
+
+        # this can be done in serial, because it is fast.  it's using some of the database features
+
+        list(map(self.prepare_task_for_submission, tasks, commands))
+
+        # group by drms, so we can submit in parallel
+        for drm_name, tasks in groupby2(tasks, lambda t: t.drm):
+            drm = self.get_drm(drm_name)
+            tasks = list(tasks)
+            drm.submit_jobs(tasks)
+
+        self.session.commit()
 
     def terminate(self):
         """Kills all tasks in a workflow.
@@ -139,10 +150,7 @@ class JobManager(object):
     def poll_interval(self):
         if not self.running_tasks:
             return 0
-        return max(
-            self.get_drm(d).poll_interval
-            for d in set(t.drm for t in self.running_tasks)
-        )
+        return max(self.get_drm(d).poll_interval for d in set(t.drm for t in self.running_tasks))
 
 
 def _create_command_sh(task, command):

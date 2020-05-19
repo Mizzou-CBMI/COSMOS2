@@ -62,6 +62,17 @@ Cosmos is intended and useful for both one-off analyses and production software.
 Users have analyzed >100 whole genomes (~50TB and tens of thousands of jobs) in a single Workflow without issue, and some of the largest
 clinical sequencing laboratories use it for the production and R&D workflows.
 
+AWS Batch
+__________
+
+We've been using quite a bit of AWS Batch for the past year, and this is by far the most developed and supported DRM.
+It's pretty hard to continue to DRMs that we're not using in our day-to-day.  That is mostly left to the community.
+
+Make sure to check out examples/ex_awsbatch.py for details about how to use it.  Jobs submit and terminate much faster
+than any other DRM.  This is a great way to utilize cheap AWS spot instances for your workflows for both
+machine learning and bioinformatics workflows.
+
+
 History
 ___________
 Cosmos was published as an Application Note in the journal `Bioinformatics <http://bioinformatics.oxfordjournals.org/>`_,
@@ -161,6 +172,11 @@ __________________________
 
 Changelog
 __________
+2.12.0
+++++++
+
+* sped up AWS Batch DRM.  Can now submit many thousands of jobs (and terminate them) very quickly.
+
 2.11.0
 ++++++++
 
