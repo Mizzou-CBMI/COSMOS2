@@ -1,3 +1,6 @@
+examples/log
+examples/workflow.log
+examples/cosmos.sqlite
 test/log
 test/workflow.log
 cosmos-wfm/

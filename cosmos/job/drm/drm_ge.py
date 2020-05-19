@@ -24,7 +24,7 @@ class QacctJobNotFoundError(Exception):
 
 
 class DRM_GE(DRM):
-    name = 'ge'
+    name = "ge"
     poll_interval = 5
 
     def submit_job(self, task):
@@ -35,8 +35,8 @@ class DRM_GE(DRM):
             addl_args=task.drm_native_specification,
             drm_name=task.drm,
             logger=task.log,
-            log_prefix=str(task))
-
+            log_prefix=str(task),
+        )
 
     def filter_is_done(self, tasks):
         """
@@ -55,9 +55,10 @@ class DRM_GE(DRM):
             corrupt_data = {}
 
         for task in tasks:
-            jid = unicode(task.drm_jobID)
-            if jid not in qjobs or \
-               any(finished_state in qjobs[jid]['state'] for finished_state in ['e', 'E']):
+            jid = str(task.drm_jobID)
+            if jid not in qjobs or any(
+                finished_state in qjobs[jid]["state"] for finished_state in ["e", "E"]
+            ):
                 #
                 # If the job doesn't appear in qstat (or is tagged with 'e' or 'E'),
                 # it *probably* has completed. However, SGE's qmaster may have
@@ -68,7 +69,9 @@ class DRM_GE(DRM):
                     data, data_are_corrupt = self._get_task_return_data(task)
                     if data_are_corrupt:
                         task.workflow.log.warn(
-                            '%s Corrupt SGE qstat/qacct output means it may still be running', task)
+                            "%s Corrupt SGE qstat/qacct output means it may still be running",
+                            task,
+                        )
                         corrupt_data[task] = data
                     else:
                         yield task, data
@@ -76,21 +79,26 @@ class DRM_GE(DRM):
                     # the job id didn't appear in qstat, but now it does; probably a qstat blip: let it run
                     if jid not in qjobs and jid in qstat():
                         task.workflow.log.warn(
-                            '%s Went missing from qstat, but now appears to still be running', task)
+                            "%s Went missing from qstat, but now appears to still be running",
+                            task,
+                        )
                     else:
                         raise
 
         num_cleanly_running_jobs = len(tasks) - len(corrupt_data)
 
         if num_cleanly_running_jobs > 0:
-            for task in corrupt_data.keys():
+            for task in list(corrupt_data.keys()):
                 task.workflow.log.info(
-                    '%s Temporarily masking corrupt SGE output since %d other jobs are running cleanly' %
-                    (task, num_cleanly_running_jobs))
+                    "%s Temporarily masking corrupt SGE output since %d other jobs are running cleanly"
+                    % (task, num_cleanly_running_jobs)
+                )
         else:
-            for task, data in corrupt_data.items():
+            for task, data in list(corrupt_data.items()):
                 task.workflow.log.error(
-                    '%s All outstanding drm_ge tasks have corrupt SGE output: giving up on this one' % task)
+                    "%s All outstanding drm_ge tasks have corrupt SGE output: giving up on this one"
+                    % task
+                )
                 yield task, data
 
     def drm_statuses(self, tasks):
@@ -102,7 +110,9 @@ class DRM_GE(DRM):
             qjobs = qstat(logger=tasks[0].workflow.log)
 
             def f(task):
-                return qjobs.get(unicode(task.drm_jobID), dict()).get('state', 'UNK_JOB_STATE')
+                return qjobs.get(str(task.drm_jobID), dict()).get(
+                    "state", "UNK_JOB_STATE"
+                )
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -119,46 +129,45 @@ class DRM_GE(DRM):
         """
         d = self.task_qacct(task)
 
-        job_failed = d['failed'][0] != '0'
+        job_failed = d["failed"][0] != "0"
         data_are_corrupt = is_corrupt(d)
 
         if job_failed or data_are_corrupt:
-            task.workflow.log.warn('%s SGE (qacct -j %s) reports %s:\n%s' %
-                                   (task, task.drm_jobID,
-                                    'corrupt data' if data_are_corrupt else 'job failure',
-                                    json.dumps(d, indent=4, sort_keys=True)))
+            task.workflow.log.warn(
+                "%s SGE (qacct -j %s) reports %s:\n%s"
+                % (
+                    task,
+                    task.drm_jobID,
+                    "corrupt data" if data_are_corrupt else "job failure",
+                    json.dumps(d, indent=4, sort_keys=True),
+                )
+            )
 
         processed_data = dict(
-            exit_status=int(d['exit_status']) if not job_failed else int(re.search(r'^(\d+)', d['failed']).group(1)),
-
-            percent_cpu=div(float(d['cpu']), float(d['ru_wallclock'])),
-            wall_time=float(d['ru_wallclock']),
-
-            cpu_time=float(d['cpu']),
-            user_time=float(d['ru_utime']),
-            system_time=float(d['ru_stime']),
-
-            avg_rss_mem=d['ru_ixrss'],
-            max_rss_mem_kb=convert_size_to_kb(d['maxrss']),
+            exit_status=int(d["exit_status"])
+            if not job_failed
+            else int(re.search(r"^(\d+)", d["failed"]).group(1)),
+            percent_cpu=div(float(d["cpu"]), float(d["ru_wallclock"])),
+            wall_time=float(d["ru_wallclock"]),
+            cpu_time=float(d["cpu"]),
+            user_time=float(d["ru_utime"]),
+            system_time=float(d["ru_stime"]),
+            avg_rss_mem=d["ru_ixrss"],
+            max_rss_mem_kb=convert_size_to_kb(d["maxrss"]),
             avg_vms_mem_kb=None,
-            max_vms_mem_kb=convert_size_to_kb(d['maxvmem']),
-
-            io_read_count=int(d['ru_inblock']),
-            io_write_count=int(d['ru_oublock']),
-            io_wait=float(d['iow']),
-            io_read_kb=convert_size_to_kb("%fG" % float(d['io'])),
-            io_write_kb=convert_size_to_kb("%fG" % float(d['io'])),
-
-            ctx_switch_voluntary=int(d['ru_nvcsw']),
-            ctx_switch_involuntary=int(d['ru_nivcsw']),
-
+            max_vms_mem_kb=convert_size_to_kb(d["maxvmem"]),
+            io_read_count=int(d["ru_inblock"]),
+            io_write_count=int(d["ru_oublock"]),
+            io_wait=float(d["iow"]),
+            io_read_kb=convert_size_to_kb("%fG" % float(d["io"])),
+            io_write_kb=convert_size_to_kb("%fG" % float(d["io"])),
+            ctx_switch_voluntary=int(d["ru_nvcsw"]),
+            ctx_switch_involuntary=int(d["ru_nivcsw"]),
             avg_num_threads=None,
             max_num_threads=None,
-
             avg_num_fds=None,
             max_num_fds=None,
-
-            memory=float(d['mem']),
+            memory=float(d["mem"]),
         )
 
         return processed_data, data_are_corrupt
@@ -168,8 +177,7 @@ class DRM_GE(DRM):
         """
         Return qacct data for the specified task.
         """
-        return qacct(task.drm_jobID, num_retries, quantum,
-                     task.workflow.log, str(task))
+        return qacct(task.drm_jobID, num_retries, quantum, task.workflow.log, str(task))
 
     def kill(self, task):
         """Terminate a task."""
@@ -179,8 +187,8 @@ class DRM_GE(DRM):
         logger = tasks[0].workflow.log if tasks else _get_null_logger()
 
         for group in grouper(50, tasks):
-            group = filter(lambda x: x is not None, group)
-            job_ids = map(lambda t: unicode(t.drm_jobID), group)
+            group = [x for x in group if x is not None]
+            job_ids = [str(t.drm_jobID) for t in group]
             qdel(job_ids, logger=logger)
 
 
@@ -189,7 +197,8 @@ def _get_null_logger():
     Return a logger that drops all messages passed to it.
     """
     logger = logging.getLogger(
-        ".".join([sys.modules[__name__].__name__, "null_logger"]))
+        ".".join([sys.modules[__name__].__name__, "null_logger"])
+    )
     # only initialize the null logger the first time we load it
     if not logger.handlers:
         logger.addHandler(logging.NullHandler())
@@ -213,11 +222,12 @@ def is_corrupt(qacct_dict):
     Note that qacct may return a date that precedes the Epoch (!), depending on
     the $TZ env. variable. To be safe we check for dates within 24 hours of it.
     """
-    return (qacct_dict.get('qsub_time', '').startswith('12/31/1969') or
-            qacct_dict.get('qsub_time', '').startswith('01/01/1970') or
-            qacct_dict.get('start_time', None) == '-/-' or
-            qacct_dict.get('end_time', None) == '-/-') and \
-           ("before writing exit_status" not in qacct_dict.get('failed', ''))
+    return (
+        qacct_dict.get("qsub_time", "").startswith("12/31/1969")
+        or qacct_dict.get("qsub_time", "").startswith("01/01/1970")
+        or qacct_dict.get("start_time", None) == "-/-"
+        or qacct_dict.get("end_time", None) == "-/-"
+    ) and ("before writing exit_status" not in qacct_dict.get("failed", ""))
 
 
 def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
@@ -237,25 +247,37 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     curr_qacct_dict = None
     good_qacct_dict = None
 
-    for i in xrange(num_retries):
+    for i in range(num_retries):
 
         qacct_stdout_str, qacct_stderr_str, qacct_returncode = run_cli_cmd(
-            ["qacct", "-j", unicode(job_id)], logger=logger
+            ["qacct", "-j", str(job_id)], logger=logger
         )
         if qacct_returncode == 0 and qacct_stdout_str.strip():
             # qacct returned actual output w/no error code. we're good
             break
 
-        if qacct_stderr_str and re.match(r'error: job id \d+ not found', qacct_stderr_str):
+        if qacct_stderr_str and re.match(
+            r"error: job id \d+ not found", qacct_stderr_str
+        ):
             if i > 0:
-                logger.info('%s SGE (qacct -j %s) reports "not found"; this may mean '
-                            'qacct is merely slow, or %s died in the \'qw\' state',
-                            log_prefix, job_id, job_id)
+                logger.info(
+                    '%s SGE (qacct -j %s) reports "not found"; this may mean '
+                    "qacct is merely slow, or %s died in the 'qw' state",
+                    log_prefix,
+                    job_id,
+                    job_id,
+                )
         else:
-            logger.error('%s SGE (qacct -j %s) returned error code %d',
-                         log_prefix, job_id, qacct_returncode)
+            logger.error(
+                "%s SGE (qacct -j %s) returned error code %d",
+                log_prefix,
+                job_id,
+                qacct_returncode,
+            )
             if qacct_stdout_str or qacct_stderr_str:
-                logger.error('%s SGE (qacct -j %s) printed the following', log_prefix, job_id)
+                logger.error(
+                    "%s SGE (qacct -j %s) printed the following", log_prefix, job_id
+                )
                 if qacct_stdout_str:
                     logger.error('stdout: "%s"', qacct_stdout_str)
                 if qacct_stderr_str:
@@ -263,9 +285,15 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
 
         if i > 0:
             logger.info(
-                '%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s',
-                log_prefix, job_id, i + 1, time.time() - start,
-                '. Will recheck job status after %d sec' % quantum if i + 1 < num_retries else '')
+                "%s SGE (qacct -j %s) attempt %d failed %d sec after first attempt%s",
+                log_prefix,
+                job_id,
+                i + 1,
+                time.time() - start,
+                ". Will recheck job status after %d sec" % quantum
+                if i + 1 < num_retries
+                else "",
+            )
         if i + 1 < num_retries:
             logger.info(
                 "%s Will wait %d sec before calling qacct on %s again",
@@ -277,11 +305,12 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
     else:
         # fallthrough: all retries failed
         raise QacctJobNotFoundError(
-            '%s No valid SGE (qacct -j %s) output after %d tries over %d sec' %
-            (log_prefix, job_id, i, time.time() - start))
+            "%s No valid SGE (qacct -j %s) output after %d tries over %d sec"
+            % (log_prefix, job_id, i, time.time() - start)
+        )
 
-    for line in qacct_stdout_str.strip().split('\n'):
-        if line.startswith('='):
+    for line in qacct_stdout_str.strip().split("\n"):
+        if line.startswith("="):
             if curr_qacct_dict and not is_corrupt(curr_qacct_dict):
                 #
                 # Cache this non-corrupt block of qacct data just
@@ -293,10 +322,12 @@ def qacct(job_id, num_retries=10, quantum=30, logger=None, log_prefix=""):
             continue
 
         try:
-            k, v = re.split(r'\s+', line, maxsplit=1)
+            k, v = re.split(r"\s+", line, maxsplit=1)
         except ValueError:
-            raise EnvironmentError('%s SGE (qacct -j %s) output is unparseable:\n%s' %
-                                   (log_prefix, job_id, qacct_stdout_str))
+            raise EnvironmentError(
+                "%s SGE (qacct -j %s) output is unparseable:\n%s"
+                % (log_prefix, job_id, qacct_stdout_str)
+            )
 
         curr_qacct_dict[k] = v.strip()
 
@@ -316,10 +347,7 @@ def qdel(job_ids, logger):
     exit handler that does not have arbitrary amounts of time in which to run.
     """
     stdout, stderr, returncode = run_cli_cmd(
-        ["qdel", "-f", ",".join(job_ids)],
-        logger=logger,
-        attempts=1,
-        timeout=20,
+        ["qdel", "-f", ",".join(job_ids)], logger=logger, attempts=1, timeout=20,
     )
     if returncode == 0:
         logger.info("qdel reported success against %d job_ids", len(job_ids))
@@ -374,7 +402,8 @@ def qstat(logger=None):
         logger = _get_null_logger()
 
     stdout, _, returncode = run_cli_cmd(
-        ["qstat"], attempts=3, interval=30, logger=logger, timeout=30)
+        ["qstat"], attempts=3, interval=30, logger=logger, timeout=30
+    )
     if returncode != 0:
         logger.warning("qstat returned %s: If GE is offline, all jobs are dead or done")
         return {}
@@ -390,11 +419,19 @@ def qstat(logger=None):
     bjobs = {}
     for l in lines[2:]:
         items = re.split(r"\s+", l.strip())
-        bjobs[items[0]] = dict(zip(keys, items))
+        bjobs[items[0]] = dict(list(zip(keys, items)))
     return bjobs
 
 
-def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=None, log_prefix=""):
+def qsub(
+    cmd_fn,
+    stdout_fn,
+    stderr_fn,
+    addl_args=None,
+    drm_name="GE",
+    logger=None,
+    log_prefix="",
+):
     """
     Submit the requested (bash-parseable) script stored in cmd_fn to GE.
 
@@ -409,17 +446,18 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         if os.path.exists(p):
             os.unlink(p)
 
-    qsub_cli = 'qsub -terse -o {stdout_fn} -e {stderr_fn} -b y -w e -cwd -S /bin/bash -V'.format(
-        stdout_fn=stdout_fn, stderr_fn=stderr_fn)
+    qsub_cli = "qsub -terse -o {stdout_fn} -e {stderr_fn} -b y -w e -cwd -S /bin/bash -V".format(
+        stdout_fn=stdout_fn, stderr_fn=stderr_fn
+    )
 
     if addl_args:
-        qsub_cli += ' %s' % addl_args
+        qsub_cli += " %s" % addl_args
 
     job_id = None
 
     stdout, stderr, returncode = run_cli_cmd(
         '{qsub_cli} "{cmd_fn}"'.format(cmd_fn=cmd_fn, qsub_cli=qsub_cli),
-        attempts=1,     # make just one attempt: running a task 2x could be disastrous
+        attempts=1,  # make just one attempt: running a task 2x could be disastrous
         env=os.environ,
         logger=logger,
         shell=True,
@@ -436,7 +474,7 @@ def qsub(cmd_fn, stdout_fn, stderr_fn, addl_args=None, drm_name="GE", logger=Non
         status = TaskStatus.failed
     else:
         try:
-            job_id = unicode(int(stdout))
+            job_id = str(int(stdout))
         except ValueError:
             logger.error(
                 "%s submission to %s returned unexpected text: %s",

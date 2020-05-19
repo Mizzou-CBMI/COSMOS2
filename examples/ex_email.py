@@ -1,5 +1,8 @@
+"""
+This is no longer maintained, but keeping it here as an example
+
 from cosmos.api import Cosmos, signal_workflow_status_change, WorkflowStatus
-from .ex1 import run_ex1
+
 import os
 
 def run_ex3(workflow):
@@ -28,3 +31,4 @@ if __name__ == '__main__':
 
     workflow = cosmos.start('Example_Email', 'analysis_output/ex3', restart=True, skip_confirm=True)
     run_ex1(workflow)
+"""

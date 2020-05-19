@@ -106,10 +106,11 @@ def bash_call(func, *args, **kwargs):
         from cosmos.api import echo
     except ImportError:
         import imp
-        echo = imp.load_source('echo', 'None').echo
+        echo = imp.load_source('echo', '<doctest cosmos.api.bash_call[0]>').echo
     <BLANKLINE>
     echo(**
-    {'arg1': 'hello world',
+    {'arg1': 'hello '
+             'world',
      'out_file': 'out.txt'}
     )
     <BLANKLINE>
@@ -117,7 +118,7 @@ def bash_call(func, *args, **kwargs):
     """
 
     sig = funcsigs.signature(func)
-    kwargs = dict(zip(sig.parameters.keys(), args))
+    kwargs = dict(list(zip(list(sig.parameters.keys()), args)))
 
     return r"""
 python - <<EOF
@@ -142,9 +143,9 @@ EOF""".format(
 
 def get_module_path_from_fname(fname):
     """
-    gets a module path from a filename
+    gets a module path from a filename if it is available by searching through sys.path
 
-    >>> get_module_from_fname(__name__)
+    >>> get_module_path_from_fname(__file__)
     'cosmos.api'
     """
     fname = os.path.normpath(os.path.abspath(fname))
@@ -153,9 +154,9 @@ def get_module_path_from_fname(fname):
 
     # first element in sys.path is the working directory of the script, put it last in order of paths to try
     for path in sys.path[1:] + sys.path[-1:]:
-        if os.path.normpath(path) == os.path.normpath(os.getcwd()):
-            # don't use cwd as path
-            continue
+        # if os.path.normpath(path) == os.path.normpath(os.getcwd()):
+        #     # don't use cwd as path
+        #     continue
         path = os.path.normpath(path)
         if fname.startswith(path):
             module_rel_path = fname.replace(path + "/", "")
@@ -166,7 +167,7 @@ def get_module_path_from_fname(fname):
             except ModuleNotFoundError:
                 pass
     else:
-        raise ModuleNotFoundError("could not find module for {fname}")
+        raise ModuleNotFoundError(f"could not find module for {fname}")
 
 
 def _get_import_code_for_func(func):
@@ -174,26 +175,18 @@ def _get_import_code_for_func(func):
     if func.__module__ == "__main__":
         source_file = os.path.abspath(filename)
         assert os.path.exists(source_file)
-        if sys.version_info[0] == 2:
-            func_import_code = (
-                "import imp\n"
-                '{func.__name__} = imp.load_source("module", "{source_file}").{func.__name__}'.format(
-                    func=func, source_file=source_file
-                )
-            )
-            return func_import_code
-        else:
-            try:
-                path = get_module_path_from_fname(filename)
-            except ModuleNotFoundError:
-                raise ModuleNotFoundError(
-                    "cannot import {func} {filename} from current path".format(
-                        **locals()
-                    )
-                )
 
+        try:
+            path = get_module_path_from_fname(filename)
             parts = path.split("/")
             return "from %s import %s" % (".".join(parts), func.__name__)
+        except ModuleNotFoundError:
+            # resort to importing the absolute path
+            source_file = os.path.abspath(filename)
+            return f"""from importlib import machinery
+            loader = machinery.SourceFileLoader("module", "{source_file}")
+            mod = loader.load_module()
+            {func.__name__} = getattr(mod, "{func.__name__}")"""
     else:
         return "from %s import %s" % (func.__module__, func.__name__)
 

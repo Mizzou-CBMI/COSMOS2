@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 def qstat(user=getpass.getuser()):
     import pandas as pd
+
     """
     returns a dict keyed by lsf job ids, who's values are a dict of bjob
     information about the job
@@ -20,10 +21,14 @@ def qstat(user=getpass.getuser()):
         return d
 
     try:
-        et = ET.fromstring(sp.check_output(['qstat', '-ext', '-xml', '-u', user], preexec_fn=exit_process_group))
+        et = ET.fromstring(
+            sp.check_output(
+                ["qstat", "-ext", "-xml", "-u", user], preexec_fn=exit_process_group
+            )
+        )
     except (sp.CalledProcessError, OSError):
         # Error occurs if there are no jobs
         return pd.DataFrame()
 
-    dicts = list( job_list_to_dict(jl) for jl in et.findall('.//job_list') )
-    return pd.DataFrame.from_dict(dicts)[dicts[0].keys()]
+    dicts = list(job_list_to_dict(jl) for jl in et.findall(".//job_list"))
+    return pd.DataFrame.from_dict(dicts)[list(dicts[0].keys())]

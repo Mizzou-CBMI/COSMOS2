@@ -11,8 +11,15 @@ from cosmos.util.helpers import mkdir
 
 
 class JobManager(object):
-    def __init__(self, get_submit_args, log_out_dir_func=default_task_log_output_dir, cmd_wrapper=None):
-        self.drms = {DRM_sub_cls.name: DRM_sub_cls() for DRM_sub_cls in DRM.__subclasses__()}
+    def __init__(
+        self,
+        get_submit_args,
+        log_out_dir_func=default_task_log_output_dir,
+        cmd_wrapper=None,
+    ):
+        self.drms = {
+            DRM_sub_cls.name: DRM_sub_cls() for DRM_sub_cls in DRM.__subclasses__()
+        }
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []
@@ -24,7 +31,7 @@ class JobManager(object):
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
-        return self.drms[drm_name.split(':')[0]]
+        return self.drms[drm_name.split(":")[0]]
 
     def call_cmd_fxn(self, task):
         """
@@ -52,7 +59,11 @@ class JobManager(object):
 
     def submit_task(self, task, command):
         task.log_dir = self.log_out_dir_func(task)
-        for p in [task.output_stdout_path, task.output_stderr_path, task.output_command_script_path]:
+        for p in [
+            task.output_stdout_path,
+            task.output_stderr_path,
+            task.output_command_script_path,
+        ]:
             if os.path.exists(p):
                 os.unlink(p)
 
@@ -67,7 +78,7 @@ class JobManager(object):
 
             _create_command_sh(task, command)
             task.drm_native_specification = self.get_submit_args(task)
-            assert task.drm is not None, 'task has no drm set'
+            assert task.drm is not None, "task has no drm set"
 
             self.get_drm(task.drm).submit_job(task)
 
@@ -79,12 +90,12 @@ class JobManager(object):
         # Note we use the cosmos_app thread_pool here so we don't have to setup/teardown threads
         # (or their sqlalchemy sessions)
         # commands = self.cosmos_app.thread_pool.map(self.call_cmd_fxn, tasks)
-        commands = map(self.call_cmd_fxn, tasks)
+        commands = list(map(self.call_cmd_fxn, tasks))
         # commands = self.cosmos_app.futures_executor.map(self.call_cmd_fxn, tasks)
 
         # Submit the jobs in serial
         # TODO parallelize this for speed.  Means having all ORM stuff outside Job Submission.
-        map(self.submit_task, tasks, commands)
+        list(map(self.submit_task, tasks, commands))
 
     def terminate(self):
         """Kills all tasks in a workflow.
@@ -111,16 +122,16 @@ class JobManager(object):
                 self.dead_tasks.append(task)
                 yield task
 
-            assert task.status not in [TaskStatus.failed], 'invalid: %s' % task.status
+            assert task.status not in [TaskStatus.failed], "invalid: %s" % task.status
 
         # For the rest, ask its DRM if it is done
-        f = attrgetter('drm')
+        f = attrgetter("drm")
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=f), f):
             for task, job_info_dict in self.get_drm(drm).filter_is_done(list(tasks)):
                 self.running_tasks.remove(task)
                 self.get_drm(drm).release_resources_after_completion(task)
                 self.dead_tasks.append(task)
-                for k, v in job_info_dict.items():
+                for k, v in list(job_info_dict.items()):
                     setattr(task, k, v)
                 yield task
 
@@ -128,13 +139,15 @@ class JobManager(object):
     def poll_interval(self):
         if not self.running_tasks:
             return 0
-        return max(self.get_drm(d).poll_interval for d in
-                   set(t.drm for t in self.running_tasks))
+        return max(
+            self.get_drm(d).poll_interval
+            for d in set(t.drm for t in self.running_tasks)
+        )
 
 
 def _create_command_sh(task, command):
     """Create a sh script that will execute a command"""
-    with open(task.output_command_script_path, 'w') as f:
+    with open(task.output_command_script_path, "w") as f:
         f.write(command)
 
     st = os.stat(task.output_command_script_path)

@@ -7,6 +7,7 @@ import datetime
 import getpass
 import os
 import re
+import signal
 import sys
 import time
 
@@ -178,7 +179,7 @@ class Workflow(Base):
         dirs = set()
 
         for task in self.tasks:
-            for out_name, v in task.output_map.items():
+            for out_name, v in list(task.output_map.items()):
                 dirname = (
                     lambda p: p
                     if out_name.endswith("dir") or p is None
@@ -186,7 +187,7 @@ class Workflow(Base):
                 )
 
                 if isinstance(v, (tuple, list)):
-                    dirs.update(map(dirname, v))
+                    dirs.update(list(map(dirname, v)))
                 elif isinstance(v, dict):
                     raise NotImplemented()
                 else:
@@ -259,7 +260,7 @@ class Workflow(Base):
         # params
         if params is None:
             params = dict()
-        for k, v in params.items():
+        for k, v in list(params.items()):
             # decompose `Dependency` objects to values and parents
             new_val, parent_tasks = recursive_resolve_dependency(v)
 
@@ -359,7 +360,7 @@ class Workflow(Base):
                 task.drm_options = drm_options
             # use default for any keys not set
             if self.cosmos_app.default_drm_options is not None:
-                for key, val in self.cosmos_app.default_drm_options.items():
+                for key, val in list(self.cosmos_app.default_drm_options.items()):
                     if key not in task.drm_options:
                         task.drm_options[key] = val
 
@@ -383,6 +384,7 @@ class Workflow(Base):
         log_out_dir_func=default_task_log_output_dir,
         max_gpus=None,
         do_cleanup_atexit=True,
+        lethal_signals=frozenset({signal.SIGINT, signal.SIGTERM, signal.SIGXCPU,}),
     ):
         """
         Runs this Workflow's DAG
@@ -396,143 +398,154 @@ class Workflow(Base):
              See _default_task_log_output_dir for more info.
         :param callable cmd_wrapper: A decorator which will be applied to every Task's cmd_fxn.
         :param bool dry: If True, do not actually run any jobs.
-        :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+        :param bool set_successful: Sets this workflow as successful if all tasks finish without a failure.
+            You might set this to False if you intend to add and
             run more tasks in this workflow later.
         :param do_cleanup_atexit: if False, do not attempt to cleanup unhandled exits.
+        :param lethal_signals: signals to catch and shutdown
 
         Returns True if all tasks in the workflow ran successfully, False otherwise.
         If dry is specified, returns None.
         """
         try:
-            assert os.path.exists(os.getcwd()), (
-                "current working dir does not exist! %s" % os.getcwd()
-            )
-
-            assert hasattr(
-                self, "cosmos_app"
-            ), "Workflow was not initialized using the Workflow.start method"
-            assert hasattr(
-                log_out_dir_func, "__call__"
-            ), "log_out_dir_func must be a function"
-            assert self.session, "Workflow must be part of a sqlalchemy session"
-
-            session = self.session
-            self.log.info(
-                "Preparing to run %s using DRM `%s`, cwd is `%s`",
-                self,
-                self.cosmos_app.default_drm,
-                os.getcwd(),
-            )
             try:
-                user = getpass.getuser()
-            except:
-                # fallback to uid if we can't respove a user name
-                user = os.getuid()
-
-            self.log.info("Running as %s@%s, pid %s", user, os.uname()[1], os.getpid())
-
-            self.max_cores = max_cores
-            self.max_gpus = max_gpus
-            #
-            # Run some validation checks
-            #
-
-            # check GPU env variables are set correctly
-            if self.max_gpus is not None and self.cosmos_app.default_drm == "local":
-                if "COSMOS_LOCAL_GPU_DEVICES" not in os.environ:
-                    raise EnvironmentError(
-                        "COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a "
-                        "comma delimited list of gpu devices of using a local DRM to manage "
-                        "GPUs"
-                    )
-                if (
-                    len(os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(","))
-                    < self.max_gpus
-                ):
-                    raise EnvironmentError(
-                        "COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!"
-                    )
-
-            # check for duplicate output files
-            output_fnames_to_task_and_key = dict()
-            for task in self.tasks:
-                for key, fname in task.output_map.items():
-                    current_value = output_fnames_to_task_and_key.setdefault(
-                        fname, (task, key)
-                    )
-                    if current_value != (task, key):
-                        task2, key2 = current_value
-                        raise ValueError(
-                            "Duplicate output files detected!:  "
-                            '{task}.params["{key}"] == {task2}.params["{key2}"] == {fname}'.format(
-                                **locals()
-                            )
-                        )
-                    output_fnames_to_task_and_key[fname] = (task, key)
-
-            from ..job.JobManager import JobManager
-
-            if self.jobmanager is None:
-                self.jobmanager = JobManager(
-                    get_submit_args=self.cosmos_app.get_submit_args,
-                    cmd_wrapper=cmd_wrapper,
-                    log_out_dir_func=log_out_dir_func,
+                assert os.path.exists(os.getcwd()), (
+                    "current working dir does not exist! %s" % os.getcwd()
                 )
 
-            self.status = WorkflowStatus.running
-            self.successful = False
+                assert hasattr(
+                    self, "cosmos_app"
+                ), "Workflow was not initialized using the Workflow.start method"
+                assert hasattr(
+                    log_out_dir_func, "__call__"
+                ), "log_out_dir_func must be a function"
+                assert self.session, "Workflow must be part of a sqlalchemy session"
 
-            if self.started_on is None:
-                self.started_on = datetime.datetime.now()
+                session = self.session
+                self.log.info(
+                    "Preparing to run %s using DRM `%s`, cwd is `%s`",
+                    self,
+                    self.cosmos_app.default_drm,
+                    os.getcwd(),
+                )
+                try:
+                    user = getpass.getuser()
+                except:
+                    # fallback to uid if we can't respove a user name
+                    user = os.getuid()
 
-            task_graph = self.task_graph()
-            stage_graph = self.stage_graph()
+                self.log.info(
+                    "Running as %s@%s, pid %s", user, os.uname()[1], os.getpid()
+                )
 
-            assert len(set(self.stages)) == len(
-                self.stages
-            ), "duplicate stage name detected: %s" % (next(duplicates(self.stages)))
+                self.max_cores = max_cores
+                self.max_gpus = max_gpus
+                #
+                # Run some validation checks
+                #
 
-            # renumber stages
-            stage_graph_no_cycles = nx.DiGraph()
-            stage_graph_no_cycles.add_nodes_from(stage_graph.nodes())
-            stage_graph_no_cycles.add_edges_from(stage_graph.edges())
-            for cycle in nx.simple_cycles(stage_graph):
-                stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
-            for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
-                s.number = i + 1
-                if s.status != StageStatus.successful:
-                    s.status = StageStatus.no_attempt
+                # check GPU env variables are set correctly
+                if self.max_gpus is not None and self.cosmos_app.default_drm == "local":
+                    if "COSMOS_LOCAL_GPU_DEVICES" not in os.environ:
+                        raise EnvironmentError(
+                            "COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a "
+                            "comma delimited list of gpu devices of using a local DRM to manage "
+                            "GPUs"
+                        )
+                    if (
+                        len(os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(","))
+                        < self.max_gpus
+                    ):
+                        raise EnvironmentError(
+                            "COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!"
+                        )
 
-            # Make sure everything is in the sqlalchemy session
-            session.add(self)
-            successful = list(filter(lambda t: t.successful, task_graph.nodes()))
+                # check for duplicate output files
+                output_fnames_to_task_and_key = dict()
+                for task in self.tasks:
+                    for key, fname in list(task.output_map.items()):
+                        current_value = output_fnames_to_task_and_key.setdefault(
+                            fname, (task, key)
+                        )
+                        if current_value != (task, key):
+                            task2, key2 = current_value
+                            raise ValueError(
+                                "Duplicate output files detected!:  "
+                                '{task}.params["{key}"] == {task2}.params["{key2}"] == {fname}'.format(
+                                    **locals()
+                                )
+                            )
+                        output_fnames_to_task_and_key[fname] = (task, key)
 
-            # print stages
-            for s in sorted(self.stages, key=lambda s: s.number):
-                self.log.info("%s %s" % (s, s.status))
+                from ..job.JobManager import JobManager
 
-            # Create Task Queue
-            task_queue = _copy_graph(task_graph)
-            self.log.info("Skipping %s successful tasks..." % len(successful))
-            task_queue.remove_nodes_from(successful)
-
-            if do_cleanup_atexit:
-                handle_exits(self)
-
-            if self.max_cores is not None:
-                self.log.info("Ensuring there are enough cores...")
-                # make sure we've got enough cores
-                for t in task_queue:
-                    assert int(t.core_req) <= self.max_cores, (
-                        "%s requires more cpus (%s) than `max_cores` (%s)"
-                        % (t, t.core_req, self.max_cores)
+                if self.jobmanager is None:
+                    self.jobmanager = JobManager(
+                        get_submit_args=self.cosmos_app.get_submit_args,
+                        cmd_wrapper=cmd_wrapper,
+                        log_out_dir_func=log_out_dir_func,
                     )
 
-            # Run this thing!
-            self.log.info("Committing to SQL db...")
-            session.commit()
+                self.status = WorkflowStatus.running
+                self.successful = False
+
+                if self.started_on is None:
+                    self.started_on = datetime.datetime.now()
+
+                task_graph = self.task_graph()
+                stage_graph = self.stage_graph()
+
+                assert len(set(self.stages)) == len(
+                    self.stages
+                ), "duplicate stage name detected: %s" % (next(duplicates(self.stages)))
+
+                # renumber stages
+                stage_graph_no_cycles = nx.DiGraph()
+                stage_graph_no_cycles.add_nodes_from(stage_graph.nodes())
+                stage_graph_no_cycles.add_edges_from(stage_graph.edges())
+                for cycle in nx.simple_cycles(stage_graph):
+                    stage_graph_no_cycles.remove_edge(cycle[-1], cycle[0])
+                for i, s in enumerate(topological_sort(stage_graph_no_cycles)):
+                    s.number = i + 1
+                    if s.status != StageStatus.successful:
+                        s.status = StageStatus.no_attempt
+
+                # Make sure everything is in the sqlalchemy session
+                session.add(self)
+                successful = list([t for t in task_graph.nodes() if t.successful])
+
+                # print stages
+                for s in sorted(self.stages, key=lambda s: s.number):
+                    self.log.info("%s %s" % (s, s.status))
+
+                # Create Task Queue
+                task_queue = _copy_graph(task_graph)
+                self.log.info("Skipping %s successful tasks..." % len(successful))
+                task_queue.remove_nodes_from(successful)
+
+                if do_cleanup_atexit:
+                    handle_exits(self)
+
+                if self.max_cores is not None:
+                    self.log.info("Ensuring there are enough cores...")
+                    # make sure we've got enough cores
+                    for t in task_queue:
+                        assert int(t.core_req) <= self.max_cores, (
+                            "%s requires more cpus (%s) than `max_cores` (%s)"
+                            % (t, t.core_req, self.max_cores)
+                        )
+
+                # Run this thing!
+                self.log.info("Committing to SQL db...")
+                session.commit()
+            except KeyboardInterrupt:
+                # haven't started submitting yet, just raise the exception
+                self.log.fatal("ctrl+c caught")
+                self.terminate(due_to_failure=False)
+                raise
+
             if not dry:
-                _run(self, session, task_queue)
+                _run(self, session, task_queue, lethal_signals=lethal_signals)
 
                 # set status
                 if self.status == WorkflowStatus.failed_but_running:
@@ -555,11 +568,6 @@ class Workflow(Base):
             else:
                 self.log.info("Workflow dry run is complete")
                 return None
-
-        except KeyboardInterrupt:
-            self.log.fatal("ctrl+c caught")
-            self.terminate(due_to_failure=False)
-            raise
         except Exception as ex:
             self.log.fatal("Exception was raised")
             self.log.fatal(ex, exc_info=True)
@@ -650,10 +658,10 @@ class Workflow(Base):
         if delete_files:
             raise NotImplementedError("This should delete all Task.output_files")
 
-        print >>sys.stderr, "%s Deleting from SQL..." % self
+        print("%s Deleting from SQL..." % self, file=sys.stderr)
         self.session.delete(self)
         self.session.commit()
-        print >>sys.stderr, "%s Deleted" % self
+        print("%s Deleted" % self, file=sys.stderr)
 
     def get_first_failed_task(self, key=lambda t: t.finished_on):
         """
@@ -672,10 +680,18 @@ class Workflow(Base):
 # print 'before_delete %s ' % target
 
 
-def _run(workflow, session, task_queue):
+def _run(workflow, session, task_queue, lethal_signals):
     """
     Do the workflow!
     """
+
+    def signal_handler(signum, frame):
+        workflow.termination_signal = signum
+
+    for sig in lethal_signals:
+        # catch lethal signals (like a ctrl+c)
+        signal.signal(sig, signal_handler)
+
     workflow.log.info("Executing TaskGraph")
     available_cores = True
     last_log_timestamp = time.time()
