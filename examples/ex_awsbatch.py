@@ -7,7 +7,12 @@ from cosmos.api import Cosmos
 
 
 def get_instance_info(out_s3_uri, sleep=0):
-    return "df -h > df.txt \n" "aws s3 cp df.txt {out_s3_uri} \n" "sleep {sleep}".format(**locals())
+    return f"""
+    df -h > df.txt
+    aws s3 cp df.txt {out_s3_uri}
+
+    sleep {sleep}
+    """
 
 
 def parse_args():
@@ -17,22 +22,19 @@ def parse_args():
         "--container-image",
         help="the docker container image to use for the awsbatch job.  Note that "
         "the container_image must have bin/run_s3_script in its path (which "
-        "will be true if cosmos is installed).  This script is used to run "
-        "a script that lives in s3.",
+        "will be true if cosmos is installed in the docker container).  This script is used to run "
+        "a command script which was uploaded as a temporary file to s3.",
         required=True,
     )
     p.add_argument(
         "-b",
         "--s3-prefix-for-command-script-temp-files",
-        help="Bucket to use for storing command scripts as temporary files",
+        help="Bucket to use for storing command scripts as temporary files, ex: s3://my-bucket/cosmos/tmp_files",
         required=True,
     )
     p.add_argument("-q", "--default-queue", help="aws batch queue", required=True)
     p.add_argument(
-        "-o",
-        "--out-s3-uri",
-        help="s3 uri to store output of task which saves instance information",
-        required=True,
+        "-o", "--out-s3-uri", help="s3 uri to store output of tasks", required=True,
     )
     p.add_argument("--core-req", help="number of cores to request for the job", default=1)
     p.add_argument(
@@ -40,9 +42,21 @@ def parse_args():
         type=int,
         default=0,
         help="number of seconds to have the job sleep for.  Useful for debugging so "
-        "that you can login to the instance",
+        "that you can ssh into the instance running a task",
     )
-
+    p.add_argument(
+        "--retry-only-if-status-reason-matches",
+        default="Host EC2 .+ terminated.",
+        help="regular expression to match the task.staus_reason when deciding where to retry a Task.  This setting will "
+        "only retry tasks that failed due to their instance being terminated, which happens frequently with spot "
+        "instances ",
+    )
+    p.add_argument(
+        "--max-attempts",
+        default=2,
+        help="Number of times to retry a task.  A task will only be retried if its status_reason matches the regex from"
+        "--retry-only-if-status-reason-matches.",
+    )
     return p.parse_args()
 
 
@@ -55,6 +69,7 @@ def main():
         default_drm_options=dict(
             container_image=args.container_image,
             s3_prefix_for_command_script_temp_files=args.s3_prefix_for_command_script_temp_files,
+            retry_only_if_status_reason_matches=args.retry_only_if_status_reason_matches,
         ),
         default_queue=args.default_queue,
     )
@@ -67,11 +82,13 @@ def main():
     t = workflow.add_task(
         func=get_instance_info,
         params=dict(out_s3_uri=args.out_s3_uri, sleep=args.sleep),
-        uid="my_task",
+        uid="",
         time_req=None,
+        max_attempts=args.max_attempts,
         core_req=args.core_req,
         mem_req=1024,
     )
+    workflow.run()
 
     print(("task.params", t.params))
     print(("task.input_map", t.input_map))
@@ -82,7 +99,6 @@ def main():
     print(("task.uid", t.uid))
     print(("task.drm_options", t.drm_options))
     print(("task.queue", t.queue))
-    workflow.run()
 
     sys.exit(0 if workflow.successful else 1)
 

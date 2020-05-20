@@ -2,6 +2,7 @@ import codecs
 import datetime
 import os
 import pprint
+import re
 import subprocess as sp
 
 import networkx as nx
@@ -81,14 +82,7 @@ def task_status_changed(task):
         if not task.NOOP:
             task.log.info(
                 "%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s"
-                % (
-                    task,
-                    task.status,
-                    repr(task.drm),
-                    repr(task.drm_jobID),
-                    repr(task.job_class),
-                    repr(task.queue),
-                )
+                % (task, task.status, repr(task.drm), repr(task.drm_jobID), repr(task.job_class), repr(task.queue),)
             )
         task.submitted_on = datetime.datetime.now()
 
@@ -110,12 +104,18 @@ def task_status_changed(task):
             else:
                 exit_reason = "failed"
 
-            task.log.warn(
-                "%s attempt #%s %s (max_attempts=%s)" % (task, task.attempt, exit_reason, task.max_attempts)
-            )
+            task.log.warn("%s attempt #%s %s (max_attempts=%s)" % (task, task.attempt, exit_reason, task.max_attempts))
 
-            if task.attempt < task.max_attempts:
-                task.log.warn(task_printout_long.format(task))
+            # check if we want to retry
+            task.log.warn(f"Task failed: {task}, with status reason: {task.status_reason}")
+
+            regex = task.drm_options.get("retry_only_if_status_reason_matches")
+            # if task.status_reason matches our regex, then we want to retry
+            # ex: regex = "Host .+ Terminated", task.status_reason = "Host Terminated" would indicate we want
+            # to retry because a spot instance died
+            status_reason_is_valid_for_retry = regex is not None and re.search(regex, task.status_reason)
+
+            if status_reason_is_valid_for_retry and task.attempt < task.max_attempts:
                 task.attempt += 1
                 task.status = TaskStatus.no_attempt
             else:
@@ -151,9 +151,7 @@ def task_status_changed(task):
 
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
-    return property(
-        lambda self: os.path.join(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix))
-    )
+    return property(lambda self: os.path.join(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
 
 
 def readfile(path):
@@ -220,6 +218,7 @@ class Task(Base):
     log_dir = Column(String(255))
     # output_dir = Column(String(255))
     _status = Column(Enum_ColumnType(TaskStatus, length=255), default=TaskStatus.no_attempt, nullable=False,)
+    status_reason = Column(String(255), nullable=True)
     successful = Column(Boolean, nullable=False)
     started_on = Column(DateTime)  # FIXME this should probably be deleted.  Too hard to determine.
     submitted_on = Column(DateTime)
@@ -453,26 +452,18 @@ class Task(Base):
 
     @property
     def url(self):
-        return url_for(
-            "cosmos.task", ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id,
-        )
+        return url_for("cosmos.task", ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id,)
 
     @property
     def params_pretty(self):
-        return "%s" % ", ".join(
-            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v) for k, v in list(self.params.items())
-        )
+        return "%s" % ", ".join("%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v) for k, v in list(self.params.items()))
 
     @property
     def params_pformat(self):
         return pprint.pformat(self.params, indent=2, width=1)
 
     def __repr__(self):
-        return "<Task[%s] %s(uid='%s')>" % (
-            self.id or "id_%s" % id(self),
-            self.stage.name if self.stage else "",
-            self.uid,
-        )
+        return "<Task[%s] %s(uid='%s')>" % (self.id or "id_%s" % id(self), self.stage.name if self.stage else "", self.uid,)
 
     def __str__(self):
         return self.__repr__()

@@ -63,29 +63,21 @@ def gen_bprint(session):
         if stage is None:
             return abort(404)
         submitted = [t for t in stage.tasks if t.status == TaskStatus.submitted]
-        jm = JobManager(get_submit_args=None)
+        jm = JobManager(get_submit_args=None, logger=None)
 
         f = attrgetter("drm")
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(submitted, key=f), f):
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
-        return render_template(
-            "cosmos/stage.html", stage=stage, drm_statuses=drm_statuses
-        )
+        return render_template("cosmos/stage.html", stage=stage, drm_statuses=drm_statuses)
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
-    @bprint.route(
-        "/workflow/<int:ex_id>/stage/<stage_name>/delete/<int:delete_descendants>"
-    )
+    @bprint.route("/workflow/<int:ex_id>/stage/<stage_name>/delete/<int:delete_descendants>")
     def stage_delete(ex_id, stage_name, delete_descendants):
         assert delete_descendants in [0, 1]
         delete_descendants = bool(delete_descendants)
-        s = (
-            session.query(Stage)
-            .filter(Stage.workflow_id == ex_id, Stage.name == stage_name)
-            .one()
-        )
+        s = session.query(Stage).filter(Stage.workflow_id == ex_id, Stage.name == stage_name).one()
         flash("Deleted %s" % s)
         ex_url = s.workflow.url
         s.delete(descendants=delete_descendants)
@@ -119,12 +111,8 @@ def gen_bprint(session):
         task = session.query(Task).get(task_id)
         if task is None:
             return abort(404)
-        resource_usage = [
-            (field, getattr(task, field)) for field in task.profile_fields
-        ]
-        return render_template(
-            "cosmos/task.html", task=task, resource_usage=resource_usage
-        )
+        resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
+        return render_template("cosmos/task.html", task=task, resource_usage=resource_usage)
 
     @bprint.route("/workflow/<int:id>/taskgraph/<type>/")
     def taskgraph(id, type):

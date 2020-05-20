@@ -25,7 +25,7 @@ class DRM(object, metaclass=ABCMeta):
 
         assert (
             set(drm_options.keys()) >= drm_cls.required_drm_options
-        ), "You must specify values for {args_list}".format(
+        ), "You must specify values for drm_options for the following keys: {args_list}".format(
             args_list=", ".join(drm_cls.required_drm_options),
         )
 
