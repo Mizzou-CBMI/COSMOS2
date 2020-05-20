@@ -174,7 +174,6 @@ def register_base_job_definition(container_image, environment, command):
         "memory": 100,
         "vcpus": 1,
         "privileged": True,
-        # "instanceType": "c5d.large",
     }
 
     if environment:
@@ -276,8 +275,8 @@ class DRM_AWSBatch(DRM):
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
         for container_image in set(task.drm_options["container_image"] for task in tasks):
-            self.log.info(f"Registering base job definition for image: {container_image}")
             if container_image not in self.image_to_job_definition:
+                self.log.info(f"Registering base job definition for image: {container_image}")
                 self.image_to_job_definition[container_image] = register_base_job_definition(
                     container_image=container_image, environment=None, command="user-should-override-this",
                 )

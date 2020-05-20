@@ -104,19 +104,19 @@ def task_status_changed(task):
             else:
                 exit_reason = "failed"
 
-            task.log.warn("%s attempt #%s %s (max_attempts=%s)" % (task, task.attempt, exit_reason, task.max_attempts))
-
-            # check if we want to retry
-            task.log.warn(f"Task failed: {task}, with status reason: {task.status_reason}")
-
+            task.log.warn(f"{task} attempt #{task.attempt} {exit_reason} with status_reason: '{task.status_reason}'")
             regex = task.drm_options.get("retry_only_if_status_reason_matches")
             # if task.status_reason matches our regex, then we want to retry
             # ex: regex = "Host .+ Terminated", task.status_reason = "Host Terminated" would indicate we want
             # to retry because a spot instance died
-            status_reason_is_valid_for_retry = regex is not None and re.search(regex, task.status_reason)
+            if regex is not None:
+                status_reason_is_valid_for_retry = re.search(regex, task.status_reason)
+            else:
+                status_reason_is_valid_for_retry = True
 
             if status_reason_is_valid_for_retry and task.attempt < task.max_attempts:
                 task.attempt += 1
+                task.log.info(f"Reattempting {task}, this will be attempt #{task.attempt}, max_attempts={task.max_attempts}")
                 task.status = TaskStatus.no_attempt
             else:
                 wait_for_file(task.workflow, task.output_stderr_path, 30, error=False)

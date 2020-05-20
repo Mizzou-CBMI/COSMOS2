@@ -44,18 +44,12 @@ def parse_args():
         help="number of seconds to have the job sleep for.  Useful for debugging so "
         "that you can ssh into the instance running a task",
     )
-    p.add_argument(
-        "--retry-only-if-status-reason-matches",
-        default="Host EC2 .+ terminated.",
-        help="regular expression to match the task.staus_reason when deciding where to retry a Task.  This setting will "
-        "only retry tasks that failed due to their instance being terminated, which happens frequently with spot "
-        "instances ",
-    )
+
     p.add_argument(
         "--max-attempts",
         default=2,
-        help="Number of times to retry a task.  A task will only be retried if its status_reason matches the regex from"
-        "--retry-only-if-status-reason-matches.",
+        help="Number of times to retry a task.  A task will only be retried if it is a spot instance because of the "
+        "retry_only_if_status_reason_matches value we set in the code.",
     )
     return p.parse_args()
 
@@ -69,7 +63,8 @@ def main():
         default_drm_options=dict(
             container_image=args.container_image,
             s3_prefix_for_command_script_temp_files=args.s3_prefix_for_command_script_temp_files,
-            retry_only_if_status_reason_matches=args.retry_only_if_status_reason_matches,
+            # only retry on spot instance death
+            retry_only_if_status_reason_matches="Host EC2 .+ terminated.",
         ),
         default_queue=args.default_queue,
     )
