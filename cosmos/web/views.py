@@ -25,11 +25,7 @@ def gen_bprint(session):
         return session.query(Workflow).filter_by(id=id).one()
 
     bprint = Blueprint(
-        "cosmos",
-        __name__,
-        template_folder="templates",
-        static_folder="static",
-        static_url_path="/cosmos/static",
+        "cosmos", __name__, template_folder="templates", static_folder="static", static_url_path="/cosmos/static",
     )
     filters.add_filters(bprint)
 

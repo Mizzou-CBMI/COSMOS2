@@ -178,11 +178,17 @@ __________
 2.13.0
 +++++++
 
-SQL Column added!
-* To use cosmos 2.13.0 on old databases, you must add this new column.  Ex:
+SQL Column added!  If you see this error:
+
+    sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: task.status_reason
+
+It's because this new version of cosmos is not backwards
+compatible with these old databases.  This can be easily fixed by migrating the old database
+
+To use cosmos 2.13.0 on old databases, you must add this new column.  Ex:
 
     sqlite cosmos.sqlite
-    >>> sqlite> alter table task add status_reason CHAR(255)
+    sqlite> alter table task add status_reason CHAR(255)
 
 * added capability to reattempt jobs if and only if they died due to an AWSBatch spot instance failure.
   see examples/ex_awsbatch.py
