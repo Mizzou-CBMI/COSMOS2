@@ -34,6 +34,7 @@ install_requires = [
     "more-itertools",
     "decorator",
     "python-dateutil",
+    "flask",
 ]
 package_data = {"cosmos": list(find_all("cosmos/", ".py|.pyc$", inverse=True, remove_prefix=True))}
 
@@ -53,7 +54,7 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPL v3",
     install_requires=install_requires,
-    extras_require={"web": ["flask"], "test": ["flask", "ipython", "sphinx_rtd_theme", "black"]},
+    extras_require={"test": ["flask", "ipython", "sphinx_rtd_theme", "black"]},
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,
