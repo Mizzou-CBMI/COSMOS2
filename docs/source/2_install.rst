@@ -5,7 +5,7 @@ This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.o
 
 .. code-block:: bash
 
-    pip install cosmos-wfm  # or use cosmos-wfm[web] to enable the web dashboard
+    pip install cosmos-wfm
 
     # Optional, recommended for visualizing Workflows:
     sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac

@@ -4,14 +4,7 @@ import sys
 # from concurrent import futures
 from datetime import datetime
 
-try:
-    from flask import Flask
-except ImportError:
-
-    def Flask(*args, **kwargs):
-        raise NotImplementedError(
-            "please install the [web] extra for web functionality"
-        )
+from flask import Flask
 
 
 from cosmos import WorkflowStatus
@@ -39,9 +32,7 @@ def default_get_submit_args(task, parallel_env="orte"):
     if task.drm in ["lsf", "drmaa:lsf"]:
         rusage = '-R "rusage[mem={mem}] ' if task.mem_req and use_mem_req else ""
         time = " -W 0:{0}".format(task.time_req) if task.time_req else ""
-        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(
-            **locals()
-        )
+        return '-R "{rusage}span[hosts=1]" -n {task.core_req}{time}{queue} -J "{jobname}"'.format(**locals())
     elif task.drm in ["ge", "drmaa:ge"]:
         return '-cwd -pe {parallel_env} {core_req}{priority} -N "{jobname}"{job_class}{queue}'.format(
             priority=" -p %s" % default_job_priority if default_job_priority else "",
@@ -54,9 +45,7 @@ def default_get_submit_args(task, parallel_env="orte"):
     elif task.drm == "slurm":
         return "-c {cores} {partition}{jobname_str}{mem_str}{time_str}".format(
             mem_str=(" --mem %s" % task.mem_req) if task.mem_req is not None else "",
-            time_str=(" --time %s" % task.time_req)
-            if task.time_req is not None
-            else "",
+            time_str=(" --time %s" % task.time_req) if task.time_req is not None else "",
             partition=" -p %s" % task.queue if task.queue else "",
             jobname_str=" -J %s" % jobname if jobname else "",
             cores=task.core_req,
@@ -91,9 +80,7 @@ class Cosmos(object):
         # Avoid cyclical import dependencies
         from cosmos.job.drm.DRM_Base import DRM
 
-        assert default_drm.split(":")[0] in DRM.get_drm_names(), (
-            "unsupported drm: %s" % default_drm.split(":")[0]
-        )
+        assert default_drm.split(":")[0] in DRM.get_drm_names(), "unsupported drm: %s" % default_drm.split(":")[0]
         assert "://" in database_url, "Invalid database_url: %s" % database_url
 
         # self.futures_executor = futures.ThreadPoolExecutor(10)
@@ -129,9 +116,7 @@ class Cosmos(object):
         from sqlalchemy.ext.declarative import declarative_base
 
         engine = create_engine(database_url, convert_unicode=True)
-        self.session = scoped_session(
-            sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        )
+        self.session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
         Base = declarative_base()
         Base.query = self.session.query_property()
@@ -163,12 +148,7 @@ class Cosmos(object):
         self.close()
 
     def start(
-        self,
-        name,
-        restart=False,
-        skip_confirm=False,
-        primary_log_path="workflow.log",
-        fail_fast=False,
+        self, name, restart=False, skip_confirm=False, primary_log_path="workflow.log", fail_fast=False,
     ):
         """
         Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.
@@ -186,10 +166,7 @@ class Cosmos(object):
         """
         from .Workflow import Workflow
 
-        assert os.path.exists(os.getcwd()), (
-            "The current working dir of this environment, %s, does not exist"
-            % os.getcwd()
-        )
+        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
         # output_dir = os.path.abspath(output_dir)
         # output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         # prefix_dir = os.path.split(output_dir)[0]
@@ -207,10 +184,7 @@ class Cosmos(object):
             wf = session.query(Workflow).filter_by(name=name).first()
             if wf:
                 old_id = wf.id
-                msg = (
-                    "Restarting %s.  Are you sure you want to delete the all sql records?"
-                    % wf
-                )
+                msg = "Restarting %s.  Are you sure you want to delete the all sql records?" % wf
                 if not skip_confirm and not confirm(msg):
                     raise SystemExit("Quitting")
 
@@ -248,17 +222,12 @@ class Cosmos(object):
             failed_tasks = [t for s in wf.stages for t in s.tasks if not t.successful]
             n = len(failed_tasks)
             if n:
-                wf.log.info(
-                    "Deleting %s unsuccessful task(s) from SQL database, delete_files=%s"
-                    % (n, False)
-                )
+                wf.log.info("Deleting %s unsuccessful task(s) from SQL database, delete_files=%s" % (n, False))
                 for t in failed_tasks:
                     session.delete(t)
 
             for stage in [s for s in wf.stages if len(s.tasks) == 0]:
-                wf.log.info(
-                    "Deleting stage %s, since it has 0 successful Tasks" % stage
-                )
+                wf.log.info("Deleting stage %s, since it has 0 successful Tasks" % stage)
                 session.delete(stage)
 
         else:
@@ -266,9 +235,7 @@ class Cosmos(object):
             # if check_output_dir:
             #     assert not os.path.exists(output_dir), 'Workflow.output_dir `%s` already exists.' % (output_dir)
 
-            wf = Workflow(
-                id=old_id, name=name, manual_instantiation=False, successful=False
-            )
+            wf = Workflow(id=old_id, name=name, manual_instantiation=False, successful=False)
             # mkdir(output_dir)  # make it here so we can start logging to logfile
             session.add(wf)
 

@@ -7,12 +7,7 @@ import subprocess as sp
 
 import networkx as nx
 
-try:
-    from flask import url_for
-except ImportError:
-
-    def url_for(*args, **kwargs):
-        raise NotImplementedError("please install the [web] extra for web functionality")
+from flask import url_for
 
 
 from sqlalchemy.ext.declarative import declared_attr
