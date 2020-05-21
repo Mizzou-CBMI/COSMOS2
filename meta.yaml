@@ -1,0 +1,73 @@
+{% set name = "cosmos-wfm" %}
+{% set version = "2.13.2" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: ebef2381efb9f5045b59d7f928616b917b44c2286417bd61dbc965de688f9f5d
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - blinker
+    - boto3
+    - decorator
+    - drmaa
+    - flask
+    - funcsigs
+    - more-itertools
+    - networkx >=2.0
+    - pip
+    - python
+    - python-dateutil
+    - six
+    - sqlalchemy
+  run:
+    - blinker
+    - boto3
+    - decorator
+    - drmaa
+    - flask
+    - funcsigs
+    - more-itertools
+    - networkx >=2.0
+    - python
+    - python-dateutil
+    - six
+    - sqlalchemy
+
+test:
+  imports:
+    - cosmos
+    - cosmos.core
+    - cosmos.core.cmd_fxn
+    - cosmos.graph
+    - cosmos.job
+    - cosmos.job.drm
+    - cosmos.models
+    - cosmos.util
+    - cosmos.web
+    - cosmos.web.gemon
+    - docs
+    - docs.source
+    - docs.source._static
+    - docs.source._static.imgs
+
+about:
+  home: "https://mizzou-cbmi.github.io/"
+  license: "GNU General Public v3 (GPLv3)"
+  license_family: GPL3
+  license_file: 
+  summary: "Workflow Management System"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
