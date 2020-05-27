@@ -187,6 +187,8 @@ compatible with these old databases.  This can be easily fixed by migrating the 
 
 To use cosmos 2.13.0 on old databases, you must add this new column.  Ex:
 
+.. code-block:: bash
+
     sqlite cosmos.sqlite
     sqlite> alter table task add status_reason CHAR(255)
 

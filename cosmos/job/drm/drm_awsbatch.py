@@ -15,7 +15,7 @@ from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.util.helpers import progress_bar
 
-MAX_THREADS = 25
+MAX_THREADS = 50
 BOTO_CONFIG = Config(retries=dict(max_attempts=10, mode="adaptive"), max_pool_connections=25)
 
 
