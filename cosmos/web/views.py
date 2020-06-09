@@ -18,6 +18,7 @@ from cosmos.api import Workflow, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph
+from ..job.drm.drm_awsbatch import get_logs_from_job_id
 
 
 def gen_bprint(session):
@@ -25,7 +26,11 @@ def gen_bprint(session):
         return session.query(Workflow).filter_by(id=id).one()
 
     bprint = Blueprint(
-        "cosmos", __name__, template_folder="templates", static_folder="static", static_url_path="/cosmos/static",
+        "cosmos",
+        __name__,
+        template_folder="templates",
+        static_folder="static",
+        static_url_path="/cosmos/static",
     )
     filters.add_filters(bprint)
 
@@ -108,7 +113,15 @@ def gen_bprint(session):
         if task is None:
             return abort(404)
         resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
-        return render_template("cosmos/task.html", task=task, resource_usage=resource_usage)
+
+        if task.drm == "awsbatch":
+            task_stdout_text = get_logs_from_job_id(task.drm_jobID)
+        else:
+            task_stdout_text = task.stdout_text
+
+        return render_template(
+            "cosmos/task.html", task=task, resource_usage=resource_usage, task_stdout_text=task_stdout_text
+        )
 
     @bprint.route("/workflow/<int:id>/taskgraph/<type>/")
     def taskgraph(id, type):

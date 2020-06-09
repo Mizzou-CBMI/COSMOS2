@@ -29,7 +29,7 @@
     <div class="row">
         <div class="col-md-6">
             <h3>Attributes</h3>
-            <dl class="dl-horizontal">
+            <dl class="dl-horizontal small">
                 <dt>status</dt>
                 <dd><strong>{{ task.status }}</strong></dd>
                 <dt>successful</dt>
@@ -63,7 +63,7 @@
 
             </dl>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 small">
             <h3>Params</h3>
 
 
@@ -112,7 +112,7 @@
             <h3 class="panel-title">Command</h3>
         </div>
         <div class="panel-body">
-            <pre>{{ task.command_script_text }}</pre>
+            <pre class="small">{{ task.command_script_text }}</pre>
         </div>
     </div>
 
@@ -123,7 +123,7 @@
             <h3 class="panel-title">STDOUT</h3>
         </div>
         <div class="panel-body">
-            <pre>{{ task.stdout_text }}</pre>
+            <pre class="small">{{ task_stdout_text }}</pre>
         </div>
     </div>
 
@@ -134,7 +134,7 @@
             <h3 class="panel-title">STDERR </h3>
         </div>
         <div class="panel-body">
-            <pre>{{ task.stderr_text }}</pre>
+            <pre class="small">{{ task.stderr_text }}</pre>
 
         </div>
     </div>
@@ -142,7 +142,7 @@
     <h2>Resources</h2>
     <table class="table table-striped table-condensed">
         <tbody>
-        <tr>
+        <tr>e
             <th>Name</th>
             <th>Value</th>
         </tbody>

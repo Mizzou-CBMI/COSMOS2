@@ -39,7 +39,8 @@ def progress_bar(iterable, count=None, prefix="", progress_bar_size=60, output_f
             hashes = "#" * num_hashes
             dots = "." * (progress_bar_size - num_hashes)
             done = i + 1
-            output_file.write("{prefix}[{hashes}{dots}] {done}/{count}\r".format(**locals()))
+            carriage_return = "\r" if i < count - 1 else ""
+            output_file.write(f"{prefix}[{hashes}{dots}] {done}/{count}{carriage_return}")
             output_file.flush()
 
         last_num_hashes = num_hashes

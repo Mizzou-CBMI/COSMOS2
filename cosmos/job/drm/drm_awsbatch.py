@@ -68,7 +68,9 @@ def submit_script_as_aws_batch_job(
             "trailing slash.  It is set to %s" % s3_prefix_for_command_script_temp_files
         )
     if not s3_prefix_for_command_script_temp_files.startswith("s3://"):
-        raise ValueError("invalid s3_prefix_for_command_script_temp_files: %s" % s3_prefix_for_command_script_temp_files)
+        raise ValueError(
+            "invalid s3_prefix_for_command_script_temp_files: %s" % s3_prefix_for_command_script_temp_files
+        )
 
     batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
     s3 = boto3.client(service_name="s3", config=BOTO_CONFIG)
@@ -82,7 +84,11 @@ def submit_script_as_aws_batch_job(
     # which would save the resource data to a s3_command_script_uri.resources.csv
     # which i could parse on cleanup.
     # This would require that the image have glances installed though, obviously.
-    command = "aws s3 cp --quiet {s3_command_script_uri} command_script && " "chmod +x command_script && " "./command_script"
+    command = (
+        "aws s3 cp --quiet {s3_command_script_uri} command_script && "
+        "chmod +x command_script && "
+        "./command_script"
+    )
     command = command.format(**locals())
 
     container_overrides = {
@@ -103,25 +109,57 @@ def submit_script_as_aws_batch_job(
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
     submit_jobs_response = batch.submit_job(
-        jobName=job_name, jobQueue=job_queue, jobDefinition=job_def_arn, containerOverrides=container_overrides,
+        jobName=job_name,
+        jobQueue=job_queue,
+        jobDefinition=job_def_arn,
+        containerOverrides=container_overrides,
     )
     jobId = submit_jobs_response["jobId"]
 
     return jobId, s3_command_script_uri
 
 
-def get_logs(log_stream_name, attempts=9, sleep_between_attempts=10):
+def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts=10):
     logs_client = boto3.client(service_name="logs", config=BOTO_CONFIG)
     try:
-        response = logs_client.get_log_events(logGroupName="/aws/batch/job", logStreamName=log_stream_name, startFromHead=True)
-        _check_aws_response_for_error(response)
-        return "\n".join(d["message"] for d in response["events"])
+        next_logs_token = None
+        messages = []
+        while True:
+            response = logs_client.get_log_events(
+                logGroupName="/aws/batch/job",
+                logStreamName=log_stream_name,
+                startFromHead=True,
+                **(dict(nextToken=next_logs_token) if next_logs_token is not None else dict()),
+            )
+            _check_aws_response_for_error(response)
+            messages += [e["message"] for e in response["events"]]
+            if next_logs_token == response["nextForwardToken"]:
+                break
+            else:
+                next_logs_token = response["nextForwardToken"]
+
+        return "\n".join(message for message in messages if not "\r" in message)
     except logs_client.exceptions.ResourceNotFoundException:
         if attempts == 1:
             return "log stream not found for log_stream_name: %s\n" % log_stream_name
         else:
             time.sleep(sleep_between_attempts)
-            return get_logs(log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts,)
+            return get_logs_from_log_stream(
+                log_stream_name, attempts=attempts - 1, sleep_between_attempts=sleep_between_attempts,
+            )
+
+
+def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, logger=None):
+    job_dict = get_aws_batch_job_infos([job_id], logger)
+    log_stream_name = job_dict[0]["container"].get("logStreamName")
+
+    if log_stream_name is None:
+        return "no log stream was available for job: %s\n" % job_id
+    else:
+        # write logs to stdout
+        return get_logs_from_log_stream(
+            log_stream_name=log_stream_name, attempts=attempts, sleep_between_attempts=sleep_between_attepts,
+        )
 
 
 class JobStatusMismatchError(Exception):
@@ -139,7 +177,7 @@ def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
     return returned_jobs
 
 
-def get_aws_batch_job_infos(all_job_ids, logger):
+def get_aws_batch_job_infos(all_job_ids, logger=None):
     # ensure that the list of job ids is unique
     assert len(all_job_ids) == len(set(all_job_ids))
     batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
@@ -149,7 +187,10 @@ def get_aws_batch_job_infos(all_job_ids, logger):
             try:
                 batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
             except JobStatusMismatchError:
-                logger.warning("aws batch describe-jobs returned different jobs than were passed. Re-trying.")
+                if logger is not None:
+                    logger.warning(
+                        "aws batch describe-jobs returned different jobs than were passed. Re-trying."
+                    )
                 continue
             else:
                 returned_jobs.extend(batch_returned_jobs)
@@ -181,7 +222,9 @@ def register_base_job_definition(container_image, environment, command):
 
     batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
     resp = batch.register_job_definition(
-        jobDefinitionName="cosmos_base_job_definition", type="container", containerProperties=container_properties,
+        jobDefinitionName="cosmos_base_job_definition",
+        type="container",
+        containerProperties=container_properties,
     )
     _check_aws_response_for_error(resp)
     job_definition_arn = resp["jobDefinitionArn"]
@@ -252,7 +295,9 @@ class DRM_AWSBatch(DRM):
         job_def_arn = self.image_to_job_definition[task.drm_options["container_image"]]
         (jobId, s3_command_script_uri,) = submit_script_as_aws_batch_job(
             local_script_path=task.output_command_script_path,
-            s3_prefix_for_command_script_temp_files=task.drm_options["s3_prefix_for_command_script_temp_files"],
+            s3_prefix_for_command_script_temp_files=task.drm_options[
+                "s3_prefix_for_command_script_temp_files"
+            ],
             # container_image=task.drm_options["container_image"],
             job_def_arn=job_def_arn,
             job_name=job_name,
@@ -343,17 +388,12 @@ class DRM_AWSBatch(DRM):
         if get_log_attempts > 0:
             # if log_stream_name wasn't passed in, query aws to get it
             if log_stream_name is None:
-                job_dict = get_aws_batch_job_infos([task.drm_jobID], self.log)
-                log_stream_name = job_dict[0]["container"].get("logStreamName")
-
-            if log_stream_name is None:
-                logs = "no log stream was available for job: %s\n" % task.drm_jobID
+                logs = get_logs_from_job_id(
+                    task.drm_jobID, get_log_attempts, get_log_sleep_between_attempts, task.log
+                )
             else:
-                # write logs to stdout
-                logs = get_logs(
-                    log_stream_name=log_stream_name,
-                    attempts=get_log_attempts,
-                    sleep_between_attempts=get_log_sleep_between_attempts,
+                logs = get_logs_from_log_stream(
+                    log_stream_name, get_log_attempts, get_log_sleep_between_attempts
                 )
 
             with open(task.output_stdout_path, "w") as fp:
@@ -383,7 +423,9 @@ class DRM_AWSBatch(DRM):
         # cancel_job_response = batch_client.cancel_job(jobId=task.drm_jobID, reason="terminated by cosmos")
         # _check_aws_response_for_error(cancel_job_response)
 
-        terminate_job_response = batch_client.terminate_job(jobId=task.drm_jobID, reason="terminated by cosmos")
+        terminate_job_response = batch_client.terminate_job(
+            jobId=task.drm_jobID, reason="terminated by cosmos"
+        )
         _check_aws_response_for_error(terminate_job_response)
 
     def kill(self, task):
@@ -408,4 +450,8 @@ def _check_aws_response_for_error(r):
 
     status_code = r["ResponseMetadata"]["HTTPStatusCode"]
     if status_code != 200:
-        raise Exception("Task status request received status code {0}:\n{1}".format(status_code, pprint.pformat(r, indent=2)))
+        raise Exception(
+            "Task status request received status code {0}:\n{1}".format(
+                status_code, pprint.pformat(r, indent=2)
+            )
+        )
