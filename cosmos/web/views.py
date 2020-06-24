@@ -12,7 +12,7 @@ from flask import (
     request,
     g,
 )
-from sqlalchemy import desc
+from sqlalchemy import desc, asc, or_
 
 from cosmos.api import Workflow, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
@@ -39,7 +39,8 @@ def gen_bprint(session):
         e = get_workflow(id)
         e.delete()
         flash("Deleted %s" % e)
-        return redirect(url_for("cosmos.index"))
+        return redirect(
+            url_for("cosmos.index"))
 
     @bprint.route("/")
     def index():
@@ -57,13 +58,77 @@ def gen_bprint(session):
         workflow = session.query(Workflow).filter_by(name=name).one()
         return render_template("cosmos/workflow.html", workflow=workflow)
 
-    @bprint.route("/workflow/<workflow_name>/<stage_name>/")
+    @bprint.route("/workflow/<workflow_name>/<stage_name>/", methods=['GET', 'POST'])
     def stage(workflow_name, stage_name):
+        IN_PAGE = 40  # how many tasks to show on one page
+        # these are the column names that appear in the screen
+        colnames = ["id", "task", "successful", "status", "drm_status", "drm_jobid",
+                    "attempts", "submitted_on", "finished_on", "wall_time"]
+        # this indicates if this column can be used for sorting and searching
+        names_good = ["id", "params", "successful", False, False, False,
+                      "attempt", "submitted_on", "finished_on", "wall_time"]
+
+        page = request.args.get('page', 1, type=int)
+        keyword = request.args.get('keyword', '', type=str)
+        sorting = request.args.get('sorting', None, type=str)
+        order = request.args.get('order', None, type=str)
+
         ex = session.query(Workflow).filter_by(name=workflow_name).one()
         stage = session.query(Stage).filter_by(workflow_id=ex.id, name=stage_name).one()
         if stage is None:
             return abort(404)
-        submitted = [t for t in stage.tasks if t.status == TaskStatus.submitted]
+        from sqlalchemy import text
+        tasks = session.query(Task).filter_by(stage_id=stage.id)
+        # search keyword
+        if keyword == '':
+            tasks_searched = tasks
+        else:
+            pattern = keyword.replace("'", "''")
+            tasks_searched = tasks.filter(or_(
+                *[getattr(Task, field).like(f"%{keyword}%") if field != 'params' else None
+                  for field in Task.__searchable__], text(f"params LIKE '%{pattern}%'")
+                ))
+
+        # sort
+        tasks_sorted = tasks_searched
+        if sorting is not None:
+            if order == "desc":
+                tasks_sorted = tasks_searched.order_by(desc(getattr(Task, sorting)))
+            elif order == "asc":
+                tasks_sorted = tasks_searched.order_by(asc(getattr(Task, sorting)))
+
+        tasks_paginated = tasks_sorted[(page - 1) * IN_PAGE:page * IN_PAGE]
+
+        try:
+            n = tasks_searched.count()
+            max_page = n // IN_PAGE + (n % IN_PAGE) // n
+        except ZeroDivisionError:  # no tasks found after search
+            max_page = 1
+
+        # urls for page navigation
+        first_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                            page=1, keyword=keyword,
+                            sorting=sorting, order=order) if page != 1 else None
+        prev_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                           page=page - 1, keyword=keyword,
+                           sorting=sorting, order=order) if page >= 2 else None
+        next_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                           page=page + 1, keyword=keyword,
+                           sorting=sorting, order=order) if page < max_page else None
+        last_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                           page=max_page, keyword=keyword,
+                           sorting=sorting, order=order) if page != max_page else None
+
+        # this will change only the url for the column currently used for sorting
+        order_cycle = {None: "asc", "asc": "desc", "desc": None}
+        ordering_for_urls = {colname: order_cycle[order] if good == sorting else "asc"
+                             for colname, good in zip(colnames, names_good)}
+        ordering_urls = {colname: url_for(f"cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                                          page=page, keyword=keyword, sorting=good, order=ordering_for_urls[colname]
+                                          ) if good else None
+                         for colname, good in zip(colnames, names_good)}
+
+        submitted = [t for t in tasks_paginated if t.status == TaskStatus.submitted]
         jm = JobManager(get_submit_args=None, logger=None)
 
         f = attrgetter("drm")
@@ -71,8 +136,46 @@ def gen_bprint(session):
         for drm, tasks in it.groupby(sorted(submitted, key=f), f):
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
-        return render_template("cosmos/stage.html", stage=stage, drm_statuses=drm_statuses)
+        url_handle = url_for('cosmos.handle_stage', old_page=page, old_keyword=keyword, sorting=sorting, order=order,
+                             workflow_name=workflow_name, stage_name=stage_name)
+
+        return render_template("cosmos/stage.html", stage=stage, drm_statuses=drm_statuses,
+                               tasks_on_page=tasks_paginated, max_page=max_page, colnames=colnames,
+                               ordering_urls=ordering_urls, page=page, url_handle=url_handle,
+                               first_url=first_url, prev_url=prev_url, next_url=next_url, last_url=last_url,
+                               workflow_name=workflow_name, stage_name=stage_name, keyword=keyword)
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
+
+    @bprint.route("/workflow/<workflow_name>/<stage_name>/handle_stage", methods=['GET', 'POST'])
+    def handle_stage(workflow_name, stage_name):
+        old_page = request.args.get('old_page', 1, int)
+        old_keyword = request.args.get('old_keyword', '', type=str)
+        order = request.args.get('order', 1, int)
+        sorting = request.args.get('old_sorting', None, type=str)
+
+        if request.form.get('submit_page') == 'Go to page':
+            page = request.form.get('page')
+        else:
+            page = old_page
+
+        if request.form.get('submit_search') == 'Search':
+            keyword = request.form.get('keyword')
+        else:
+            keyword = old_keyword
+
+        if request.form.get('clear_search') == 'Clear':
+            keyword = None
+            sorting = None
+            order = None
+            page = 1
+
+        colnames = ["id", "task", "successful", "status", "drm_status", "drm_jobid",
+                    "attempts", "submitted_on", "finished_on", "wall_time"]
+
+        return redirect(url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
+                                page=page, keyword=keyword, sorting=sorting, order=order,
+                                ))
+
 
     @bprint.route("/workflow/<int:ex_id>/stage/<stage_name>/delete/<int:delete_descendants>")
     def stage_delete(ex_id, stage_name, delete_descendants):

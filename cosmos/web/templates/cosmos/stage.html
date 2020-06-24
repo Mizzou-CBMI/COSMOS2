@@ -70,6 +70,35 @@
     </dl>
     <div style="clear:both">
     </div>
+    <div>
+        <form action="{{ url_handle }}" method="post" style="margin-bottom: 0.5cm">
+            <input type="text" name="page" size="2" value="{{ page }}"> / {{ max_page }}
+            <input type="submit" name="submit_page" value="Go to page">
+        </form>
+        <form action="{{ url_handle }}" method="post" style="margin-bottom: 0.5cm; display: inline" novalidate>
+            <input type="text" name="keyword" value="{{ keyword }}">
+            <input type="submit" name="submit_search" value="Search">
+        </form>
+        <form action="{{ url_handle }}" method="post" style="display: inline">
+            {% if keyword not in ['', None] %}
+            <input type="submit" name="clear_search" value="Clear">
+            {% endif %}
+        </form>
+    </div>
+    <div style="margin-bottom: 0.5cm; margin-top: 0.5cm">
+        {% if first_url %}
+            <a href="{{ first_url }}">First page</a>
+        {% endif %}
+        {% if prev_url %}
+            <a href="{{ prev_url }}">Previous page</a>
+        {% endif %}
+        {% if next_url %}
+            <a href="{{ next_url }}">Next page</a>
+        {% endif %}
+        {% if last_url %}
+            <a href="{{ last_url }}">Last page</a>
+        {% endif %}
+    </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             <span class="pull-right"></span>
@@ -77,23 +106,21 @@
             <h3 class="panel-title">{{ stage }}.tasks</h3>
         </div>
         <div class="panel-body">
-            <table class="table table-condensed table-striped datatable" id="table_expected">
+            <table class="table" id="table_expected">
                 <thead>
                 <tr>
-                    <th>id</th>
-                    <th>task</th>
-                    <th>successful</th>
-                    <th>status</th>
-                    <th>drm_status</th>
-                    <th>drm_jobid</th>
-                    <th>attempts</th>
-                    <th>submitted_on</th>
-                    <th>finished_on</th>
-                    <th>wall_time</th>
+                    {% for colname in colnames %}
+                    {% if ordering_urls[colname] %}
+                    <th><a href="{{ ordering_urls[colname] }}">{{ colname }}</a></th>
+                    {% else %}
+                    <th>{{ colname }}</th>
+                    {% endif %}
+                    {% endfor %}
                 </tr>
                 </thead>
                 <tbody>
-                {% for t in stage.tasks %}
+                {% if tasks_on_page|length != 0 %}
+                {% for t in tasks_on_page %}
                     <tr>
                         <td><a href="{{ t.url }}">{{ t.id }}</td>
                         <td><a href="{{ t.url }}">{{ t.params_pretty }}</a></td>
@@ -107,6 +134,11 @@
                         <td>{% if t.finished_on %}{{ (t.wall_time or 0)|parse_seconds }}{% endif %}</td>
                     </tr>
                 {% endfor %}
+                {% else %}
+                <tr>
+                    <td>No results found :(</td>
+                </tr>
+                {% endif %}
                 </tbody>
             </table>
 
