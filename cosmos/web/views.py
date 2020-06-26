@@ -160,6 +160,7 @@ def gen_bprint(session):
 
         if request.form.get('submit_search') == 'Search':
             keyword = request.form.get('keyword')
+            page = 1
         else:
             keyword = old_keyword
 
