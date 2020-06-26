@@ -195,8 +195,6 @@ class Task(Base):
     """
     # FIXME causes a problem with mysql?
     __table_args__ = (UniqueConstraint("stage_id", "uid", name="_uc1"),)
-    __searchable__ = ["id", "successful", "params",
-                      "attempt", "submitted_on", "finished_on", "wall_time"]
     drm_options = {}
 
     id = Column(Integer, primary_key=True)
