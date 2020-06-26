@@ -105,17 +105,17 @@ def gen_bprint(session):
             max_page = 1
 
         # urls for page navigation
-        first_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
-                            page=1, keyword=keyword,
+        first_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+                            old_page=1, old_keyword=keyword,
                             sorting=sorting, order=order) if page != 1 else None
-        prev_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
-                           page=page - 1, keyword=keyword,
+        prev_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+                           old_page=page - 1, old_keyword=keyword,
                            sorting=sorting, order=order) if page >= 2 else None
-        next_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
-                           page=page + 1, keyword=keyword,
+        next_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+                           old_page=page + 1, old_keyword=keyword,
                            sorting=sorting, order=order) if page < max_page else None
-        last_url = url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
-                           page=max_page, keyword=keyword,
+        last_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+                           old_page=max_page, old_keyword=keyword,
                            sorting=sorting, order=order) if page != max_page else None
 
         # this will change only the url for the column currently used for sorting
