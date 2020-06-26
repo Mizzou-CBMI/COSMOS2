@@ -70,40 +70,29 @@
     </dl>
     <div style="clear:both">
     </div>
-    <div>
-        <form action="{{ url_query }}" method="post" style="margin-bottom: 0.5cm">
-            <input type="text" name="page" size="2" value="{{ page }}"> / {{ max_page }}
-            <input type="submit" name="submit_page" value="Go to page">
-        </form>
-        <form action="{{ url_query }}" method="post" style="margin-bottom: 0.5cm; display: inline" novalidate>
-            <input type="text" name="keyword" value="{{ keyword }}">
-            <input type="submit" name="submit_search" value="Search">
-        </form>
-        <form action="{{ url_query }}" method="post" style="display: inline">
-            {% if keyword not in ['', None] %}
-            <input type="submit" name="clear_search" value="Clear">
-            {% endif %}
-        </form>
-    </div>
-    <div style="margin-bottom: 0.5cm; margin-top: 0.5cm">
-        {% if first_url %}
-            <a href="{{ first_url }}" class="button" >First</a>
-        {% endif %}
-        {% if prev_url %}
-            <a href="{{ prev_url }}"class="button" >Previous</a>
-        {% endif %}
-        {% if next_url %}
-            <a href="{{ next_url }}"class="button" >Next</a>
-        {% endif %}
-        {% if last_url %}
-            <a href="{{ last_url }}"class="button" >Last</a>
-        {% endif %}
-    </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             <span class="pull-right"></span>
 
             <h3 class="panel-title">{{ stage }}.tasks</h3>
+
+        </div>
+        <div style="display: inline">
+            <form action="{{ url_query }}" method="post" style="display: inline">
+                <input type="text" name="page" size="2" value="{{ page }}" style="margin-top: 0.2cm; margin-left: 0.2cm"> / {{ max_page }}
+                <input type="submit" name="submit_page" value="Go to page">
+            </form>
+        </div>
+        <div style="display: inline; float: right; margin-top: 0.2cm; margin-right: 0.2cm">
+            <form action="{{ url_query }}" method="post" style="margin-bottom: 0.5cm; display: inline" novalidate>
+                <input type="text" name="keyword" value="{{ keyword }}">
+                <input type="submit" name="submit_search" value="Search">
+            </form>
+            <form action="{{ url_query }}" method="post" style="display: inline">
+                {% if keyword not in ['', None] %}
+                <input type="submit" name="clear_search" value="Clear">
+                {% endif %}
+            </form>
         </div>
         <div class="panel-body">
             <table class="table" id="table_expected">
@@ -140,9 +129,33 @@
                 </tr>
                 {% endif %}
                 </tbody>
+
             </table>
+            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right">
+                {% if first_url %}
+                <form method="post" action="{{ first_url }}" style="display: inline;">
+                    <input type="submit" value="First">
+                </form>
+                {% endif %}
+                {% if prev_url %}
+                <form method="post" action="{{ prev_url }}" style="display: inline;">
+                    <input type="submit" value="Previous">
+                </form>
+                {% endif %}
+                {% if next_url %}
+                <form method="post" action="{{ next_url }}" style="display: inline;">
+                    <input type="submit" value="Next">
+                </form>
+                {% endif %}
+                {% if last_url %}
+                <form method="post" action="{{ last_url }}" style="display: inline;">
+                    <input type="submit" value="Last">
+                </form>
+                {% endif %}
+            </div>
 
         </div>
+
     </div>
 
 
