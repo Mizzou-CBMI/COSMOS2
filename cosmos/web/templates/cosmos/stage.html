@@ -131,7 +131,13 @@
                 </tbody>
 
             </table>
-            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right">
+            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; display: inline">
+                <form method="post" action="{{ url_query }}" style="display: inline">
+                    <input type="text" value="{{ in_page }}" name="in_page">
+                    <input type="submit" name="submit_in_page" value="Per page">
+                </form>
+            </div>
+            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right; display: inline">
                 {% if first_url %}
                 <form method="post" action="{{ first_url }}" style="display: inline;">
                     <input type="submit" value="First">
