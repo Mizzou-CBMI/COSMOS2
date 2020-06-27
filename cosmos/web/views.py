@@ -105,16 +105,16 @@ def gen_bprint(session):
             max_page = 1
 
         # urls for page navigation
-        first_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+        first_url = url_for("cosmos.stage_query", workflow_name=workflow_name, stage_name=stage_name,
                             old_page=1, old_keyword=keyword, old_in_page=in_page,
                             sorting=sorting, order=order) if page != 1 else None
-        prev_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+        prev_url = url_for("cosmos.stage_query", workflow_name=workflow_name, stage_name=stage_name,
                            old_page=page - 1, old_keyword=keyword, old_in_page=in_page,
                            sorting=sorting, order=order) if page >= 2 else None
-        next_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+        next_url = url_for("cosmos.stage_query", workflow_name=workflow_name, stage_name=stage_name,
                            old_page=page + 1, old_keyword=keyword, old_in_page=in_page,
                            sorting=sorting, order=order) if page < max_page else None
-        last_url = url_for("cosmos.query", workflow_name=workflow_name, stage_name=stage_name,
+        last_url = url_for("cosmos.stage_query", workflow_name=workflow_name, stage_name=stage_name,
                            old_page=max_page, old_keyword=keyword, old_in_page=in_page,
                            sorting=sorting, order=order) if page != max_page else None
 
@@ -128,16 +128,14 @@ def gen_bprint(session):
                                           ) if good else None
                          for colname, good in zip(colnames, names_internal)}
 
-        submitted = [t for t in tasks_paginated if t.status == TaskStatus.submitted]
-        submitted = tasks_paginated
         jm = JobManager(get_submit_args=None, logger=None)
 
         f = attrgetter("drm")
         drm_statuses = {}
-        for drm, tasks in it.groupby(sorted(submitted, key=f), f):
+        for drm, tasks in it.groupby(sorted(tasks_paginated, key=f), f):
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
-        url_query = url_for('cosmos.query', old_page=page, old_keyword=keyword, sorting=sorting, order=order,
+        url_query = url_for('cosmos.stage_query', old_page=page, old_keyword=keyword, sorting=sorting, order=order,
                             workflow_name=workflow_name, stage_name=stage_name, old_in_page=in_page)
 
         return render_template("cosmos/stage.html", stage=stage, drm_statuses=drm_statuses, in_page=in_page,
@@ -148,7 +146,7 @@ def gen_bprint(session):
         # x=filter(lambda t: t.status == TaskStatus.submitted, stage.tasks))
 
     @bprint.route("/workflow/<workflow_name>/<stage_name>/query", methods=["GET", "POST"])
-    def query(workflow_name, stage_name):
+    def stage_query(workflow_name, stage_name):
         page = request.args.get("old_page", 1, int)
         keyword = request.args.get("old_keyword", "", type=str)
         in_page = request.args.get("old_in_page", 40, type=int)
@@ -158,19 +156,22 @@ def gen_bprint(session):
         if request.form.get("submit_page") == "Go to page":
             page = request.form.get("page")
 
-        if request.form.get("submit_search") == "Search":
+        elif request.form.get("submit_search") == "Search":
             keyword = request.form.get("keyword")
             page = 1
 
-        if request.form.get("clear_search") == "Clear":
+        elif request.form.get("clear_search") == "Clear":
             keyword = None
             sorting = None
             order = None
             page = 1
 
-        if request.form.get("submit_in_page") == "Per page":
+        elif request.form.get("submit_in_page") == "Per page":
             in_page = request.form.get("in_page")
             page = 1
+
+        else:
+            raise AssertionError("Invalid form")
 
         return redirect(url_for("cosmos.stage", workflow_name=workflow_name, stage_name=stage_name,
                                 page=page, keyword=keyword, sorting=sorting, order=order, in_page=in_page,

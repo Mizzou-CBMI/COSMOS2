@@ -49,8 +49,8 @@ def main():
     )
     cosmos.initdb()
 
-    sp.check_call("mkdir -p analysis_output/ex2", shell=True)
-    os.chdir("analysis_output/ex2")
+    sp.check_call("mkdir -p analysis_output/1000tasks/", shell=True)
+    os.chdir("analysis_output/1000tasks/")
 
     workflow = cosmos.start("1000 tasks", restart=True, skip_confirm=True)
 
