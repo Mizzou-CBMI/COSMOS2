@@ -6,7 +6,6 @@ from functools import partial
 
 from cosmos.api import (
     Cosmos,
-    Dependency,
     draw_stage_graph,
     draw_task_graph,
     pygraphviz_available,
@@ -14,19 +13,14 @@ from cosmos.api import (
 )
 
 
-def echo(word, out_txt):
-    return r"""
-        echo {word} > {out_txt}
-    """.format(
-        **locals()
-    )
+def echo(word):
+    return f"echo {word}"
 
 
 def recipe(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (source nodes of the dag).
     echo_tasks = [
-        workflow.add_task(func=echo, params=dict(word=word, out_txt="%s.txt" % word), uid=word, mem_req=10,)
-        for word in list(map(str, range(1000)))
+        workflow.add_task(func=echo, params=dict(word=word), uid=word) for word in list(map(str, range(1000)))
     ]
 
 
@@ -52,12 +46,12 @@ def main():
     sp.check_call("mkdir -p analysis_output/1000tasks/", shell=True)
     os.chdir("analysis_output/1000tasks/")
 
-    workflow = cosmos.start("1000 tasks", restart=True, skip_confirm=True)
+    workflow = cosmos.start("1000_tasks", restart=True, skip_confirm=True)
 
     recipe(workflow)
 
     workflow.make_output_dirs()
-    workflow.run(max_cores=10)
+    workflow.run(max_cores=100)
 
     # Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG
     # you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.

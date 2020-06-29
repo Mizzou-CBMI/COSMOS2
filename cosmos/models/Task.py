@@ -76,7 +76,14 @@ def task_status_changed(task):
         if not task.NOOP:
             task.log.info(
                 "%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s"
-                % (task, task.status, repr(task.drm), repr(task.drm_jobID), repr(task.job_class), repr(task.queue),)
+                % (
+                    task,
+                    task.status,
+                    repr(task.drm),
+                    repr(task.drm_jobID),
+                    repr(task.job_class),
+                    repr(task.queue),
+                )
             )
         task.submitted_on = datetime.datetime.now()
 
@@ -98,7 +105,9 @@ def task_status_changed(task):
             else:
                 exit_reason = "failed"
 
-            task.log.warn(f"{task} attempt #{task.attempt} {exit_reason} with status_reason: '{task.status_reason}'")
+            task.log.warn(
+                f"{task} attempt #{task.attempt} {exit_reason} with status_reason: '{task.status_reason}'"
+            )
             regex = task.drm_options.get("retry_only_if_status_reason_matches")
             # if task.status_reason matches our regex, then we want to retry
             # ex: regex = "Host .+ Terminated", task.status_reason = "Host Terminated" would indicate we want
@@ -110,7 +119,9 @@ def task_status_changed(task):
 
             if status_reason_is_valid_for_retry and task.attempt < task.max_attempts:
                 task.attempt += 1
-                task.log.info(f"Reattempting {task}, this will be attempt #{task.attempt}, max_attempts={task.max_attempts}")
+                task.log.info(
+                    f"Reattempting {task}, this will be attempt #{task.attempt}, max_attempts={task.max_attempts}"
+                )
                 task.status = TaskStatus.no_attempt
             else:
                 wait_for_file(task.workflow, task.output_stderr_path, 30, error=False)
@@ -145,7 +156,9 @@ def task_status_changed(task):
 
 def logplus(filename):
     prefix, suffix = os.path.splitext(filename)
-    return property(lambda self: os.path.join(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix)))
+    return property(
+        lambda self: os.path.join(self.log_dir, "{0}_attempt{1}{2}".format(prefix, self.attempt, suffix))
+    )
 
 
 def readfile(path):
@@ -445,18 +458,26 @@ class Task(Base):
 
     @property
     def url(self):
-        return url_for("cosmos.task", ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id,)
+        return url_for(
+            "cosmos.task", ex_name=self.workflow.name, stage_name=self.stage.name, task_id=self.id,
+        )
 
     @property
     def params_pretty(self):
-        return "%s" % ", ".join("%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v) for k, v in list(self.params.items()))
+        return "%s" % ", ".join(
+            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v) for k, v in list(self.params.items())
+        )
 
     @property
     def params_pformat(self):
         return pprint.pformat(self.params, indent=2, width=1)
 
     def __repr__(self):
-        return "<Task[%s] %s(uid='%s')>" % (self.id or "id_%s" % id(self), self.stage.name if self.stage else "", self.uid,)
+        return "<Task[%s] %s(uid='%s')>" % (
+            self.id or "id_%s" % id(self),
+            self.stage.name if self.stage else "",
+            self.uid,
+        )
 
     def __str__(self):
         return self.__repr__()
