@@ -140,22 +140,22 @@
             <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right; display: inline">
                 {% if first_url %}
                 <form method="post" action="{{ first_url }}" style="display: inline;">
-                    <input type="submit" value="First">
+                    <input type="submit" value="First" name="first_page">
                 </form>
                 {% endif %}
                 {% if prev_url %}
                 <form method="post" action="{{ prev_url }}" style="display: inline;">
-                    <input type="submit" value="Previous">
+                    <input type="submit" value="Previous" name="previous_page">
                 </form>
                 {% endif %}
                 {% if next_url %}
                 <form method="post" action="{{ next_url }}" style="display: inline;">
-                    <input type="submit" value="Next">
+                    <input type="submit" value="Next" name="next_page">
                 </form>
                 {% endif %}
                 {% if last_url %}
                 <form method="post" action="{{ last_url }}" style="display: inline;">
-                    <input type="submit" value="Last">
+                    <input type="submit" value="Last" name="last_page">
                 </form>
                 {% endif %}
             </div>
