@@ -75,25 +75,41 @@
             <span class="pull-right"></span>
 
             <h3 class="panel-title">{{ stage }}.tasks</h3>
+
+        </div>
+        <div style="display: inline">
+            <form action="{{ url_query }}" method="post" style="display: inline">
+                <input type="text" name="page" size="2" value="{{ page }}" style="margin-top: 0.2cm; margin-left: 0.2cm"> / {{ max_page }}
+                <input type="submit" name="submit_page" value="Go to page">
+            </form>
+        </div>
+        <div style="display: inline; float: right; margin-top: 0.2cm; margin-right: 0.2cm">
+            <form action="{{ url_query }}" method="post" style="margin-bottom: 0.5cm; display: inline" novalidate>
+                <input type="text" name="keyword" value="{{ keyword }}">
+                <input type="submit" name="submit_search" value="Search">
+            </form>
+            <form action="{{ url_query }}" method="post" style="display: inline">
+                {% if keyword not in ['', None] %}
+                <input type="submit" name="clear_search" value="Clear">
+                {% endif %}
+            </form>
         </div>
         <div class="panel-body">
-            <table class="table table-condensed table-striped datatable" id="table_expected">
+            <table class="table" id="table_expected">
                 <thead>
                 <tr>
-                    <th>id</th>
-                    <th>task</th>
-                    <th>successful</th>
-                    <th>status</th>
-                    <th>drm_status</th>
-                    <th>drm_jobid</th>
-                    <th>attempts</th>
-                    <th>submitted_on</th>
-                    <th>finished_on</th>
-                    <th>wall_time</th>
+                    {% for colname in colnames %}
+                    {% if ordering_urls[colname] %}
+                    <th><a href="{{ ordering_urls[colname] }}">{{ colname }}</a></th>
+                    {% else %}
+                    <th>{{ colname }}</th>
+                    {% endif %}
+                    {% endfor %}
                 </tr>
                 </thead>
                 <tbody>
-                {% for t in stage.tasks %}
+                {% if tasks_on_page|length != 0 %}
+                {% for t in tasks_on_page %}
                     <tr>
                         <td><a href="{{ t.url }}">{{ t.id }}</td>
                         <td><a href="{{ t.url }}">{{ t.params_pretty }}</a></td>
@@ -107,10 +123,45 @@
                         <td>{% if t.finished_on %}{{ (t.wall_time or 0)|parse_seconds }}{% endif %}</td>
                     </tr>
                 {% endfor %}
+                {% else %}
+                <tr>
+                    <td>No results found :(</td>
+                </tr>
+                {% endif %}
                 </tbody>
+
             </table>
+            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; display: inline">
+                <form method="post" action="{{ url_query }}" style="display: inline">
+                    <input type="text" value="{{ in_page }}" name="in_page">
+                    <input type="submit" name="submit_in_page" value="Per page">
+                </form>
+            </div>
+            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right; display: inline">
+                {% if first_url %}
+                <form method="post" action="{{ first_url }}" style="display: inline;">
+                    <input type="submit" value="First">
+                </form>
+                {% endif %}
+                {% if prev_url %}
+                <form method="post" action="{{ prev_url }}" style="display: inline;">
+                    <input type="submit" value="Previous">
+                </form>
+                {% endif %}
+                {% if next_url %}
+                <form method="post" action="{{ next_url }}" style="display: inline;">
+                    <input type="submit" value="Next">
+                </form>
+                {% endif %}
+                {% if last_url %}
+                <form method="post" action="{{ last_url }}" style="display: inline;">
+                    <input type="submit" value="Last">
+                </form>
+                {% endif %}
+            </div>
 
         </div>
+
     </div>
 
 
