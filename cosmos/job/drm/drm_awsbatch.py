@@ -16,7 +16,7 @@ from cosmos.job.drm.DRM_Base import DRM
 from cosmos.util.helpers import progress_bar
 
 MAX_THREADS = 50
-BOTO_CONFIG = Config(retries=dict(max_attempts=10, mode="adaptive"), max_pool_connections=25)
+BOTO_CONFIG = Config(retries=dict(max_attempts=50, mode="adaptive"), max_pool_connections=25)
 
 
 def random_string(length):
@@ -119,8 +119,10 @@ def submit_script_as_aws_batch_job(
     return jobId, s3_command_script_uri
 
 
-def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts=10):
-    logs_client = boto3.client(service_name="logs", config=BOTO_CONFIG)
+def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts=10, boto_config=None):
+    if boto_config is None:
+        boto_config = BOTO_CONFIG
+    logs_client = boto3.client(service_name="logs", config=boto_config)
     try:
         next_logs_token = None
         messages = []
@@ -140,7 +142,7 @@ def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts
 
         return "\n".join(message for message in messages if not "\r" in message)
     except logs_client.exceptions.ResourceNotFoundException:
-        if attempts == 1:
+        if attempts <= 1:
             return "log stream not found for log_stream_name: %s\n" % log_stream_name
         else:
             time.sleep(sleep_between_attempts)
@@ -149,8 +151,10 @@ def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts
             )
 
 
-def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, logger=None):
-    job_dict = get_aws_batch_job_infos([job_id], logger)
+def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, logger=None, boto_config=None):
+    if boto_config is None:
+        boto_config = BOTO_CONFIG
+    job_dict = get_aws_batch_job_infos([job_id], logger, boto_config=boto_config)
     log_stream_name = job_dict[0]["container"].get("logStreamName")
 
     if log_stream_name is None:
@@ -158,7 +162,10 @@ def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, logger=No
     else:
         # write logs to stdout
         return get_logs_from_log_stream(
-            log_stream_name=log_stream_name, attempts=attempts, sleep_between_attempts=sleep_between_attepts,
+            log_stream_name=log_stream_name,
+            attempts=attempts,
+            sleep_between_attempts=sleep_between_attepts,
+            boto_config=boto_config,
         )
 
 
@@ -177,10 +184,12 @@ def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
     return returned_jobs
 
 
-def get_aws_batch_job_infos(all_job_ids, logger=None):
+def get_aws_batch_job_infos(all_job_ids, logger=None, boto_config=None):
+    if boto_config is None:
+        boto_config = BOTO_CONFIG
     # ensure that the list of job ids is unique
     assert len(all_job_ids) == len(set(all_job_ids))
-    batch_client = boto3.client(service_name="batch", config=BOTO_CONFIG)
+    batch_client = boto3.client(service_name="batch", config=boto_config)
     returned_jobs = []
     for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
         while True:
