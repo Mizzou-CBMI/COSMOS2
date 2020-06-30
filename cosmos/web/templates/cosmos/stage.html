@@ -82,6 +82,10 @@
                 <input type="text" name="page" size="2" value="{{ page }}" style="margin-top: 0.2cm; margin-left: 0.2cm"> / {{ max_page }}
                 <input type="submit" name="submit_page" value="Go to page">
             </form>
+            <form method="post" action="{{ url_query }}" style="display: inline">
+                <input type="text" value="{{ in_page }}" name="in_page" size="2">
+                <input type="submit" name="submit_in_page" value="Per page">
+            </form>
         </div>
         <div style="display: inline; float: right; margin-top: 0.2cm; margin-right: 0.2cm">
             <form action="{{ url_query }}" method="post" style="margin-bottom: 0.5cm; display: inline" novalidate>
@@ -131,12 +135,6 @@
                 </tbody>
 
             </table>
-            <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; display: inline">
-                <form method="post" action="{{ url_query }}" style="display: inline">
-                    <input type="text" value="{{ in_page }}" name="in_page">
-                    <input type="submit" name="submit_in_page" value="Per page">
-                </form>
-            </div>
             <div style="margin-bottom: 0.5cm; margin-top: 0.5cm; float: right; display: inline">
                 {% if first_url %}
                 <form method="post" action="{{ first_url }}" style="display: inline;">
