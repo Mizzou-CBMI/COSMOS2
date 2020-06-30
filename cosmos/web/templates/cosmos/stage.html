@@ -114,7 +114,7 @@
                         <td><a href="{{ t.url }}">{{ t.id }}</td>
                         <td><a href="{{ t.url }}">{{ t.params_pretty }}</a></td>
                         <td>{{ t.successful|to_thumb }}</td>
-                        <td>{{ t.status }}</td>
+                        <td>{{ t.status._name_ }}</td>
                         <td>{{ drm_statuses.get(t.drm_jobID,'') }}</td>
                         <th>{{ t.drm_jobID }}</th>
                         <td>{{ t.attempt }}</td>
