@@ -269,13 +269,13 @@ def gen_bprint(session):
             in_page = request.form.get("in_page")
             page = 1
 
-        elif request.form.get('first_page') == 'First':
+        elif request.form.get("first_page") == "First":
             pass
-        elif request.form.get('previous_page') == 'Previous':
+        elif request.form.get("previous_page") == "Previous":
             pass
-        elif request.form.get('next_page') == 'Next':
+        elif request.form.get("next_page") == "Next":
             pass
-        elif request.form.get('last_page') == 'Last':
+        elif request.form.get("last_page") == "Last":
             pass
 
         else:
