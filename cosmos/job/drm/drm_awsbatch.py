@@ -364,7 +364,10 @@ class DRM_AWSBatch(DRM):
             if job_dict["status"] in ["SUCCEEDED", "FAILED"]:
                 # get exit status
                 if "attempts" in job_dict:
-                    attempt = job_dict["attempts"][-1]
+                    try:  # this can be triggered by some role permissions issues
+                        attempt = job_dict["attempts"][-1]
+                    except:
+                        raise ValueError(f"Error with job_dict\n{pprint.pformat(job_dict, indent=2)}")
                     # if re.search("Host EC2 .+ terminated.", attempt["statusReason"]):
                     #     # this job failed because the instance was shut down (presumably because it was a
                     #     # spot instance)
