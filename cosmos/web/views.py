@@ -1,7 +1,6 @@
 import itertools as it
 from operator import attrgetter
 
-from botocore.config import Config
 from flask import (
     Markup,
     render_template,
@@ -19,7 +18,6 @@ from cosmos.api import Workflow, Stage, Task, TaskStatus
 from ..job.JobManager import JobManager
 from . import filters
 from ..graph.draw import draw_task_graph, draw_stage_graph
-from ..job.drm.drm_awsbatch import get_logs_from_job_id
 
 
 def gen_bprint(session):
@@ -206,10 +204,10 @@ def gen_bprint(session):
         }
 
         jm = JobManager(get_submit_args=None, logger=None)
-
+        submitted = [t for t in tasks_paginated if t.status == TaskStatus.submitted]
         f = attrgetter("drm")
         drm_statuses = {}
-        for drm, tasks in it.groupby(sorted(tasks_paginated, key=f), f):
+        for drm, tasks in it.groupby(sorted(submitted, key=f), f):
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
         url_query = url_for(
