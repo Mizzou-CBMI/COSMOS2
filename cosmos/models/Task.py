@@ -113,7 +113,7 @@ def task_status_changed(task):
             # ex: regex = "Host .+ Terminated", task.status_reason = "Host Terminated" would indicate we want
             # to retry because a spot instance died
             if regex is not None:
-                status_reason_is_valid_for_retry = re.search(regex, task.status_reason)
+                status_reason_is_valid_for_retry = re.search(regex, task.status_reason or "")
             else:
                 status_reason_is_valid_for_retry = True
 

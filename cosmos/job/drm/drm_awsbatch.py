@@ -1,4 +1,4 @@
-import logging
+import getpass
 import os
 import pprint
 import random
@@ -151,10 +151,10 @@ def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts
             )
 
 
-def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, logger=None, boto_config=None):
+def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_config=None):
     if boto_config is None:
         boto_config = BOTO_CONFIG
-    job_dict = get_aws_batch_job_infos([job_id], logger, boto_config=boto_config)
+    job_dict = get_aws_batch_job_infos([job_id], boto_config=boto_config)
     log_stream_name = job_dict[0]["container"].get("logStreamName")
 
     if log_stream_name is None:
@@ -184,7 +184,7 @@ def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
     return returned_jobs
 
 
-def get_aws_batch_job_infos(all_job_ids, logger=None, boto_config=None):
+def get_aws_batch_job_infos(all_job_ids, boto_config=None):
     if boto_config is None:
         boto_config = BOTO_CONFIG
     # ensure that the list of job ids is unique
@@ -192,18 +192,9 @@ def get_aws_batch_job_infos(all_job_ids, logger=None, boto_config=None):
     batch_client = boto3.client(service_name="batch", config=boto_config)
     returned_jobs = []
     for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
-        while True:
-            try:
-                batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
-            except JobStatusMismatchError:
-                if logger is not None:
-                    logger.warning(
-                        "aws batch describe-jobs returned different jobs than were passed. Re-trying."
-                    )
-                continue
-            else:
-                returned_jobs.extend(batch_returned_jobs)
-                break
+        batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
+        returned_jobs.extend(batch_returned_jobs)
+
     returned_ids = [job["jobId"] for job in returned_jobs]
     assert sorted(returned_ids) == sorted(all_job_ids), str(set(returned_ids) - set(all_job_ids)) + str(
         set(all_job_ids) - set(returned_ids)
@@ -291,7 +282,7 @@ class DRM_AWSBatch(DRM):
 
         job_name = "".join(
             [
-                "cosmos-",
+                f"cosmos__{getpass.getuser()}__",
                 task.stage.name.replace("/", "__").replace(":", ""),
                 "__",
                 task.uid.replace("/", "__").replace(":", ""),
@@ -357,7 +348,7 @@ class DRM_AWSBatch(DRM):
         if len(job_ids) == 0:
             job_id_to_job_dict = dict()
         else:
-            jobs = get_aws_batch_job_infos(job_ids, self.log)
+            jobs = get_aws_batch_job_infos(job_ids)
             job_id_to_job_dict = {job["jobId"]: job for job in jobs}
         for task in tasks:
             job_dict = job_id_to_job_dict[task.drm_jobID]
@@ -424,7 +415,7 @@ class DRM_AWSBatch(DRM):
         job_ids = [task.drm_jobID for task in tasks]
         if len(job_ids) == 0:
             return {}
-        return {d["jobId"]: d["status"] for d in get_aws_batch_job_infos(job_ids, self.log)}
+        return {d["jobId"]: d["status"] for d in get_aws_batch_job_infos(job_ids)}
 
     def _terminate_task(self, task):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)

@@ -20,10 +20,9 @@ def parse_args():
     p.add_argument(
         "-i",
         "--container-image",
-        help="the docker container image to use for the awsbatch job.  Note that "
-        "the container_image must have bin/run_s3_script in its path (which "
-        "will be true if cosmos is installed in the docker container).  This script is used to run "
-        "a command script which was uploaded as a temporary file to s3.",
+        help="you must have the aws command line tools installed, and it must have access to copy from the s3 bucket "
+        "defined in --s3-prefix-for-command-script-temp-files (ie the container should be able to run "
+        "`s3 cp s3://bucket ./`",
         required=True,
     )
     p.add_argument(

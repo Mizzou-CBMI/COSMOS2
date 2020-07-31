@@ -210,6 +210,7 @@ def gen_bprint(session):
         f = attrgetter("drm")
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(tasks_paginated, key=f), f):
+            pass
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
         url_query = url_for(
@@ -334,23 +335,23 @@ def gen_bprint(session):
             return abort(404)
         resource_usage = [(field, getattr(task, field)) for field in task.profile_fields]
 
-        # if task.drm == "awsbatch":
-        #     try:
-        #         task_stdout_text = get_logs_from_job_id(
-        #             task.drm_jobID,
-        #             attempts=1,
-        #             sleep_between_attepts=0,
-        #             boto_config=Config(
-        #                 retries=dict(max_attempts=1, mode="standard", total_max_attempts=1),
-        #                 max_pool_connections=1,
-        #                 read_timeout=1,
-        #                 connect_timeout=1,
-        #             ),
-        #         )
-        #     except Exception:
-        #         task_stdout_text = task.stdout_text
-        # else:
-        task_stdout_text = task.stdout_text
+        if task.drm == "awsbatch":
+            try:
+                task_stdout_text = get_logs_from_job_id(
+                    task.drm_jobID,
+                    attempts=1,
+                    sleep_between_attepts=0,
+                    boto_config=Config(
+                        retries=dict(max_attempts=1, mode="standard", total_max_attempts=1),
+                        max_pool_connections=1,
+                        read_timeout=1,
+                        connect_timeout=1,
+                    ),
+                )
+            except Exception:
+                task_stdout_text = task.stdout_text
+        else:
+            task_stdout_text = task.stdout_text
 
         return render_template(
             "cosmos/task.html", task=task, resource_usage=resource_usage, task_stdout_text=task_stdout_text
