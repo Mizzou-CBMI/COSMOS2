@@ -173,18 +173,19 @@ class JobStatusMismatchError(Exception):
     pass
 
 
-def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
+def _get_aws_batch_job_infos_for_batch(job_ids, batch_client, missing_ok=False):
     # ensure that the list of job ids is unique
     assert len(job_ids) == len(set(job_ids))
     describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
     _check_aws_response_for_error(describe_jobs_response)
     returned_jobs = sorted(describe_jobs_response["jobs"], key=lambda job: job_ids.index(job["jobId"]))
-    if sorted([job["jobId"] for job in returned_jobs]) != sorted(job_ids):
-        raise JobStatusMismatchError()
+    if not missing_ok:
+        if sorted([job["jobId"] for job in returned_jobs]) != sorted(job_ids):
+            raise JobStatusMismatchError()
     return returned_jobs
 
 
-def get_aws_batch_job_infos(all_job_ids, boto_config=None):
+def get_aws_batch_job_infos(all_job_ids, boto_config=None, missing_ok=False):
     if boto_config is None:
         boto_config = BOTO_CONFIG
     # ensure that the list of job ids is unique
@@ -192,13 +193,14 @@ def get_aws_batch_job_infos(all_job_ids, boto_config=None):
     batch_client = boto3.client(service_name="batch", config=boto_config)
     returned_jobs = []
     for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
-        batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client)
+        batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client, missing_ok=missing_ok)
         returned_jobs.extend(batch_returned_jobs)
 
     returned_ids = [job["jobId"] for job in returned_jobs]
-    assert sorted(returned_ids) == sorted(all_job_ids), str(set(returned_ids) - set(all_job_ids)) + str(
-        set(all_job_ids) - set(returned_ids)
-    )
+    if not missing_ok:
+        assert sorted(returned_ids) == sorted(all_job_ids), str(set(returned_ids) - set(all_job_ids)) + str(
+            set(all_job_ids) - set(returned_ids)
+        )
     return returned_jobs
 
 
@@ -418,7 +420,7 @@ class DRM_AWSBatch(DRM):
         job_ids = [task.drm_jobID for task in tasks]
         if len(job_ids) == 0:
             return {}
-        return {d["jobId"]: d["status"] for d in get_aws_batch_job_infos(job_ids)}
+        return {d["jobId"]: d["status"] for d in get_aws_batch_job_infos(job_ids, missing_ok=True)}
 
     def _terminate_task(self, task):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)

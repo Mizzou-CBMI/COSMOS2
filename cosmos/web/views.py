@@ -210,7 +210,6 @@ def gen_bprint(session):
         f = attrgetter("drm")
         drm_statuses = {}
         for drm, tasks in it.groupby(sorted(tasks_paginated, key=f), f):
-            pass
             drm_statuses.update(jm.get_drm(drm).drm_statuses(list(tasks)))
 
         url_query = url_for(
