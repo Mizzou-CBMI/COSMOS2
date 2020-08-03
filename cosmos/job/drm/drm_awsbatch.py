@@ -173,7 +173,7 @@ class JobStatusMismatchError(Exception):
     pass
 
 
-def _get_aws_batch_job_infos_for_batch(job_ids, batch_client):
+def _get_aws_batch_job_infos_for_batch(job_ids, batch_client, missing_ok=False):
     # ensure that the list of job ids is unique
     assert len(job_ids) == len(set(job_ids))
     describe_jobs_response = batch_client.describe_jobs(jobs=job_ids)
@@ -379,8 +379,8 @@ class DRM_AWSBatch(DRM):
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
-                    self.log.warning(f"Could not find timing info for job:'\n{job_dict}\n'")
-                    wall_time = 0
+                    self.log.warning(f"Could not find timing info for job:'\n{job_dict['jobId']}\n'")
+                    wall_time = None
                 yield task, dict(exit_status=exit_status, wall_time=wall_time, status_reason=status_reason)
 
     def _cleanup_task(
