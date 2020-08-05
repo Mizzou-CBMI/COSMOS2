@@ -121,7 +121,7 @@ def gen_bprint(session):
 
         try:
             n = tasks_searched.count()
-            max_page = n // in_page + (n % in_page) // n
+            max_page = n // in_page + (1 if n % in_page > 0 else 0)
         except ZeroDivisionError:  # no tasks found after search
             max_page = 1
 
