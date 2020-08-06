@@ -2,10 +2,13 @@ import os
 import signal
 import sys
 import time
+from concurrent.futures.thread import ThreadPoolExecutor
+
 
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group
 from cosmos.api import TaskStatus
+from cosmos.util.helpers import progress_bar
 
 
 if os.name == "posix" and sys.version_info[0] < 3:
@@ -13,12 +16,14 @@ if os.name == "posix" and sys.version_info[0] < 3:
 else:
     import subprocess
 
+MAX_THREADS = 50
+
 
 class DRM_Local(DRM):
     name = "local"
     poll_interval = 0.3
 
-    def __init__(self, log):
+    def __init__(self, log, workflow=None):
         self.procs = dict()
         self.gpus_on_system = (
             os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(",")
@@ -27,7 +32,7 @@ class DRM_Local(DRM):
         )
         self.task_id_to_gpus_used = dict()
 
-        super(DRM_Local, self).__init__(log)
+        super(DRM_Local, self).__init__(log, workflow)
 
     @property
     def gpus_used(self):
@@ -56,36 +61,58 @@ class DRM_Local(DRM):
         self.task_id_to_gpus_used[task.id] = self.gpus_left[: task.gpu_req]
 
     def submit_job(self, task):
-        if task.time_req is not None:
-            cmd = [
-                "/usr/bin/timeout",
-                "-k",
-                "10",
-                str(task.time_req),
-                task.output_command_script_path,
-            ]
+        raise NotImplementedError("use .submit_jobs()")
+
+    def _submit_job(self, task):  # this is needed for multiprocessing
+        if self.workflow.termination_signal not in frozenset({signal.SIGINT, signal.SIGTERM, signal.SIGXCPU}):
+            if task.time_req is not None:
+                cmd = [
+                    "/usr/bin/timeout",
+                    "-k",
+                    "10",
+                    str(task.time_req),
+                    task.output_command_script_path,
+                ]
+            else:
+                cmd = task.output_command_script_path
+
+            env = os.environ.copy()
+            if task.gpu_req:
+                # Note: workflow won't submit jobs unless there are enough gpus available
+                self.acquire_gpus(task)
+                env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.task_id_to_gpus_used[task.id]))
+
+            p = subprocess.Popen(
+                cmd,
+                stdout=open(task.output_stdout_path, "w"),
+                stderr=open(task.output_stderr_path, "w"),
+                shell=False,
+                env=env,
+                preexec_fn=exit_process_group,
+            )
+            p.start_time = time.time()
+            drm_jobID = str(p.pid)
+            self.procs[drm_jobID] = p
+
+            return drm_jobID
         else:
-            cmd = task.output_command_script_path
+            return None
 
-        env = os.environ.copy()
-        if task.gpu_req:
-            # Note: workflow won't submit jobs unless there are enough gpus available
-            self.acquire_gpus(task)
-            env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.task_id_to_gpus_used[task.id]))
+    def submit_jobs(self, tasks):
+        if len(tasks) > 1:
+            with ThreadPoolExecutor(min(len(tasks), MAX_THREADS)) as pool:
+                rv = list(progress_bar(pool.map(self._submit_job, tasks), len(tasks), "Submitting"))
+        else:
+            # submit in serial without a progress bar
+            rv = map(self._submit_job, tasks)
 
-        p = subprocess.Popen(
-            cmd,
-            stdout=open(task.output_stdout_path, "w"),
-            stderr=open(task.output_stderr_path, "w"),
-            shell=False,
-            env=env,
-            preexec_fn=exit_process_group,
-        )
-        p.start_time = time.time()
-        drm_jobID = str(p.pid)
-        self.procs[drm_jobID] = p
-        task.drm_jobID = drm_jobID
-        task.status = TaskStatus.submitted
+        for task, rv in zip(tasks, rv):
+            drm_jobID, status = rv
+            if drm_jobID:
+                task.drm_jobID = drm_jobID
+                task.status = TaskStatus.submitted
+            else:
+                task.status = TaskStatus.killed
 
     def _is_done(self, task, timeout=0):
         try:

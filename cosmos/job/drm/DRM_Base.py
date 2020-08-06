@@ -9,8 +9,9 @@ class DRM(object, metaclass=ABCMeta):
     required_drm_options = set()
     log = None
 
-    def __init__(self, log):
+    def __init__(self, log, workflow=None):
         self.log = log
+        self.workflow = workflow
 
     @classmethod
     def validate_drm_options(cls, drm_name, drm_options):
