@@ -14,6 +14,8 @@ from botocore.config import Config
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.util.helpers import progress_bar
+from cosmos.constants import TERMINATION_SIGNALS
+
 
 MAX_THREADS = 50
 BOTO_CONFIG = Config(retries=dict(max_attempts=50, mode="adaptive"), max_pool_connections=25)
@@ -274,7 +276,7 @@ class DRM_AWSBatch(DRM):
 
     def _submit_job(self, task):
         # THIS FUNCTION MUST WORK INSIDE A SEPARATE THREAD
-        if self.workflow.termination_signal not in frozenset({signal.SIGINT, signal.SIGTERM, signal.SIGXCPU}):
+        if self.workflow.termination_signal not in TERMINATION_SIGNALS:
             if task.queue is None:
                 raise ValueError("task.queue cannot be None for %s" % task)
             if task.core_req is None:
@@ -340,18 +342,21 @@ class DRM_AWSBatch(DRM):
         for task, rv in zip(tasks, rv):
             jobId, s3_command_script_uri, job_definition_arn = rv
 
-            if jobId:
+            if jobId is not None:
                 # set task attributes
                 task.drm_jobID = jobId
                 task.status = TaskStatus.submitted
                 task.s3_command_script_uri = s3_command_script_uri
                 task.job_definition_arn = job_definition_arn
             else:
+                # self.procs[None] = None
+                # task.drm_jobID = None
                 task.status = TaskStatus.killed
 
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
-        assert len(set(job_ids)) == len(job_ids)
+        # assert len(set(job_ids)) == len(job_ids)  # this is no longer true if canceling job submitting,
+        # because the canceled jobs have job_id = None
         if len(job_ids) == 0:
             job_id_to_job_dict = dict()
         else:

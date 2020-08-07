@@ -9,6 +9,7 @@ from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group
 from cosmos.api import TaskStatus
 from cosmos.util.helpers import progress_bar
+from cosmos.constants import TERMINATION_SIGNALS
 
 
 if os.name == "posix" and sys.version_info[0] < 3:
@@ -16,7 +17,7 @@ if os.name == "posix" and sys.version_info[0] < 3:
 else:
     import subprocess
 
-MAX_THREADS = 50
+MAX_THREADS = 1
 
 
 class DRM_Local(DRM):
@@ -64,7 +65,7 @@ class DRM_Local(DRM):
         raise NotImplementedError("use .submit_jobs()")
 
     def _submit_job(self, task):  # this is needed for multiprocessing
-        if self.workflow.termination_signal not in frozenset({signal.SIGINT, signal.SIGTERM, signal.SIGXCPU}):
+        if self.workflow.termination_signal not in TERMINATION_SIGNALS:
             if task.time_req is not None:
                 cmd = [
                     "/usr/bin/timeout",
@@ -107,11 +108,16 @@ class DRM_Local(DRM):
             rv = map(self._submit_job, tasks)
 
         for task, rv in zip(tasks, rv):
-            drm_jobID, status = rv
-            if drm_jobID:
+            try:
+                drm_jobID, status = rv
+            except (TypeError, ValueError):
+                drm_jobID = None
+            if drm_jobID is not None:
                 task.drm_jobID = drm_jobID
                 task.status = TaskStatus.submitted
             else:
+                self.procs[None] = None
+                task.drm_jobID = None
                 task.status = TaskStatus.killed
 
     def _is_done(self, task, timeout=0):
@@ -119,7 +125,7 @@ class DRM_Local(DRM):
             p = self.procs[task.drm_jobID]
             p.wait(timeout=timeout)
             return True
-        except subprocess.TimeoutExpired:
+        except (subprocess.TimeoutExpired, AttributeError):
             return False
 
         return False
