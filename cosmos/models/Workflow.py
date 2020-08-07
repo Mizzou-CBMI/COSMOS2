@@ -37,6 +37,7 @@ from cosmos.models.Task import Task
 from cosmos.util.helpers import duplicates, get_logger, mkdir
 from cosmos.util.iterstuff import only_one
 from cosmos.util.sqla import Enum_ColumnType, MutableDict, JSONEncodedDict
+from cosmos.constants import TERMINATION_SIGNALS
 
 opj = os.path.join
 
@@ -357,7 +358,7 @@ class Workflow(Base):
         log_out_dir_func=default_task_log_output_dir,
         max_gpus=None,
         do_cleanup_atexit=True,
-        lethal_signals=frozenset({signal.SIGINT, signal.SIGTERM, signal.SIGXCPU,}),
+        lethal_signals=TERMINATION_SIGNALS,
     ):
         """
         Runs this Workflow's DAG
@@ -446,6 +447,7 @@ class Workflow(Base):
                         log_out_dir_func=log_out_dir_func,
                         logger=self.log,
                         session=self.session,
+                        workflow=self
                     )
 
                 self.status = WorkflowStatus.running
