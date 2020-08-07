@@ -17,7 +17,7 @@ if os.name == "posix" and sys.version_info[0] < 3:
 else:
     import subprocess
 
-MAX_THREADS = 1
+MAX_THREADS = 50
 
 
 class DRM_Local(DRM):
