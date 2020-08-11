@@ -126,6 +126,8 @@ class JobManager(object):
                 task.status = TaskStatus.killed
                 task.stage.status = StageStatus.killed
 
+            drm.shutdown()
+
     def get_finished_tasks(self):
         """
         yields all finished tasks

@@ -75,3 +75,6 @@ class DRM(object, metaclass=ABCMeta):
 
     def release_resources_after_completion(self, task):
         pass
+
+    def shutdown(self):
+        pass

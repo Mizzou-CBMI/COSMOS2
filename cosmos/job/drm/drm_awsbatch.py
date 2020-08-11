@@ -256,7 +256,7 @@ class DRM_AWSBatch(DRM):
 
         self.image_to_job_definition = {}
 
-    def __del__(self):
+    def shutdown(self):
         for image, job_definition_arn in self.image_to_job_definition.items():
             # self.log.info(f"Deregistering job definition for image: {image}")
             self.batch_client.deregister_job_definition(jobDefinition=job_definition_arn)
