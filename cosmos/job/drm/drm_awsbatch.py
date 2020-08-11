@@ -14,6 +14,8 @@ from botocore.config import Config
 from cosmos.api import TaskStatus
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.util.helpers import progress_bar
+from cosmos.constants import TERMINATION_SIGNALS
+
 
 MAX_THREADS = 50
 BOTO_CONFIG = Config(retries=dict(max_attempts=50, mode="adaptive"), max_pool_connections=25)
@@ -248,9 +250,9 @@ class DRM_AWSBatch(DRM):
     _s3_client = None
     logger = None
 
-    def __init__(self, log):
+    def __init__(self, log, workflow=None):
         self.job_id_to_s3_script_uri = dict()
-        super(DRM_AWSBatch, self).__init__(log)
+        super(DRM_AWSBatch, self).__init__(log, workflow)
 
         self.image_to_job_definition = {}
 
@@ -276,50 +278,52 @@ class DRM_AWSBatch(DRM):
 
     def _submit_job(self, task):
         # THIS FUNCTION MUST WORK INSIDE A SEPARATE THREAD
+        if self.workflow.termination_signal not in TERMINATION_SIGNALS:
+            if task.queue is None:
+                raise ValueError("task.queue cannot be None for %s" % task)
+            if task.core_req is None:
+                raise ValueError("task.core_req cannot be None for task %s" % task)
+            if task.mem_req is None:
+                raise ValueError("task.mem_req cannot be None for task %s" % task)
 
-        if task.queue is None:
-            raise ValueError("task.queue cannot be None for %s" % task)
-        if task.core_req is None:
-            raise ValueError("task.core_req cannot be None for task %s" % task)
-        if task.mem_req is None:
-            raise ValueError("task.mem_req cannot be None for task %s" % task)
+            job_name = "".join(
+                [
+                    f"cosmos__{getpass.getuser()}__",
+                    task.stage.name.replace("/", "__").replace(":", ""),
+                    "__",
+                    task.uid.replace("/", "__").replace(":", ""),
+                ]
+            )[
+                :128
+            ]  # job names can be a maximum of 128 characters
+            # task.workflow.log.info("Setting job name to: {}".format(job_name))
 
-        job_name = "".join(
-            [
-                f"cosmos__{getpass.getuser()}__",
-                task.stage.name.replace("/", "__").replace(":", ""),
-                "__",
-                task.uid.replace("/", "__").replace(":", ""),
-            ]
-        )[
-            :128
-        ]  # job names can be a maximum of 128 characters
-        # task.workflow.log.info("Setting job name to: {}".format(job_name))
+            job_def_arn = self.image_to_job_definition[task.drm_options["container_image"]]
+            (jobId, s3_command_script_uri,) = submit_script_as_aws_batch_job(
+                local_script_path=task.output_command_script_path,
+                s3_prefix_for_command_script_temp_files=task.drm_options[
+                    "s3_prefix_for_command_script_temp_files"
+                ],
+                # container_image=task.drm_options["container_image"],
+                job_def_arn=job_def_arn,
+                job_name=job_name,
+                job_queue=task.queue,
+                memory=task.mem_req,
+                vpu_req=task.cpu_req,
+                gpu_req=task.gpu_req,
+                instance_type=task.drm_options.get("instance_type"),
+            )
 
-        job_def_arn = self.image_to_job_definition[task.drm_options["container_image"]]
-        (jobId, s3_command_script_uri,) = submit_script_as_aws_batch_job(
-            local_script_path=task.output_command_script_path,
-            s3_prefix_for_command_script_temp_files=task.drm_options[
-                "s3_prefix_for_command_script_temp_files"
-            ],
-            # container_image=task.drm_options["container_image"],
-            job_def_arn=job_def_arn,
-            job_name=job_name,
-            job_queue=task.queue,
-            memory=task.mem_req,
-            vpu_req=task.cpu_req,
-            gpu_req=task.gpu_req,
-            instance_type=task.drm_options.get("instance_type"),
-        )
+            # just save pointer to logstream.  We'll collect them when the job finishes.
+            # job_dict = get_aws_batch_job_infos([jobId], self.log)[0]  # , task.workflow.log)[0]
+            with open(task.output_stdout_path, "w"):
+                pass
+            with open(task.output_stderr_path, "w") as fp:
+                fp.write(pprint.pformat(dict(job_id=jobId), indent=2))
 
-        # just save pointer to logstream.  We'll collect them when the job finishes.
-        # job_dict = get_aws_batch_job_infos([jobId], self.log)[0]  # , task.workflow.log)[0]
-        with open(task.output_stdout_path, "w"):
-            pass
-        with open(task.output_stderr_path, "w") as fp:
-            fp.write(pprint.pformat(dict(job_id=jobId), indent=2))
-
-        return jobId, s3_command_script_uri, job_def_arn
+            return jobId, s3_command_script_uri, job_def_arn
+        else:
+            return None, None, None
 
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
@@ -340,15 +344,21 @@ class DRM_AWSBatch(DRM):
         for task, rv in zip(tasks, rv):
             jobId, s3_command_script_uri, job_definition_arn = rv
 
-            # set task attributes
-            task.drm_jobID = jobId
-            task.status = TaskStatus.submitted
-            task.s3_command_script_uri = s3_command_script_uri
-            task.job_definition_arn = job_definition_arn
+            if jobId is not None:
+                # set task attributes
+                task.drm_jobID = jobId
+                task.status = TaskStatus.submitted
+                task.s3_command_script_uri = s3_command_script_uri
+                task.job_definition_arn = job_definition_arn
+            else:
+                # self.procs[None] = None
+                # task.drm_jobID = None
+                task.status = TaskStatus.killed
 
     def filter_is_done(self, tasks):
         job_ids = [task.drm_jobID for task in tasks]
-        assert len(set(job_ids)) == len(job_ids)
+        # assert len(set(job_ids)) == len(job_ids)  # this is no longer true if canceling job submitting,
+        # because the canceled jobs have job_id = None
         if len(job_ids) == 0:
             job_id_to_job_dict = dict()
         else:

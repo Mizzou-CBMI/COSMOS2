@@ -1,6 +1,7 @@
 import itertools as it
 import os
 import stat
+import signal
 from operator import attrgetter
 
 from cosmos import TaskStatus, StageStatus, NOOP
@@ -18,8 +19,9 @@ class JobManager(object):
         log_out_dir_func=default_task_log_output_dir,
         cmd_wrapper=None,
         session=None,
+        workflow=None
     ):
-        self.drms = {DRM_sub_cls.name: DRM_sub_cls(logger) for DRM_sub_cls in DRM.__subclasses__()}
+        self.drms = {DRM_sub_cls.name: DRM_sub_cls(logger, workflow=workflow) for DRM_sub_cls in DRM.__subclasses__()}
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []
@@ -30,6 +32,7 @@ class JobManager(object):
         self.log_out_dir_func = log_out_dir_func
         self.log = logger
         self.session = session
+        # self.workflow = workflow
 
     def get_drm(self, drm_name):
         """This allows support for drmaa:ge type syntax"""
