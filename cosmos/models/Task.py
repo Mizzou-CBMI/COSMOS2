@@ -300,6 +300,7 @@ class Task(Base):
         "max_num_fds",
         "exit_status",
     ]
+
     exclude_from_dict = profile_fields + [
         "command",
         "info",

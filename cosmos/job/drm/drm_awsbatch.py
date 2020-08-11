@@ -193,7 +193,9 @@ def get_aws_batch_job_infos(all_job_ids, boto_config=None, missing_ok=False):
     batch_client = boto3.client(service_name="batch", config=boto_config)
     returned_jobs = []
     for batch_job_ids in more_itertools.chunked(all_job_ids, 50):
-        batch_returned_jobs = _get_aws_batch_job_infos_for_batch(batch_job_ids, batch_client, missing_ok=missing_ok)
+        batch_returned_jobs = _get_aws_batch_job_infos_for_batch(
+            batch_job_ids, batch_client, missing_ok=missing_ok
+        )
         returned_jobs.extend(batch_returned_jobs)
 
     returned_ids = [job["jobId"] for job in returned_jobs]
@@ -367,6 +369,9 @@ class DRM_AWSBatch(DRM):
                     #     status_reason = "host_terminated"
                     # else:
                     status_reason = attempt.get("statusReason", None)
+                    if status_reason:
+                        # there's extra information about status reason here
+                        status_reason += " -- " + str(attempt.get("container", dict()).get("reason"))
                     # exit code might be missing if for example the instance was terminated because the compute
                     # environment was deleted.
                     exit_status = attempt["container"].get("exitCode", -2)
@@ -381,7 +386,7 @@ class DRM_AWSBatch(DRM):
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
-                    self.log.warning(f"Could not find timing info for job:'\n{job_dict}\n'")
+                    self.log.warning(f"Could not find timing info for job: {job_dict['jobId']}")
                     wall_time = 0
                 yield task, dict(exit_status=exit_status, wall_time=wall_time, status_reason=status_reason)
 
