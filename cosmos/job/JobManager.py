@@ -19,9 +19,11 @@ class JobManager(object):
         log_out_dir_func=default_task_log_output_dir,
         cmd_wrapper=None,
         session=None,
-        workflow=None
+        workflow=None,
     ):
-        self.drms = {DRM_sub_cls.name: DRM_sub_cls(logger, workflow=workflow) for DRM_sub_cls in DRM.__subclasses__()}
+        self.drms = {
+            DRM_sub_cls.name: DRM_sub_cls(logger, workflow=workflow) for DRM_sub_cls in DRM.__subclasses__()
+        }
 
         # self.local_drm = DRM_Local(self)
         self.tasks = []

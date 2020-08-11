@@ -447,7 +447,7 @@ class Workflow(Base):
                         log_out_dir_func=log_out_dir_func,
                         logger=self.log,
                         session=self.session,
-                        workflow=self
+                        workflow=self,
                     )
 
                 self.status = WorkflowStatus.running
