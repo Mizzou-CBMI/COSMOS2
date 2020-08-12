@@ -107,11 +107,7 @@ class DRM_Local(DRM):
             # submit in serial without a progress bar
             rv = map(self._submit_job, tasks)
 
-        for task, rv in zip(tasks, rv):
-            try:
-                drm_jobID, status = rv
-            except (TypeError, ValueError):
-                drm_jobID = None
+        for task, drm_jobID in zip(tasks, rv):
             if drm_jobID is not None:
                 task.drm_jobID = drm_jobID
                 task.status = TaskStatus.submitted
@@ -127,8 +123,6 @@ class DRM_Local(DRM):
             return True
         except (subprocess.TimeoutExpired, AttributeError):
             return False
-
-        return False
 
     def filter_is_done(self, tasks):
         for t in tasks:
