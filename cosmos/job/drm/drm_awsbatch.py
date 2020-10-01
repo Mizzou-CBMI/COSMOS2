@@ -110,6 +110,13 @@ def submit_script_as_aws_batch_job(
         visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
+    if not re.match("^[A-Za-z0-9][A-Za-z0-9-_]*$", job_name) or len(job_name) > 128:
+        raise ValueError(
+            f"{job_name} is not a valid job name.  "
+            f"The name of the job. The first character must be alphanumeric, and up to 128 letters "
+            f"(uppercase and lowercase), numbers, hyphens, and underscores are allowed."
+        )
+
     submit_jobs_response = batch.submit_job(
         jobName=job_name,
         jobQueue=job_queue,
@@ -364,6 +371,10 @@ class DRM_AWSBatch(DRM):
         else:
             jobs = get_aws_batch_job_infos(job_ids)
             job_id_to_job_dict = {job["jobId"]: job for job in jobs}
+
+        # FIXME this can get really slow when a lot of spot instances are dying
+        # and make it hard to ctrl+C stuff
+
         for task in tasks:
             job_dict = job_id_to_job_dict[task.drm_jobID]
             if job_dict["status"] in ["SUCCEEDED", "FAILED"]:
@@ -392,7 +403,7 @@ class DRM_AWSBatch(DRM):
                 if job_dict["status"] == "FAILED":
                     assert exit_status != 0, "%s failed, but has an exit_status of 0" % task
 
-                self._cleanup_task(task, job_dict["container"]["logStreamName"])
+                self._cleanup_task(task, job_dict["container"].get("logStreamName"))
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
