@@ -110,6 +110,13 @@ def submit_script_as_aws_batch_job(
         visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
 
+    if not re.match("^[A-Za-z0-9][A-Za-z0-9-_]*$", job_name) or len(job_name) > 128:
+        raise ValueError(
+            f"{job_name} is not a valid job name.  "
+            f"The name of the job. The first character must be alphanumeric, and up to 128 letters "
+            f"(uppercase and lowercase), numbers, hyphens, and underscores are allowed."
+        )
+
     submit_jobs_response = batch.submit_job(
         jobName=job_name,
         jobQueue=job_queue,
@@ -121,7 +128,9 @@ def submit_script_as_aws_batch_job(
     return jobId, s3_command_script_uri
 
 
-def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts=10, boto_config=None):
+def get_logs_from_log_stream(
+    log_stream_name, attempts=9, sleep_between_attempts=10, boto_config=None, workflow=None
+):
     if boto_config is None:
         boto_config = BOTO_CONFIG
     logs_client = boto3.client(service_name="logs", config=boto_config)
@@ -142,6 +151,9 @@ def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts
             else:
                 next_logs_token = response["nextForwardToken"]
 
+            if workflow is not None and workflow.termination_signal not in TERMINATION_SIGNALS:
+                break
+
         return "\n".join(message for message in messages if not "\r" in message)
     except logs_client.exceptions.ResourceNotFoundException:
         if attempts <= 1:
@@ -153,7 +165,7 @@ def get_logs_from_log_stream(log_stream_name, attempts=9, sleep_between_attempts
             )
 
 
-def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_config=None):
+def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_config=None, workflow=None):
     if boto_config is None:
         boto_config = BOTO_CONFIG
     job_dict = get_aws_batch_job_infos([job_id], boto_config=boto_config)
@@ -168,6 +180,7 @@ def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_conf
             attempts=attempts,
             sleep_between_attempts=sleep_between_attepts,
             boto_config=boto_config,
+            workflow=None,
         )
 
 
@@ -364,6 +377,10 @@ class DRM_AWSBatch(DRM):
         else:
             jobs = get_aws_batch_job_infos(job_ids)
             job_id_to_job_dict = {job["jobId"]: job for job in jobs}
+
+        # FIXME this can get really slow when a lot of spot instances are dying
+        # and make it hard to ctrl+C stuff
+
         for task in tasks:
             job_dict = job_id_to_job_dict[task.drm_jobID]
             if job_dict["status"] in ["SUCCEEDED", "FAILED"]:
@@ -392,11 +409,13 @@ class DRM_AWSBatch(DRM):
                 if job_dict["status"] == "FAILED":
                     assert exit_status != 0, "%s failed, but has an exit_status of 0" % task
 
-                self._cleanup_task(task, job_dict["container"]["logStreamName"])
+                self.log.info(f"_cleanup_task {task}")
+                self._cleanup_task(task, job_dict["container"].get("logStreamName"))
+                self.log.info("_cleanup_task done")
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
-                    self.log.warning(f"Could not find timing info for job: {job_dict['jobId']}")
+                    self.log.warning(f"Could not find timing info for job: {job_dict['jobId']} {task}")
                     wall_time = 0
                 yield task, dict(exit_status=exit_status, wall_time=wall_time, status_reason=status_reason)
 
@@ -409,11 +428,15 @@ class DRM_AWSBatch(DRM):
             # if log_stream_name wasn't passed in, query aws to get it
             if log_stream_name is None:
                 logs = get_logs_from_job_id(
-                    task.drm_jobID, get_log_attempts, get_log_sleep_between_attempts, task.log
+                    task.drm_jobID,
+                    get_log_attempts,
+                    get_log_sleep_between_attempts,
+                    task.log,
+                    workflow=task.workflow,
                 )
             else:
                 logs = get_logs_from_log_stream(
-                    log_stream_name, get_log_attempts, get_log_sleep_between_attempts
+                    log_stream_name, get_log_attempts, get_log_sleep_between_attempts, workflow=task.workflow
                 )
 
             with open(task.output_stdout_path, "w") as fp:
