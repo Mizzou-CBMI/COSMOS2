@@ -180,7 +180,6 @@ def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_conf
             attempts=attempts,
             sleep_between_attempts=sleep_between_attepts,
             boto_config=boto_config,
-            workflow=None,
         )
 
 
@@ -412,6 +411,7 @@ class DRM_AWSBatch(DRM):
                 self.log.info(f"_cleanup_task {task}")
                 self._cleanup_task(task, job_dict["container"].get("logStreamName"))
                 self.log.info("_cleanup_task done")
+                self._cleanup_task(task, job_dict["container"].get("logStreamName"))
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
