@@ -68,6 +68,25 @@ def environment_variables(**kwargs):
     os.environ.update(old_env_vars)
 
 
+def test_environment_variables():
+    # find a few keys being used
+    (key1, val1), (key2, val2) = list(os.environ.items())[:2]
+    RANDKEY = "SDFGSDFGSDFEWF"
+
+    assert os.environ[key1] == val1
+    assert os.environ[key2] == val2
+    assert RANDKEY not in os.environ
+
+    with environment_variables(**{key1: "new_val1", key2: "new_val2", RANDKEY: "rand_key_val"}):
+        assert os.environ[key1] == "new_val1"
+        assert os.environ[key2] == "new_val2"
+        assert os.environ[RANDKEY] == "rand_key_val"
+
+    assert os.environ[key1] == val1
+    assert os.environ[key2] == val2
+    assert RANDKEY not in os.environ
+
+
 def isinstance_namedtuple(x):
     t = type(x)
     b = t.__bases__

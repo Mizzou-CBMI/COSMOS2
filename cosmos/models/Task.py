@@ -75,15 +75,14 @@ def task_status_changed(task):
         task.stage.status = StageStatus.running
         if not task.NOOP:
             task.log.info(
-                "%s %s. drm=%s; drm_jobid=%s; job_class=%s; queue=%s"
-                % (
-                    task,
-                    task.status,
-                    repr(task.drm),
-                    repr(task.drm_jobID),
-                    repr(task.job_class),
-                    repr(task.queue),
-                )
+                f"{task} {task.status}. "
+                f"drm={repr(task.drm)}; "
+                f"drm_jobid={repr(task.drm_jobID)}; "
+                f"job_class={repr(task.job_class)}; "
+                f"queue={repr(task.queue)}; "
+                f"core_req={task.core_req}; "
+                f"gpu_req={task.gpu_req}; "
+                f"mem_req={task.mem_req}"
             )
         task.submitted_on = datetime.datetime.now()
 

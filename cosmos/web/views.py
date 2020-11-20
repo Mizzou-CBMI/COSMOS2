@@ -343,12 +343,13 @@ def gen_bprint(session):
                     boto_config=Config(
                         retries=dict(max_attempts=1, mode="standard", total_max_attempts=1),
                         max_pool_connections=1,
-                        read_timeout=1,
-                        connect_timeout=1,
+                        read_timeout=3,
+                        connect_timeout=3,
                     ),
                 )
             except Exception:
-                task_stdout_text = task.stdout_text
+                task_stdout_text = "get_logs_from_job_id failed, could not get log file from AWS"
+                # task_stdout_text = task.stdout_text
         else:
             task_stdout_text = task.stdout_text
 

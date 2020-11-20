@@ -1,9 +1,10 @@
 import os
+import re
 import signal
 import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-
+from random import shuffle
 
 from cosmos.job.drm.DRM_Base import DRM
 from cosmos.job.drm.util import exit_process_group
@@ -20,17 +21,40 @@ else:
 MAX_THREADS = 50
 
 
+def parse_COSMOS_LOCAL_GPU_DEVICES(COSMOS_LOCAL_GPU_DEVICES=None):
+    """
+    >>> list(parse_COSMOS_LOCAL_GPU_DEVICES('1'))
+    ['1']
+    >>> list(parse_COSMOS_LOCAL_GPU_DEVICES('1,1'))
+    ['1', '1']
+    >>> list(parse_COSMOS_LOCAL_GPU_DEVICES('1,2x3'))
+    ['1', '2', '2', '2']
+
+    """
+    if COSMOS_LOCAL_GPU_DEVICES is None:
+        COSMOS_LOCAL_GPU_DEVICES = os.environ.get("COSMOS_LOCAL_GPU_DEVICES")
+
+    if COSMOS_LOCAL_GPU_DEVICES is not None:
+        for gpu_str in COSMOS_LOCAL_GPU_DEVICES.split(","):
+            # support "0[1-5]" for 5 slots on gpu 0
+            m = re.search(r"(\d+)x(\d+)", gpu_str)
+            if m:
+                gpu, n = m.groups()
+                for i in range(int(n)):
+                    yield f"{gpu}.{i}"
+            else:
+                yield gpu_str
+
+
 class DRM_Local(DRM):
     name = "local"
     poll_interval = 0.3
 
     def __init__(self, log, workflow=None):
         self.procs = dict()
-        self.gpus_on_system = (
-            os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(",")
-            if "COSMOS_LOCAL_GPU_DEVICES" in os.environ
-            else []
-        )
+        self.gpus_on_system = list(parse_COSMOS_LOCAL_GPU_DEVICES())
+        shuffle(self.gpus_on_system)
+
         self.task_id_to_gpus_used = dict()
 
         super(DRM_Local, self).__init__(log, workflow)
@@ -47,16 +71,13 @@ class DRM_Local(DRM):
         if task.gpu_req > len(self.gpus_left):
             # if 'COSMOS_LOCAL_GPU_DEVICES' not in os.environ:
             raise EnvironmentError(
-                "Not enough system gpus, need {task.gpu_req} gpus, "
-                "gpus on the system are: {self.gpus_on_system}, "
-                "and gpus left are: {self.gpus_left}. "
-                "This can be caused by max_gpus not being set appropriately, you usually "
-                "want it to be set to the number of GPUs on the local machine if all of your GPU "
-                "jobs are using the local DRM.  "
-                "Note that local DRM requires the environment variable "
-                "COSMOS_LOCAL_GPU_DEVICES set to a "
-                "comma delimited list of GPU devices to use.  It should "
-                "be the same format as CUDA_VISIBLE_DEVICES.  ".format(**locals())
+                f"Not enough gpus, need {task.gpu_req} gpus, "
+                f"there are {len(self.gpus_on_system)} gpus available: {self.gpus_on_system}, "
+                f"and gpus left are: {self.gpus_left}. "
+                f"This can be caused by max_gpus not being set appropriately, you usually "
+                f"want it to be set to the number of GPUs on the local machine if all of your GPU "
+                f"jobs are using the local DRM.  "
+                f"For example COSMOS_LOCAL_GPU_DEVICES=1,2,3 and --max-gpus 3.  "
             )
 
         self.task_id_to_gpus_used[task.id] = self.gpus_left[: task.gpu_req]
@@ -81,7 +102,9 @@ class DRM_Local(DRM):
             if task.gpu_req:
                 # Note: workflow won't submit jobs unless there are enough gpus available
                 self.acquire_gpus(task)
-                env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, self.task_id_to_gpus_used[task.id]))
+                env["CUDA_VISIBLE_DEVICES"] = ",".join(
+                    re.sub("\.\d+?", "", gpu) for gpu in self.task_id_to_gpus_used[task.id]
+                )
 
             p = subprocess.Popen(
                 cmd,

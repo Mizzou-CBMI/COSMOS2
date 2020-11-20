@@ -10,6 +10,7 @@ import re
 import signal
 import sys
 import time
+import warnings
 
 import funcsigs
 import networkx as nx
@@ -381,6 +382,7 @@ class Workflow(Base):
         Returns True if all tasks in the workflow ran successfully, False otherwise.
         If dry is specified, returns None.
         """
+
         try:
             try:
                 assert os.path.exists(os.getcwd()), "current working dir does not exist! %s" % os.getcwd()
@@ -417,11 +419,9 @@ class Workflow(Base):
                     if "COSMOS_LOCAL_GPU_DEVICES" not in os.environ:
                         raise EnvironmentError(
                             "COSMOS_LOCAL_GPU_DEVICES environment variable must be set to a "
-                            "comma delimited list of gpu devices of using a local DRM to manage "
+                            "comma delimited list of gpu devices if using a local DRM to manage "
                             "GPUs"
                         )
-                    if len(os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(",")) < self.max_gpus:
-                        raise EnvironmentError("COSMOS_LOCAL_GPU_DEVICES has fewer gpus than max_gpus!")
 
                 # check for duplicate output files
                 output_fnames_to_task_and_key = dict()
