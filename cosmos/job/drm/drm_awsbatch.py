@@ -180,6 +180,7 @@ def get_logs_from_job_id(job_id, attempts=9, sleep_between_attepts=10, boto_conf
             attempts=attempts,
             sleep_between_attempts=sleep_between_attepts,
             boto_config=boto_config,
+            workflow=workflow,
         )
 
 
