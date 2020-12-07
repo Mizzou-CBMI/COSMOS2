@@ -398,7 +398,9 @@ class DRM_AWSBatch(DRM):
                     status_reason = attempt.get("statusReason", None)
                     if status_reason:
                         # there's extra information about status reason here
-                        status_reason += " -- " + str(attempt.get("container", dict()).get("reason"))
+                        status_reason += " -- container_reason: " + str(
+                            attempt.get("container", dict()).get("reason")
+                        )
                     # exit code might be missing if for example the instance was terminated because the compute
                     # environment was deleted.
                     exit_status = attempt["container"].get("exitCode", -2)
@@ -412,7 +414,6 @@ class DRM_AWSBatch(DRM):
                 self.log.info(f"_cleanup_task {task}")
                 self._cleanup_task(task, job_dict["container"].get("logStreamName"))
                 self.log.info("_cleanup_task done")
-                self._cleanup_task(task, job_dict["container"].get("logStreamName"))
                 try:
                     wall_time = int(round((job_dict["stoppedAt"] - job_dict["startedAt"]) / 1000))
                 except KeyError:
@@ -421,7 +422,12 @@ class DRM_AWSBatch(DRM):
                 yield task, dict(exit_status=exit_status, wall_time=wall_time, status_reason=status_reason)
 
     def _cleanup_task(
-        self, task, log_stream_name=None, get_log_attempts=12, get_log_sleep_between_attempts=10,
+        self,
+        task,
+        log_stream_name=None,
+        get_log_attempts=3,
+        get_log_sleep_between_attempts=0,
+        boto_config=None,
     ):
         # NOTE this code must be thread safe (cannot use any sqlalchemy)
 
@@ -429,15 +435,19 @@ class DRM_AWSBatch(DRM):
             # if log_stream_name wasn't passed in, query aws to get it
             if log_stream_name is None:
                 logs = get_logs_from_job_id(
-                    task.drm_jobID,
-                    get_log_attempts,
-                    get_log_sleep_between_attempts,
-                    task.log,
+                    job_id=task.drm_jobID,
+                    attempts=get_log_attempts,
+                    sleep_between_attepts=get_log_sleep_between_attempts,
                     workflow=task.workflow,
+                    boto_config=boto_config,
                 )
             else:
                 logs = get_logs_from_log_stream(
-                    log_stream_name, get_log_attempts, get_log_sleep_between_attempts, workflow=task.workflow
+                    log_stream_name=log_stream_name,
+                    attempts=get_log_attempts,
+                    sleep_between_attempts=get_log_sleep_between_attempts,
+                    workflow=task.workflow,
+                    boto_config=boto_config,
                 )
 
             with open(task.output_stdout_path, "w") as fp:
