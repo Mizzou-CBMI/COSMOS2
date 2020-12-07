@@ -66,9 +66,9 @@ AWS Batch
 __________
 
 We've been using quite a bit of AWS Batch for the past year, and this is by far the most developed and supported DRM.
-It's pretty hard to continue to DRMs that we're not using in our day-to-day.  That is mostly left to the community
+It's pretty hard to continue to support DRMs that we're not using in our day-to-day.  That is mostly left to the community
 using Cosmos.  It is a single class that people often tweak for their particular distributed computing environment,
-see the classes in cosmos/job/drm, the interface only has a handful of methods that must work.
+see the classes in cosmos/job/drm, the interface only has a handful of methods that must be implemented.
 
 Make sure to check out examples/ex_awsbatch.py for details about how to use the AWS Batch DRM.
 Jobs submit and terminate much faster than any other DRM.  This is a great way to utilize cheap AWS spot
