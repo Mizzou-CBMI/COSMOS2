@@ -11,15 +11,21 @@ from functools import partial
 
 from cosmos.api import Cosmos, default_get_submit_args
 from cosmos.models.Workflow import Workflow
+from cosmos.util.helpers import confirm
 
 
 def get_db_url_or_path_to_sqlite(db_url_or_path_to_sqlite):
-    if '://' not in db_url_or_path_to_sqlite:
-        assert os.path.exists(
-            db_url_or_path_to_sqlite), '`%s` does not exist on the filesystem' % db_url_or_path_to_sqlite
+    if "://" not in db_url_or_path_to_sqlite:
+        assert os.path.exists(db_url_or_path_to_sqlite), (
+            "`%s` does not exist on the filesystem" % db_url_or_path_to_sqlite
+        )
         db_url_or_path_to_sqlite = os.path.abspath(os.path.expanduser(db_url_or_path_to_sqlite))
 
-    database_url = db_url_or_path_to_sqlite if ':' in db_url_or_path_to_sqlite else 'sqlite:///%s' % db_url_or_path_to_sqlite
+    database_url = (
+        db_url_or_path_to_sqlite
+        if ":" in db_url_or_path_to_sqlite
+        else "sqlite:///%s" % db_url_or_path_to_sqlite
+    )
 
     return database_url
 
@@ -45,11 +51,11 @@ def ls(db, max_workflows):
     cosmos = Cosmos(database_url=database_url)
     for wf in cosmos.session.query(Workflow).all()[:max_workflows]:
         print(wf)
-        for stage in wf.stages:
+        for stage in sorted(wf.stages, key=lambda s: s.id):
             print(stage)
 
 
-def rm(db, stage_id):
+def rm(db, stage_id, skip_confirm):
     """
     Delete a stage id.  Only works if there is one workflow in the database.
     :param db:
@@ -60,19 +66,25 @@ def rm(db, stage_id):
     cosmos = Cosmos(database_url=database_url)
 
     if cosmos.session.query(Workflow).count() != 1:
-        raise ValueError('There must be exactly one Workflow in the db')
+        raise ValueError("There must be exactly one Workflow in the db")
 
     wf = cosmos.session.query(Workflow).one()
     res = [stage for stage in wf.stages if stage.id == stage_id]
     if len(res) != 1:
-        raise ValueError('Did not find stage with id: %s' % stage_id)
+        raise ValueError("Did not find stage with id: %s" % stage_id)
+
     stage = res[0]
+
+    if not skip_confirm and not confirm(f"Are you sure you want to delete {stage}?"):
+        raise SystemExit("Quitting")
+
     stage.delete()
     cosmos.session.commit()
 
 
-def run(in_jobs, default_drm, default_queue, restart, max_cores,
-        default_job_class=None, default_drm_options=None):
+def run(
+    in_jobs, default_drm, default_queue, restart, max_cores, default_job_class=None, default_drm_options=None
+):
     """
     Create an embarassingly parallel workflow from all jobs in `in_jobs`.  `in_jobs` should be a json of a dict
     keyed by uid => command.
@@ -80,57 +92,68 @@ def run(in_jobs, default_drm, default_queue, restart, max_cores,
     with open(in_jobs) as fp:
         jobs_dict = json.load(fp)
 
-    cosmos_app = Cosmos(database_url='sqlite:///cosmos.sqlite',
-                        default_drm=default_drm,
-                        default_drm_options=default_drm_options,
-                        default_job_class=default_job_class,
-                        default_queue=default_queue,
-                        get_submit_args=partial(default_get_submit_args, parallel_env='smp'))
+    cosmos_app = Cosmos(
+        database_url="sqlite:///cosmos.sqlite",
+        default_drm=default_drm,
+        default_drm_options=default_drm_options,
+        default_job_class=default_job_class,
+        default_queue=default_queue,
+        get_submit_args=partial(default_get_submit_args, parallel_env="smp"),
+    )
     cosmos_app.initdb()
-    wf = cosmos_app.start(name='workflow', restart=restart, skip_confirm=True)
+    wf = cosmos_app.start(name="workflow", restart=restart, skip_confirm=True)
 
     for uid, cmd in jobs_dict.items():
-        wf.add_task(func=lambda cmd: cmd,
-                    params=dict(cmd=cmd),
-                    stage_name='lambda',
-                    uid=uid)
+        wf.add_task(func=lambda cmd: cmd, params=dict(cmd=cmd), stage_name="lambda", uid=uid)
     wf.run(max_cores=max_cores)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
-    sps = p.add_subparsers(title="Commands", dest='cmd')
+    sps = p.add_subparsers(title="Commands", dest="cmd")
     sps.required = True
 
-    sp = sps.add_parser('runweb')
-    sp.add_argument('db_url_or_path_to_sqlite')
-    sp.add_argument('--host', '-H', default='0.0.0.0')
-    sp.add_argument('--port', '-p', default=3232, type=int)
+    sp = sps.add_parser("runweb")
+    sp.add_argument("db_url_or_path_to_sqlite")
+    sp.add_argument("--host", "-H", default="0.0.0.0")
+    sp.add_argument("--port", "-p", default=3232, type=int)
 
-    sp = sps.add_parser('shell')
-    sp.add_argument('db_url_or_path_to_sqlite', default='cosmos.sqlite')
+    sp = sps.add_parser("shell")
+    sp.add_argument("db_url_or_path_to_sqlite", default="cosmos.sqlite")
 
-    sp = sps.add_parser('ls')
-    sp.add_argument('--db', default='cosmos.sqlite')
-    sp.add_argument('--max_workflows', default=None, type=int)
+    sp = sps.add_parser("ls")
+    sp.add_argument("--db", default="cosmos.sqlite")
+    sp.add_argument("--max_workflows", default=None, type=int)
 
-    sp = sps.add_parser('rm')
-    sp.add_argument('stage_id', type=int)
-    sp.add_argument('--db', default='cosmos.sqlite')
+    sp = sps.add_parser("rm")
+    sp.add_argument("stage_id", type=int)
+    sp.add_argument("--db", default="cosmos.sqlite")
+    sp.add_argument(
+        "-s", "--skip_confirm", action="store_true", help="skip the 'are you sure' confirmation prompt"
+    )
 
-    sp = sps.add_parser('run')
-    sp.add_argument('in_jobs')
-    sp.add_argument('--default-drm', '-drm', default='ge')
-    sp.add_argument('--job-class', '-j')
-    sp.add_argument('--queue', '-q')
+    sp = sps.add_parser("run")
+    sp.add_argument("in_jobs")
+    sp.add_argument("--default-drm", "-drm", default="ge")
+    sp.add_argument("--job-class", "-j")
+    sp.add_argument("--queue", "-q")
 
-    sp.add_argument('--max_cores', '--max-cores', '-c', type=int,
-                    help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited.",
-                    default=None)
-    sp.add_argument('--restart', '-r', action='store_true',
-                    help="Completely restart the Workflow.  Note this will delete all record of the Workflow in the database.")
+    sp.add_argument(
+        "--max_cores",
+        "--max-cores",
+        "-c",
+        type=int,
+        help="Maximum number (based on the sum of Task.core_req) of cores to use at once.  0 means unlimited.",
+        default=None,
+    )
+    sp.add_argument(
+        "--restart",
+        "-r",
+        action="store_true",
+        help="Completely restart the Workflow.  Note this will delete all record of the Workflow in the database.",
+    )
 
     args = p.parse_args()
     kwargs = dict(args._get_kwargs())
-    cmd = kwargs.pop('cmd')
+    cmd = kwargs.pop("cmd")
     globals()[cmd](**kwargs)

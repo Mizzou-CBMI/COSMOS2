@@ -4,6 +4,7 @@ import pprint
 import random
 import re
 import string
+import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -47,6 +48,7 @@ def submit_script_as_aws_batch_job(
     vpu_req=1,
     gpu_req=None,
     environment=None,
+    tags=None,
 ):
     """
     :param local_script_path: the local path to a script to run in awsbatch.
@@ -61,6 +63,8 @@ def submit_script_as_aws_batch_job(
     """
     if environment is None:
         environment = dict()
+    if tags is None:
+        tags = dict()
 
     if " " in job_name or ":" in job_name:
         raise ValueError("job_name `%s` is invalid" % job_name)
@@ -122,6 +126,8 @@ def submit_script_as_aws_batch_job(
         jobQueue=job_queue,
         jobDefinition=job_def_arn,
         containerOverrides=container_overrides,
+        propagateTags=True,
+        tags=tags,
     )
     jobId = submit_jobs_response["jobId"]
 
@@ -325,6 +331,13 @@ class DRM_AWSBatch(DRM):
                 vpu_req=task.cpu_req,
                 gpu_req=task.gpu_req,
                 instance_type=task.drm_options.get("instance_type"),
+                tags=dict(
+                    job_type="cosmos",
+                    username=getpass.getuser(),
+                    stage_name=task.stage.name.replace("/", "__").replace(":", ""),
+                    cwd=os.getcwd(),
+                    argv=" ".join(sys.argv),
+                ),
             )
 
             # just save pointer to logstream.  We'll collect them when the job finishes.

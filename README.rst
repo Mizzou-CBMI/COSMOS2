@@ -139,6 +139,8 @@ ________________________
 
 .. code-block:: bash
 
+    python devops.py release
+
     rm -rf cosmos-wfm
     conda skeleton pypi cosmos-wfm --version 2.13.4
     conda build cosmos-wfm
