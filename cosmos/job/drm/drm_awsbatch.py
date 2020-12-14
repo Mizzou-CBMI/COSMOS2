@@ -338,6 +338,7 @@ class DRM_AWSBatch(DRM):
                     cwd=os.getcwd(),
                     argv=" ".join(sys.argv),
                 ),
+                environment=task.environment_variables,
             )
 
             # just save pointer to logstream.  We'll collect them when the job finishes.

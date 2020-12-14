@@ -14,7 +14,7 @@ from cosmos.util.retry import retry_call
 class DRM_K8S_Jobs(DRM):  # noqa
 
     """Uses Kubernetes jobs as a method of dispatching tasks. The job manager must be
-        configured to use a specific Docker image to use this DRM.
+    configured to use a specific Docker image to use this DRM.
     """
 
     name = "k8s-jobs"
@@ -52,9 +52,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
         drm_options = dict(drm_options)
         task_state = sqlalchemy_inspect(task)
 
-        for drm_option_name, task_mapping in list(
-            self.drm_options_to_task_properties.items()
-        ):
+        for drm_option_name, task_mapping in list(self.drm_options_to_task_properties.items()):
             if callable(task_mapping):
                 task_value = task_mapping(task)
             else:
@@ -85,21 +83,15 @@ class DRM_K8S_Jobs(DRM):  # noqa
             return str(drm_option_value)
 
     def submit_job(self, task):
-        native_spec = (
-            task.drm_native_specification if task.drm_native_specification else ""
-        )
+        native_spec = task.drm_native_specification if task.drm_native_specification else ""
 
         drm_option_names = self.required_drm_options | self.optional_drm_options
-        drm_options = self._merge_task_properties_and_drm_options(
-            task, task.drm_options
-        )
+        drm_options = self._merge_task_properties_and_drm_options(task, task.drm_options)
 
         kbatch_options = [
             "--{kbatch_option_name} {kbatch_option_value}".format(
                 kbatch_option_name=kbatch_option_name,
-                kbatch_option_value=self._get_drm_option_value(
-                    drm_options[kbatch_option_name]
-                ),
+                kbatch_option_value=self._get_drm_option_value(drm_options[kbatch_option_name]),
             )
             for kbatch_option_name in drm_option_names
             if kbatch_option_name in drm_options
@@ -138,9 +130,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
             end_time_iso8601 = task_status["completionTime"]
         else:
             failed_info = next(
-                condition
-                for condition in task_status["conditions"]
-                if condition["type"] == "Failed"
+                condition for condition in task_status["conditions"] if condition["type"] == "Failed"
             )
             end_time_iso8601 = failed_info["lastProbeTime"]
 
@@ -176,10 +166,7 @@ class DRM_K8S_Jobs(DRM):  # noqa
         else:
             task_infos = [task_infos]
 
-        task_infos = {
-            task_info["metadata"]["labels"]["job-name"]: task_info
-            for task_info in task_infos
-        }
+        task_infos = {task_info["metadata"]["labels"]["job-name"]: task_info for task_info in task_infos}
         return task_infos
 
     def populate_logs(self, task):

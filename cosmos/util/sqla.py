@@ -21,9 +21,10 @@ class Enum_ColumnType(types.TypeDecorator):
         self.impl._set_table(table, column)
 
     def process_bind_param(self, value, dialect):
-        assert (
-            isinstance(value, self.enum_class) or value is None
-        ), "'%s' must be of type %s" % (value, self.enum_class)
+        assert isinstance(value, self.enum_class) or value is None, "'%s' must be of type %s" % (
+            value,
+            self.enum_class,
+        )
         return None if value is None else value.name
 
     def process_result_value(self, value, dialect):

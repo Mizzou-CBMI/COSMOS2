@@ -54,15 +54,11 @@ class DRM_DRMAA(DRM):
             try:
                 # disable_stderr() #python drmaa prints whacky messages sometimes.  if the script just quits without printing anything, something really bad happend while stderr is disabled
                 drmaa_jobinfo = (
-                    get_drmaa_session()
-                    .wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)
-                    ._asdict()
+                    get_drmaa_session().wait(jobId=drmaa.Session.JOB_IDS_SESSION_ANY, timeout=1)._asdict()
                 )
                 # enable_stderr()
 
-                yield jobid_to_task.pop(
-                    str(drmaa_jobinfo["jobId"])
-                ), parse_drmaa_jobinfo(drmaa_jobinfo)
+                yield jobid_to_task.pop(str(drmaa_jobinfo["jobId"])), parse_drmaa_jobinfo(drmaa_jobinfo)
 
             except drmaa.errors.ExitTimeoutException:
                 # Jobs are queued, but none are done yet. Exit loop.
@@ -118,12 +114,9 @@ class DRM_DRMAA(DRM):
 
                     if drmaa_jobstatus == drmaa.JobState.UNDETERMINED:
                         print(
-                            "job %s is missing and presumed dead" % jobid,
-                            file=sys.stderr,
+                            "job %s is missing and presumed dead" % jobid, file=sys.stderr,
                         )
-                        yield jobid_to_task.pop(jobid), create_empty_drmaa_jobinfo(
-                            os.EX_TEMPFAIL
-                        )
+                        yield jobid_to_task.pop(jobid), create_empty_drmaa_jobinfo(os.EX_TEMPFAIL)
 
     def drm_statuses(self, tasks):
         import drmaa
@@ -131,9 +124,7 @@ class DRM_DRMAA(DRM):
         def get_status(task):
             try:
                 return (
-                    self.decodestatus[
-                        get_drmaa_session().jobStatus(str(task.drm_jobID))
-                    ]
+                    self.decodestatus[get_drmaa_session().jobStatus(str(task.drm_jobID))]
                     if task.drm_jobID is not None
                     else "?"
                 )
@@ -150,9 +141,7 @@ class DRM_DRMAA(DRM):
 
         if task.drm_jobID is not None:
             try:
-                get_drmaa_session().control(
-                    str(task.drm_jobID), drmaa.JobControlAction.TERMINATE
-                )
+                get_drmaa_session().control(str(task.drm_jobID), drmaa.JobControlAction.TERMINATE)
             except drmaa.errors.InvalidJobException:
                 pass
 
@@ -222,9 +211,7 @@ def parse_drmaa_jobinfo(drmaa_jobinfo):
 
         if cosmos_jobinfo["exit_status"] == 0:
             try:
-                cosmos_jobinfo["exit_status"] = int(
-                    float(drmaa_jobinfo["resourceUsage"]["exit_status"])
-                )
+                cosmos_jobinfo["exit_status"] = int(float(drmaa_jobinfo["resourceUsage"]["exit_status"]))
             except KeyError:
                 cosmos_jobinfo["exit_status"] = os.EX_UNAVAILABLE
 

@@ -244,6 +244,7 @@ class Task(Base):
         passive_deletes=True,
         cascade="save-update, merge, delete",
     )
+    environment_variables = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
 
     # input_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
     # output_map = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=False)
@@ -490,3 +491,10 @@ class Task(Base):
     @reconstructor
     def init_on_load(self):
         self.job_class = None
+
+    @property
+    def environment_variables_pretty(self):
+        return "%s" % ", ".join(
+            "%s=%s" % (k, "'%s'" % v if isinstance(v, str) else v)
+            for k, v in list(self.environment_variables.items())
+        )

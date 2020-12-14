@@ -25,20 +25,15 @@ class Dependency(namedtuple("Dependency", "task param path")):
         :param path: The path to a file if it is not a Task parameter.  Cannot be specified if 'param' is specified.
         :return:
         """
-        assert bool(param) ^ bool(
-            path
-        ), "cannot specify both `param` and `path`".format(**locals())
+        assert bool(param) ^ bool(path), "cannot specify both `param` and `path`".format(**locals())
 
         from cosmos.api import Task
 
-        assert isinstance(
-            task, Task
-        ), "task parameter must be an instance of Task, not %s" % type(task)
+        assert isinstance(task, Task), "task parameter must be an instance of Task, not %s" % type(task)
         if param:
             assert param in task.params, (
                 "Invalid Dependency, param `%s` is not a parameter of `%s`.  "
-                "Available parameters are:\n%s"
-                % (param, task, pprint.pformat(task.params, indent=2))
+                "Available parameters are:\n%s" % (param, task, pprint.pformat(task.params, indent=2))
             )
         return super(Dependency, cls).__new__(cls, task, param, path)
 
@@ -61,34 +56,24 @@ def recursive_resolve_dependency(parameter):
         tuple_list = list(recursive_resolve_dependency(v) for v in parameter)
         return (
             list(rds for (rds, _) in tuple_list),
-            set.union(*[tasks for _, tasks in tuple_list])
-            if len(tuple_list)
-            else set(),
+            set.union(*[tasks for _, tasks in tuple_list]) if len(tuple_list) else set(),
         )
     elif isinstance(parameter, tuple):
         tuple_tuple = tuple(recursive_resolve_dependency(v) for v in parameter)
         return (
             tuple(rds for (rds, _) in tuple_tuple),
-            set.union(*[tasks for _, tasks in tuple_tuple])
-            if len(tuple_tuple)
-            else set(),
+            set.union(*[tasks for _, tasks in tuple_tuple]) if len(tuple_tuple) else set(),
         )
     elif isinstance(parameter, dict):
-        tuple_dict = {
-            k: recursive_resolve_dependency(v) for k, v in list(parameter.items())
-        }
+        tuple_dict = {k: recursive_resolve_dependency(v) for k, v in list(parameter.items())}
         return (
             {k: rds for k, (rds, _) in list(tuple_dict.items())},
-            set.union(*[tasks for _, tasks in tuple_dict.values()])
-            if len(tuple_dict)
-            else set(),
+            set.union(*[tasks for _, tasks in tuple_dict.values()]) if len(tuple_dict) else set(),
         )
     else:
         raise ValueError(
             "Cannot handle function parameter of type {}.  "
-            "Parameters must be jsonable.  Parameter value is {}".format(
-                type(parameter), parameter
-            )
+            "Parameters must be jsonable.  Parameter value is {}".format(type(parameter), parameter)
         )
 
 

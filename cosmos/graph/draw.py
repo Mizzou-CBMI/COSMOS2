@@ -31,10 +31,7 @@ def taskgraph_to_agraph(task_graph, url=True):
     agraph.add_edges_from(task_graph.edges())
     for stage, tasks in groupby2(task_graph.nodes(), lambda x: x.stage.name):
         sg = agraph.add_subgraph(
-            name="cluster_{0}".format(stage),
-            label=str(stage),
-            color="grey",
-            style="dotted",
+            name="cluster_{0}".format(stage), label=str(stage), color="grey", style="dotted",
         )
         for task in tasks:
 
@@ -120,23 +117,13 @@ def stagegraph_to_agraph(stage_graph, url=True):
         v.relationship_type = None
         if v.relationship_type == RelationshipType.many2one:
             agraph.add_edge(
-                u,
-                v,
-                label=rel2abbrev.get(v.relationship_type, ""),
-                style="dotted",
-                arrowhead="odiamond",
+                u, v, label=rel2abbrev.get(v.relationship_type, ""), style="dotted", arrowhead="odiamond",
             )
         elif v.relationship_type == RelationshipType.one2many:
             agraph.add_edge(
-                u,
-                v,
-                label=rel2abbrev.get(v.relationship_type, ""),
-                style="dashed",
-                arrowhead="crow",
+                u, v, label=rel2abbrev.get(v.relationship_type, ""), style="dashed", arrowhead="crow",
             )
         else:
-            agraph.add_edge(
-                u, v, label=rel2abbrev.get(v.relationship_type, ""), arrowhead="vee"
-            )
+            agraph.add_edge(u, v, label=rel2abbrev.get(v.relationship_type, ""), arrowhead="vee")
 
     return agraph
