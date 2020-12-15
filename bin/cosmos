@@ -119,7 +119,7 @@ if __name__ == "__main__":
     sp.add_argument("--port", "-p", default=3232, type=int)
 
     sp = sps.add_parser("shell")
-    sp.add_argument("db_url_or_path_to_sqlite", default="cosmos.sqlite")
+    sp.add_argument("--db_url_or_path_to_sqlite", default="cosmos.sqlite")
 
     sp = sps.add_parser("ls")
     sp.add_argument("--db", default="cosmos.sqlite")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     sp.add_argument("stage_id", type=int)
     sp.add_argument("--db", default="cosmos.sqlite")
     sp.add_argument(
-        "-s", "--skip_confirm", action="store_true", help="skip the 'are you sure' confirmation prompt"
+        "-y", "--skip_confirm", action="store_true", help="skip the 'are you sure' confirmation prompt"
     )
 
     sp = sps.add_parser("run")
