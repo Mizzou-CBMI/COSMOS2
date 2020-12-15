@@ -1,4 +1,6 @@
 import re
+
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
 from sqlalchemy.orm import relationship, synonym
@@ -63,7 +65,9 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False,)
+    _status = Column(
+        Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False,
+    )
     parents = relationship(
         "Stage",
         secondary=StageEdge.__table__,
@@ -150,6 +154,16 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in list(filter_by.items())))
 
     def get_task(self, uid, default="ERROR@#$"):
+        # from cosmos.models.Task import Task
+        #
+        # try:
+        #     return self.session.query(Task).filter_by(uid=uid).one()
+        # except NoResultFound:
+        #     if default == "ERROR@#$":
+        #         raise KeyError("Task with uid %s does not exist" % uid)
+        #     else:
+        #         return default
+
         for task in self.tasks:
             if task.uid == uid:
                 return task
@@ -167,7 +181,10 @@ class Stage(Base):
 
     def percent_running(self):
         return round(
-            float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (float(len(self.tasks)) or 1) * 100, 2,
+            float(len([t for t in self.tasks if t.status == TaskStatus.submitted]))
+            / (float(len(self.tasks)) or 1)
+            * 100,
+            2,
         )
 
     def descendants(self, include_self=False):
