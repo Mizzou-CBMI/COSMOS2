@@ -154,6 +154,9 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in list(filter_by.items())))
 
     def get_task(self, uid, default="ERROR@#$"):
+        # this is the part of the code that makes adding new tasks very slow
+        # the commented code is even slower
+
         # from cosmos.models.Task import Task
         #
         # try:
