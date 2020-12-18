@@ -12,7 +12,7 @@ from cosmos.api import (
     draw_task_graph,
     pygraphviz_available,
     default_get_submit_args,
-    py_call_cmd_wrapper,
+    py_call,
 )
 
 
@@ -105,7 +105,7 @@ def main():
     recipe(workflow)
 
     workflow.make_output_dirs()
-    workflow.run(max_cores=10, cmd_wrapper=py_call_cmd_wrapper)
+    workflow.run(max_cores=10, cmd_wrapper=py_call)
 
     # Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG
     # you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.

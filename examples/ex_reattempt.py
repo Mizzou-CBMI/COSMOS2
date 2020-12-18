@@ -1,13 +1,6 @@
-"""
-py_call_cmd_wrapper allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a
-python script which imports the task function and calls it with the appropriate arguments.  Note you can still use
-subprocess.run to call executables (like tools created by third parties).
-"""
-
-
 import os
 
-from cosmos.api import Cosmos, py_call_cmd_wrapper
+from cosmos.api import Cosmos, py_call
 
 
 def add_one(out_file):
@@ -36,4 +29,4 @@ if __name__ == "__main__":
     t = workflow.add_task(func=add_one, params=dict(out_file="out.txt"), uid="my_task", max_attempts=3)
 
     workflow.make_output_dirs()
-    workflow.run(cmd_wrapper=py_call_cmd_wrapper)
+    workflow.run(cmd_wrapper=py_call)

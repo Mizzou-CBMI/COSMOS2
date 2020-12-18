@@ -1,6 +1,6 @@
 import sys
 
-from cosmos.api import Cosmos, py_call_cmd_wrapper
+from cosmos.api import Cosmos
 
 
 def say(text, out_file):
@@ -30,7 +30,7 @@ def main():
     print(("task.drm", t.drm))
     print(("task.uid", t.uid))
 
-    workflow.run(cmd_wrapper=py_call_cmd_wrapper)
+    workflow.run(cmd_wrapper=py_call)
 
     sys.exit(0 if workflow.successful else 1)
 

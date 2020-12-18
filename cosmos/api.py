@@ -227,5 +227,5 @@ logging.basicConfig(format=DEFAULT_LOG_FORMAT, datefmt='%m/%d/%Y %I:%M:%S %p', l
     return wrapped
 
 
-def py_call_cmd_wrapper(task):
-    return py_call
+# def py_call_cmd_wrapper(task):
+#     return py_call

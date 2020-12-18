@@ -1,7 +1,7 @@
 import os
 from functools import partial
 
-from cosmos.api import Cosmos, py_call_cmd_wrapper
+from cosmos.api import Cosmos, py_call
 from cosmos.models.Workflow import default_task_log_output_dir
 from cosmos.util.helpers import environment_variables
 
@@ -28,7 +28,7 @@ def main(output_dir):
 
     workflow.run(
         max_gpus=len(os.environ["COSMOS_LOCAL_GPU_DEVICES"].split(",")),
-        cmd_wrapper=py_call_cmd_wrapper,
+        cmd_wrapper=py_call,
         do_cleanup_atexit=False,
         log_out_dir_func=partial(default_task_log_output_dir, prefix="%s" % output_dir),
     )

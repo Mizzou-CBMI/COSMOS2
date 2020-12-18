@@ -1,14 +1,13 @@
 """
-py_call_cmd_wrapper allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a
+py_call allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a
 python script which imports the task function and calls it with the appropriate arguments.  Note you can still use
 subprocess.run to call executables (like tools created by third parties).
 """
 
-import os
 import time
 from argparse import ArgumentParser
 
-from cosmos.api import Cosmos, py_call_cmd_wrapper
+from cosmos.api import Cosmos, py_call
 
 
 def say(text, out_file):
@@ -32,7 +31,7 @@ def main():
     t2 = workflow.add_task(func=sleep, params=dict(secs=args.sleep), uid="my_task")
 
     workflow.make_output_dirs()
-    workflow.run(cmd_wrapper=py_call_cmd_wrapper)
+    workflow.run(cmd_wrapper=py_call)
 
 
 if __name__ == "__main__":
