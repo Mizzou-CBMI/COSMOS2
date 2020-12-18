@@ -183,10 +183,13 @@ def _get_import_code_for_func(func):
         except ModuleNotFoundError:
             # resort to importing the absolute path
             source_file = os.path.abspath(filename)
-            return f"""from importlib import machinery
-            loader = machinery.SourceFileLoader("module", "{source_file}")
-            mod = loader.load_module()
-            {func.__name__} = getattr(mod, "{func.__name__}")"""
+            return (
+                f"from importlib import machinery"
+                f'loader = machinery.SourceFileLoader("module", "{source_file}")'
+                f"mod = loader.load_module()"
+                f'{func.__name__} = getattr(mod, "{func.__name__}")'
+            )
+
     else:
         return "from %s import %s" % (func.__module__, func.__name__)
 
