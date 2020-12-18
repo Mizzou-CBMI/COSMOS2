@@ -28,6 +28,8 @@ class DRM_GE(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         task.drm_jobID, task.status = qsub(
             cmd_fn=task.output_command_script_path,
             stdout_fn=task.output_stdout_path,

@@ -92,6 +92,8 @@ class DRM_SLURM(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         for p in [task.output_stdout_path, task.output_stderr_path]:
             if os.path.exists(p):
                 os.unlink(p)
