@@ -26,11 +26,9 @@ def add_one(out_file):
 
 
 if __name__ == "__main__":
-    cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)), default_drm="local",
-    )
+    cosmos = Cosmos("sqlite.db", default_drm="local",)
     cosmos.initdb()
-    workflow = cosmos.start("ExampleReattempt", restart=True, skip_confirm=True)
+    workflow = cosmos.start("reattempt", restart=True, skip_confirm=True)
 
     if os.path.exists("out.txt"):
         os.unlink("out.txt")

@@ -45,6 +45,14 @@ opj = os.path.join
 WORKFLOW_LOG_AWKWARD_SILENCE_INTERVAL = 300
 
 
+class DuplicateUid(Exception):
+    pass
+
+
+class InvalidParams(Exception):
+    pass
+
+
 def default_task_log_output_dir(task, subdir="", prefix=""):
     """The default function for computing Task.log_output_dir"""
     return os.path.abspath(opj(prefix, "log", subdir, task.stage.name, str(task.uid)))
@@ -203,6 +211,7 @@ class Workflow(Base):
         job_class=None,
         drm_options=None,
         environment_variables=None,
+        if_duplicate="raise",
     ):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
@@ -230,6 +239,8 @@ class Workflow(Base):
         :param bool noop: Task is a No-op and will always be marked as successful.
         :param dict drm_options: Options for Distributed Resource Management (cluster).
         :param dict environment_variables: Environment variables to pass to the DRM (if supported).
+        :param str if_duplicate: If "raise", raises an error if a Task with the same UID has already been added to this
+          Workflow.  If "return", return that Task, allowing for an easy way to avoid duplicate work.
         :rtype: cosmos.api.Task
         """
         # Avoid cyclical import dependencies
@@ -288,11 +299,19 @@ class Workflow(Base):
 
                 return task
             else:
-                # TODO check for duplicate params here?  would be a lot faster at Workflow.run
-                raise ValueError(
-                    "Duplicate uid, you have added a Task to Stage %s with the uid (unique identifier) `%s` twice.  "
-                    "Task uids must be unique within the same Stage." % (stage_name, uid)
-                )
+                if if_duplicate == "raise":
+                    raise DuplicateUid(
+                        "Duplicate uid, you have added a Task to Stage %s with the uid (unique identifier) `%s` twice.  "
+                        "Task uids must be unique within the same Stage." % (stage_name, uid)
+                    )
+                elif if_duplicate == "return":
+                    if task.params != params:
+                        raise InvalidParams(
+                            f"Tried to add a task with the same uid, but different parameters."
+                        )
+                    return task
+                else:
+                    raise ValueError(f"{if_duplicate} is not valid")
         else:
             # Create Task
             sig = funcsigs.signature(func)

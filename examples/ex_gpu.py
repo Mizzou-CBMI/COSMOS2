@@ -19,7 +19,7 @@ def main(output_dir):
     cosmos = Cosmos()
     cosmos.initdb()
     workflow = cosmos.start(
-        "test", skip_confirm=True, primary_log_path=os.path.join(output_dir, "workflow.log"),
+        "gpu", skip_confirm=True, primary_log_path=os.path.join(output_dir, "workflow.log"),
     )
     for i, num_gpus in enumerate([1, 1, 2, 2, 3]):
         task = workflow.add_task(

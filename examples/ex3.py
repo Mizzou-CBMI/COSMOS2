@@ -25,11 +25,8 @@ def main():
     p.add_argument("--sleep", default=0, type=int)
     args = p.parse_args()
 
-    cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)), default_drm="local",
-    )
-    cosmos.initdb()
-    workflow = cosmos.start("Example3", restart=True, skip_confirm=True)
+    cosmos = Cosmos("cosmos.sqlite").initdb()
+    workflow = cosmos.start("ex3", restart=True, skip_confirm=True)
 
     t1 = workflow.add_task(func=say, params=dict(text="Hello World", out_file="out.txt"), uid="my_task")
     t2 = workflow.add_task(func=sleep, params=dict(secs=args.sleep), uid="my_task")

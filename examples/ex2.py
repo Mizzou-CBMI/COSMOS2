@@ -94,7 +94,7 @@ def main():
     args = p.parse_args()
 
     cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)),
+        "cosmos.sqlite",
         # example of how to change arguments if you're not using default_drm='local'
         get_submit_args=partial(default_get_submit_args, parallel_env="smp"),
         default_drm=args.drm,

@@ -1,8 +1,4 @@
-import shutil
-import tempfile
-
-from cosmos.api import Cosmos, cd, py_call
-
+from cosmos.api import Cosmos, py_call
 
 environment_variables_dict = {"Cosmos": "jobs", "are": "very", "cool": "!"}
 
@@ -19,7 +15,7 @@ def command_with_env_variables():
 def main():
     cosmos = Cosmos()
     cosmos.initdb()
-    workflow = cosmos.start("workflow", skip_confirm=True)
+    workflow = cosmos.start("env_variables", skip_confirm=True)
     workflow.add_task(
         func=command_with_env_variables, environment_variables=environment_variables_dict, uid="special"
     )

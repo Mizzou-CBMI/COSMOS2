@@ -14,14 +14,9 @@ def say(text, out_file):
 
 
 def main():
-    cosmos = Cosmos(
-        "sqlite:///%s/sqlite.db" % os.path.dirname(os.path.abspath(__file__)), default_drm="local",
-    )
-    cosmos.initdb()
+    cosmos = Cosmos("cosmos.sqlite").initdb()
 
-    sp.check_call("mkdir -p analysis_output/ex1", shell=True)
-    os.chdir("analysis_output/ex1")
-    workflow = cosmos.start("Example1", restart=True, skip_confirm=True)
+    workflow = cosmos.start("ex1", skip_confirm=True)
 
     t = workflow.add_task(
         func=say,

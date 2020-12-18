@@ -71,7 +71,7 @@ def main():
 
     sp.check_call("mkdir -p analysis_output/ex1", shell=True)
     os.chdir("analysis_output/ex1")
-    workflow = cosmos.start("Example1", restart=True, skip_confirm=True)
+    workflow = cosmos.start("awsbatch", restart=True, skip_confirm=True)
 
     t = workflow.add_task(
         func=get_instance_info,
