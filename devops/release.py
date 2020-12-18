@@ -18,7 +18,7 @@ def main(args):
 
     conda create -n cosmos
     conda activate cosmos
-    conda install conda-build ghp-import sphinx sphinx_rtd_theme python>3
+    conda install conda-build python>3
     pip install -e .[test]
 
     AFTER cosmos/VERSION is bumped and committed you can run:
