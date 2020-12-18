@@ -47,6 +47,7 @@ def submit_script_as_aws_batch_job(
     memory=1024,
     vpu_req=1,
     gpu_req=None,
+    shm_size=None,
     environment=None,
     tags=None,
 ):
@@ -58,6 +59,7 @@ def submit_script_as_aws_batch_job(
     :param container_image: docker image.
     :param memory: amount of memory to reserve.
     :param vpu_req: amount of vcpus to reserve.
+    :param shm_size: amount of shared memory for docker.
     :param environment: {env_name -> env_val} environment variables to set
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
@@ -102,6 +104,7 @@ def submit_script_as_aws_batch_job(
         "environment": [{"name": key, "value": val} for key, val in list(environment.items())],
         # run_s3_script
         "command": ["bash", "-c", command],
+        "linuxParameters": {}
     }
     if memory is not None:
         container_overrides["memory"] = memory
@@ -113,6 +116,8 @@ def submit_script_as_aws_batch_job(
         container_overrides["resourceRequirements"].append({"value": str(gpu_req), "type": "GPU"})
         visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
+    if shm_size is not None:
+        container_overrides["linuxParameters"]["sharedMemorySize"] = shm_size
 
     if not re.match("^[A-Za-z0-9][A-Za-z0-9-_]*$", job_name) or len(job_name) > 128:
         raise ValueError(
@@ -330,6 +335,7 @@ class DRM_AWSBatch(DRM):
                 memory=task.mem_req,
                 vpu_req=task.cpu_req,
                 gpu_req=task.gpu_req,
+                shm_size=task.drm_options["shm_size"],
                 instance_type=task.drm_options.get("instance_type"),
                 tags=dict(
                     job_type="cosmos",
