@@ -68,32 +68,17 @@ def stage_to_scratch(*args, gsutil_cmd="gsutil", parallel_cmd="parallel", exclud
                 elif isinstance(file_path_or_paths, tuple):
                     return tuple(stage_file_if_necessary(p) for p in file_path_or_paths)
                 elif isinstance(file_path_or_paths, dict):
-                    return {
-                        k: stage_file_if_necessary(p)
-                        for k, p in list(file_path_or_paths.items())
-                    }
+                    return {k: stage_file_if_necessary(p) for k, p in list(file_path_or_paths.items())}
                 elif isinstance(file_path_or_paths, str):
                     if file_path_or_paths.startswith("gs://"):
-                        gs_bucket_path, stage_path = bucket_url_and_key(
-                            file_path_or_paths
-                        )
+                        gs_bucket_path, stage_path = bucket_url_and_key(file_path_or_paths)
 
                         if is_input:
                             stage_downs.append(
-                                (
-                                    is_dir,
-                                    os.path.join(gs_bucket_path, stage_path),
-                                    stage_path,
-                                )
+                                (is_dir, os.path.join(gs_bucket_path, stage_path), stage_path,)
                             )
                         elif is_output:
-                            stage_ups.append(
-                                (
-                                    is_dir,
-                                    stage_path,
-                                    os.path.join(gs_bucket_path, stage_path),
-                                )
-                            )
+                            stage_ups.append((is_dir, stage_path, os.path.join(gs_bucket_path, stage_path),))
                         return stage_path
                 return file_path_or_paths
 
@@ -145,17 +130,13 @@ echo cwd: `pwd`
         append_cmds = []
         if stage_downs:
             prepend_cmds += ["###### STAGE DOWN ######"]
-            prepend_cmds += mkdir_cmd(
-                [p if is_dir else os.path.dirname(p) for is_dir, _, p in stage_downs]
-            )
+            prepend_cmds += mkdir_cmd([p if is_dir else os.path.dirname(p) for is_dir, _, p in stage_downs])
             prepend_cmds += stage_cmd(stage_downs)
 
         if stage_ups:
             # If we need to upload, create directories for the outputs before the command runs
             prepend_cmds += ["\n# Create scratch output dirs:"]
-            prepend_cmds += mkdir_cmd(
-                [p if is_dir else os.path.dirname(p) for is_dir, p, _ in stage_ups]
-            )
+            prepend_cmds += mkdir_cmd([p if is_dir else os.path.dirname(p) for is_dir, p, _ in stage_ups])
 
             append_cmds += ["###### STAGE UP ######"]
             append_cmds += stage_cmd(stage_ups)

@@ -67,6 +67,7 @@ class Cosmos(object):
         default_max_attempts=1,
         flask_app=None,
         default_job_class=None,
+        default_environment_variables=None,
     ):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
@@ -79,9 +80,6 @@ class Cosmos(object):
         default_drm_options = {} if default_drm_options is None else default_drm_options
         # Avoid cyclical import dependencies
         from cosmos.job.drm.DRM_Base import DRM
-
-        if os.path.exists(database_url):
-            database_url = f"sqlite:///{database_url}"
 
         assert default_drm.split(":")[0] in DRM.get_drm_names(), (
             "unsupported drm: %s" % default_drm.split(":")[0]
@@ -132,6 +130,7 @@ class Cosmos(object):
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
         self.default_time_req = default_time_req
+        self.default_environment_variables = default_environment_variables
 
         # def configure_flask(self):
         # setup flask views

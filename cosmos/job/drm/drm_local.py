@@ -106,6 +106,11 @@ class DRM_Local(DRM):
                     re.sub("\.\d+?", "", gpu) for gpu in self.task_id_to_gpus_used[task.id]
                 )
 
+            # set additional environment variables
+            if task.environment_variables is not None:
+                for (k, v,) in task.environment_variables.items():
+                    env[k] = v
+
             p = subprocess.Popen(
                 cmd,
                 stdout=open(task.output_stdout_path, "w"),

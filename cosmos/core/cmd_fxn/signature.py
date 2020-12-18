@@ -18,14 +18,11 @@ def get_call_kwargs(cmd_fxn, params, input_map, output_map):
             else:
                 raise AttributeError(
                     "%s requires the parameter `%s`, are you missing a tag?  Either provide a default in the cmd() "
-                    "method signature, or pass a value for `%s` with a tag"
-                    % (cmd_fxn, keyword, keyword)
+                    "method signature, or pass a value for `%s` with a tag" % (cmd_fxn, keyword, keyword)
                 )
 
     # TODO dont format with params?
-    kwargs = {
-        k: v.format(**params) if isinstance(v, str) else v for k, v in gen_params()
-    }
+    kwargs = {k: v.format(**params) if isinstance(v, str) else v for k, v in gen_params()}
     return kwargs
 
 
@@ -76,9 +73,7 @@ def default_cmd_fxn_wrapper(task, extra_prepend="", extra_append=""):
             return r
         else:
             r = fxn(*args, **kwargs)
-            assert isinstance(r, str) or r is None, (
-                "cmd_fxn %s did not return a str or None" % fxn
-            )
+            assert isinstance(r, str) or r is None, "cmd_fxn %s did not return a str or None" % fxn
             if r is None:
                 return None
             else:

@@ -76,6 +76,16 @@
                 {% endfor %}
             </dl>
 
+            <h3>Environment Variables</h3>
+
+
+            <dl class="dl-horizontal">
+                {% for k,v in task.environment_variables.items() %}
+                    <dt>{{ k }}</dt>
+                    <dd>{{ v }}</dd>
+                {% endfor %}
+            </dl>
+
             <h3>IO</h3>
             <dl class="dl-horizontal">
 

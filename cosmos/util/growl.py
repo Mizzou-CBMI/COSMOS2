@@ -18,14 +18,9 @@ def send(message, hostname=None, sticky=True):
 
         # Send one message
         growl.notify(
-            noteType="New Messages",
-            title="Cosmos",
-            description=message,
-            sticky=sticky,
-            priority=1,
+            noteType="New Messages", title="Cosmos", description=message, sticky=sticky, priority=1,
         )
     except Exception as e:
         print(
-            "*** ERROR sending growl notification to %s: %s" % (hostname, e),
-            file=sys.stderr,
+            "*** ERROR sending growl notification to %s: %s" % (hostname, e), file=sys.stderr,
         )

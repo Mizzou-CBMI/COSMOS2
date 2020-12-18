@@ -202,6 +202,7 @@ class Workflow(Base):
         noop=False,
         job_class=None,
         drm_options=None,
+        environment_variables=None,
     ):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
@@ -228,6 +229,7 @@ class Workflow(Base):
         :param int max_attempts: The maximum number of times to retry a failed job.  Defaults to the `default_max_attempts` parameter of :meth:`Cosmos.start`
         :param bool noop: Task is a No-op and will always be marked as successful.
         :param dict drm_options: Options for Distributed Resource Management (cluster).
+        :param dict environment_variables: Environment variables to pass to the DRM (if supported).
         :rtype: cosmos.api.Task
         """
         # Avoid cyclical import dependencies
@@ -325,6 +327,9 @@ class Workflow(Base):
                 attempt=1,
                 NOOP=noop,
                 gpu_req=gpu_req if gpu_req is not None else params_or_signature_default_or("gpu_req", 0),
+                environment_variables=environment_variables
+                if environment_variables is not None
+                else self.cosmos_app.default_environment_variables,
             )
 
             task.cmd_fxn = func
