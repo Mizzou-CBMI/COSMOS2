@@ -63,7 +63,9 @@ class Stage(Base):
     started_on = Column(DateTime)
     finished_on = Column(DateTime)
     successful = Column(Boolean, nullable=False, default=False)
-    _status = Column(Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False,)
+    _status = Column(
+        Enum_ColumnType(StageStatus, length=255), default=StageStatus.no_attempt, nullable=False,
+    )
     parents = relationship(
         "Stage",
         secondary=StageEdge.__table__,
@@ -167,7 +169,10 @@ class Stage(Base):
 
     def percent_running(self):
         return round(
-            float(len([t for t in self.tasks if t.status == TaskStatus.submitted])) / (float(len(self.tasks)) or 1) * 100, 2,
+            float(len([t for t in self.tasks if t.status == TaskStatus.submitted]))
+            / (float(len(self.tasks)) or 1)
+            * 100,
+            2,
         )
 
     def descendants(self, include_self=False):

@@ -383,6 +383,14 @@ class Workflow(Base):
         If dry is specified, returns None.
         """
 
+        if cmd_wrapper == signature.default_cmd_fxn_wrapper:
+            warnings.warn(
+                f"Having functions return bash strings as the default behavior is deprecated.  While "
+                f"this behavior will be supported, it is recommended that you set cmd_wrapper to "
+                f"cosmos.api.py_call which will be the new default."
+                f"See examples/ex3.py. "
+            )
+
         try:
             try:
                 assert os.path.exists(os.getcwd()), "current working dir does not exist! %s" % os.getcwd()
