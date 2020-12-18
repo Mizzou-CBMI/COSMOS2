@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. Workflows &mdash; Cosmos 2.9.0 documentation</title>
+  <title>6. Workflows &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -154,7 +154,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>6. Workflows</li>
+      <li><span class="section-number">6. </span>Workflows</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -174,22 +174,22 @@
            <div itemprop="articleBody">
             
   <div class="section" id="workflows">
-<span id="recipes"></span><h1>6. Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
-<p>Workflows consist of a <a class="reference internal" href="../glossary.html#term-dag"><span class="xref std std-term">DAG</span></a> of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
+<span id="recipes"></span><h1><span class="section-number">6. </span>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
+<p>Workflows consist of a <a class="reference internal" href="../glossary.html#term-DAG"><span class="xref std std-term">DAG</span></a> of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.</p>
-<p>To create your <a class="reference internal" href="../glossary.html#term-dag"><span class="xref std std-term">DAG</span></a>, use <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code>. Python generators
+<p>To create your <a class="reference internal" href="../glossary.html#term-DAG"><span class="xref std std-term">DAG</span></a>, use <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code>. Python generators
 and comprehensions are a great way to do this in a very readable way.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span>
 
-<span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">in_txt</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">,</span> <span class="n">use_lines</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">in_txt</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">,</span> <span class="n">use_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">l</span> <span class="o">=</span> <span class="s1">&#39; -l&#39;</span> <span class="k">if</span> <span class="n">use_lines</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
     <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        wc{l} {in_txt} &gt; {out_txt}</span>
+<span class="s2">        wc</span><span class="si">{l}</span><span class="s2"> </span><span class="si">{in_txt}</span><span class="s2"> &gt; </span><span class="si">{out_txt}</span><span class="s2"></span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
 
 <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s1">&#39;sqlite:///:memory:&#39;</span><span class="p">)</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
-<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;My_Workflow&#39;</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">wc_tasks</span> <span class="o">=</span> <span class="p">[</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">word_count</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_txt</span><span class="o">=</span><span class="n">inp</span><span class="p">,</span> <span class="n">out_txt</span><span class="o">=</span><span class="n">out</span><span class="p">),</span>
                                                        <span class="n">uid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
@@ -208,10 +208,10 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </ol>
 <p>This allows you to easily change the code that produced a failed Task and resume where you left off.</p>
 <div class="section" id="creating-your-job-dependency-graph-dag">
-<h2>6.1. Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.1. </span>Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
 <p>A useful model for thinking about how your stages and tasks are related is to think in terms of SQL relationship types.</p>
 <div class="section" id="one2one-aka-map">
-<h3>6.1.1. One2one (aka. map)<a class="headerlink" href="#one2one-aka-map" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">6.1.1. </span>One2one (aka. map)<a class="headerlink" href="#one2one-aka-map" title="Permalink to this headline">¶</a></h3>
 <p>This is the most common type of dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
@@ -228,7 +228,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="one2many-aka-scatter">
-<h3>6.1.2. One2many (aka. scatter)<a class="headerlink" href="#one2many-aka-scatter" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">6.1.2. </span>One2many (aka. scatter)<a class="headerlink" href="#one2many-aka-scatter" title="Permalink to this headline">¶</a></h3>
 <p>For each parent task in StageA, two or more new children are generated in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;One2Many&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
@@ -246,9 +246,9 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2one-aka-reduce-or-gather">
-<h3>6.1.3. Many2one (aka. reduce or gather)<a class="headerlink" href="#many2one-aka-reduce-or-gather" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">6.1.3. </span>Many2one (aka. reduce or gather)<a class="headerlink" href="#many2one-aka-reduce-or-gather" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce one task in StageB.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">itertools</span> <span class="kn">as</span> <span class="nn">it</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;Many2One&#39;</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">))</span>
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
@@ -264,7 +264,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2many">
-<h3>6.1.4. Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">6.1.4. </span>Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce two or more parents in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;many2many&#39;</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">))</span>
@@ -288,16 +288,16 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="api">
-<h2>6.2. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.2. </span>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="workflow">
-<h3>6.2.1. Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
-<dl class="class">
+<h3><span class="section-number">6.2.1. </span>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
 <dt id="cosmos.api.Workflow">
-<em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Workflow</code><span class="sig-paren">(</span><em class="sig-param">manual_instantiation=True</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Workflow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">manual_instantiation</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>An collection Stages and Tasks encoded as a DAG</p>
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Workflow.add_task">
-<code class="sig-name descname">add_task</code><span class="sig-paren">(</span><em class="sig-param">func</em>, <em class="sig-param">params=None</em>, <em class="sig-param">parents=None</em>, <em class="sig-param">stage_name=None</em>, <em class="sig-param">uid=None</em>, <em class="sig-param">drm=None</em>, <em class="sig-param">queue=None</em>, <em class="sig-param">must_succeed=True</em>, <em class="sig-param">time_req=None</em>, <em class="sig-param">core_req=None</em>, <em class="sig-param">mem_req=None</em>, <em class="sig-param">gpu_req=None</em>, <em class="sig-param">max_attempts=None</em>, <em class="sig-param">noop=False</em>, <em class="sig-param">job_class=None</em>, <em class="sig-param">drm_options=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow.add_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow.add_task" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parents</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stage_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">uid</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">drm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">must_succeed</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">time_req</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">core_req</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mem_req</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gpu_req</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_attempts</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">noop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">job_class</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">drm_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">environment_variables</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">if_duplicate</span><span class="o">=</span><span class="default_value">'raise'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow.add_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow.add_task" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -316,11 +316,17 @@ database version will be returned and a new one will not be created.</p></li>
 <li><p><strong>queue</strong> – The name of a queue to submit to; defaults to the <cite>default_queue</cite> parameter of <a class="reference internal" href="initializing.html#cosmos.api.Cosmos.start" title="cosmos.api.Cosmos.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Cosmos.start()</span></code></a></p></li>
 <li><p><strong>must_succeed</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Default True.  If False, the Workflow will not fail if this Task does not succeed.  Dependent Jobs will not be executed.</p></li>
 <li><p><strong>time_req</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – The time requirement; will set the Task.time_req attribute which is intended to be used by <code class="xref py py-func docutils literal notranslate"><span class="pre">get_submit_args()</span></code> to request resources.</p></li>
-<li><p><strong>cpu_req</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of cpus required for this Task.  Can also be set in the <cite>params</cite> dict or the default value of the Task function signature, but this value takes precedence.
+<li><p><strong>core_req</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of cpus required for this Task.  Can also be set in the <cite>params</cite> dict or the default value of the Task function signature, but this value takes precedence.
 Warning!  In future versions, this will be the only way to set it.</p></li>
 <li><p><strong>mem_req</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of MB of RAM required for this Task.   Can also be set in the <cite>params</cite> dict or the default value of the Task function signature, but this value takes predence.
 Warning!  In future versions, this will be the only way to set it.</p></li>
+<li><p><strong>gpu_req</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – Number of gpus required for this Task.</p></li>
 <li><p><strong>max_attempts</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – The maximum number of times to retry a failed job.  Defaults to the <cite>default_max_attempts</cite> parameter of <a class="reference internal" href="initializing.html#cosmos.api.Cosmos.start" title="cosmos.api.Cosmos.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Cosmos.start()</span></code></a></p></li>
+<li><p><strong>noop</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Task is a No-op and will always be marked as successful.</p></li>
+<li><p><strong>drm_options</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Options for Distributed Resource Management (cluster).</p></li>
+<li><p><strong>environment_variables</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Environment variables to pass to the DRM (if supported).</p></li>
+<li><p><strong>if_duplicate</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – If “raise”, raises an error if a Task with the same UID has already been added to this
+Workflow.  If “return”, return that Task, allowing for an easy way to avoid duplicate work.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -329,9 +335,9 @@ Warning!  In future versions, this will be the only way to set it.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Workflow.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">max_cores=None</em>, <em class="sig-param">dry=False</em>, <em class="sig-param">set_successful=True</em>, <em class="sig-param">cmd_wrapper=&lt;function default_cmd_fxn_wrapper&gt;</em>, <em class="sig-param">log_out_dir_func=&lt;function default_task_log_output_dir&gt;</em>, <em class="sig-param">max_gpus=None</em>, <em class="sig-param">cleanup_at_exit=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">max_cores=None</em>, <em class="sig-param">dry=False</em>, <em class="sig-param">set_successful=True</em>, <em class="sig-param">cmd_wrapper=&lt;function default_cmd_fxn_wrapper&gt;</em>, <em class="sig-param">log_out_dir_func=&lt;function default_task_log_output_dir&gt;</em>, <em class="sig-param">max_gpus=None</em>, <em class="sig-param">do_cleanup_atexit=True</em>, <em class="sig-param">lethal_signals=frozenset({&lt;Signals.SIGINT: 2&gt;</em>, <em class="sig-param">&lt;Signals.SIGTERM: 15&gt;</em>, <em class="sig-param">&lt;Signals.SIGXCPU: 24&gt;})</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs this Workflow’s DAG</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -345,10 +351,11 @@ By default a Task’s log output is stored in log/stage_name/task_id.
 See _default_task_log_output_dir for more info.</p></li>
 <li><p><strong>cmd_wrapper</strong> (<em>callable</em>) – A decorator which will be applied to every Task’s cmd_fxn.</p></li>
 <li><p><strong>dry</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – If True, do not actually run any jobs.</p></li>
-<li><p><strong>set_successful</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Sets this workflow as successful if all tasks finish without a failure.  You might set this to False if you intend to add and
+<li><p><strong>set_successful</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – Sets this workflow as successful if all tasks finish without a failure.
+You might set this to False if you intend to add and
 run more tasks in this workflow later.</p></li>
-<li><p><strong>cleanup_at_exit</strong> – if False, do not attempt to handle abnormal exits (like ctrl+c).  Useful for testing
-since atexit writes to a log file, which might not exist anymore since it was in a temp directory.</p></li>
+<li><p><strong>do_cleanup_atexit</strong> – if False, do not attempt to cleanup unhandled exits.</p></li>
+<li><p><strong>lethal_signals</strong> – signals to catch and shutdown</p></li>
 </ul>
 </dd>
 </dl>

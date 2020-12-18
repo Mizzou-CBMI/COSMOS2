@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>1. Introduction &mdash; Cosmos 2.9.0 documentation</title>
+  <title>1. Introduction &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -91,7 +91,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#multi-platform-support">1.2.1. Multi-platform Support</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#bug-reports">1.3. Bug Reports</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="2_install.html">2. Installation</a></li>
@@ -149,7 +148,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>1. Introduction</li>
+      <li><span class="section-number">1. </span>Introduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -169,50 +168,51 @@
            <div itemprop="articleBody">
             
   <div class="section" id="introduction">
-<span id="id1"></span><h1>1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>Cosmos is a python workflow management library primarily intended to process Big Data through scientific pipelines on a distributed computing cluster.
-It is used in production by large companies and researchers, and is popular in the bioinformatics community yet general enough for any distributed computing application.
-It allows you to efficiently program extremely complex workflows that are still readable and accessible to other software engineers,
-and provides a web dashboard to monitor, debug, and analyze your jobs.  Cosmos is
-able to automatically process large amounts of data by utilizing traditional cluster such as LSF or GridEngine and a shared filesystem, which do not come
-with the limitations of map reduce frameworks like Hadoop and Spark.  It is especially
-powerful when combined with spot instances on <a class="reference external" href="aws.amazon.com">Amazon Web Services</a> and
-<a class="reference external" href="http://star.mit.edu/cluster/">StarCluster</a> where we have processed hundreds of terrabytes in parallel in a single workflow.</p>
-<p>Cosmos provides a simple but
-flexible api to specify complex job DAGs, a way to resume modified or failed workflows, and make debugging and provenance as easy as possible.</p>
+<span id="id1"></span><h1><span class="section-number">1. </span>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Cosmos is a python library for creating scientific pipelines that run on a distributed computing cluster.
+It is primarily designed and used for bioinformatics pipelines, but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.</p>
+<p>Cosmos provides a simple api to specify any job DAG using simple python code making it extremely flexible and inuitive
+- you do <em>not</em> specify your DAG using json, CWL, groovy, or some other domain specific language.</p>
+<p>Cosmos allows you to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
+It is different from libraries such as <a class="reference external" href="https://github.com/spotify/luigi">Luigi</a>
+or <a class="reference external" href="http://airbnb.io/projects/airflow/">Airflow</a> which also try to solve ETL problems such as scheduling recurring tasks and listening for events.</p>
+<p>Cosmos is very focused on reproducible scientific pipelines, allowing it to have a very simple state.
+There is a single process per Workflow which is a python script, and a single process per Task which is python function represented by an executable script.
+When a Task fails, reproducing the exact environment of a Task is as simple as re-running the command script.  The same pipeline can
+also easily be run on a variety of compute infrastructure: locally, in the cloud, or on a grid computing cluster.</p>
+<p>Cosmos is intended and useful for both one-off analyses and production software.
+Users have analyzed &gt;100 whole genomes (~50TB and tens of thousands of jobs) in a single Workflow without issue, and some of the largest
+clinical sequencing laboratories use it for the production and R&amp;D workflows.</p>
 <div class="section" id="history">
-<h2>1.1. History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">1.1. </span>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
 <p>Cosmos was published as an Application Note in the journal <a class="reference external" href="http://bioinformatics.oxfordjournals.org/">Bioinformatics</a>,
 but has evolved a lot since its original inception.  If you use Cosmos
 for research, please cite its <a class="reference external" href="http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385">manuscript</a>.</p>
 <p>Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
 <a class="reference external" href="http://lpm.hms.harvard.edu/">The Lab for Personalized Medicine</a> at Harvard Medical School, the <a class="reference external" href="http://wall-lab.stanford.edu/">Wall Lab</a> at Stanford University, and
-<a class="reference external" href="http://invitae.com">Invitae</a>, a leading clinical genetic sequencing diagnostics laboratory.</p>
+<a class="reference external" href="http://invitae.com">Invitae</a>.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and has processed hundreds of thousands of samples.
+It is also used by various research groups around the world; if you use it for cool stuff please let us know!</p>
 </div>
 <div class="section" id="features">
-<h2>1.2. Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">1.2. </span>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Written in python which is easy to learn, powerful, and popular.  A programmer with limited experience can begin writing Cosmos workflows right away.</p></li>
+<li><p>Written in python which is easy to learn, powerful, and popular.  A researcher or programmer with limited experience can begin writing Cosmos workflows right away.</p></li>
 <li><p>Powerful syntax for the creation of complex and highly parallelized workflows.</p></li>
 <li><p>Reusable recipes and definitions of tools and sub workflows allows for DRY code.</p></li>
-<li><p>Keeps track of workflows, job information, and resource utilization and provenance in an SQL database.</p></li>
+<li><p>Keeps track of workflows, job information, resource utilization and provenance in an SQL database and log files.</p></li>
 <li><p>The ability to visualize all jobs and job dependencies as a convenient image.</p></li>
 <li><p>Monitor and debug running workflows, and a history of all workflows via a web dashboard.</p></li>
 <li><p>Alter and resume failed workflows.</p></li>
 </ul>
 <div class="section" id="multi-platform-support">
-<h3>1.2.1. Multi-platform Support<a class="headerlink" href="#multi-platform-support" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">1.2.1. </span>Multi-platform Support<a class="headerlink" href="#multi-platform-support" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>Support for DRMS such as SGE, LSF and DRMAA.  Adding support for more DRMs is very straightforward.</p></li>
+<li><p>Support for running pipelines locally</p></li>
+<li><p>Support for running pipelines on AWSBatch (new!)</p></li>
+<li><p>Support for running pipelines on DRMS such as SGE, LSF, SLURM and others via DRMAA.  Adding support for more DRMs is very straightforward.</p></li>
 <li><p>Supports for MySQL, PosgreSQL, Oracle, SQLite by using the SQLALchemy ORM.</p></li>
-<li><p>Well suited for cloud computing</p></li>
-<li><p>Ability to run workflows on your local computing, which is often great for testing.</p></li>
 </ul>
 </div>
-</div>
-<div class="section" id="bug-reports">
-<h2>1.3. Bug Reports<a class="headerlink" href="#bug-reports" title="Permalink to this headline">¶</a></h2>
-<p>Please use the <a class="reference external" href="https://github.com/Mizzou-CBMI/Cosmos2/issues">Github Issue Tracker</a>.</p>
 </div>
 </div>
 

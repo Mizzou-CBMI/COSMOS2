@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>10. Advanced &mdash; Cosmos 2.9.0 documentation</title>
+  <title>10. Advanced &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -147,7 +147,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>10. Advanced</li>
+      <li><span class="section-number">10. </span>Advanced</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,21 +167,21 @@
            <div itemprop="articleBody">
             
   <div class="section" id="advanced">
-<h1>10. Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">10. </span>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="args-to-str">
-<h2>10.1. args_to_str<a class="headerlink" href="#args-to-str" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">10.1. </span>args_to_str<a class="headerlink" href="#args-to-str" title="Permalink to this headline">¶</a></h2>
 <p>This is a useful helper function for converting Task function arguments to command line arguments.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">args_to_str</span>
 
-<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">in_tsv</span><span class="p">,</span> <span class="n">out_tsv</span><span class="p">,</span> <span class="n">bar</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">return</span> <span class="s2">&quot;foo {in_tsv} {out_tsv} {args}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">in_tsv</span><span class="p">,</span> <span class="n">out_tsv</span><span class="p">,</span> <span class="n">bar</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;foo </span><span class="si">{in_tsv}</span><span class="s2"> </span><span class="si">{out_tsv}</span><span class="s2"> </span><span class="si">{args}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">args</span><span class="o">=</span><span class="n">args_to_str</span><span class="p">((</span><span class="s1">&#39;--bar&#39;</span><span class="p">,</span> <span class="n">bar</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;--x&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
     <span class="p">)</span>
 </pre></div>
 </div>
-<dl class="function">
+<dl class="py function">
 <dt id="cosmos.api.args_to_str">
-<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">args_to_str</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#args_to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.args_to_str" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">args_to_str</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#args_to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.args_to_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn a set of arguments into a string to be passed to a command line tool</p>
 <p>If value is None or False it will be ignored.
 If value is True, emit –{arg_flag} without specifing a value.
@@ -191,7 +191,7 @@ Otherwise emit –{arg_flag} {value}.</p>
 <dd class="field-odd"><p><strong>args</strong> – An iterable of (str arg_flag, value) tuples.</p>
 </dd>
 </dl>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="mi">123</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="kc">True</span>
@@ -207,7 +207,7 @@ Otherwise emit –{arg_flag} {value}.</p>
 
 </div>
 <div class="section" id="bash-call">
-<h2>10.2. Bash Call<a class="headerlink" href="#bash-call" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">10.2. </span>Bash Call<a class="headerlink" href="#bash-call" title="Permalink to this headline">¶</a></h2>
 <p>Tired of writing argparse boiler plate code for every Task you wrote a python script for?
 You can use this decorator to avoid writing both argparse code, and avoid writing the Task function that returns
 the bash command to call your script.  Notice how in this example, the code in <code class="xref py py-func docutils literal notranslate"><span class="pre">stats_summary()</span></code> is not returning a string which then calls another script.
@@ -218,14 +218,14 @@ The <a class="reference internal" href="#cosmos.api.bash_call" title="cosmos.api
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fp</span><span class="p">:</span>
             <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_tsv</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">count</span>
+        <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fp</span><span class="p">,</span> <span class="n">count</span>
 
 <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">bash_call</span><span class="p">(</span><span class="n">stats_summary</span><span class="p">),</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">in_tsv</span><span class="o">=</span><span class="s1">&#39;in_tsv&#39;</span><span class="p">,</span><span class="n">out_tsv</span><span class="o">=</span><span class="s1">&#39;out_tsv&#39;</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="function">
+<dl class="py function">
 <dt id="cosmos.api.bash_call">
-<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">bash_call</code><span class="sig-paren">(</span><em class="sig-param">func</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#bash_call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.bash_call" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">bash_call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cosmos/api.html#bash_call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.bash_call" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function decorator which provides a way to avoid writing boilerplate argparse code when defining a Task.
 It converts the decorated function to produce a bash script that uses python to import the function and
 call it with the same arguments.</p>
@@ -236,7 +236,7 @@ call it with the same arguments.</p>
 </ul>
 </dd>
 </dl>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s1">&#39;out.txt&#39;</span><span class="p">):</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s1">&#39;out.txt&#39;</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
 <span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">bash_call</span><span class="p">(</span><span class="n">echo</span><span class="p">)(</span><span class="n">arg1</span><span class="o">=</span><span class="s1">&#39;hello world&#39;</span><span class="p">))</span>
@@ -247,10 +247,11 @@ call it with the same arguments.</p>
 <span class="go">    from cosmos.api import echo</span>
 <span class="go">except ImportError:</span>
 <span class="go">    import imp</span>
-<span class="go">    echo = imp.load_source(&#39;echo&#39;, &#39;None&#39;).echo</span>
+<span class="go">    echo = imp.load_source(&#39;echo&#39;, &#39;&lt;doctest cosmos.api.bash_call[0]&gt;&#39;).echo</span>
 
 <span class="go">echo(**</span>
-<span class="go">{&#39;arg1&#39;: &#39;hello world&#39;,</span>
+<span class="go">{&#39;arg1&#39;: &#39;hello &#39;</span>
+<span class="go">         &#39;world&#39;,</span>
 <span class="go"> &#39;out_file&#39;: &#39;out.txt&#39;}</span>
 <span class="go">)</span>
 
@@ -261,11 +262,11 @@ call it with the same arguments.</p>
 
 </div>
 <div class="section" id="using-signals">
-<h2>10.3. Using signals<a class="headerlink" href="#using-signals" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">10.3. </span>Using signals<a class="headerlink" href="#using-signals" title="Permalink to this headline">¶</a></h2>
 <p>COSMOS uses <a class="reference external" href="https://pythonhosted.org/blinker/">blinker</a> for signals.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">signal_task_status_change</span>
 
-<span class="nd">@signal_task_status_change.connect</span>
+<span class="nd">@signal_task_status_change</span><span class="o">.</span><span class="n">connect</span>
 <span class="k">def</span> <span class="nf">task_status_changed</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">TaskStatus</span><span class="o">.</span><span class="n">successful</span><span class="p">,</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">failed</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;MyStage&#39;</span><span class="p">:</span>
@@ -276,7 +277,7 @@ call it with the same arguments.</p>
 </div>
 </div>
 <div class="section" id="sge-signals">
-<h2>10.4. SGE Signals<a class="headerlink" href="#sge-signals" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">10.4. </span>SGE Signals<a class="headerlink" href="#sge-signals" title="Permalink to this headline">¶</a></h2>
 <p>A useful context manager is available to cleanly handle SGE signals provided by <cite>qsub -notify</cite>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.util.signal_handlers</span> <span class="kn">import</span> <span class="n">SGESignalHandler</span><span class="p">,</span> <span class="n">handle_sge_signals</span>
 

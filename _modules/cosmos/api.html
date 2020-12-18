@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cosmos.api &mdash; Cosmos 2.9.0 documentation</title>
+  <title>cosmos.api &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -159,41 +159,51 @@
   <h1>Source code for cosmos.api</h1><div class="highlight"><pre>
 <span></span><span class="c1"># from .core.cmd_fxn.io import find, out_dir, forward</span>
 <span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 
 <span class="kn">import</span> <span class="nn">funcsigs</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">decorator</span> <span class="k">import</span> <span class="n">decorator</span>
+<span class="kn">from</span> <span class="nn">decorator</span> <span class="kn">import</span> <span class="n">decorator</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">cosmos</span> <span class="k">import</span> <span class="n">WorkflowStatus</span><span class="p">,</span> <span class="n">StageStatus</span><span class="p">,</span> <span class="n">TaskStatus</span><span class="p">,</span> <span class="n">NOOP</span><span class="p">,</span> <span class="n">signal_workflow_status_change</span><span class="p">,</span> \
-    <span class="n">signal_stage_status_change</span><span class="p">,</span> <span class="n">signal_task_status_change</span><span class="p">,</span> \
-    <span class="n">Dependency</span>
-<span class="kn">from</span> <span class="nn">cosmos.core.cmd_fxn.signature</span> <span class="k">import</span> <span class="n">default_cmd_fxn_wrapper</span>
-<span class="kn">from</span> <span class="nn">cosmos.graph.draw</span> <span class="k">import</span> <span class="n">draw_task_graph</span><span class="p">,</span> <span class="n">draw_stage_graph</span><span class="p">,</span> <span class="n">pygraphviz_available</span>
-<span class="kn">from</span> <span class="nn">cosmos.models.Cosmos</span> <span class="k">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">default_get_submit_args</span>
-<span class="kn">from</span> <span class="nn">cosmos.models.Stage</span> <span class="k">import</span> <span class="n">Stage</span>
-<span class="kn">from</span> <span class="nn">cosmos.models.Task</span> <span class="k">import</span> <span class="n">Task</span>
-<span class="kn">from</span> <span class="nn">cosmos.models.Workflow</span> <span class="k">import</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">default_task_log_output_dir</span>
-<span class="kn">from</span> <span class="nn">cosmos.util.args</span> <span class="k">import</span> <span class="n">add_workflow_args</span>
-<span class="kn">from</span> <span class="nn">cosmos.util.helpers</span> <span class="k">import</span> <span class="n">make_dict</span><span class="p">,</span> <span class="n">isinstance_namedtuple</span>
-<span class="kn">from</span> <span class="nn">cosmos.util.iterstuff</span> <span class="k">import</span> <span class="n">only_one</span>
-<span class="kn">from</span> <span class="nn">cosmos.util.signal_handlers</span> <span class="k">import</span> <span class="n">SGESignalHandler</span><span class="p">,</span> <span class="n">handle_sge_signals</span>
+<span class="kn">from</span> <span class="nn">cosmos</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">WorkflowStatus</span><span class="p">,</span>
+    <span class="n">StageStatus</span><span class="p">,</span>
+    <span class="n">TaskStatus</span><span class="p">,</span>
+    <span class="n">NOOP</span><span class="p">,</span>
+    <span class="n">signal_workflow_status_change</span><span class="p">,</span>
+    <span class="n">signal_stage_status_change</span><span class="p">,</span>
+    <span class="n">signal_task_status_change</span><span class="p">,</span>
+    <span class="n">Dependency</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">cosmos.core.cmd_fxn.signature</span> <span class="kn">import</span> <span class="n">default_cmd_fxn_wrapper</span>
+<span class="kn">from</span> <span class="nn">cosmos.graph.draw</span> <span class="kn">import</span> <span class="n">draw_task_graph</span><span class="p">,</span> <span class="n">draw_stage_graph</span><span class="p">,</span> <span class="n">pygraphviz_available</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Cosmos</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">default_get_submit_args</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Stage</span> <span class="kn">import</span> <span class="n">Stage</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Task</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">cosmos.models.Workflow</span> <span class="kn">import</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">default_task_log_output_dir</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.args</span> <span class="kn">import</span> <span class="n">add_workflow_args</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.helpers</span> <span class="kn">import</span> <span class="n">make_dict</span><span class="p">,</span> <span class="n">isinstance_namedtuple</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.iterstuff</span> <span class="kn">import</span> <span class="n">only_one</span>
+<span class="kn">from</span> <span class="nn">cosmos.util.signal_handlers</span> <span class="kn">import</span> <span class="n">SGESignalHandler</span><span class="p">,</span> <span class="n">handle_sge_signals</span>
 
 
-<span class="k">def</span> <span class="nf">load_input</span><span class="p">(</span><span class="n">out_file</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">def</span> <span class="nf">load_input</span><span class="p">(</span><span class="n">out_file</span><span class="p">):</span>
+    <span class="k">pass</span>
 
 
 <span class="k">def</span> <span class="nf">arg_to_str</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">name</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">name</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="args_to_str"><a class="viewcode-back" href="../../advanced.html#cosmos.api.args_to_str">[docs]</a><span class="k">def</span> <span class="nf">args_to_str</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
@@ -217,7 +227,7 @@
 <span class="sd">    &gt;&gt;&gt; args_to_str((&#39;--skip-me&#39;, y), (&#39;--use-me&#39;, z))</span>
 <span class="sd">    &#39;--use-me 123&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="s2">&quot; </span><span class="se">\\\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="n">arg_to_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
 
 
 <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
@@ -255,10 +265,11 @@
 <span class="sd">        from cosmos.api import echo</span>
 <span class="sd">    except ImportError:</span>
 <span class="sd">        import imp</span>
-<span class="sd">        echo = imp.load_source(&#39;echo&#39;, &#39;None&#39;).echo</span>
+<span class="sd">        echo = imp.load_source(&#39;echo&#39;, &#39;&lt;doctest cosmos.api.bash_call[0]&gt;&#39;).echo</span>
 <span class="sd">    &lt;BLANKLINE&gt;</span>
 <span class="sd">    echo(**</span>
-<span class="sd">    {&#39;arg1&#39;: &#39;hello world&#39;,</span>
+<span class="sd">    {&#39;arg1&#39;: &#39;hello &#39;</span>
+<span class="sd">             &#39;world&#39;,</span>
 <span class="sd">     &#39;out_file&#39;: &#39;out.txt&#39;}</span>
 <span class="sd">    )</span>
 <span class="sd">    &lt;BLANKLINE&gt;</span>
@@ -266,7 +277,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">sig</span> <span class="o">=</span> <span class="n">funcsigs</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">args</span><span class="p">))</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">args</span><span class="p">)))</span>
 
     <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">python - &lt;&lt;EOF</span>
@@ -281,45 +292,86 @@
 <span class="si">{param_str}</span><span class="s2"></span>
 <span class="s2">)</span>
 
-<span class="s2">EOF&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
-              <span class="n">module_name</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-              <span class="n">source_file</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsourcefile</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
-              <span class="n">param_str</span><span class="o">=</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+<span class="s2">EOF&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+        <span class="n">module_name</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="n">source_file</span><span class="o">=</span><span class="n">inspect</span><span class="o">.</span><span class="n">getsourcefile</span><span class="p">(</span><span class="n">func</span><span class="p">),</span>
+        <span class="n">param_str</span><span class="o">=</span><span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_module_path_from_fname</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    gets a module path from a filename if it is available by searching through sys.path</span>
+
+<span class="sd">    &gt;&gt;&gt; get_module_path_from_fname(__file__)</span>
+<span class="sd">    &#39;cosmos.api&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+
+    <span class="c1"># first element in sys.path is the working directory of the script, put it last in order of paths to try</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="c1"># if os.path.normpath(path) == os.path.normpath(os.getcwd()):</span>
+        <span class="c1">#     # don&#39;t use cwd as path</span>
+        <span class="c1">#     continue</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">module_rel_path</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">module_path</span> <span class="o">=</span> <span class="n">module_rel_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">module_path</span>
+            <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+                <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;could not find module for </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_import_code_for_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+        <span class="n">source_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">source_file</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">get_module_path_from_fname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;from </span><span class="si">%s</span><span class="s2"> import </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+            <span class="c1"># resort to importing the absolute path</span>
+            <span class="n">source_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;from importlib import machinery</span>
+<span class="s2">            loader = machinery.SourceFileLoader(&quot;module&quot;, &quot;</span><span class="si">{</span><span class="n">source_file</span><span class="si">}</span><span class="s2">&quot;)</span>
+<span class="s2">            mod = loader.load_module()</span>
+<span class="s2">            </span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> = getattr(mod, &quot;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;)&quot;&quot;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;from </span><span class="si">%s</span><span class="s2"> import </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">py_call</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func</span><span class="o">.</span><span class="n">skip_wrap</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">source_file</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfile</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">class_imports</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">args_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">class_imports</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">args_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-            <span class="n">args_str</span> <span class="o">+=</span> <span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">,</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span>
+            <span class="n">args_str</span> <span class="o">+=</span> <span class="s2">&quot;*</span><span class="si">%s</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">args</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="n">args_str</span> <span class="o">+=</span> <span class="s1">&#39;**</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="c1"># import named tuples</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">isinstance_namedtuple</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-                    <span class="n">class_imports</span> <span class="o">+=</span> <span class="s1">&#39;from </span><span class="si">{}</span><span class="s1"> import </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">args_str</span> <span class="o">+=</span> <span class="s2">&quot;**</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="kn">import</span> <span class="nn">sys</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">func_import_code</span> <span class="o">=</span> <span class="s2">&quot;import imp</span><span class="se">\n</span><span class="s2">&quot;</span> \
-                               <span class="s1">&#39;</span><span class="si">{func.__name__}</span><span class="s1"> = imp.load_source(&quot;module&quot;, &quot;</span><span class="si">{source_file}</span><span class="s1">&quot;).</span><span class="si">{func.__name__}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
-                <span class="n">source_file</span><span class="o">=</span><span class="n">source_file</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">func_import_code</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;from importlib import machinery</span>
-<span class="s2">loader = machinery.SourceFileLoader(&quot;module&quot;, &quot;</span><span class="si">{source_file}</span><span class="s2">&quot;)</span>
-<span class="s2">mod = loader.load_module()</span>
-<span class="si">{func.__name__}</span><span class="s2"> = getattr(mod, &quot;</span><span class="si">{func.__name__}</span><span class="s2">&quot;)&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+        <span class="n">func_import_code</span> <span class="o">=</span> <span class="n">_get_import_code_for_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;#!/usr/bin/env python</span>
+<span class="s2">import logging</span>
+<span class="s2">DEFAULT_LOG_FORMAT = &quot;[</span><span class="si">%(name)s</span><span class="s2"> : </span><span class="si">%(asctime)-15s</span><span class="s2"> </span><span class="si">%(filename)s</span><span class="s2"> - </span><span class="si">%(funcName)s</span><span class="s2">() ] </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+<span class="s2">logging.basicConfig(format=DEFAULT_LOG_FORMAT, datefmt=&#39;%m/</span><span class="si">%d</span><span class="s2">/%Y %I:%M:%S %p&#39;, level=logging.INFO)</span>
+
 <span class="si">{class_imports}{func_import_code}</span><span class="s2"></span>
-<span class="s2">    </span>
+
 <span class="s2"># To use ipdb, uncomment the next two lines and tab over the function call</span>
 <span class="s2">#import ipdb</span>
 <span class="s2">#with ipdb.launch_ipdb_on_exception():</span>
@@ -327,9 +379,15 @@
 <span class="si">{args_str}</span><span class="s2"></span>
 <span class="s2">)</span>
 
-<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">())</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">wrapped</span>
+
+
+<span class="k">def</span> <span class="nf">py_call_cmd_wrapper</span><span class="p">(</span><span class="n">task</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">py_call</span>
 </pre></div>
 
            </div>

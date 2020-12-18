@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. Getting Started &mdash; Cosmos 2.9.0 documentation</title>
+  <title>3. Getting Started &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -147,7 +147,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>3. Getting Started</li>
+      <li><span class="section-number">3. </span>Getting Started</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,11 +167,11 @@
            <div itemprop="articleBody">
             
   <div class="section" id="getting-started">
-<span id="id1"></span><h1>3. Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1><span class="section-number">3. </span>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>We’ll start by running a simple test workflow, exploring it via the web interface, and terminating it.  Then
 you’ll be ready to start learning how to write your own.</p>
 <div class="section" id="execute-an-example-workflow">
-<h2>3.1. Execute an Example Workflow<a class="headerlink" href="#execute-an-example-workflow" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.1. </span>Execute an Example Workflow<a class="headerlink" href="#execute-an-example-workflow" title="Permalink to this headline">¶</a></h2>
 <p>The console will generate a lot of output as the workflow runs.  This workflow tests out various
 features of Cosmos.  The number beside each object inside brackets, <cite>[#]</cite>, is the SQL ID of that object.  Clone the
 git repository so that you have access to the examples code:</p>
@@ -217,7 +217,7 @@ INFO: <span class="m">2014</span>-09-02 <span class="m">19</span>:30:52: &lt;Wor
 </div>
 </div>
 <div class="section" id="launch-the-web-interface">
-<h2>3.2. Launch the Web Interface<a class="headerlink" href="#launch-the-web-interface" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.2. </span>Launch the Web Interface<a class="headerlink" href="#launch-the-web-interface" title="Permalink to this headline">¶</a></h2>
 <p>You can use the web interface to explore the history and debug all workflows.  Features include:</p>
 <ul class="simple">
 <li><p>Visualizing all jobs as a dependency graph (not useful if there are too many jobs)</p></li>
@@ -247,13 +247,13 @@ Flask web server environment, see <a class="reference external" href="http://fla
 </div>
 </div>
 <div class="section" id="terminating-a-workflow">
-<h2>3.3. Terminating a Workflow<a class="headerlink" href="#terminating-a-workflow" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.3. </span>Terminating a Workflow<a class="headerlink" href="#terminating-a-workflow" title="Permalink to this headline">¶</a></h2>
 <p>To terminate a workflow, simply press ctrl+c (or send the process a SIGINT signal) in the terminal.
 Cosmos will terminate running jobs and mark them as failed.
 You can resume from the point in the workflow you left off later.</p>
 </div>
 <div class="section" id="resuming-a-workflow">
-<h2>3.4. Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.4. </span>Resuming a workflow<a class="headerlink" href="#resuming-a-workflow" title="Permalink to this headline">¶</a></h2>
 <p>A workflow can be resumed by re-running the script that originally started it.  The call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Cosmos.start()</span></code> will delete any failed Tasks.
 Calls to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code> will check the database to see if the Task already has been successfully completed (using the stage_name and uid).  If so,
 it’ll return the database version of that Task, and not re-run it when <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.run()</span></code> is called.  If the Task had failed, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code> will

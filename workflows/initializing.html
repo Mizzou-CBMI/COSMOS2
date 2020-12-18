@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4. Initializing &mdash; Cosmos 2.9.0 documentation</title>
+  <title>4. Initializing &mdash; Cosmos 2.13.8 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.9.0
+                2.13.8
               </div>
             
           
@@ -147,7 +147,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>4. Initializing</li>
+      <li><span class="section-number">4. </span>Initializing</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,7 +167,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="initializing">
-<span id="id1"></span><h1>4. Initializing<a class="headerlink" href="#initializing" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1><span class="section-number">4. </span>Initializing<a class="headerlink" href="#initializing" title="Permalink to this headline">¶</a></h1>
 <p>Cosmos is initialized by instantiating a <code class="xref py py-class docutils literal notranslate"><span class="pre">cosmos.Cosmos</span></code> instance, which represents a connection to a SQL database.  The Cosmos instance can then
 be used to start a Workflow.  If a Workflow already exists with the same name, it will be resumed and all failed Tasks will be deleted from the database.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span>
@@ -185,15 +185,15 @@ for more details.</p>
 This way, Workflows are completely atomic and all their provenance is nicely packed in a single location.</p>
 </div>
 <div class="section" id="api">
-<h2>4.1. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">4.1. </span>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="cosmos">
-<h3>4.1.1. Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
-<dl class="class">
+<h3><span class="section-number">4.1.1. </span>Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
 <dt id="cosmos.api.Cosmos">
-<em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Cosmos</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Cosmos</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em>, <em class="sig-param">default_environment_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
 <dt id="cosmos.api.Cosmos.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em>, <em class="sig-param">default_environment_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -208,9 +208,9 @@ requirements or the queue to submit to.  See <a class="reference internal" href=
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Cosmos.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">restart=False</em>, <em class="sig-param">skip_confirm=False</em>, <em class="sig-param">primary_log_path='workflow.log'</em>, <em class="sig-param">fail_fast=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">restart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">skip_confirm</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">primary_log_path</span><span class="o">=</span><span class="default_value">'workflow.log'</span></em>, <em class="sig-param"><span class="n">fail_fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
 <dd><p>Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -229,21 +229,21 @@ requirements or the queue to submit to.  See <a class="reference internal" href=
 :returns: An Workflow instance.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Cosmos.initdb">
 <code class="sig-name descname">initdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.initdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.initdb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Cosmos.resetdb">
 <code class="sig-name descname">resetdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.resetdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.resetdb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resets (deletes then initializes) the database.  This is not reversible!</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cosmos.api.Cosmos.runweb">
-<code class="sig-name descname">runweb</code><span class="sig-paren">(</span><em class="sig-param">host</em>, <em class="sig-param">port</em>, <em class="sig-param">debug=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.runweb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.runweb" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">runweb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">host</span></em>, <em class="sig-param"><span class="n">port</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.runweb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.runweb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Starts the web dashboard
 :param str host: Host name to bind to.  Default is local host, but commonly 0.0.0.0 to allow outside internet traffic.
 :param int port: Port to bind to.</p>
@@ -251,9 +251,9 @@ requirements or the queue to submit to.  See <a class="reference internal" href=
 
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="cosmos.api.default_get_submit_args">
-<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">default_get_submit_args</code><span class="sig-paren">(</span><em class="sig-param">task</em>, <em class="sig-param">parallel_env='orte'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">default_get_submit_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span></em>, <em class="sig-param"><span class="n">parallel_env</span><span class="o">=</span><span class="default_value">'orte'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default method for determining the extra arguments to pass to the DRM.
 For example, returning <cite>“-n 3” if</cite> <cite>task.drm == “lsf”</cite> would cause all jobs
 to be submitted with <cite>bsub -n 3</cite>.</p>
