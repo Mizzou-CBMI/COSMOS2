@@ -11,6 +11,7 @@ from cosmos.api import (
     pygraphviz_available,
     default_get_submit_args,
 )
+from cosmos.constants import MAX_CORES
 
 
 def echo(word):
@@ -51,7 +52,7 @@ def main():
     recipe(workflow)
 
     workflow.make_output_dirs()
-    workflow.run(max_cores=100)
+    workflow.run(max_cores=MAX_CORES)
 
     # Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG
     # you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.
