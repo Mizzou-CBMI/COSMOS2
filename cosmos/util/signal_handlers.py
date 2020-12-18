@@ -90,9 +90,7 @@ def get_notify_sec():
     """
     try:
         time_str = (
-            subprocess.check_output("qconf -sq $QUEUE | grep notify", shell=True)
-            .strip()
-            .split(" ")[-1]
+            subprocess.check_output("qconf -sq $QUEUE | grep notify", shell=True).strip().split(" ")[-1]
         )
         return hms_to_sec(time_str)
     except (AttributeError, IndexError, ValueError, subprocess.CalledProcessError):
@@ -122,9 +120,7 @@ class SGESignalHandler(object):
                 workflow.run()
     """
 
-    def __init__(
-        self, workflow, lethal_signals=None, benign_signals=None, explanations=None
-    ):
+    def __init__(self, workflow, lethal_signals=None, benign_signals=None, explanations=None):
 
         if lethal_signals is None:
             lethal_signals = {
@@ -215,11 +211,7 @@ class SGESignalHandler(object):
 
     def _cache_existing_handler(self, sig):
         prev_handler = signal.getsignal(sig)
-        if prev_handler not in (
-            signal.SIG_DFL,
-            signal.SIG_IGN,
-            signal.default_int_handler,
-        ):
+        if prev_handler not in (signal.SIG_DFL, signal.SIG_IGN, signal.default_int_handler,):
             raise RuntimeError(
                 "a signal handler is already set for signal %d (%s): %s"
                 % (sig, self._explain(sig), prev_handler)
@@ -319,7 +311,5 @@ class SGESignalHandler(object):
 
                 if not message_logged:
                     self._log.debug(
-                        "%s Ignoring benign signal(s): %s",
-                        self._workflow_name,
-                        new_signals,
+                        "%s Ignoring benign signal(s): %s", self._workflow_name, new_signals,
                     )

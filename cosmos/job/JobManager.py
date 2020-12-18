@@ -114,8 +114,7 @@ class JobManager(object):
         self.session.commit()
 
     def terminate(self):
-        """Kills all tasks in a workflow.
-        """
+        """Kills all tasks in a workflow."""
         get_drm = lambda t: t.drm
 
         for drm, tasks in it.groupby(sorted(self.running_tasks, key=get_drm), get_drm):

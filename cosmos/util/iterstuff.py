@@ -1,15 +1,15 @@
 from itertools import tee
 
-_nothing = 'NOTHING!!@#!#!@'
+_nothing = "NOTHING!!@#!#!@"
 
 
 def only_one(iterable, default=_nothing, sentinel=_nothing):
-    '''
+    """
     Return the first item from iterable, if and only if iterable contains a
     single element.  Raises ValueError if iterable contains more than a
     single element.  If iterable is empty, then return default value, if
     provided.  Otherwise raises ValueError.
-    '''
+    """
     it = iter(iterable)
 
     try:
@@ -17,13 +17,13 @@ def only_one(iterable, default=_nothing, sentinel=_nothing):
     except StopIteration:
         if default is not _nothing:
             return default
-        raise ValueError('zero length sequence')
+        raise ValueError("zero length sequence")
 
     try:
         next(it)
         if sentinel is not _nothing:
             return sentinel
-        raise ValueError('there can be only one')
+        raise ValueError("there can be only one")
     except StopIteration:
         return item
 

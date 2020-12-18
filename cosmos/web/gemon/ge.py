@@ -22,9 +22,7 @@ def qstat(user=getpass.getuser()):
 
     try:
         et = ET.fromstring(
-            sp.check_output(
-                ["qstat", "-ext", "-xml", "-u", user], preexec_fn=exit_process_group
-            )
+            sp.check_output(["qstat", "-ext", "-xml", "-u", user], preexec_fn=exit_process_group)
         )
     except (sp.CalledProcessError, OSError):
         # Error occurs if there are no jobs

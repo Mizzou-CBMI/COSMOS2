@@ -23,7 +23,7 @@ from sqlalchemy.types import String, Integer
 #     return Session
 
 
-#http://docs.sqlalchemy.org/en/rel_0_8/dialects/sqlite.html#foreign-key-support
+# http://docs.sqlalchemy.org/en/rel_0_8/dialects/sqlite.html#foreign-key-support
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     """Turn on sqlite foreignkey support"""
@@ -38,8 +38,11 @@ class Base(declarative_base()):
     exclude_from_dict = []
 
     def attrs_as_dict(self):
-        l = [(c.name, getattr(self, c.name)) for c in self.__table__.columns if
-             c.name != 'id' and c.name not in self.exclude_from_dict]
+        l = [
+            (c.name, getattr(self, c.name))
+            for c in self.__table__.columns
+            if c.name != "id" and c.name not in self.exclude_from_dict
+        ]
         return OrderedDict(l)
 
     @property
@@ -50,7 +53,8 @@ class Base(declarative_base()):
     def query(self):
         return self.session.query(self.__class__)
 
+
 class MetaData(Base):
-    __tablename__ = 'metadata'
+    __tablename__ = "metadata"
     id = Column(Integer, primary_key=True)
     initdb_library_version = Column(String(255))

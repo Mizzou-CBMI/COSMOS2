@@ -92,18 +92,14 @@ class DRM_SLURM(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         for p in [task.output_stdout_path, task.output_stderr_path]:
             if os.path.exists(p):
                 os.unlink(p)
 
         task.drm_jobID = retry_call(
-            sbatch,
-            fargs=[task],
-            delay=10,
-            tries=10,
-            backoff=2,
-            max_delay=60,
-            logger=task.log,
+            sbatch, fargs=[task], delay=10, tries=10, backoff=2, max_delay=60, logger=task.log,
         )
         task.status = TaskStatus.submitted
 
@@ -128,15 +124,13 @@ class DRM_SLURM(DRM):
                 if task.drm_jobID in job_infos:
                     job_info = job_infos[task.drm_jobID]
                     if job_info["State"] in FAILED_STATES + COMPLETED_STATES:
-                        job_info = parse_sacct(
-                            job_infos[task.drm_jobID], tasks[0].workflow.log
-                        )
+                        job_info = parse_sacct(job_infos[task.drm_jobID], tasks[0].workflow.log)
 
                         yield task, job_info
                     else:
                         assert job_info["State"] in PENDING_STATES, (
                             "Invalid job state: `%s` for %s drm_job_id=%s"
-                            % (job_info["State"], task, task.drm_jobID)
+                            % (job_info["State"], task, task.drm_jobID,)
                         )
 
     def drm_statuses(self, tasks):
@@ -157,9 +151,7 @@ class DRM_SLURM(DRM):
             )
 
             def f(task):
-                return job_infos.get(task.drm_jobID, dict()).get(
-                    "State", "UNK_JOB_STATE"
-                )
+                return job_infos.get(task.drm_jobID, dict()).get("State", "UNK_JOB_STATE")
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -214,29 +206,19 @@ def parse_sacct(job_info, log=None):
             job_info2["exit_status"] = int(job_info2["ExitCode"].split(":")[0])
         job_info2["cpu_time"] = int(job_info2["CPUTimeRAW"])
         job_info2["wall_time"] = parse_slurm_time(job_info2["Elapsed"])
-        job_info2["percent_cpu"] = div(
-            float(job_info2["cpu_time"]), float(job_info2["wall_time"])
-        )
+        job_info2["percent_cpu"] = div(float(job_info2["cpu_time"]), float(job_info2["wall_time"]))
 
         job_info2["avg_rss_mem"] = (
-            convert_size_to_kb(job_info2["AveRSS"])
-            if job_info2["AveRSS"] != ""
-            else None
+            convert_size_to_kb(job_info2["AveRSS"]) if job_info2["AveRSS"] != "" else None
         )
         job_info2["max_rss_mem"] = (
-            convert_size_to_kb(job_info2["MaxRSS"])
-            if job_info2["MaxRSS"] != ""
-            else None
+            convert_size_to_kb(job_info2["MaxRSS"]) if job_info2["MaxRSS"] != "" else None
         )
         job_info2["avg_vms_mem"] = (
-            convert_size_to_kb(job_info2["AveVMSize"])
-            if job_info2["AveVMSize"] != ""
-            else None
+            convert_size_to_kb(job_info2["AveVMSize"]) if job_info2["AveVMSize"] != "" else None
         )
         job_info2["max_vms_mem"] = (
-            convert_size_to_kb(job_info2["MaxVMSize"])
-            if job_info2["MaxVMSize"] != ""
-            else None
+            convert_size_to_kb(job_info2["MaxVMSize"]) if job_info2["MaxVMSize"] != "" else None
         )
     except Exception as e:
         if log:

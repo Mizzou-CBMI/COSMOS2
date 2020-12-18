@@ -67,6 +67,7 @@ class Cosmos(object):
         default_max_attempts=1,
         flask_app=None,
         default_job_class=None,
+        default_environment_variables=None,
     ):
         """
         :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
@@ -80,7 +81,9 @@ class Cosmos(object):
         # Avoid cyclical import dependencies
         from cosmos.job.drm.DRM_Base import DRM
 
-        assert default_drm.split(":")[0] in DRM.get_drm_names(), "unsupported drm: %s" % default_drm.split(":")[0]
+        assert default_drm.split(":")[0] in DRM.get_drm_names(), (
+            "unsupported drm: %s" % default_drm.split(":")[0]
+        )
         assert "://" in database_url, "Invalid database_url: %s" % database_url
 
         # self.futures_executor = futures.ThreadPoolExecutor(10)
@@ -127,6 +130,7 @@ class Cosmos(object):
         self.default_queue = default_queue
         self.default_max_attempts = default_max_attempts
         self.default_time_req = default_time_req
+        self.default_environment_variables = default_environment_variables
 
         # def configure_flask(self):
         # setup flask views
@@ -166,7 +170,9 @@ class Cosmos(object):
         """
         from .Workflow import Workflow
 
-        assert os.path.exists(os.getcwd()), "The current working dir of this environment, %s, does not exist" % os.getcwd()
+        assert os.path.exists(os.getcwd()), (
+            "The current working dir of this environment, %s, does not exist" % os.getcwd()
+        )
         # output_dir = os.path.abspath(output_dir)
         # output_dir = output_dir if output_dir[-1] != '/' else output_dir[0:]  # remove trailing slash
         # prefix_dir = os.path.split(output_dir)[0]
@@ -222,7 +228,9 @@ class Cosmos(object):
             failed_tasks = [t for s in wf.stages for t in s.tasks if not t.successful]
             n = len(failed_tasks)
             if n:
-                wf.log.info("Deleting %s unsuccessful task(s) from SQL database, delete_files=%s" % (n, False))
+                wf.log.info(
+                    "Deleting %s unsuccessful task(s) from SQL database, delete_files=%s" % (n, False)
+                )
                 for t in failed_tasks:
                     session.delete(t)
 

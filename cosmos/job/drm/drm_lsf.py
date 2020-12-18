@@ -25,9 +25,9 @@ class DRM_LSF(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
-        ns = (
-            " " + task.drm_native_specification if task.drm_native_specification else ""
-        )
+        if task.environment_variables is not None:
+            raise NotImplementedError
+        ns = " " + task.drm_native_specification if task.drm_native_specification else ""
         bsub = "bsub -o {stdout} -e {stderr}{ns} ".format(
             stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns
         )
@@ -74,9 +74,7 @@ class DRM_LSF(DRM):
             bjobs = bjobs_all()
 
             def f(task):
-                return bjobs.get(str(task.drm_jobID), dict()).get(
-                    "STAT", "UNK_JOB_STATE"
-                )
+                return bjobs.get(str(task.drm_jobID), dict()).get("STAT", "UNK_JOB_STATE")
 
             return {task.drm_jobID: f(task) for task in tasks}
         else:
@@ -89,9 +87,7 @@ class DRM_LSF(DRM):
 
     def kill_tasks(self, tasks):
         for t in tasks:
-            sp.check_call(
-                ["bkill", str(t.drm_jobID)], preexec_function=exit_process_group
-            )
+            sp.check_call(["bkill", str(t.drm_jobID)], preexec_function=exit_process_group)
 
 
 def bjobs_all():
@@ -100,11 +96,7 @@ def bjobs_all():
     information about the job
     """
     try:
-        lines = (
-            sp.check_output(["bjobs", "-a"], preexec_function=exit_process_group)
-            .decode()
-            .split("\n")
-        )
+        lines = sp.check_output(["bjobs", "-a"], preexec_function=exit_process_group).decode().split("\n")
     except (sp.CalledProcessError, OSError):
         return {}
     bjobs = {}

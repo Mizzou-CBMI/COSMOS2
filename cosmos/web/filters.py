@@ -5,8 +5,10 @@ from sqlalchemy import func
 from cosmos.api import Task, Stage, Workflow
 
 
-def add_filters(bprint_or_app, type_='bprint'):
-    add_filter = bprint_or_app.add_app_template_filter if type_ == 'bprint' else bprint_or_app.add_template_filter
+def add_filters(bprint_or_app, type_="bprint"):
+    add_filter = (
+        bprint_or_app.add_app_template_filter if type_ == "bprint" else bprint_or_app.add_template_filter
+    )
 
     @add_filter
     def to_thumb(b):
@@ -16,16 +18,15 @@ def add_filters(bprint_or_app, type_='bprint'):
             s = '<span class="glyphicon glyphicon-thumbs-down"></span> no'
         return Markup(s)
 
-
     @add_filter
     def format_resource_usage(field_name, val):
         if val is None:
-            return ''
+            return ""
         if re.search(r"time", field_name):
             return "{1}".format(val, format_time(val))
-        elif field_name == 'percent_cpu':
-            return '{0:.0%}'.format(val)
-        elif 'mem' in field_name:
+        elif field_name == "percent_cpu":
+            return "{0:.0%}".format(val)
+        elif "mem" in field_name:
             return format_memory_kb(val)
         elif type(val) in [int, float]:
             return intWithCommas(val)
@@ -34,11 +35,11 @@ def add_filters(bprint_or_app, type_='bprint'):
     @add_filter
     def stage_status2bootstrap(status):
         d = {
-            StageStatus.no_attempt: 'info',
-            StageStatus.running: 'warning',
-            StageStatus.successful: 'success',
-            StageStatus.failed: 'failure',
-            StageStatus.killed: 'failure'
+            StageStatus.no_attempt: "info",
+            StageStatus.running: "warning",
+            StageStatus.successful: "success",
+            StageStatus.failed: "failure",
+            StageStatus.killed: "failure",
         }
         return d.get(status)
 
@@ -52,43 +53,44 @@ def add_filters(bprint_or_app, type_='bprint'):
         session = stage.session
         a = session.query(f(getattr(Task, attribute))).join(Stage).filter(Stage.id == stage.id).scalar()
         if a is None:
-            return ''
+            return ""
         a = float(a)
-        if 'kb' in attribute:
+        if "kb" in attribute:
             return format_memory_kb(a)
-        if 'mem_req' in attribute:
+        if "mem_req" in attribute:
             return format_memory_mb(a)
-        if 'time' in attribute:
+        if "time" in attribute:
             return format_time(a)
-        if 'percent' in attribute:
-            return '{0:.0%}'.format(float(a))
-        if attribute == 'core_req':
+        if "percent" in attribute:
+            return "{0:.0%}".format(float(a))
+        if attribute == "core_req":
             return round(a, 1)
         else:
             return int(round(a))
 
     @add_filter
-    def datetime_format(value, format='%Y-%m-%d %I:%M %p'):
-        return value.strftime(format) if value else 'None'
+    def datetime_format(value, format="%Y-%m-%d %I:%M %p"):
+        return value.strftime(format) if value else "None"
 
     @add_filter
     def parse_seconds(amount, type="seconds"):
-        if amount is None or amount == '':
-            return ''
-        if type == 'minutes':
+        if amount is None or amount == "":
+            return ""
+        if type == "minutes":
             amount = amount * 60
         amount = int(amount) if amount > 5 else amount
         return datetime.timedelta(seconds=amount)
 
+
 def intWithCommas(x):
     if x is None:
-        return ''
+        return ""
     if type(x) not in [type(0), type(float)]:
-        #raise TypeError("Parameter must be an integer.")
+        # raise TypeError("Parameter must be an integer.")
         return x
     if x < 0:
-        return '-' + intWithCommas(-x)
-    result = ''
+        return "-" + intWithCommas(-x)
+    result = ""
     while x >= 1000:
         x, r = divmod(x, 1000)
         result = ",%03d%s" % (r, result)
@@ -98,7 +100,7 @@ def intWithCommas(x):
 def format_memory_kb(kb):
     """converts kb to human readible"""
     if kb is None:
-        return ''
+        return ""
     mb = kb / 1024.0
     gb = mb / 1024.0
     if gb > 1:
@@ -106,8 +108,10 @@ def format_memory_kb(kb):
     else:
         return "%sMB" % round(mb, 1)
 
+
 def format_memory_bytes(bytes):
-    return format_memory_kb(bytes/1024)
+    return format_memory_kb(bytes / 1024)
+
 
 def format_memory_mb(mb):
     """converts mb to human readible"""
@@ -115,8 +119,8 @@ def format_memory_mb(mb):
 
 
 def format_time(amount, type="seconds"):
-    if amount is None or amount == '':
-        return ''
-    if type == 'minutes':
+    if amount is None or amount == "":
+        return ""
+    if type == "minutes":
         amount = amount * 60
     return datetime.timedelta(seconds=int(amount))
