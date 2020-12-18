@@ -1,4 +1,6 @@
 import re
+
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import Boolean, Integer, String, DateTime
 from sqlalchemy.orm import relationship, synonym
@@ -152,6 +154,19 @@ class Stage(Base):
         return (t for t in self.tasks if all(t.params.get(k, None) == v for k, v in list(filter_by.items())))
 
     def get_task(self, uid, default="ERROR@#$"):
+        # this is the part of the code that makes adding new tasks very slow
+        # the commented code is even slower
+
+        # from cosmos.models.Task import Task
+        #
+        # try:
+        #     return self.session.query(Task).filter_by(uid=uid).one()
+        # except NoResultFound:
+        #     if default == "ERROR@#$":
+        #         raise KeyError("Task with uid %s does not exist" % uid)
+        #     else:
+        #         return default
+
         for task in self.tasks:
             if task.uid == uid:
                 return task
