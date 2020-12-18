@@ -1,5 +1,6 @@
 import argparse
 import os
+import subprocess
 import subprocess as sp
 import sys
 from functools import partial
@@ -11,32 +12,24 @@ from cosmos.api import (
     draw_task_graph,
     pygraphviz_available,
     default_get_submit_args,
+    py_call_cmd_wrapper,
 )
 
 
 def echo(word, out_txt):
-    return r"""
-        echo {word} > {out_txt}
-    """.format(
-        **locals()
-    )
+    with open(out_txt, "w") as fp:
+        fp.write(word)
 
 
 def cat(in_txts, out_txt):
-    return r"""
-        cat {input_str} > {out_txt}
-    """.format(
-        input_str=" ".join(map(str, in_txts)), **locals()
-    )
+    subprocess.run(f"cat {' '.join(map(str, in_txts))} > {out_txt}", shell=True, check=True)
 
 
 def word_count(in_txts, out_txt, chars=False):
     c = " -c" if chars else ""
-    return r"""
-        wc{c} {input} > {out_txt}
-    """.format(
-        input=" ".join(map(str, in_txts)), **locals()
-    )
+    input = " ".join(map(str, in_txts))
+
+    subprocess.run(f"wc{c} {input} > {out_txt}", shell=True, check=True)
 
 
 def recipe(workflow):
@@ -112,7 +105,7 @@ def main():
     recipe(workflow)
 
     workflow.make_output_dirs()
-    workflow.run(max_cores=10)
+    workflow.run(max_cores=10, cmd_wrapper=py_call_cmd_wrapper)
 
     # Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG
     # you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.

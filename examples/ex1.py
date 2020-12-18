@@ -1,16 +1,11 @@
-import os
-import subprocess as sp
 import sys
 
-from cosmos.api import Cosmos
+from cosmos.api import Cosmos, py_call_cmd_wrapper
 
 
 def say(text, out_file):
-    return r"""
-        echo "{text}" > {out_file}
-    """.format(
-        text=text, out_file=out_file
-    )
+    with open(out_file, "w") as fp:
+        fp.write(text)
 
 
 def main():
@@ -35,7 +30,7 @@ def main():
     print(("task.drm", t.drm))
     print(("task.uid", t.uid))
 
-    workflow.run()
+    workflow.run(cmd_wrapper=py_call_cmd_wrapper)
 
     sys.exit(0 if workflow.successful else 1)
 
