@@ -84,6 +84,9 @@ class Cosmos(object):
         assert default_drm.split(":")[0] in DRM.get_drm_names(), (
             "unsupported drm: %s" % default_drm.split(":")[0]
         )
+
+        if ":" not in database_url:
+            database_url = f"sqlite:///{database_url}"
         assert "://" in database_url, "Invalid database_url: %s" % database_url
 
         # self.futures_executor = futures.ThreadPoolExecutor(10)
