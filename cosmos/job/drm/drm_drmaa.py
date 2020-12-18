@@ -25,6 +25,8 @@ class DRM_DRMAA(DRM):
     _session = None
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         with get_drmaa_session().createJobTemplate() as jt:
             jt.remoteCommand = os.path.abspath(task.output_command_script_path)
             jt.outputPath = ":" + os.path.abspath(task.output_stdout_path)

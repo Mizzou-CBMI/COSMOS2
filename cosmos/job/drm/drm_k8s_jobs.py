@@ -83,6 +83,8 @@ class DRM_K8S_Jobs(DRM):  # noqa
             return str(drm_option_value)
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         native_spec = task.drm_native_specification if task.drm_native_specification else ""
 
         drm_option_names = self.required_drm_options | self.optional_drm_options

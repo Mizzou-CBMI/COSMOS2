@@ -25,6 +25,8 @@ class DRM_LSF(DRM):
     poll_interval = 5
 
     def submit_job(self, task):
+        if task.environment_variables is not None:
+            raise NotImplementedError
         ns = " " + task.drm_native_specification if task.drm_native_specification else ""
         bsub = "bsub -o {stdout} -e {stderr}{ns} ".format(
             stdout=task.output_stdout_path, stderr=task.output_stderr_path, ns=ns

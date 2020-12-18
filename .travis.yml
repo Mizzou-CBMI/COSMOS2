@@ -14,7 +14,6 @@ notifications:
   email:
     recipients:
       - egafni@gmail.com
-      - yassinesouilmi@gmail.com
     on_success: never
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
