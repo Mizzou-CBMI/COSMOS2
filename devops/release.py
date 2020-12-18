@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 import os
 import subprocess
+from argparse import ArgumentParser
 from shutil import rmtree
 
 from cosmos import __version__
-import argparse
 
 
 def run(cmd):
@@ -11,20 +12,27 @@ def run(cmd):
     subprocess.run(cmd, shell=True, executable="/bin/bash", check=True)
 
 
-def main():
+def main(args):
     """
     run inside a conda environment with conda-build installed
 
+    conda create -n cosmos
+    conda activate cosmos
+    conda install conda-build python>3
+    python setup.py develop
+
     AFTER cosmos/VERSION is bumped
+    devops/release.py
     """
 
-    run("python setup.py sdist upload")
+    if not args.skip_pypi:
+        run("python setup.py sdist upload")
 
     # run("curl http://readthedocs.org/build/cosmos-wfm")
 
-    if os.path.exists("../cosmos-wfm"):
+    if os.path.exists("cosmos-wfm"):
         print("removing cosmos-wfm dir")
-        rmtree("../cosmos-wfm")
+        rmtree("cosmos-wfm")
 
     run(f"conda skeleton pypi cosmos-wfm --version {__version__}")
     run(f"conda build cosmos-wfm")
@@ -48,4 +56,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    p = ArgumentParser()
+    p.add_argument("--skip-pypi", action="store_true")
+    args = p.parse_args()
+    main(args)
