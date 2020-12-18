@@ -11,12 +11,14 @@ def run(cmd):
     subprocess.run(cmd, shell=True, executable="/bin/bash", check=True)
 
 
-def release():
+def main():
     """
     run inside a conda environment with conda-build installed
     """
 
     run("python setup.py sdist upload")
+
+    # run("curl http://readthedocs.org/build/cosmos-wfm")
 
     if os.path.exists("../cosmos-wfm"):
         print("removing cosmos-wfm dir")
@@ -34,7 +36,4 @@ def release():
 
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser()
-    p.add_argument("cmd")
-    args = p.parse_args()
-    globals()[args.cmd]()
+    main()
