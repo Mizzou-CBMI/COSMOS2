@@ -1,8 +1,8 @@
 examples/log
 examples/workflow.log
 examples/cosmos.sqlite
-test/log
-test/workflow.log
+cosmos/test/log
+cosmos/test/workflow.log
 cosmos-wfm/
 venv*
 .eggs/
@@ -14,7 +14,7 @@ ve/
 .cache
 *.db
 *.egg-info
-test/out
+cosmos/test/out
 .project
 .idea/
 .git/
