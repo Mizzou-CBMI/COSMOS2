@@ -19,7 +19,7 @@ def main(args):
     conda create -n cosmos
     conda activate cosmos
     conda install conda-build ghp-import sphinx sphinx_rtd_theme python>3
-    python setup.py develop
+    pip install -e .[test]
 
     AFTER cosmos/VERSION is bumped and committed you can run:
     $ devops/release.py
