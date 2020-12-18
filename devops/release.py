@@ -14,6 +14,8 @@ def run(cmd):
 def main():
     """
     run inside a conda environment with conda-build installed
+
+    AFTER cosmos/VERSION is bumped
     """
 
     run("python setup.py sdist upload")
@@ -32,6 +34,16 @@ def main():
 
     run(
         f"anaconda upload {conda_base}/conda-bld/linux-64/cosmos-wfm-{__version__}-py38_0.tar.bz2 -u ravelbio"
+    )
+
+    # reqiures pip install ghp-import sphinx sphinx_rtd_theme
+    run(
+        f"""
+            cd docs
+            make html
+            cd build/html
+            ghp-import -n ./ -p        
+        """
     )
 
 
