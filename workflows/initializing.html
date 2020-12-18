@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4. Initializing &mdash; Cosmos 2.13.8 documentation</title>
+  <title>4. Initializing &mdash; Cosmos 2.13.9 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.13.8
+                2.13.9
               </div>
             
           
@@ -188,85 +188,6 @@ This way, Workflows are completely atomic and all their provenance is nicely pac
 <h2><span class="section-number">4.1. </span>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="cosmos">
 <h3><span class="section-number">4.1.1. </span>Cosmos<a class="headerlink" href="#cosmos" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="cosmos.api.Cosmos">
-<em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Cosmos</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em>, <em class="sig-param">default_environment_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt id="cosmos.api.Cosmos.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">database_url='sqlite:///:memory:'</em>, <em class="sig-param">get_submit_args=&lt;function default_get_submit_args&gt;</em>, <em class="sig-param">default_drm='local'</em>, <em class="sig-param">default_drm_options=None</em>, <em class="sig-param">default_queue=None</em>, <em class="sig-param">default_time_req=None</em>, <em class="sig-param">default_max_attempts=1</em>, <em class="sig-param">flask_app=None</em>, <em class="sig-param">default_job_class=None</em>, <em class="sig-param">default_environment_variables=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>database_url</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html">sqlalchemy database url</a>.  ex: sqlite:///home/user/sqlite.db or
-mysql://user:pass&#64;localhost/database_name or postgresql+psycopg2://user:pass&#64;localhost/database_name</p></li>
-<li><p><strong>get_submit_args</strong> (<em>callable</em>) – a function that returns arguments to be passed to the job submitter, like resource
-requirements or the queue to submit to.  See <a class="reference internal" href="#cosmos.api.default_get_submit_args" title="cosmos.api.default_get_submit_args"><code class="xref py py-func docutils literal notranslate"><span class="pre">cosmos.api.default_get_submit_args()</span></code></a> for details</p></li>
-<li><p><strong>flask_app</strong> (<em>flask.Flask</em>) – A Flask application instance for the web interface.  The default behavior is to create one.</p></li>
-<li><p><strong>default_drm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The Default DRM to use (ex ‘local’, ‘lsf’, or ‘ge’)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cosmos.api.Cosmos.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">restart</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">skip_confirm</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">primary_log_path</span><span class="o">=</span><span class="default_value">'workflow.log'</span></em>, <em class="sig-param"><span class="n">fail_fast</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.start" title="Permalink to this definition">¶</a></dt>
-<dd><p>Start, resume, or restart an workflow based on its name.  If resuming, deletes failed tasks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – A name for the workflow.  Must be unique for this Cosmos session.</p></li>
-<li><p><strong>restart</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – If True and the workflow exists, delete it first.</p></li>
-<li><p><strong>skip_confirm</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – (If True, do not prompt the shell for input before deleting workflows or files.</p></li>
-<li><p><strong>primary_log_path</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – The path of the primary log to write to.  If None, does not write to a file.  Log information is always printed to stderr.</p></li>
-<li><p><strong>fail_fast</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) – If True, terminate the workflow the first time a Task fails.</p></li>
-<li><p><strong>default_max_attempts</strong> (<a class="reference external" href="https://docs.python.org/2.7/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) – The default maximum number of times to attempt a Task.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Otherwise, run all Tasks except those downstream of a failure.
-:rtype Workflow:
-:returns: An Workflow instance.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cosmos.api.Cosmos.initdb">
-<code class="sig-name descname">initdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.initdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.initdb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the database via sql CREATE statements.  If the tables already exists, nothing will happen.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cosmos.api.Cosmos.resetdb">
-<code class="sig-name descname">resetdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.resetdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.resetdb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resets (deletes then initializes) the database.  This is not reversible!</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cosmos.api.Cosmos.runweb">
-<code class="sig-name descname">runweb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">host</span></em>, <em class="sig-param"><span class="n">port</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#Cosmos.runweb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Cosmos.runweb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starts the web dashboard
-:param str host: Host name to bind to.  Default is local host, but commonly 0.0.0.0 to allow outside internet traffic.
-:param int port: Port to bind to.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="cosmos.api.default_get_submit_args">
-<code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">default_get_submit_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span></em>, <em class="sig-param"><span class="n">parallel_env</span><span class="o">=</span><span class="default_value">'orte'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Cosmos.html#default_get_submit_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.default_get_submit_args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default method for determining the extra arguments to pass to the DRM.
-For example, returning <cite>“-n 3” if</cite> <cite>task.drm == “lsf”</cite> would cause all jobs
-to be submitted with <cite>bsub -n 3</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>task</strong> (<em>cosmos.api.Task</em>) – The Task being submitted.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/2.7/library/functions.html#str" title="(in Python v2.7)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 </div>
 </div>

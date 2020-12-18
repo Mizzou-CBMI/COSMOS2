@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>7. Examples &mdash; Cosmos 2.13.8 documentation</title>
+  <title>7. Examples &mdash; Cosmos 2.13.9 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2.13.8
+                2.13.9
               </div>
             
           
@@ -177,19 +177,14 @@ API, you have all the flexibility in the world to define any DAG you like.</p>
 <div class="section" id="example-1">
 <h2><span class="section-number">7.1. </span>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h2>
 <p><code class="file docutils literal notranslate"><span class="pre">examples/ex1.py</span></code></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span>
+<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">py_call</span>
 
 
 <span class="k">def</span> <span class="nf">say</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">out_file</span><span class="p">):</span>
-    <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        echo &quot;</span><span class="si">{text}</span><span class="s2">&quot; &gt; </span><span class="si">{out_file}</span><span class="s2"></span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span>
-    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -214,7 +209,7 @@ API, you have all the flexibility in the world to define any DAG you like.</p>
     <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.drm&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">drm</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.uid&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">uid</span><span class="p">))</span>
 
-    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call</span><span class="p">)</span>
 
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">successful</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
 
@@ -255,6 +250,7 @@ INFO: <span class="m">2016</span>-11-02 <span class="m">17</span>:29:54: &lt;Wor
 <p><code class="file docutils literal notranslate"><span class="pre">examples/ex2.py</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
@@ -266,32 +262,24 @@ INFO: <span class="m">2016</span>-11-02 <span class="m">17</span>:29:54: &lt;Wor
     <span class="n">draw_task_graph</span><span class="p">,</span>
     <span class="n">pygraphviz_available</span><span class="p">,</span>
     <span class="n">default_get_submit_args</span><span class="p">,</span>
+    <span class="n">py_call</span><span class="p">,</span>
 <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">echo</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">):</span>
-    <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        echo </span><span class="si">{word}</span><span class="s2"> &gt; </span><span class="si">{out_txt}</span><span class="s2"></span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
-    <span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_txt</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">cat</span><span class="p">(</span><span class="n">in_txts</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">):</span>
-    <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        cat </span><span class="si">{input_str}</span><span class="s2"> &gt; </span><span class="si">{out_txt}</span><span class="s2"></span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">input_str</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">in_txts</span><span class="p">)),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
-    <span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cat </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">in_txts</span><span class="p">))</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">out_txt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">word_count</span><span class="p">(</span><span class="n">in_txts</span><span class="p">,</span> <span class="n">out_txt</span><span class="p">,</span> <span class="n">chars</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">c</span> <span class="o">=</span> <span class="s2">&quot; -c&quot;</span> <span class="k">if</span> <span class="n">chars</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-    <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        wc</span><span class="si">{c}</span><span class="s2"> </span><span class="si">{input}</span><span class="s2"> &gt; </span><span class="si">{out_txt}</span><span class="s2"></span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="nb">input</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">in_txts</span><span class="p">)),</span> <span class="o">**</span><span class="nb">locals</span><span class="p">()</span>
-    <span class="p">)</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">in_txts</span><span class="p">))</span>
+
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wc</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">input</span><span class="si">}</span><span class="s2"> &gt; </span><span class="si">{</span><span class="n">out_txt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">recipe</span><span class="p">(</span><span class="n">workflow</span><span class="p">):</span>
@@ -367,7 +355,7 @@ INFO: <span class="m">2016</span>-11-02 <span class="m">17</span>:29:54: &lt;Wor
     <span class="n">recipe</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span>
 
     <span class="n">workflow</span><span class="o">.</span><span class="n">make_output_dirs</span><span class="p">()</span>
-    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_cores</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_cores</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call</span><span class="p">)</span>
 
     <span class="c1"># Noting here that if you wanted to look at the outputs of any Tasks to decide how to generate the rest of a DAG</span>
     <span class="c1"># you can do so here, proceed to add more tasks via workflow.add_task(), and then call workflow.run() again.</span>
@@ -405,16 +393,15 @@ is too large for a visualization to be useful:</p>
 directly call a python function and avoid the boiler plate of argparse</p>
 <p><code class="file docutils literal notranslate"><span class="pre">examples/ex3.py</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">py_call_cmd_wrapper allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a</span>
+<span class="sd">py_call allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a</span>
 <span class="sd">python script which imports the task function and calls it with the appropriate arguments.  Note you can still use</span>
 <span class="sd">subprocess.run to call executables (like tools created by third parties).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
 
-<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">py_call_cmd_wrapper</span>
+<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">py_call</span>
 
 
 <span class="k">def</span> <span class="nf">say</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">out_file</span><span class="p">):</span>
@@ -438,7 +425,7 @@ directly call a python function and avoid the boiler plate of argparse</p>
     <span class="n">t2</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">sleep</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">secs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">sleep</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s2">&quot;my_task&quot;</span><span class="p">)</span>
 
     <span class="n">workflow</span><span class="o">.</span><span class="n">make_output_dirs</span><span class="p">()</span>
-    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call_cmd_wrapper</span><span class="p">)</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call</span><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
