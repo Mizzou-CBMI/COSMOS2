@@ -1,2 +1,3 @@
 [tool.black]
 line-length = 110
+exclude = "(.eggs|.git|.hg|.mypy_cache|.nox|.tox|.venv|.svn|_build|buck-out|build|dist|docs|cosmos-wfm)"
