@@ -47,7 +47,6 @@ def submit_script_as_aws_batch_job(
     memory=1024,
     vpu_req=1,
     gpu_req=None,
-    shm_size=None,
     environment=None,
     tags=None,
 ):
@@ -59,7 +58,6 @@ def submit_script_as_aws_batch_job(
     :param container_image: docker image.
     :param memory: amount of memory to reserve.
     :param vpu_req: amount of vcpus to reserve.
-    :param shm_size: amount of shared memory for docker.
     :param environment: {env_name -> env_val} environment variables to set
     :return: obId, job_definition_arn, s3_command_script_uri.
     """
@@ -104,7 +102,6 @@ def submit_script_as_aws_batch_job(
         "environment": [{"name": key, "value": val} for key, val in list(environment.items())],
         # run_s3_script
         "command": ["bash", "-c", command],
-        "linuxParameters": {}
     }
     if memory is not None:
         container_overrides["memory"] = memory
@@ -116,8 +113,6 @@ def submit_script_as_aws_batch_job(
         container_overrides["resourceRequirements"].append({"value": str(gpu_req), "type": "GPU"})
         visible_devices = ",".join(map(str, list(range(gpu_req))))
         container_overrides["environment"].append({"name": "CUDA_VISIBLE_DEVICES", "value": visible_devices})
-    if shm_size is not None:
-        container_overrides["linuxParameters"]["sharedMemorySize"] = shm_size
 
     if not re.match("^[A-Za-z0-9][A-Za-z0-9-_]*$", job_name) or len(job_name) > 128:
         raise ValueError(
@@ -232,7 +227,7 @@ def get_aws_batch_job_infos(all_job_ids, boto_config=None, missing_ok=False):
     return returned_jobs
 
 
-def register_base_job_definition(container_image, environment, command):
+def register_base_job_definition(container_image, environment, command, linux_parameters=None):
     # register base job definition
     container_properties = {
         "image": container_image,
@@ -249,6 +244,9 @@ def register_base_job_definition(container_image, environment, command):
 
     if environment:
         container_properties["environment"]: [{"name": key, "value": val} for key, val in environment.items()]
+
+    if linux_parameters:
+        container_properties["linuxParameters"] = linux_parameters
 
     batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
     resp = batch.register_job_definition(
@@ -335,7 +333,6 @@ class DRM_AWSBatch(DRM):
                 memory=task.mem_req,
                 vpu_req=task.cpu_req,
                 gpu_req=task.gpu_req,
-                shm_size=task.drm_options["shm_size"],
                 instance_type=task.drm_options.get("instance_type"),
                 tags=dict(
                     job_type="cosmos",
@@ -360,11 +357,16 @@ class DRM_AWSBatch(DRM):
 
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
-        for container_image in set(task.drm_options["container_image"] for task in tasks):
+        for container_image, linux_parameters in set(
+            [(task.drm_options["container_image"], task.drm_options["linux_parameters"]) for task in tasks]
+        ):
             if container_image not in self.image_to_job_definition:
                 self.log.info(f"Registering base job definition for image: {container_image}")
                 self.image_to_job_definition[container_image] = register_base_job_definition(
-                    container_image=container_image, environment=None, command="user-should-override-this",
+                    container_image=container_image,
+                    environment=None,
+                    command="user-should-override-this",
+                    linux_parameters=linux_parameters,
                 )
 
         if len(tasks) > 1:
