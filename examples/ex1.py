@@ -1,6 +1,6 @@
 import sys
 
-from cosmos.api import Cosmos
+from cosmos.api import Cosmos, py_call
 
 
 def say(text, out_file):
