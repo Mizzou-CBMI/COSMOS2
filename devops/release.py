@@ -14,7 +14,7 @@ def run(cmd):
 
 def main(args):
     """
-    run inside a conda environment with conda-build installed
+    Must be run inside a conda environment with conda-build installed
 
     conda create -n cosmos
     conda activate cosmos
