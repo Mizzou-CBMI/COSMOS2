@@ -227,7 +227,7 @@ def get_aws_batch_job_infos(all_job_ids, boto_config=None, missing_ok=False):
     return returned_jobs
 
 
-def register_base_job_definition(container_image, environment, command):
+def register_base_job_definition(container_image, environment, command, shm_size=None):
     # register base job definition
     container_properties = {
         "image": container_image,
@@ -244,6 +244,9 @@ def register_base_job_definition(container_image, environment, command):
 
     if environment:
         container_properties["environment"]: [{"name": key, "value": val} for key, val in environment.items()]
+
+    if shm_size:
+        container_properties["linuxParameters"] = {"sharedMemorySize": shm_size}
 
     batch = boto3.client(service_name="batch", config=BOTO_CONFIG)
     resp = batch.register_job_definition(
@@ -354,11 +357,16 @@ class DRM_AWSBatch(DRM):
 
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
-        for container_image in set(task.drm_options["container_image"] for task in tasks):
+        for container_image, shm_size in set(
+            [(task.drm_options["container_image"], task.drm_options["shm_size"] if "shm_size" in task.drm_options.keys() else None) for task in tasks]
+        ):
             if container_image not in self.image_to_job_definition:
                 self.log.info(f"Registering base job definition for image: {container_image}")
                 self.image_to_job_definition[container_image] = register_base_job_definition(
-                    container_image=container_image, environment=None, command="user-should-override-this",
+                    container_image=container_image,
+                    environment=None,
+                    command="user-should-override-this",
+                    shm_size=shm_size,
                 )
 
         if len(tasks) > 1:
