@@ -1,2 +1,2 @@
 black . --check
-pytest $1
+pytest -n 4 $1

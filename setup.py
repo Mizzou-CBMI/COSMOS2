@@ -54,7 +54,9 @@ setup(
     maintainer_email="egafni@gmail.com",
     license="GPL v3",
     install_requires=install_requires,
-    extras_require={"test": ["flask", "ipython", "sphinx_rtd_theme", "black", "pytest-timeout"]},
+    extras_require={
+        "test": ["flask", "ipython", "sphinx_rtd_theme", "black", "pytest-timeout", "pytest-xdist"]
+    },
     packages=find_packages(),
     include_package_data=True,
     package_data=package_data,

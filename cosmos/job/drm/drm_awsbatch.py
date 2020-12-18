@@ -358,7 +358,13 @@ class DRM_AWSBatch(DRM):
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
         for container_image, shm_size in set(
-            [(task.drm_options["container_image"], task.drm_options["shm_size"] if "shm_size" in task.drm_options.keys() else None) for task in tasks]
+            [
+                (
+                    task.drm_options["container_image"],
+                    task.drm_options["shm_size"] if "shm_size" in task.drm_options.keys() else None,
+                )
+                for task in tasks
+            ]
         ):
             if container_image not in self.image_to_job_definition:
                 self.log.info(f"Registering base job definition for image: {container_image}")
