@@ -19,7 +19,6 @@ def command_with_env_variables():
 def test_env_variables(cleandir):
     cosmos = Cosmos()
     cosmos.initdb()
-    temp_dir = tempfile.mkdtemp()
     workflow = cosmos.start("workflow", skip_confirm=True)
     workflow.add_task(
         func=command_with_env_variables, environment_variables=environment_variables_dict, uid="special"
