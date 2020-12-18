@@ -7,8 +7,7 @@ sudo: false
 install: pip install .[test]
 # run tests from test dir so we don't import python2 code from cwd
 script:
-  - cd test
-  - pytest
+  - devops/run_tests.sh
 
 notifications:
   email:

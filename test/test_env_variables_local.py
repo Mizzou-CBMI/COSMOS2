@@ -16,19 +16,12 @@ def command_with_env_variables():
     return command
 
 
-def test_env_variables():
+def test_env_variables(cleandir):
     cosmos = Cosmos()
     cosmos.initdb()
     temp_dir = tempfile.mkdtemp()
-    with cd(temp_dir):
-        workflow = cosmos.start("workflow", skip_confirm=True)
-        workflow.add_task(
-            func=command_with_env_variables, environment_variables=environment_variables_dict, uid="special"
-        )
-        workflow.run(cmd_wrapper=py_call)
-
-    shutil.rmtree(temp_dir)
-
-
-if __name__ == "__main__":
-    test_env_variables()
+    workflow = cosmos.start("workflow", skip_confirm=True)
+    workflow.add_task(
+        func=command_with_env_variables, environment_variables=environment_variables_dict, uid="special"
+    )
+    workflow.run(cmd_wrapper=py_call)

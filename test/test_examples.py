@@ -1,45 +1,15 @@
-import contextlib
-import os
+import glob
 import subprocess as sp
 
-import sys
+import pytest
 
-
-@contextlib.contextmanager
-def cd(path):
-    """A context manager which changes the working directory to the given
-    path, and then changes it back to its previous value on exit.
-
-    """
-    prev_cwd = os.getcwd()
-    os.chdir(path)
-    yield
-    os.chdir(prev_cwd)
+from cosmos.constants import REPO_DIR
 
 
 def run(cmd):
     return sp.check_call(cmd, shell=True)
 
 
-def test_ex1():
-    with cd(os.path.join(os.path.dirname(__file__), "../examples")):
-        run("python ex1.py")
-
-
-def test_ex2():
-    with cd(os.path.join(os.path.dirname(__file__), "../examples")):
-        run("python ex2.py")
-
-
-def test_ex3():
-    path = os.path.join(os.path.dirname(__file__), "../examples/analysis_output/ex3")
-    if not os.path.exists(path):
-        os.mkdir(path)
-    if sys.version_info > (3, 6):
-        with cd(path):
-            run("python ../../ex3.py")
-
-
-def test_gpu():
-    with cd(os.path.join(os.path.dirname(__file__), "../examples")):
-        run("python ex_gpu.py")
+@pytest.mark.parametrize("script_path", glob.glob(f"{REPO_DIR}/examples/*.py"))
+def test_examples(cleandir, script_path):
+    run(f"python {script_path}")

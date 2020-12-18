@@ -28,7 +28,7 @@ def parse_COSMOS_LOCAL_GPU_DEVICES(COSMOS_LOCAL_GPU_DEVICES=None):
     >>> list(parse_COSMOS_LOCAL_GPU_DEVICES('1,1'))
     ['1', '1']
     >>> list(parse_COSMOS_LOCAL_GPU_DEVICES('1,2x3'))
-    ['1', '2', '2', '2']
+    ['1', '2.0', '2.1', '2.2']
 
     """
     if COSMOS_LOCAL_GPU_DEVICES is None:

@@ -18,9 +18,9 @@ def release():
 
     run("python setup.py sdist upload")
 
-    if os.path.exists("cosmos-wfm"):
+    if os.path.exists("../cosmos-wfm"):
         print("removing cosmos-wfm dir")
-        rmtree("cosmos-wfm")
+        rmtree("../cosmos-wfm")
 
     run(f"conda skeleton pypi cosmos-wfm --version {__version__}")
     run(f"conda build cosmos-wfm")
