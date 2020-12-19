@@ -184,9 +184,9 @@ def _get_import_code_for_func(func):
             # resort to importing the absolute path
             source_file = os.path.abspath(filename)
             return (
-                f"from importlib import machinery"
-                f'loader = machinery.SourceFileLoader("module", "{source_file}")'
-                f"mod = loader.load_module()"
+                f"from importlib import machinery\n"
+                f'loader = machinery.SourceFileLoader("module", "{source_file}")\n'
+                f"mod = loader.load_module()\n"
                 f'{func.__name__} = getattr(mod, "{func.__name__}")'
             )
 
