@@ -1,7 +1,7 @@
 .. _ex_awsbatch:
 
 Local DRM GPUs
---------------
+-----------------
 
 The cosmos local DRM supports managing multiple local GPUs.
 
