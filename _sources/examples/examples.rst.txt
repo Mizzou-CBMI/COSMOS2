@@ -21,5 +21,6 @@ API, you have all the flexibility in the world to define any DAG you like.
     ex2_complete
     ex3_pycall
     awsbatch
-    gpu
+    local_gpus
     env_variables
+    reattempt
