@@ -1,7 +1,7 @@
 .. _initializing:
 
 Cosmos Initialization
-=======================
+========================
 
 Cosmos is initialized by instantiating a :class:`cosmos.Cosmos` instance, which represents a connection to a SQL database.  The Cosmos instance can then
 be used to start a Workflow.  If a Workflow already exists with the same name, it will be resumed and all failed Tasks will be deleted from the database.
@@ -25,7 +25,7 @@ for more details.
 
 
 cosmos.api.Cosmos
-_______
+__________________
 
 
 .. autoclass:: cosmos.api.Cosmos
