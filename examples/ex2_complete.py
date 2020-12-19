@@ -35,7 +35,7 @@ def word_count(in_txts, out_txt, chars=False):
 def recipe(workflow):
     # Create two Tasks that echo "hello" and "world" respectively (source nodes of the dag).
     echo_tasks = [
-        workflow.add_task(func=echo, params=dict(word=word, out_txt="%s.txt" % word), uid=word, mem_req=10,)
+        workflow.add_task(func=echo, params=dict(word=word, out_txt=f"{word}.txt"), uid=word, mem_req=10,)
         for word in ["hello", "world"]
     ]
 
@@ -46,10 +46,10 @@ def recipe(workflow):
         for n in [1, 2]:
             cat_task = workflow.add_task(
                 func=cat,
-                params=dict(in_txts=[echo_task.params["out_txt"]], out_txt="%s/%s/cat.txt" % (word, n),),
+                params=dict(in_txts=[echo_task.params["out_txt"]], out_txt=f"{word}/{n}/cat.txt",),
                 parents=[echo_task],
                 mem_req=10,
-                uid="%s_%s" % (word, n),
+                uid=f"{word}_{n}",
             )
 
             # Count the words in the previous stage.  An example of a simple one2one relationship.
@@ -58,11 +58,11 @@ def recipe(workflow):
                 func=word_count,
                 # Dependency instances allow you to specify an input and parent simultaneously.
                 params=dict(
-                    in_txts=[Dependency(cat_task, "out_txt")], out_txt="%s/%s/wc.txt" % (word, n), chars=True,
+                    in_txts=[Dependency(cat_task, "out_txt")], out_txt=f"{word}/{n}/wc.txt", chars=True,
                 ),
                 mem_req=10,
                 # parents=[cat_task], <-- not necessary!
-                uid="%s_%s" % (word, n),
+                uid=f"{word}_{n}",
             )
             word_count_tasks.append(word_count_task)
 

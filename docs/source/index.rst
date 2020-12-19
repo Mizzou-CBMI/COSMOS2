@@ -5,7 +5,6 @@ COSMOS is currently BETA.  Although the code is considered stable,
 we are planning a major publication before the official release.
 
 .. toctree::
-    :numbered:
     :maxdepth: 2
 
     1_introduction
@@ -14,7 +13,7 @@ we are planning a major publication before the official release.
     workflows/initializing
     workflows/task_func
     workflows/workflows
-    examples
+    examples/examples
     shell
     faq
     advanced
