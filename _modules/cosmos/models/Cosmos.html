@@ -89,7 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../2_install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../3_getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples/examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../workflows/initializing.html">Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../workflows/initializing.html">Cosmos Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../workflows/workflows.html">Workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../shell.html">Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
@@ -164,6 +164,7 @@
 
 <span class="c1"># from concurrent import futures</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
 
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
 
@@ -219,24 +220,28 @@
 <div class="viewcode-block" id="Cosmos"><a class="viewcode-back" href="../../../workflows/initializing.html#cosmos.api.Cosmos">[docs]</a><span class="k">class</span> <span class="nc">Cosmos</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <div class="viewcode-block" id="Cosmos.__init__"><a class="viewcode-back" href="../../../workflows/initializing.html#cosmos.api.Cosmos.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">database_url</span><span class="o">=</span><span class="s2">&quot;sqlite:///:memory:&quot;</span><span class="p">,</span>
-        <span class="n">get_submit_args</span><span class="o">=</span><span class="n">default_get_submit_args</span><span class="p">,</span>
-        <span class="n">default_drm</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-        <span class="n">default_drm_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">default_queue</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">default_time_req</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">default_max_attempts</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">database_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sqlite:///:memory:&quot;</span><span class="p">,</span>
+        <span class="n">get_submit_args</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="n">default_get_submit_args</span><span class="p">,</span>
+        <span class="n">default_drm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span>
+        <span class="n">default_drm_options</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_queue</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_time_req</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">flask_app</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">default_job_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">default_environment_variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_job_class</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_environment_variables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param str database_url: A `sqlalchemy database url &lt;http://docs.sqlalchemy.org/en/latest/core/engines.html&gt;`_.  ex: sqlite:///home/user/sqlite.db or</span>
+<span class="sd">        :param database_url: A `sqlalchemy database url &lt;http://docs.sqlalchemy.org/en/latest/core/engines.html&gt;`_.  ex: sqlite:///home/user/sqlite.db or</span>
 <span class="sd">            mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name</span>
-<span class="sd">        :param callable get_submit_args: a function that returns arguments to be passed to the job submitter, like resource</span>
+<span class="sd">        :param get_submit_args: a function that returns arguments to be passed to the job submitter, like resource</span>
 <span class="sd">            requirements or the queue to submit to.  See :func:`cosmos.api.default_get_submit_args` for details</span>
 <span class="sd">        :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.</span>
-<span class="sd">        :param str default_drm: The Default DRM to use (ex &#39;local&#39;, &#39;lsf&#39;, or &#39;ge&#39;)</span>
+<span class="sd">        :param efault_drm: The Default DRM to use (ex &#39;local&#39;, &#39;lsf&#39;, or &#39;ge&#39;)</span>
+<span class="sd">        :param default_drm_options: Default value for every Task.drm_options</span>
+<span class="sd">        :param default_queue: Default value for every Task.queue</span>
+<span class="sd">        :param default_time_req: Default value for every Task.time_req</span>
+<span class="sd">        :param default_environment_variables: Default value for every Task.environment_variables</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">default_drm_options</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">default_drm_options</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_drm_options</span>
         <span class="c1"># Avoid cyclical import dependencies</span>

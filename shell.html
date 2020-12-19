@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="FAQ" href="faq.html" />
-    <link rel="prev" title="6. Environment Variables" href="examples/env_variables.html" /> 
+    <link rel="prev" title="Workflows" href="workflows/workflows.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -90,10 +90,9 @@
 <li class="toctree-l1"><a class="reference internal" href="1_introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="2_install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="3_getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">Initializing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/task_func.html">Task Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">Workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/initializing.html">Cosmos Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows/workflows.html">Workflows</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Shell</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#delete-a-stage-and-all-of-its-descendants">Delete a Stage and all of its Descendants</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-a-stage-or-tasks-descendants">Getting a Stage or Tasks Descendants</a></li>
@@ -172,8 +171,8 @@
   <div class="section" id="shell">
 <h1>Shell<a class="headerlink" href="#shell" title="Permalink to this headline">¶</a></h1>
 <p>The Cosmos shell is an interactive IPython session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
-your workflows.  It is highly recommended to interactively explore your workflows using the wonderful <a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a></p>
-<p>As an example, <strong>wf</strong> will be the most recent Workflow when you launch into the shell.</p>
+your workflows.  It is highly recommended to interactively explore your workflows using an <a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a></p>
+<p>As a convenience, <strong>wf</strong> will be the most recent Workflow when you launch into the shell.</p>
 <p>To launch the shell, just run:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>$ cosmos shell /path/to/database.sqlite
 or
@@ -197,7 +196,7 @@ Out[1]:
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The list of the <cite>workflows</cite> list will become stale if another process runs a new Workflow.  Either restart the shell, or re-run
-the <a class="reference internal" href="glossary.html#term-Sqlalchemy"><span class="xref std std-term">SQLALchemy</span></a> query:</p>
+the <a class="reference internal" href="glossary.html#term-Sqlalchemy"><span class="xref std std-term">Sqlalchemy</span></a> query:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Workflow</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -254,7 +253,7 @@ delete_files=False and just have the next run overwrite the files.</p>
         <a href="faq.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="examples/env_variables.html" class="btn btn-neutral float-left" title="6. Environment Variables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="workflows/workflows.html" class="btn btn-neutral float-left" title="Workflows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

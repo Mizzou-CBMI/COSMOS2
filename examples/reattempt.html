@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Shell" href="../shell.html" />
+    <link rel="next" title="Initializing" href="../workflows/initializing.html" />
     <link rel="prev" title="6. Environment Variables" href="env_variables.html" /> 
 </head>
 
@@ -90,9 +90,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../2_install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows/initializing.html">Initializing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows/task_func.html">Task Functions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflows/workflows.html">Workflows</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="examples.html">Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="ex1_hello_world.html">1. Hello World</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ex2_complete.html">2. Complete Example</a></li>
@@ -103,6 +100,8 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">7. Local DRM GPUs</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/initializing.html">Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/workflows.html">Workflows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../shell.html">Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced</a></li>
@@ -178,6 +177,40 @@
 <span id="ex-reattempt"></span><h1><span class="section-number">7. </span>Local DRM GPUs<a class="headerlink" href="#local-drm-gpus" title="Permalink to this headline">¶</a></h1>
 <p>How to reattempt tasks a certain number of times.</p>
 <p><code class="file docutils literal notranslate"><span class="pre">examples/reattempt.py</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">py_call</span>
+
+
+<span class="k">def</span> <span class="nf">add_one</span><span class="p">(</span><span class="n">out_file</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_file</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># fail the first 2 times</span>
+        <span class="k">raise</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s2">&quot;sqlite.db&quot;</span><span class="p">,</span> <span class="n">default_drm</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,)</span>
+    <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;reattempt&quot;</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;out.txt&quot;</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="s2">&quot;out.txt&quot;</span><span class="p">)</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">add_one</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">out_file</span><span class="o">=</span><span class="s2">&quot;out.txt&quot;</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s2">&quot;my_task&quot;</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">workflow</span><span class="o">.</span><span class="n">make_output_dirs</span><span class="p">()</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 
 
@@ -188,7 +221,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../shell.html" class="btn btn-neutral float-right" title="Shell" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../workflows/initializing.html" class="btn btn-neutral float-right" title="Initializing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="env_variables.html" class="btn btn-neutral float-left" title="6. Environment Variables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

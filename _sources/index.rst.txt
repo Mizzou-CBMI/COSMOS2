@@ -7,12 +7,12 @@ we are planning a major publication before the official release.
 .. toctree::
     :maxdepth: 2
 
+
     1_introduction
     2_install
     3_getting_started
     examples/examples
     workflows/initializing
-    workflows/task_func
     workflows/workflows
     shell
     faq
