@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. PyCall Example &mdash; Cosmos 2.13.11 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4. AWS Batch" href="awsbatch.html" />
+    <link rel="prev" title="2. Complete Example" href="ex2_complete.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Cosmos
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.13.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/initializing.html">Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/task_func.html">Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/workflows.html">Workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ex1_hello_world.html">1. Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ex2_complete.html">2. Complete Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3. PyCall Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="awsbatch.html">4. AWS Batch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html">5. GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_variables.html">6. Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Cosmos</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="examples.html">Examples</a> &raquo;</li>
+        
+      <li><span class="section-number">3. </span>PyCall Example</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/ex3_pycall.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycall-example">
+<span id="example3"></span><h1><span class="section-number">3. </span>PyCall Example<a class="headerlink" href="#pycall-example" title="Permalink to this headline">¶</a></h1>
+<p>Here is the source code of the <code class="file docutils literal notranslate"><span class="pre">examples/ex3_pycall.py</span></code>.  It provides an example of using py_call to
+directly call a python function and avoid the boiler plate of argparse</p>
+<p><code class="file docutils literal notranslate"><span class="pre">examples/ex3.py</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">py_call allows you to use pure python rather than bash scripts.  At runtime, Cosmos will create a</span>
+<span class="sd">python script which imports the task function and calls it with the appropriate arguments.  Note you can still use</span>
+<span class="sd">subprocess.run to call executables (like tools created by third parties).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">argparse</span> <span class="kn">import</span> <span class="n">ArgumentParser</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span><span class="p">,</span> <span class="n">py_call</span>
+
+
+<span class="k">def</span> <span class="nf">say</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">out_file</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">secs</span><span class="p">):</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">secs</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--sleep&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s2">&quot;cosmos.sqlite&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;ex3&quot;</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">say</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Hello World&quot;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s2">&quot;out.txt&quot;</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s2">&quot;my_task&quot;</span><span class="p">)</span>
+    <span class="n">t2</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">sleep</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">secs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">sleep</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s2">&quot;my_task&quot;</span><span class="p">)</span>
+
+    <span class="n">workflow</span><span class="o">.</span><span class="n">make_output_dirs</span><span class="p">()</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd_wrapper</span><span class="o">=</span><span class="n">py_call</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="awsbatch.html" class="btn btn-neutral float-right" title="4. AWS Batch" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ex2_complete.html" class="btn btn-neutral float-left" title="2. Complete Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2013 Erik Gafni
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

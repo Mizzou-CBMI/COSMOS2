@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4. AWS Batch &mdash; Cosmos 2.13.11 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. GPU" href="gpu.html" />
+    <link rel="prev" title="3. PyCall Example" href="ex3_pycall.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Cosmos
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.13.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/initializing.html">Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/task_func.html">Task Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflows/workflows.html">Workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ex1_hello_world.html">1. Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ex2_complete.html">2. Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ex3_pycall.html">3. PyCall Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4. AWS Batch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html">5. GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_variables.html">6. Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Cosmos</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="examples.html">Examples</a> &raquo;</li>
+        
+      <li><span class="section-number">4. </span>AWS Batch</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/awsbatch.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="aws-batch">
+<span id="ex-awsbatch"></span><h1><span class="section-number">4. </span>AWS Batch<a class="headerlink" href="#aws-batch" title="Permalink to this headline">¶</a></h1>
+<p><code class="file docutils literal notranslate"><span class="pre">examples/ex_awsbatch.py</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="n">Cosmos</span>
+
+
+<span class="k">def</span> <span class="nf">get_instance_info</span><span class="p">(</span><span class="n">out_s3_uri</span><span class="p">,</span> <span class="n">sleep</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    df -h &gt; df.txt</span>
+<span class="s2">    aws s3 cp df.txt </span><span class="si">{</span><span class="n">out_s3_uri</span><span class="si">}</span><span class="s2"></span>
+
+<span class="s2">    sleep </span><span class="si">{</span><span class="n">sleep</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">parse_args</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-i&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--container-image&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;you must have the aws command line tools installed, and it must have access to copy from the s3 bucket &quot;</span>
+        <span class="s2">&quot;defined in --s3-prefix-for-command-script-temp-files (ie the container should be able to run &quot;</span>
+        <span class="s2">&quot;`s3 cp s3://bucket ./`&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-b&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--s3-prefix-for-command-script-temp-files&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Bucket to use for storing command scripts as temporary files, ex: s3://my-bucket/cosmos/tmp_files&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;--default-queue&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;aws batch queue&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--out-s3-uri&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;s3 uri to store output of tasks&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--core-req&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;number of cores to request for the job&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--sleep&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;number of seconds to have the job sleep for.  Useful for debugging so &quot;</span>
+        <span class="s2">&quot;that you can ssh into the instance running a task&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--max-attempts&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of times to retry a task.  A task will only be retried if it is a spot instance because of the &quot;</span>
+        <span class="s2">&quot;retry_only_if_status_reason_matches value we set in the code.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span>
+        <span class="s2">&quot;sqlite:///</span><span class="si">%s</span><span class="s2">/sqlite.db&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+        <span class="n">default_drm</span><span class="o">=</span><span class="s2">&quot;awsbatch&quot;</span><span class="p">,</span>
+        <span class="n">default_drm_options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">container_image</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">container_image</span><span class="p">,</span>
+            <span class="n">s3_prefix_for_command_script_temp_files</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">s3_prefix_for_command_script_temp_files</span><span class="p">,</span>
+            <span class="c1"># only retry on spot instance death</span>
+            <span class="n">retry_only_if_status_reason_matches</span><span class="o">=</span><span class="s2">&quot;Host EC2 .+ terminated.&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">default_queue</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">default_queue</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
+
+    <span class="n">sp</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="s2">&quot;mkdir -p analysis_output/ex1&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;analysis_output/ex1&quot;</span><span class="p">)</span>
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;awsbatch&quot;</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span>
+        <span class="n">func</span><span class="o">=</span><span class="n">get_instance_info</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">out_s3_uri</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">out_s3_uri</span><span class="p">,</span> <span class="n">sleep</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">sleep</span><span class="p">),</span>
+        <span class="n">uid</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">time_req</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_attempts</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">max_attempts</span><span class="p">,</span>
+        <span class="n">core_req</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">core_req</span><span class="p">,</span>
+        <span class="n">mem_req</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.params&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">params</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.input_map&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">input_map</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.output_map&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">output_map</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.core_req&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">core_req</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.time_req&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">time_req</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.drm&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">drm</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.uid&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">uid</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.drm_options&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">drm_options</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="s2">&quot;task.queue&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">queue</span><span class="p">))</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">workflow</span><span class="o">.</span><span class="n">successful</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gpu.html" class="btn btn-neutral float-right" title="5. GPU" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ex3_pycall.html" class="btn btn-neutral float-left" title="3. PyCall Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2013 Erik Gafni
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

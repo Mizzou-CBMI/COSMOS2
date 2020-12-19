@@ -1,16 +1,18 @@
 
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. Workflows &mdash; Cosmos 2.13.10 documentation</title>
+  <title>Workflows &mdash; Cosmos 2.13.11 documentation</title>
   
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
 
   
   
@@ -18,116 +20,66 @@
   
 
   
-
-  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="7. Examples" href="../examples.html" />
-    <link rel="prev" title="5. Task Functions" href="task_func.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
+    <link rel="next" title="Examples" href="../examples/examples.html" />
+    <link rel="prev" title="Task Functions" href="task_func.html" /> 
 </head>
 
-<div class="container-fluid header-holder tutorials-header" id="header-holder">
-  <div class="container">
-    <div class="header-container">
-      <a class="header-logo" href="https://shiftlab.github.io/pytorch/" aria-label="PyTorch"></a>
-
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
-          </li>
-
-          <li>
-            <a href="https://pytorch.org/tutorials">Tutorials</a>
-          </li>
-
-          <li>
-            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
-          </li>
-
-          <li>
-            <a href="https://github.com/pytorch/pytorch">Github</a>
-          </li>
-        </ul>
-      </div>
-
-      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
-    </div>
-
-  </div>
-</div>
-
-
-<body class="pytorch-body">
+<body class="wy-body-for-nav">
 
    
-  <div>
-
+  <div class="wy-grid-for-nav">
     
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
 
-    <div class="table-of-contents-link-wrapper">
-      <span>Table of Contents</span>
-      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
-    </div>
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Cosmos
+          
 
-    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
-      <div class="pytorch-side-scroll">
-        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          <div class="pytorch-left-menu-search">
+          
+          </a>
+
+          
             
-
             
-              
-              
-                <div class="version">
-                  2.13.10
-                </div>
-              
+              <div class="version">
+                2.13.11
+              </div>
             
+          
 
-            
-
-
-  
-
-
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
 
-            
-          </div>
+          
+        </div>
 
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
             
@@ -135,31 +87,55 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2_install.html">2. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">3. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="initializing.html">4. Initializing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="task_func.html">5. Task Functions</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">7. Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../shell.html">8. Shell</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq.html">9. FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../advanced.html">10. Advanced</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../glossary.html">11. Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2_install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initializing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task_func.html">Task Functions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-your-job-dependency-graph-dag">Creating Your Job Dependency Graph (DAG)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#one2one-aka-map">One2one (aka. map)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#one2many-aka-scatter">One2many (aka. scatter)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#many2one-aka-reduce-or-gather">Many2one (aka. reduce or gather)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#many2many">Many2many</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#api">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#workflow">Workflow</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shell.html">Shell</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
-    <div class="pytorch-container">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
-      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
-        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
-          <div class="pytorch-breadcrumbs-wrapper">
-            
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Cosmos</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
 
 
 
@@ -177,24 +153,17 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="pytorch-breadcrumbs">
+  <ul class="wy-breadcrumbs">
     
-      <li>
-        <a href="../index.html">
-          
-            Docs
-          
-        </a> &gt;
-      </li>
-
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li><span class="section-number">6. </span>Workflows</li>
+      <li>Workflows</li>
     
     
-      <li class="pytorch-breadcrumbs-aside">
+      <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/workflows/workflows.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/workflows/workflows.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -202,23 +171,13 @@
   </ul>
 
   
+  <hr/>
 </div>
-          </div>
-
-          <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
-            Shortcuts
-          </div>
-        </div>
-
-        <div class="pytorch-content-left">
-          
-          <div class="rst-content">
-          
-            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
-             <article itemprop="articleBody" class="pytorch-article">
-              
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <div class="section" id="workflows">
-<span id="recipes"></span><h1><span class="section-number">6. </span>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
+<span id="recipes"></span><h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline">¶</a></h1>
 <p>Workflows consist of a <a class="reference internal" href="../glossary.html#term-DAG"><span class="xref std std-term">DAG</span></a> of Tasks.  Tasks are bundled into Stages, but Stages have almost no functionality
 and are mostly just for keeping track of similar Tasks.  Tasks execute as soon as their dependencies have completed.</p>
 <p>To create your <a class="reference internal" href="../glossary.html#term-DAG"><span class="xref std std-term">DAG</span></a>, use <code class="xref py py-meth docutils literal notranslate"><span class="pre">Workflow.add_task()</span></code>. Python generators
@@ -252,10 +211,10 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </ol>
 <p>This allows you to easily change the code that produced a failed Task and resume where you left off.</p>
 <div class="section" id="creating-your-job-dependency-graph-dag">
-<h2><span class="section-number">6.1. </span>Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
+<h2>Creating Your Job Dependency Graph (DAG)<a class="headerlink" href="#creating-your-job-dependency-graph-dag" title="Permalink to this headline">¶</a></h2>
 <p>A useful model for thinking about how your stages and tasks are related is to think in terms of SQL relationship types.</p>
 <div class="section" id="one2one-aka-map">
-<h3><span class="section-number">6.1.1. </span>One2one (aka. map)<a class="headerlink" href="#one2one-aka-map" title="Permalink to this headline">¶</a></h3>
+<h3>One2one (aka. map)<a class="headerlink" href="#one2one-aka-map" title="Permalink to this headline">¶</a></h3>
 <p>This is the most common type of dependency.  For each task in StageA, you create a single dependent task in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">()</span>
 <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
@@ -272,7 +231,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="one2many-aka-scatter">
-<h3><span class="section-number">6.1.2. </span>One2many (aka. scatter)<a class="headerlink" href="#one2many-aka-scatter" title="Permalink to this headline">¶</a></h3>
+<h3>One2many (aka. scatter)<a class="headerlink" href="#one2many-aka-scatter" title="Permalink to this headline">¶</a></h3>
 <p>For each parent task in StageA, two or more new children are generated in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;One2Many&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
@@ -290,7 +249,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2one-aka-reduce-or-gather">
-<h3><span class="section-number">6.1.3. </span>Many2one (aka. reduce or gather)<a class="headerlink" href="#many2one-aka-reduce-or-gather" title="Permalink to this headline">¶</a></h3>
+<h3>Many2one (aka. reduce or gather)<a class="headerlink" href="#many2one-aka-reduce-or-gather" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce one task in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
 <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;Many2One&#39;</span><span class="p">)</span>
@@ -308,7 +267,7 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="many2many">
-<h3><span class="section-number">6.1.4. </span>Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
+<h3>Many2many<a class="headerlink" href="#many2many" title="Permalink to this headline">¶</a></h3>
 <p>Two or more parents in StageA produce two or more parents in StageB.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;many2many&#39;</span><span class="p">)</span>
 <span class="n">stageA_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">tool_a</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">=</span><span class="n">j</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">))</span>
@@ -332,9 +291,9 @@ and comprehensions are a great way to do this in a very readable way.</p>
 </div>
 </div>
 <div class="section" id="api">
-<h2><span class="section-number">6.2. </span>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="workflow">
-<h3><span class="section-number">6.2.1. </span>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
+<h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="cosmos.api.Workflow">
 <em class="property">class </em><code class="sig-prename descclassname">cosmos.api.</code><code class="sig-name descname">Workflow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">manual_instantiation</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cosmos/models/Workflow.html#Workflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cosmos.api.Workflow" title="Permalink to this definition">¶</a></dt>
@@ -414,17 +373,17 @@ If dry is specified, returns None.</p>
 </div>
 
 
-             </article>
-             
-            </div>
-            <footer>
+           </div>
+           
+          </div>
+          <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../examples.html" class="btn btn-neutral float-right" title="7. Examples" accesskey="n" rel="next">Next <img src="../_static/images/chevron-right-orange.svg" class="next-page"></a>
+        <a href="../examples/examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="task_func.html" class="btn btn-neutral" title="5. Task Functions" accesskey="p" rel="prev"><img src="../_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+        <a href="task_func.html" class="btn btn-neutral float-left" title="Task Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -433,249 +392,40 @@ If dry is specified, returns None.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013 Erik Gafni.
+        
+        &copy; Copyright 2013 Erik Gafni
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
-          </div>
         </div>
+      </div>
 
-        <div class="pytorch-content-right" id="pytorch-content-right">
-          <div class="pytorch-right-menu" id="pytorch-right-menu">
-            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              <ul>
-<li><a class="reference internal" href="#">6. Workflows</a><ul>
-<li><a class="reference internal" href="#creating-your-job-dependency-graph-dag">6.1. Creating Your Job Dependency Graph (DAG)</a><ul>
-<li><a class="reference internal" href="#one2one-aka-map">6.1.1. One2one (aka. map)</a></li>
-<li><a class="reference internal" href="#one2many-aka-scatter">6.1.2. One2many (aka. scatter)</a></li>
-<li><a class="reference internal" href="#many2one-aka-reduce-or-gather">6.1.3. Many2one (aka. reduce or gather)</a></li>
-<li><a class="reference internal" href="#many2many">6.1.4. Many2many</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#api">6.2. API</a><ul>
-<li><a class="reference internal" href="#workflow">6.2.1. Workflow</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+    </section>
 
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
   </div>
   
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'2.13.10',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="../_static/language_data.js"></script>
-
-  
-
-  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
-  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
-
-  <!-- Begin Footer -->
-
-  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-4 text-center">
-          <h2>Docs</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur</p>
-          <a class="with-right-arrow" href="https://pytorch.org/docs/stable/index.html">View Docs</a>
-        </div>
-
-        <div class="col-md-4 text-center">
-          <h2>Tutorials</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur</p>
-          <a class="with-right-arrow" href="https://pytorch.org/tutorials">View Tutorials</a>
-        </div>
-
-        <div class="col-md-4 text-center">
-          <h2>Resources</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur</p>
-          <a class="with-right-arrow" href="https://shiftlab.github.io/pytorch/resources">View Resources</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="site-footer">
-    <div class="container footer-container">
-      <div class="footer-logo-wrapper">
-        <a href="https://shiftlab.github.io/pytorch/" class="footer-logo"></a>
-      </div>
-
-      <div class="footer-links-wrapper">
-        <div class="footer-links-col">
-          <ul>
-            <li class="list-title"><a href="https://shiftlab.github.io/pytorch/">PyTorch</a></li>
-            <li><a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a></li>
-            <li><a href="https://shiftlab.github.io/pytorch/features">Features</a></li>
-            <li><a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a></li>
-            <li><a href="https://shiftlab.github.io/pytorch/blog/">Blog</a></li>
-            <li><a href="https://shiftlab.github.io/pytorch/resources">Resources</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-links-col">
-          <ul>
-            <li class="list-title"><a href="https://shiftlab.github.io/pytorch/support">Support</a></li>
-            <li><a href="https://pytorch.org/tutorials">Tutorials</a></li>
-            <li><a href="https://pytorch.org/docs/stable/index.html">Docs</a></li>
-            <li><a href="https://discuss.pytorch.org" target="_blank">Discuss</a></li>
-            <li><a href="https://github.com/pytorch/pytorch/issues" target="_blank">Github Issues</a></li>
-            <li><a href="https://pytorch.slack.com" target="_blank">Slack</a></li>
-            <li><a href="https://github.com/pytorch/pytorch/blob/master/CONTRIBUTING.md" target="_blank">Contributing</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-links-col follow-us-col">
-          <ul>
-            <li class="list-title">Follow Us</li>
-            <li>
-              <div id="mc_embed_signup">
-                <form
-                  action="https://twitter.us14.list-manage.com/subscribe/post?u=75419c71fe0a935e53dfa4a3f&id=91d0dccd39"
-                  method="post"
-                  id="mc-embedded-subscribe-form"
-                  name="mc-embedded-subscribe-form"
-                  class="email-subscribe-form validate"
-                  target="_blank"
-                  novalidate>
-                  <div id="mc_embed_signup_scroll" class="email-subscribe-form-fields-wrapper">
-                    <div class="mc-field-group">
-                      <label for="mce-EMAIL" style="display:none;">Email Address</label>
-                      <input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL" placeholder="Email Address">
-                    </div>
-
-                    <div id="mce-responses" class="clear">
-                      <div class="response" id="mce-error-response" style="display:none"></div>
-                      <div class="response" id="mce-success-response" style="display:none"></div>
-                    </div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
-
-                    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_75419c71fe0a935e53dfa4a3f_91d0dccd39" tabindex="-1" value=""></div>
-
-                    <div class="clear">
-                      <input type="submit" value="" name="subscribe" id="mc-embedded-subscribe" class="button email-subscribe-button">
-                    </div>
-                  </div>
-                </form>
-              </div>
-
-            </li>
-          </ul>
-
-          <div class="footer-social-icons">
-            <a href="https://www.facebook.com/pytorch" target="_blank" class="facebook"></a>
-            <a href="https://twitter.com/pytorch" target="_blank" class="twitter"></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- End Footer -->
-
-  <!-- Begin Mobile Menu -->
-
-  <div class="mobile-main-menu">
-    <div class="container-fluid">
-      <div class="container">
-        <div class="mobile-main-menu-header-container">
-          <a class="header-logo" href="https://shiftlab.github.io/pytorch/" aria-label="PyTorch"></a>
-          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
-        </div>
-      </div>
-    </div>
-
-    <div class="mobile-main-menu-links-container">
-      <div class="main-menu">
-        <ul>
-          <li>
-            <a href="#">Get Started</a>
-          </li>
-
-          <li>
-            <a href="#">Features</a>
-          </li>
-
-          <li>
-            <a href="#">Ecosystem</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
-          </li>
-
-          <li>
-            <a href="https://pytorch.org/tutorials">Tutorials</a>
-          </li>
-
-          <li>
-            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
-          </li>
-
-          <li>
-            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
-          </li>
-
-          <li>
-            <a href="https://github.com/pytorch/pytorch">Github</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- End Mobile Menu -->
-
-  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
-
-  <script type="text/javascript">
-    mobileMenu.bind();
-    mobileTOC.bind();
-    pytorchAnchors.bind();
-
-    $(window).on("load", function() {
-      sideMenus.bind();
-      scrollToAnchor.bind();
-      highlightNavigation.bind();
-    })
-
-    // Add class to links that have code blocks, since we cannot create links in code blocks
-    $("article.pytorch-article a span.pre").each(function(e) {
-      $(this).closest("a").addClass("has-code");
-    });
   </script>
+
+  
+  
+    
+   
+
 </body>
 </html>
