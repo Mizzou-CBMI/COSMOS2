@@ -46,8 +46,8 @@ Cosmos is a python library for creating scientific pipelines that run on a distr
 It is primarily designed and used for machine learning and bioinformatics pipelines,
 but is general enough for any type of distributed computing workflow and is also used in fields such as image processing.
 
-Cosmos provides a simple api to specify any job DAG using simple python code making it extremely flexible and inuitive
-- you do *not* specify your DAG using json, CWL, groovy, or some other domain specific language.
+Cosmos provides a simple python api to specify any job DAG using simple python code making it extremely flexible and intuitive
+- you do *not* specify your DAG using json, CWL, groovy, or some other domain specific language (DSL).
 
 Cosmos allows you to resume modified or failed workflows, uses SQL to store job information, and provides a web dashboard for monitoring and debugging.
 It is different from libraries such as `Luigi <https://github.com/spotify/luigi>`__
@@ -55,24 +55,28 @@ or `Airflow <http://airbnb.io/projects/airflow/>`__ which also try to solve ETL 
 
 Cosmos is very focused on reproducible scientific pipelines, allowing it to have a very simple state.
 There is a single process per Workflow which is a python script, and a single process per Task which is python function represented by an executable script.
-When a Task fails, reproducing the exact environment of a Task is as simple as re-running the command script.  The same pipeline can
-also easily be run on a variety of compute infrastructure: locally, in the cloud, or on a grid computing cluster.
+When a Task fails, reproducing the exact environment of a Task is as simple as re-running the command script.  Since
+the command script is a pythong script, you can also launch it with pdb (python -m ipdb log/stage/uid/command_attempt).
+
+The same pipeline can also easily be run on a variety of compute infrastructure: locally, in the cloud, or on a grid computing cluster.
 
 Cosmos is intended and useful for both one-off analyses and production software.
 Users have analyzed >100 whole genomes (~50TB and tens of thousands of jobs) in a single Workflow without issue, and some of the largest
-clinical sequencing laboratories use it for the production and R&D workflows.
+clinical sequencing laboratories use it for the production and R&D workflows.  We routinely use it to run workflows
+consisting of 10s of thousands of Machine Learning jobs.
 
 AWS Batch
 __________
 
 We've been using quite a bit of AWS Batch for the past year, and this is by far the most developed and supported DRM.
 It's pretty hard to continue to support DRMs that we're not using in our day-to-day.  That is mostly left to the community
-using Cosmos.  It is a single class that people often tweak for their particular distributed computing environment,
+using Cosmos.  Support for a DRM is contained in a single class that people often tweak for their particular distributed computing environment,
 see the classes in cosmos/job/drm, the interface only has a handful of methods that must be implemented.
 
 Make sure to check out examples/ex_awsbatch.py for details about how to use the AWS Batch DRM.
 Jobs submit and terminate much faster than any other DRM.  This is a great way to utilize cheap AWS spot
-instances for your workflows for both machine learning and bioinformatics workflows.
+instances for your workflows for both machine learning and bioinformatics workflows.  Cosmos will automatically
+resubmit jobs that fail due to a spot-instance termination.
 
 
 History
@@ -82,8 +86,10 @@ but has evolved a lot since its original inception.  If you use Cosmos
 for research, please cite its `manuscript <http://bioinformatics.oxfordjournals.org/content/early/2014/06/29/bioinformatics.btu385>`_. 
 
 Since the original publication, it has been re-written and open-sourced by the original author, in a collaboration between
-`The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School, the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
-`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where Cosmos is deployed in production and has processed hundreds of thousands of samples.
+`The Lab for Personalized Medicine <http://lpm.hms.harvard.edu/>`_ at Harvard Medical School,
+the `Wall Lab <http://wall-lab.stanford.edu/>`_ at Stanford University, and
+`Invitae <http://invitae.com>`_.  Invitae is a leading clinical genetic sequencing diagnostics laboratory where
+Cosmos is deployed in production and has processed hundreds of thousands of samples.
 It is also used by various research groups around the world; if you use it for cool stuff please let us know!
 
 Features

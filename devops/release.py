@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import subprocess
+import time
 from argparse import ArgumentParser
 from shutil import rmtree
 
@@ -18,7 +19,7 @@ def main(args):
 
     conda create -n cosmos
     conda activate cosmos
-    conda install conda-build python>3
+    conda install conda-build anaconda-client "python>3"
     pip install -e .[test]
 
     AFTER cosmos/VERSION is bumped and committed you can run:
@@ -27,6 +28,7 @@ def main(args):
 
     if not args.skip_pypi:
         run("python setup.py sdist upload")
+        time.sleep(3)  # otherwise conda skeleton pypi might not find this version
 
     if not args.skip_conda:
         if os.path.exists("cosmos-wfm"):
