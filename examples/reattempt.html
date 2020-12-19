@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Examples &mdash; Cosmos 2.13.11 documentation</title>
+  <title>Local DRM GPUs &mdash; Cosmos 2.13.11 documentation</title>
   
 
   
@@ -35,9 +35,7 @@
 
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="1. Hello World" href="ex1_hello_world.html" />
-    <link rel="prev" title="Workflows" href="../workflows/workflows.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,22 +84,14 @@
               
             
             
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../1_introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../2_install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../3_getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/initializing.html">Initializing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/task_func.html">Task Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflows/workflows.html">Workflows</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ex1_hello_world.html">1. Hello World</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ex2_complete.html">2. Complete Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ex3_pycall.html">3. PyCall Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="awsbatch.html">4. AWS Batch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpu.html">5. Local DRM GPUs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_variables.html">6. Environment Variables</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../shell.html">Shell</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced</a></li>
@@ -152,13 +142,13 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Examples</li>
+      <li>Local DRM GPUs</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/examples/examples.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/examples/reattempt.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -171,25 +161,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="examples">
-<span id="id1"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
-<p>The easiest way to learn is often by example.  When you’re learning to write your own workflows,
-make liberal use of the <code class="xref py py-meth docutils literal notranslate"><span class="pre">create_dag_img()</span></code> and the <cite>visualize</cite> button
-in the runweb interface.  More examples are available in the examples/ directory of the github repository.</p>
-<p>It might look verbose, but that’s because the Cosmos api is very <em>explicit</em>.  There’s no DSL to string together your pipeline
-like other workflow managers - we’ve found that works 80% of the time; the other 20% of the time it is a huge headache.
-It’s also worth pointing out that almost the entire API is showcased in these examples.  Despite the simplicity of the
-API, you have all the flexibility in the world to define any DAG you like.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ex1_hello_world.html">1. Hello World</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ex2_complete.html">2. Complete Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ex3_pycall.html">3. PyCall Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="awsbatch.html">4. AWS Batch</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gpu.html">5. Local DRM GPUs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_variables.html">6. Environment Variables</a></li>
-</ul>
-</div>
+  <div class="section" id="local-drm-gpus">
+<span id="ex-reattempt"></span><h1>Local DRM GPUs<a class="headerlink" href="#local-drm-gpus" title="Permalink to this headline">¶</a></h1>
+<p>How to reattempt tasks a certain number of times.</p>
+<p><code class="file docutils literal notranslate"><span class="pre">examples/reattempt.py</span></code></p>
 </div>
 
 
@@ -197,15 +172,6 @@ API, you have all the flexibility in the world to define any DAG you like.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="ex1_hello_world.html" class="btn btn-neutral float-right" title="1. Hello World" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../workflows/workflows.html" class="btn btn-neutral float-left" title="Workflows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

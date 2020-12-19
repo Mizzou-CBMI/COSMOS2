@@ -98,7 +98,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">2. Complete Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ex3_pycall.html">3. PyCall Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="awsbatch.html">4. AWS Batch</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gpu.html">5. GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html">5. Local DRM GPUs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="env_variables.html">6. Environment Variables</a></li>
 </ul>
 </li>
@@ -178,11 +178,8 @@
 <p>Here is the source code of the <code class="file docutils literal notranslate"><span class="pre">examples/ex2_complete.py</span></code> you ran in <a class="reference internal" href="../3_getting_started.html#getting-started"><span class="std std-ref">Getting Started</span></a>.</p>
 <p><code class="file docutils literal notranslate"><span class="pre">examples/ex2.py</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 
 <span class="kn">from</span> <span class="nn">cosmos.api</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Cosmos</span><span class="p">,</span>
@@ -190,7 +187,6 @@
     <span class="n">draw_stage_graph</span><span class="p">,</span>
     <span class="n">draw_task_graph</span><span class="p">,</span>
     <span class="n">pygraphviz_available</span><span class="p">,</span>
-    <span class="n">default_get_submit_args</span><span class="p">,</span>
     <span class="n">py_call</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -259,27 +255,15 @@
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-drm&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;drmaa:ge&quot;</span><span class="p">,</span> <span class="s2">&quot;ge&quot;</span><span class="p">,</span> <span class="s2">&quot;slurm&quot;</span><span class="p">))</span>
-    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-j&quot;</span><span class="p">,</span> <span class="s2">&quot;--job-class&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Submit to this job class if the DRM supports it&quot;</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-drm&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="s2">&quot;awsbatch&quot;</span><span class="p">,</span> <span class="s2">&quot;slurm&quot;</span><span class="p">,</span> <span class="s2">&quot;drmaa:ge&quot;</span><span class="p">,</span> <span class="s2">&quot;ge&quot;</span><span class="p">))</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="s2">&quot;--queue&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Submit to this queue if the DRM supports it&quot;</span><span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span>
-        <span class="s2">&quot;cosmos.sqlite&quot;</span><span class="p">,</span>
-        <span class="c1"># example of how to change arguments if you&#39;re not using default_drm=&#39;local&#39;</span>
-        <span class="n">get_submit_args</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">default_get_submit_args</span><span class="p">,</span> <span class="n">parallel_env</span><span class="o">=</span><span class="s2">&quot;smp&quot;</span><span class="p">),</span>
-        <span class="n">default_drm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">drm</span><span class="p">,</span>
-        <span class="n">default_max_attempts</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="n">default_job_class</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">job_class</span><span class="p">,</span>
-        <span class="n">default_queue</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">queue</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">cosmos</span> <span class="o">=</span> <span class="n">Cosmos</span><span class="p">(</span><span class="s2">&quot;cosmos.sqlite&quot;</span><span class="p">,</span> <span class="n">default_drm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">drm</span><span class="p">,</span> <span class="n">default_max_attempts</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default_queue</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">queue</span><span class="p">)</span>
     <span class="n">cosmos</span><span class="o">.</span><span class="n">initdb</span><span class="p">()</span>
 
-    <span class="n">sp</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="s2">&quot;mkdir -p analysis_output/ex2&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;analysis_output/ex2&quot;</span><span class="p">)</span>
-
-    <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;Example2&quot;</span><span class="p">,</span> <span class="n">restart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">cosmos</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s2">&quot;Example2&quot;</span><span class="p">,</span> <span class="n">skip_confirm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">recipe</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span>
 
