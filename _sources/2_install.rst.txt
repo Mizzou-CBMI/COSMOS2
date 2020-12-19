@@ -1,7 +1,7 @@
 Installation
 =============
 
-This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.org/en/latest/>`_:
+Using pip
 
 .. code-block:: bash
 
@@ -10,3 +10,14 @@ This procedure assumes you're using `VirtualEnv <http://virtualenv.readthedocs.o
     # Optional, recommended for visualizing Workflows:
     sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
     pip install pygraphviz # requires graphviz
+
+    # Optional, recommended for visualizing Workflows:
+    sudo apt-get graphviz graphviz-dev  # or brew install graphviz for mac
+    pip install pygraphviz # requires graphviz
+
+Using conda
+
+.. code-block:: bash
+
+    conda install cosmos-wfm -c ravelbio
+
