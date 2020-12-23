@@ -1,9 +1,6 @@
 import argparse
-import os
 import subprocess
-import subprocess as sp
 import sys
-from functools import partial
 
 from cosmos.api import (
     Cosmos,
@@ -11,7 +8,6 @@ from cosmos.api import (
     draw_stage_graph,
     draw_task_graph,
     pygraphviz_available,
-    default_get_submit_args,
     py_call,
 )
 
@@ -80,30 +76,20 @@ def recipe(workflow):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("-drm", default="local", help="", choices=("local", "drmaa:ge", "ge", "slurm"))
-    p.add_argument("-j", "--job-class", help="Submit to this job class if the DRM supports it")
+    p.add_argument("-drm", default="local", help="", choices=("local", "awsbatch", "slurm", "drmaa:ge", "ge"))
     p.add_argument("-q", "--queue", help="Submit to this queue if the DRM supports it")
 
     args = p.parse_args()
 
-    cosmos = Cosmos(
-        "cosmos.sqlite",
-        # example of how to change arguments if you're not using default_drm='local'
-        get_submit_args=partial(default_get_submit_args, parallel_env="smp"),
-        default_drm=args.drm,
-        default_max_attempts=2,
-        default_job_class=args.job_class,
-        default_queue=args.queue,
-    )
+    cosmos = Cosmos("cosmos.sqlite", default_drm=args.drm, default_max_attempts=2, default_queue=args.queue)
     cosmos.initdb()
 
-    sp.check_call("mkdir -p analysis_output/ex2", shell=True)
-    os.chdir("analysis_output/ex2")
-
-    workflow = cosmos.start("Example2", restart=True, skip_confirm=True)
+    workflow = cosmos.start("Example2", skip_confirm=True)
 
     recipe(workflow)
 
+    # any parameters that start with out_ are output directories, and will be created if
+    # the user calls workflow.make_output_dirs
     workflow.make_output_dirs()
     workflow.run(max_cores=10, cmd_wrapper=py_call)
 

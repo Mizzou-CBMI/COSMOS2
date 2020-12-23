@@ -1,4 +1,4 @@
-.. _recipes:
+.. _workflows:
 
 
 Workflows
@@ -12,24 +12,23 @@ and comprehensions are a great way to do this in a very readable way.
 
 .. code-block:: python
 
-    from cosmos.api import Cosmos
+    from cosmos.api import Cosmos, py_call
 
     def word_count(in_txt, out_txt, use_lines=False):
         l = ' -l' if use_lines else ''
-        return r"""
-            wc{l} {in_txt} > {out_txt}
-            """.format(**locals())
+        return subprocess.check_call(f"wc{l} {in_txt} > {out_txt}", check=True, shell=True)
 
     cosmos = Cosmos('sqlite:///:memory:')
     cosmos.initdb()
     workflow = cosmos.start('My_Workflow', skip_confirm=True)
 
-    wc_tasks = [ workflow.add_task(word_count, params=dict(in_txt=inp, out_txt=out),
-                                                           uid=str(i))
+    wc_tasks = [ workflow.add_task(func=word_count,
+                                   params=dict(in_txt=inp, out_txt=out),
+                                   uid=str(i))
                  for i, (inp, out) in enumerate((('a.txt', 'a_out.txt'), ('b.txt', 'b_out.txt'))) ]
 
     # note this will create a_out.txt and b_out.txt in your current directory
-    workflow.run()
+    workflow.run(cmd_wrapper=py_call)
 
 
 Each call to :meth:`Workflow.add_task` does the following:

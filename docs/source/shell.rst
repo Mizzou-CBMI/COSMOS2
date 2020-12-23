@@ -2,9 +2,9 @@ Shell
 =============
 
 The Cosmos shell is an interactive IPython session with useful modules already imported.  It is a very powerful way to explore, manage, administrate and debug
-your workflows.  It is highly recommended to interactively explore your workflows using the wonderful `IPython Notebook <http://ipython.org/notebook.html>`_
+your workflows.  It is highly recommended to interactively explore your workflows using an `IPython Notebook <http://ipython.org/notebook.html>`_
 
-As an example, **wf** will be the most recent Workflow when you launch into the shell.
+As a convenience, **wf** will be the most recent Workflow when you launch into the shell.
 
 To launch the shell, just run:
 
@@ -31,7 +31,7 @@ To launch the shell, just run:
 .. note::
 
     The list of the `workflows` list will become stale if another process runs a new Workflow.  Either restart the shell, or re-run
-    the :term:`SQLALchemy` query:
+    the :term:`Sqlalchemy` query:
 
     .. code-block:: python
 

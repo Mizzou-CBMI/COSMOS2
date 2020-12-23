@@ -4,6 +4,7 @@
 Environment Variables
 -------------------------
 
+Explicitly set environment variables
 
 :file:`examples/env_variables.py`
 

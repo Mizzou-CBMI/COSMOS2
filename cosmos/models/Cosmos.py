@@ -3,6 +3,7 @@ import sys
 
 # from concurrent import futures
 from datetime import datetime
+from typing import Optional, Dict
 
 from flask import Flask
 
@@ -58,24 +59,28 @@ def default_get_submit_args(task, parallel_env="orte"):
 class Cosmos(object):
     def __init__(
         self,
-        database_url="sqlite:///:memory:",
-        get_submit_args=default_get_submit_args,
-        default_drm="local",
-        default_drm_options=None,
-        default_queue=None,
-        default_time_req=None,
-        default_max_attempts=1,
+        database_url: str = "sqlite:///:memory:",
+        get_submit_args: callable = default_get_submit_args,
+        default_drm: str = "local",
+        default_drm_options: Optional[Dict] = None,
+        default_queue: Optional[str] = None,
+        default_time_req: Optional[int] = None,
+        default_max_attempts: int = 1,
         flask_app=None,
-        default_job_class=None,
-        default_environment_variables=None,
+        default_job_class: Optional[str] = None,
+        default_environment_variables: Optional[Dict] = None,
     ):
         """
-        :param str database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
+        :param database_url: A `sqlalchemy database url <http://docs.sqlalchemy.org/en/latest/core/engines.html>`_.  ex: sqlite:///home/user/sqlite.db or
             mysql://user:pass@localhost/database_name or postgresql+psycopg2://user:pass@localhost/database_name
-        :param callable get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
+        :param get_submit_args: a function that returns arguments to be passed to the job submitter, like resource
             requirements or the queue to submit to.  See :func:`cosmos.api.default_get_submit_args` for details
         :param flask.Flask flask_app: A Flask application instance for the web interface.  The default behavior is to create one.
-        :param str default_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
+        :param efault_drm: The Default DRM to use (ex 'local', 'lsf', or 'ge')
+        :param default_drm_options: Default value for every Task.drm_options
+        :param default_queue: Default value for every Task.queue
+        :param default_time_req: Default value for every Task.time_req
+        :param default_environment_variables: Default value for every Task.environment_variables
         """
         default_drm_options = {} if default_drm_options is None else default_drm_options
         # Avoid cyclical import dependencies
