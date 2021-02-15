@@ -3,11 +3,6 @@
 
 The official cosmos website is hosted at `http://mizzou-cbmi.github.io <http://mizzou-cbmi.github.io>`_.
 
-To chat with the author/other users (many of which use Cosmos to make bioinformatics NGS workflows), use gitter:
-
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-    :alt: Join the chat at https://gitter.im/Mizzou-CBMI/COSMOS2
-    :target: https://gitter.im/Mizzou-CBMI/Cosmos2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Python3
 =========
