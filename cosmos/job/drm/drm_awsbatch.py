@@ -373,7 +373,7 @@ class DRM_AWSBatch(DRM):
                 for task in tasks
             ]
         ):
-            if container_image not in self.image_to_job_definition:
+            if True or container_image not in self.image_to_job_definition:
                 self.log.info(f"Registering base job definition for image: {container_image}")
                 self.image_to_job_definition[container_image] = register_base_job_definition(
                     container_image=container_image,
