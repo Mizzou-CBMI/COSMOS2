@@ -235,6 +235,13 @@ def register_base_job_definition(container_image, environment, command, shm_size
         "mountPoints": [{"containerPath": "/scratch", "readOnly": False, "sourceVolume": "scratch"}],
         "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
         "resourceRequirements": [],
+        "ulimits": [
+            {
+                'hardLimit': 65000,
+                'name': 'nofile',
+                'softLimit': 64900
+            },
+        ],
         # run_s3_script
         "command": ["bash", "-c", command],
         "memory": 100,
