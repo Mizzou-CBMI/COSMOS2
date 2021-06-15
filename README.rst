@@ -4,11 +4,6 @@
 The official cosmos website is hosted at `http://mizzou-cbmi.github.io <http://mizzou-cbmi.github.io>`_.
 
 
-Python3
-=========
-Cosmos now supports python3!
-
-
 Documentation
 ==============
 
