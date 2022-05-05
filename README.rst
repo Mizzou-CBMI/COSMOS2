@@ -1,9 +1,6 @@
 .. image:: https://travis-ci.org/Mizzou-CBMI/COSMOS2.svg?branch=master
     :target: https://travis-ci.org/Mizzou-CBMI/COSMOS2
 
-The official cosmos website is hosted at `http://mizzou-cbmi.github.io <http://mizzou-cbmi.github.io>`_.
-
-
 Documentation
 ==============
 
