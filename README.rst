@@ -43,7 +43,7 @@ or `Airflow <http://airbnb.io/projects/airflow/>`__ which also try to solve ETL 
 Cosmos is very focused on reproducible scientific pipelines, allowing it to have a very simple state.
 There is a single process per Workflow which is a python script, and a single process per Task which is python function represented by an executable script.
 When a Task fails, reproducing the exact environment of a Task is as simple as re-running the command script.  Since
-the command script is a pythong script, you can also launch it with pdb (python -m ipdb log/stage/uid/command_attempt).
+the command script is a python script, you can also launch it with pdb (python -m ipdb log/stage/uid/command_attempt).
 
 The same pipeline can also easily be run on a variety of compute infrastructure: locally, in the cloud, or on a grid computing cluster.
 
