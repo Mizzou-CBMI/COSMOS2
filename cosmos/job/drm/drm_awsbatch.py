@@ -227,13 +227,21 @@ def get_aws_batch_job_infos(all_job_ids, boto_config=None, missing_ok=False):
     return returned_jobs
 
 
-def register_base_job_definition(container_image, environment, command, shm_size=None):
+def register_base_job_definition(container_image, environment, command, mount_points, volumes, shm_size=None):
+
+    # add custom mount points and volumes, if empty leave default
+    # eval converts mount_points and volumes strings back to list of dicts
+    container_mount_points=[{"containerPath": "/scratch", "readOnly": False, "sourceVolume": "scratch"}]
+    container_mount_points.extend(list(eval(mount_points)))
+    
+    container_volumes=[{"name": "scratch", "host": {"sourcePath": "/scratch"}}]
+    container_volumes.extend(list(eval(volumes)))
     # register base job definition
     container_properties = {
         "image": container_image,
         "jobRoleArn": "ecs_administrator",
-        "mountPoints": [{"containerPath": "/scratch", "readOnly": False, "sourceVolume": "scratch"}],
-        "volumes": [{"name": "scratch", "host": {"sourcePath": "/scratch"}}],
+        "mountPoints": container_mount_points,
+        "volumes": container_volumes,
         "resourceRequirements": [],
         # run_s3_script
         "command": ["bash", "-c", command],
@@ -339,7 +347,8 @@ class DRM_AWSBatch(DRM):
                     username=getpass.getuser(),
                     stage_name=task.stage.name.replace("/", "__").replace(":", ""),
                     cwd=os.getcwd(),
-                    argv=" ".join(sys.argv),
+                    # avoid argv parameter since strings longer than 255 characters results in aws batch error
+                    #argv=" ".join(sys.argv),
                 ),
                 environment=task.environment_variables,
             )
@@ -357,21 +366,26 @@ class DRM_AWSBatch(DRM):
 
     def submit_jobs(self, tasks):
         # Register job definitions for each container_image
-        for container_image, shm_size in set(
-            [
+        # NOTE: must convert mount_points and volumes to strings to preserve set()
+
+        for container_image, shm_size, mount_points, volumes in set([
                 (
                     task.drm_options["container_image"],
                     task.drm_options["shm_size"] if "shm_size" in task.drm_options.keys() else None,
+                    str(task.mount_points),
+                    str(task.volumes),
                 )
                 for task in tasks
-            ]
-        ):
+            ]):
+            
             if container_image not in self.image_to_job_definition:
                 self.log.info(f"Registering base job definition for image: {container_image}")
                 self.image_to_job_definition[container_image] = register_base_job_definition(
                     container_image=container_image,
                     environment=None,
                     command="user-should-override-this",
+                    mount_points=mount_points,
+                    volumes=volumes,
                     shm_size=shm_size,
                 )
 
