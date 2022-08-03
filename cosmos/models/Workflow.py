@@ -212,6 +212,8 @@ class Workflow(Base):
         drm_options=None,
         environment_variables=None,
         if_duplicate="raise",
+        mount_points=None,
+        volumes=None,
     ):
         """
         Adds a new Task to the Workflow.  If the Task already exists (and was successful), return the successful Task stored in the database
@@ -352,6 +354,15 @@ class Workflow(Base):
             )
 
             task.cmd_fxn = func
+
+            # for awsbatch add custom volumes to container
+            # leave empty list if not specified
+            if mount_points is None or volumes is None:
+                task.mount_points = []
+                task.volumes = []
+            else:
+                task.mount_points = mount_points
+                task.volumes = volumes
 
             if drm_options is None:
                 task.drm_options = {}

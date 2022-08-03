@@ -209,6 +209,9 @@ class Task(Base):
     __table_args__ = (UniqueConstraint("stage_id", "uid", name="_uc1"),)
     drm_options = {}
 
+    mount_points = []
+    volumes = []
+
     id = Column(Integer, primary_key=True)
     uid = Column(String(255), index=True)
 
