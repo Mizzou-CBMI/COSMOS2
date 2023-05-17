@@ -501,8 +501,11 @@ class DRM_AWSBatch(DRM):
                 )
 
         # delete temporary s3 script path
-        bucket, key = split_bucket_key(task.s3_command_script_uri)
-        self.s3_client.delete_object(Bucket=bucket, Key=key)
+        # keep them if task has drm_option keep_command_script_uri not set to False
+        keep_command_script_uri = task.drm_options.get("keep_command_script_uri")
+        if not keep_command_script_uri:
+            bucket, key = split_bucket_key(task.s3_command_script_uri)
+            self.s3_client.delete_object(Bucket=bucket, Key=key)
 
     def drm_statuses(self, tasks):
         """
